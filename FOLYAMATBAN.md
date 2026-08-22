@@ -101,7 +101,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Huszonegy döntés lezárva** (öt az 1., tizenhat a 2. munkamenetben, mindkettő 2026-08-22).
+**Huszonkét döntés lezárva** (öt az 1., tizenhét a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -119,6 +119,7 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **B9 jellege** | *(ÚJ)* Kikényszerített-e a méret-lépcső | **Nem — ÉRTÉKESÍTÉSI AJÁNLÁS.** Ha kellene tartalék de nincs hova tenni, dedikált szervergépet ajánlunk (az nem POS, így egyetlen Windows POS is elláthatja a tartalék szerepet). Ha az ügyfél a kockázat ismeretében elutasítja, elfogadjuk. **A szoftver semmilyen konfigurációt nem utasíthat el** | `NYITOTT_KERDESEK.md`, keress: `A lépcső AJÁNLÁS` |
 | **Szerepkiosztás** | *(ÚJ)* Melyik gép viheti a szerver-szerepet | **A tartalék MINDIG Windows POS vastagkliensen van, SOHA nem dedikált gépen.** A fő szerver jellemzően szintén POS-on; aki megengedheti, annál lehet dedikált. **Vékonykliens, KDS, rendeléskijelző egyiket sem viheti** | `NYITOTT_KERDESEK.md`, keress: `A „dedikált" szó pontosítása` |
 | **B10/a** | *(ÚJ)* Adatvédelem a kliens-archívumban | **A szerver jellemzően egy dolgozó pénztárgép lesz**, nem irodai gép → a teljes adatbázis a pultban áll. A fizikai lopás ellen szoftverrel nem lehet teljesen védekezni — ezt ki kell mondani. Ellenszer: **adatminimalizálás** (tervezési szabály), lemeztitkosítás ha van TPM, fizikai rögzítés, és a felhőmentés mint egyetlen helyreállítási út lopás után | `NYITOTT_KERDESEK.md`, keress: `B10/a` |
 | **B10/b** | *(ÚJ)* Kliens-archívum megőrzési ideje | **20 FORGALMAS üzleti nap**, nem 20 naptári nap — egy zárva töltött nap nem számít bele és nem öregít ki semmit. A licenc 10 napos türelmi idejével szándékosan nem közös érték. Nyugtázatlan adatot a megőrzés soha nem töröl | `NYITOTT_KERDESEK.md`, keress: `B10/b` |
@@ -167,39 +168,39 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 
 ## 2. A KÖVETKEZŐ TÉTEL
 
-### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` Két tisztázandó, nem találgatható tétel
+### 2.1 A FÁZISTERV MOST MÁR MEGÍRHATÓ
 
-1. **`[ ]` Mit számolunk a méret-lépcsőknél: vastagklienst vagy összes eszközt?**
-   **Valódi hézag, nem szőrszálhasogatás.** A szerepkiosztás tisztázása után
-   kiderült, hogy szerepet **csak Windows POS vastagkliens vihet**. Ebből:
-   - **Vastagkliensben számolva** a referencia-étterem (3 POS + 2 tablet +
-     4 telefon + KDS + kijelző) „3 gépes" → a tartalék **opcionális**. Pedig ez egy
-     11 eszközös hely, ahol a szerver kiesése nagyon sokat visz.
-   - **Összes eszközben számolva** ugyanez „11 gépes" → **kötelező**. Viszont akkor
-     egy 1 POS + 5 telefonos hely is „6 gépes", ahol **kötelező lenne a tartalék,
-     de nincs hova tenni** — csak egy vastagkliens van, és az a fő szerver.
+**Nincs több blokkoló döntés.** Ami nyitva maradt, az mind párhuzamosan
+elintézhető a fázisterv írásával:
 
-   **A hézag lényege:** a tartalék *szükségességét* az dönti el, **hány eszköz függ
-   a szervertől**; a *lehetőségét* viszont az, **hány Windows POS van.** A kettő
-   szétválhat. Eldöntendő, mi legyen, ha egy helynek kellene tartalék, de nincs
-   hova tennie: (a) vegyen még egy Windows POS-t, (b) kivételesen mégis dedikált
-   gépre kerül, (c) nincs tartalék, marad a csökkentett mód.
-   → `NYITOTT_KERDESEK.md`, keress: `A „gépszám" MÉRTÉKEGYSÉGE TISZTÁZANDÓ`
+1. **`[ ]` Van-e TPM a meglévő J1900 bázison?** Hardveren ellenőrizhető tény, nem
+   vélemény. Ha nincs, a felügyelet nélkül induló pénztárgépen a teljes
+   lemeztitkosítás útvonala elesik, és marad az adatminimalizálás + fizikai
+   rögzítés. → keress: `IGAZOLATLAN PREMISSZA (§13.5):`
+2. **`[ ]` A tanú-séma lépcsőnkénti alakja** — megírva, jóváhagyásra vár.
+   → keress: `A tanú-kérdés (R1) NEM oldódott meg`
+3. **`[ ]` A kockázatvállalás rögzítése** — javaslat megírva, jóváhagyásra vár:
+   a „nincs tartalék szerver" tény kerüljön be a konfigurációba (mikor, ki
+   tájékoztatta), és az admin felület **állandóan** mutassa a hely védelmi
+   szintjét. Indok: az informált kockázatvállalás csak akkor véd, ha **adat**, nem
+   beszélgetés. → keress: `informált kockázatvállalás`
+4. **`[ ]` Az árva tranzakciók elétárásának időzítése** — javaslat megírva.
+   → keress: `A4/c`
 
-2. **`[ ]` Van-e TPM a meglévő J1900 bázison?** Nem vélemény, hanem a hardveren
-   **ellenőrizhető tény** — de ellenőrizni kell. Ha nincs, akkor a felügyelet
-   nélkül, áramszünet után magától induló pénztárgépen a teljes lemeztitkosítás
-   útvonala elesik (a kulcsot nem lehet hova kötni), és marad az adatminimalizálás
-   + fizikai rögzítés. **Erre ne építsünk, amíg nincs ellenőrizve.**
-   → `NYITOTT_KERDESEK.md`, keress: `IGAZOLATLAN PREMISSZA (§13.5):`
+### 2.1.0 `[!]` Amit a fázisterv írásakor NEM szabad elfelejteni
 
-### 2.1.0 `[ ]` Jóváhagyásra vár (nem blokkoló)
+**A csökkentett mód NEM véd minden telepítésen.** Ez a legkönnyebben
+félreérthető pont az egész tervben:
 
-- **A tanú-séma lépcsőnkénti alakja** — megírva a gépszám-lépcsők tisztázása után.
-  → keress: `A tanú-kérdés (R1) NEM oldódott meg`
-- **Az árva tranzakciók elétárásának időzítése** — a szerepcsere azonnali, de a
-  „N tétel rendezésre vár" képernyő ne ugorjon a pénztáros arcába csúcsidőben.
-  → keress: `A4/c`
+| Telepítés | Ha a fő szerver meghal (tartalék nélkül) |
+|-----------|-------------------------------------------|
+| 1 Windows POS = szerver, mellé vékonykliensek | **SEMMILYEN védelem — a hely megáll** |
+| 2+ Windows POS, egyikük a szerver | a többi POS csökkentett módban eladhat |
+| Dedikált szerver + N Windows POS | **minden POS eladhat — itt a legnagyobb a haszon** |
+
+Az „1 POS + sok vékonykliens" nem „kicsit kevésbé védett", hanem **teljesen
+védtelen** — a rajta futó csökkentett mód is meghal a géppel együtt. Az
+értékesítési beszélgetésben pontosan ezt kell mondani.
 
 ### 2.1.1 `[ ]` A kétlépcsős failover kitöltési kérdései (R1–R5; az R6 megerősítve)
 

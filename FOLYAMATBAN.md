@@ -100,7 +100,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Tizenkét döntés lezárva** (öt az 1., hét a 2. munkamenetben, mindkettő 2026-08-22).
+**Tizenhat döntés lezárva** (öt az 1., tizenegy a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -116,6 +116,10 @@ meg, és a következő kör újratárgyalja őket.
 | **A4** | *(ÚJ)* Ki állítja vissza a fő szervert | **AUTOMATIKUS**, ha a fő és a tartalék 1 percig stabilan látják egymást és beszélnek is. A régi „csak szuperfiókkal" szabály ELVETVE. **De:** az árva tranzakciók kimentése automatikus és kötelező, a KÖNYVELÉSÜK nem lehet automatikus | `NYITOTT_KERDESEK.md`, keress: `A4 — failback` |
 | **A4/a** | *(ÚJ)* Átvételi útvonalak | **Tiszta vs. kemény átvétel külön útvonal.** Ha a régi fő él és a tartalék eléri, a tartalék az átvétel ELŐTT leszívja a nem replikált tranzakciókat → tényleg nulla veszteség | `NYITOTT_KERDESEK.md`, keress: `A4/a` |
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
+| **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
+| **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **B9/a** | *(ÚJ)* Egygépes telepítés | **A pénztárgép MAGA a szerver.** Ezzel eldőlt a korábban nyitott kérdés is: igen, futhat egy gépen szerver ÉS kliens — támogatott konfiguráció | `NYITOTT_KERDESEK.md`, keress: `B9` |
+| **Üzenetek** | *(ÚJ)* Személyzeti hibaüzenetek | **Három üzenet jóváhagyva** („hálózat", nem „internet"), plusz külön jelzés az internet hiányára | `NYITOTT_KERDESEK.md`, keress: `A személyzetnek szóló üzenetek` |
 | **B3** | Minimum célhardver | J1900 **vegyes bázis** (szerver ÉS kliens) → **GraalVM kényszer marad**, plusz szoros WPF perf-költségvetés | `NYITOTT_KERDESEK.md:374` |
 | **E2** | Ki fejleszti | 2–3 fős csapat + AI → **B8 (API-szerződés) az első hét tétele**, nem opcionális | `NYITOTT_KERDESEK.md:612` |
 
@@ -158,39 +162,32 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 
 ## 2. A KÖVETKEZŐ TÉTEL
 
-### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` Négy megmaradt részletkérdés
+### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` B9/b — mire vonatkozik a gépszám-szabály?
 
-**Irány-döntés már NINCS nyitva.** Az átkapcsolás és a visszaállás iránya egyaránt
-eldőlt (lásd 1. szakasz). Ami maradt, négy kitöltési kérdés — de kettő közülük
-érdemben befolyásolja a fázistervet.
+**Ez az EGYETLEN nyitott kérdés, ami nem találgatható ki, és ami a fázistervet
+érdemben befolyásolja.**
 
-1. **`[ ]` Egypénztáras hely szabálya — KÉTSZER feltéve, még nincs válasz.**
-   Egyetlen pénztárgépnél nincs kereszt-ellenőrzés, tehát a tanú-séma nullára esik,
-   és a „ki esett ki, én vagy a szerver?" felismerés elveszti a fő
-   információforrását. **Ez pont az MVP jelenlegi célprofilja** (kis bár, 1–2 pénztár).
-   Javasolt válasz: ilyenkor a **tartalék szerver maga a tanú** — a pénztárgép azt
-   kérdezi meg tőle: „te látod a fő szervert?". Elegáns, mert a tartalék úgyis ott
-   van, és pont azt a kérdést dönti el, amit kell.
-   → `NYITOTT_KERDESEK.md`, keress rá: `R1`
+A felhasználó a telepítési méretosztályokról ezt mondta: *„egy egy pénztárgépes
+helyen az egyetlen gép maga a szerver, így annak elérésével nem lehet probléma.
+két vagy három gépes hely esetében nincs rá szükség, de lehetőségnek fenntartanám,
+4 vagy több gépes helyekre kell viszont mindenképpen."*
 
-2. **`[ ]` Kell-e védelem az oda-vissza billegés ellen?** Szakaszos kapcsolatnál
-   (haldokló switch) az automatikus visszaállás végtelen szerepcsere-hurkot csinál.
-   Javaslat: növekvő várakozás minden visszaállás után + egy határ, ami után az
-   automatika kikapcsol és hangosan szól. → keress rá: `A4/b`
+**Az egygépes rész egyértelmű és el van döntve** (lásd 1. szakasz, B9/a).
+**A második mondat viszont kétféleképp olvasható**, és a kettő különböző rendszer:
 
-3. **`[ ]` Mikor történjen a szerepcsere vissza — azonnal, vagy csendes időben?**
-   A visszaállás NEM sürgős (a tartalék rendesen kiszolgál), a szerepcsere viszont
-   minden kliens újracsatlakozását jelenti. Pénteken 20:00-kor fölösleges zavar,
-   zárás után ingyen van. Javaslat: ismerje fel azonnal, de HALASSZA a napi zárásra,
-   kivéve ha a menedzser azonnal kéri. **Termékdöntés.** → keress rá: `A4/c`
+- **(A) A vészhelyzeti szerverre vonatkozik.** 2–3 gépes helyen a tartalék szerver
+  opcionális, 4+ gépesen kötelező. → Ez azt jelentené, hogy a **legtöbb kis hely
+  NEM kap tartalék szervert**, ami visszahat a „vészhelyzeti szerver az MVP-ben
+  marad" döntésre és a fázisterv scope-jára.
+- **(B) A tanú-sémára vonatkozik** (ez volt a feltett kérdés tárgya). 2–3 gépes
+  helyen nem kell külön tanú-mechanizmus — elég a tartalék szervert megkérdezni —,
+  4+ gépesen kell a teljes, több tanús séma.
 
-4. **`[ ]` A személyzetnek szóló három üzenet szövege — jóváhagyásra vár.**
-   A felhasználó kettőt kért, hármat írtam (a gép három érdemben különböző
-   helyzetet tud megkülönböztetni). **Egy szakmai pontosítást tartalmaznak:** a
-   felhasználó „internetet" kért az üzenetbe, de a lokális szervernek a
-   pénztárgépek kiszolgálásához NEM kell internet, csak helyi hálózat — ha az
-   üzenet internetet mond, a személyzet a szolgáltatót fogja hívni, miközben a
-   valódi hiba egy switch. → keress rá: `A személyzetnek szóló üzenetek`
+A kettő **nem zárja ki egymást**, akár mindkettő igaz lehet. **§2.2: erre nem
+szabad találgatással építeni**, mert a hibás premissza a felhasználó következő
+döntésébe csatornázódna.
+
+→ `NYITOTT_KERDESEK.md`, keress rá: `B9/b`
 
 ### 2.1.1 `[ ]` A kétlépcsős failover kitöltési kérdései (R1–R5; az R6 megerősítve)
 

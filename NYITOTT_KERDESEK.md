@@ -11,8 +11,11 @@
 > megy csökkentett módba. Kimondva egy ÜTKÖZÉS: „automatikus visszaállás” + „nulla
 > adatvesztés” teljes automatizmussal nem teljesíthető együtt — a kimentés automatikus,
 > a könyvelés nem lehet az.
-> **NYITVA maradt:** A4/b (billegés-védelem), A4/c (mikor cseréljünk szerepet),
-> az egypénztáras hely szabálya, a B1/c R1–R5 kitöltése, majd E1 (fázisterv).
+> **ÚJ (negyedik kör):** A4/b (billegés-védelem: növekvő várakozás + leállási határ),
+> A4/c (azonnali szerepcsere), a személyzeti üzenetek jóváhagyva, és ÚJ tétel: **B9**
+> — telepítési méretosztályok, ahol az egygépes helyen a pénztárgép maga a szerver.
+> **NYITVA maradt:** B9/b (mire vonatkozik a 2–3 vs. 4+ gépes szabály), a B1/c R1–R5
+> kitöltése, majd E1 (fázisterv).
 > **Ez az EGY igazságforrás a nyitott döntésekre** (MERNOKISAROKKOVEK §2.4).
 > Ha egy tétel eldől, ITT jelöld `[ELDÖNTVE — <döntés>]`-ként, ne máshol.
 >
@@ -271,7 +274,24 @@ Ez a felhasználó „beszélgessenek egymással" kérésének a legerősebb for
 
 ---
 
-#### `[ ]` A4/b — NYITVA: kell-e védelem az oda-vissza billegés ellen?
+#### `[ELDÖNTVE — növekvő várakozás + leállási határ]` A4/b — billegés-védelem
+
+**Döntés (2026-08-22, 2. munkamenet):** kell védelem.
+- **Növekvő várakozás:** minden automatikus visszaállás után **hosszabb** stabil
+  időszakot kell látni a következőhöz (pl. 1 perc → 5 → 15 → …). A konkrét
+  lépcsősor konfigurációs paraméter, nem beégetett konstans.
+- **Leállási határ:** ha X visszaállás történt Y időn belül, az automatika
+  **kikapcsol**, és **hangosan szól**, hogy emberi beavatkozás kell. Nem csendben
+  áll le (§5: a jelzés hiánya nem bizonyíték a sikerre) — kiírja, hogy azért nem
+  próbálkozik többet, mert billegést észlelt.
+- **X és Y konkrét értéke `[ ]` MÉRENDŐ / tapasztalati** — nem tippelhető.
+  Kiindulásnak 3 visszaállás / 1 óra, de ez felülvizsgálandó valós üzemben.
+
+**Miért nem elég az 1 perc önmagában:** egy haldokló switch pont olyan mintát ad,
+ami ezt átveri — perceken keresztül stabil, majd megszakad. A fix küszöb nem
+különbözteti meg a „helyreállt" és a „még nem halt meg végleg" esetet.
+
+#### `[TÖRTÉNETI — a fenti döntés váltotta ki]` A4/b eredeti felvetése
 
 **Új kockázat, amit az automatikus visszaállás teremt.** Ha a két szerver közti
 kapcsolat szakaszos (haldokló switch, rossz kábel), a következő hurok áll elő:
@@ -285,7 +305,28 @@ a kapcsolat visszajön → 1 perc → automatikus visszaállás → ...
 (b) egy határ — ha X visszaállás történt Y időn belül, az automatika **kikapcsol**,
 és hangosan szól, hogy emberi beavatkozás kell. **Döntésre vár.**
 
-#### `[ ]` A4/c — NYITVA: mikor történjen a visszaállás — azonnal, vagy csendes időben?
+#### `[ELDÖNTVE — azonnal, ahogy stabil]` A4/c — mikor történjen a szerepcsere
+
+**Döntés (2026-08-22, 2. munkamenet):** a szerepcsere **azonnal** megtörténik,
+amint a stabilitási feltétel teljesül — nincs napi zárásra halasztás.
+A javasolt „csendes ablakra halasztás" **elvetve**: kiszámíthatóbb, hogy a rendszer
+mindig ugyanúgy viselkedik, mint hogy a napszaktól függjön.
+
+**Ez jól illeszkedik az A4/b döntéshez:** első alkalommal azonnal (gyors
+helyreállás), ismétlődésnél viszont a növekvő várakozás úgyis egyre később engedi
+— tehát a „csúcsidőben állandóan cserélget" forgatókönyvet nem az időzítés,
+hanem a billegés-védelem zárja ki. A két döntés együtt koherens.
+
+**`[JAVASLAT — jóváhagyásra]` Egy finomítás, ami megőrzi ezt a döntést, de levesz
+egy terhet a csúcsidőről:** a **szerepcsere** legyen azonnali (mechanikus, gyors,
+a kliensek újracsatlakoznak), de az **árva tranzakciók elétárása** — a „7 tétel
+rendezésre vár" képernyő — **ne ugorjon a pénztáros arcába csúcsidőben**. Az adat
+kimentése akkor is azonnali és kötelező; csak a **rendezésre való felszólítás**
+várhat a menedzserre, egy jelzéssel, ami nem tűnik el, amíg nem foglalkoztak vele.
+Így a felhasználó döntése („azonnal") érvényesül ott, ahol számít, és nem
+terheljük a pénztárost egy könyvelési feladattal a sor közepén.
+
+#### `[TÖRTÉNETI]` A4/c eredeti felvetése
 
 **A visszaállás NEM sürgős.** A tartalék szerver közben rendesen kiszolgál; a hely
 működik. A szerepcsere viszont **minden kliens újracsatlakozását jelenti**, tehát
@@ -515,12 +556,21 @@ leggyakoribb.
 a tartalék szervert, hogy egyáltalán elérhető és egészséges-e.** Ha nem, az
 átkapcsolást **felajánlani sem szabad**.
 
-##### `[JAVASLAT — a felhasználó jóváhagyására vár]` A személyzetnek szóló üzenetek szövege
+##### `[ELDÖNTVE — JÓVÁHAGYVA 2026-08-22]` A személyzetnek szóló üzenetek szövege
 
-A felhasználó kérte a két üzenetet, a megfogalmazást rám bízta. **Három** üzenetet
-javaslok, nem kettőt, mert a gép három érdemben különböző helyzetet tud
+A felhasználó kérte a két üzenetet, a megfogalmazást rám bízta. **Három** üzenet
+készült, nem kettő, mert a gép három érdemben különböző helyzetet tud
 megkülönböztetni, és a §5 („a felület ne állítson olyat, ami nem igaz") szerint
 nem szabad kettőbe gyömöszölni őket.
+
+**A felhasználó 2026-08-22-én JÓVÁHAGYTA** mindhárom szöveget, a „hálózat"
+szóhasználattal (nem „internet") együtt, plusz külön, nem keveredő jelzést az
+internet hiányára.
+
+**Ezek MINTASZÖVEGEK, nem végleges felirat.** A design-fázisban a UiUX
+skill-készlettel (lásd `FOLYAMATBAN.md` 0.2) át kell nézni tipográfiára,
+kontrasztra és érintőképernyős olvashatóságra. A TARTALOM viszont jóváhagyott,
+azon érdemben ne változtasson a design-kör.
 
 **(1) A SZERVER a gyanús** — ez a gép eléri a többi gépet és/vagy a tartalék
 szervert, de a fő szervert nem:
@@ -773,6 +823,68 @@ tartva garantáltan szétcsúszik — ez a MERNOKISAROKKOVEK §6 varrat-hibaoszt
 Javaslat: **6. repo, vagy a `Siduri-Docs`-ban egy `contracts/` mappa** (OpenAPI +
 AsyncAPI a WebSocket eventekre), amiből generáljuk mindhárom kliens SDK-t, plusz
 paritás-őr (§6).
+
+### `[RÉSZBEN ELDÖNTVE]` B9 — Telepítési MÉRETOSZTÁLYOK (új tétel, 2026-08-22)
+
+**Ez a tétel a 2. munkamenetben született, egyik eredeti doksiban sem szerepelt.**
+Feloldja azt a feszültséget, amit a „vészhelyzeti szerver az MVP-ben marad"
+döntés (B1/a) teremtett: nem kell MINDEN helyre két dedikált gép.
+
+**A felhasználó döntése (2026-08-22) — gépszám szerinti lépcsők:**
+
+| Gépszám a helyen | Topológia | Vészhelyzeti szerver |
+|------------------|-----------|----------------------|
+| **1 gép** | **Az egyetlen pénztárgép MAGA a szerver** (kombinált szerep) | Nincs — nincs második gép |
+| **2–3 gép** | Külön szerver + pénztárgépek | **Nem kötelező, de LEHETŐSÉGKÉNT fenntartva** |
+| **4+ gép** | Külön szerver + pénztárgépek | **KÖTELEZŐ** |
+
+**`[ELDÖNTVE]` B9/a — az egygépes hely: a pénztárgép maga a szerver.**
+A felhasználó indoklása: *„az egyetlen gép maga a szerver, így annak elérésével
+nem lehet probléma."* Ez helyes — nincs hálózati ugrás, tehát a
+szerver-elérhetetlenség hibaosztálya ott elvileg nem keletkezik, és az egész
+tanú-kérdés (R1) tárgytalanná válik ezen a lépcsőn.
+
+**KÖVETKEZMÉNYEK, amiket ez azonnal maga után von — ezek NEM a döntés
+újranyitása, hanem az árazása:**
+
+1. **A B3 3. nyitott kérdése ezzel ELDŐLT.** Ott az szerepelt nyitottként:
+   *„Egy gépen futhat-e egyszerre szerver ÉS POS kliens?"* — **igen, és ez most már
+   nem hipotézis, hanem TÁMOGATOTT TERMÉKKONFIGURÁCIÓ.**
+
+2. **`[!]` Ez a rendszer legszűkösebb hardveres esete, és most kötelezővé vált.**
+   Egy J1900-on egyszerre fut: PostgreSQL + a Java szerver (GraalVM native) + a
+   WPF pénztárgép-kliens + a 20. pont szerinti 720p másodkijelzős videó, 4 GB RAM
+   mellett. **§4: ez MÉRENDŐ, nem becsülhető**, és most nem „érdekes lenne
+   megnézni", hanem **az MVP egyik szállítási feltétele**. Ha nem fér bele,
+   vagy a lépcső dől meg, vagy a hardverkövetelmény.
+
+3. **Az egygépes helyen nincs semmilyen hardverhiba-védelem.** Ha az a gép
+   meghal, a hely megáll — a csökkentett mód sem segít, mert az is azon a gépen
+   futna. **Ezt az értékesítési anyagban és a telepítési dokumentációban ki kell
+   mondani**, nem elhallgatni (§5: a felület / a termék ne ígérjen olyat, ami nincs).
+   Ezen a lépcsőn a védelem: **mentés és gyors csereberendezés** (D1), nem HA.
+
+4. **A csökkentett gyorseladás (A2/b) haszna lépcsőnként MÁS.** Egygépes helyen
+   közel nulla (ha a gép él, a szerver is él; ha nem él, semmi sem). 2+ gépes
+   helyen viszont valódi. Ez nem ok a kivételére — úgyis megépül —, de a
+   fázistervben és a marketingben pontosan kell fogalmazni.
+
+**`[ ]` B9/b — TISZTÁZANDÓ: mire vonatkozik a „2–3 gépnél nem kell, 4+ gépnél
+kötelező" szabály?**
+A felhasználó mondata (*„két vagy három gépes hely esetében nincs rá szükség, de
+lehetőségnek fenntartanám, 4 vagy több gépes helyekre kell viszont
+mindenképpen"*) **kétféleképp olvasható**, és a kettő különböző rendszert ír le:
+- **(A) olvasat — a VÉSZHELYZETI SZERVERRE vonatkozik:** 2–3 gépes helyen a
+  tartalék szerver opcionális, 4+ gépesen kötelező.
+- **(B) olvasat — a TANÚ-SÉMÁRA vonatkozik** (ez volt a feltett kérdés tárgya):
+  2–3 gépes helyen nem kell külön tanú-mechanizmus (elég a tartalék szervert
+  megkérdezni), 4+ gépesen kell a teljes, több tanús séma.
+
+**A két olvasat NEM zárja ki egymást — akár mindkettő igaz lehet.**
+**§2.2 szerint ezt nem szabad találgatással eldönteni**, mert a tét nagy: az (A)
+olvasat azt jelenti, hogy a legtöbb kis hely NEM kap tartalék szervert, ami
+visszahat a B1/a scope-döntésre és az E1 fázistervre.
+**Tisztázás alatt — erre építeni tilos.**
 
 ---
 
@@ -1075,15 +1187,18 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **A4/b + A4/c** | `[ ]` **NYITVA** | A visszaállás iránya eldőlt (automatikus), de két részlet nyitva: (b) kell-e védelem az oda-vissza billegés ellen, (c) azonnal történjen-e a szerepcsere vagy csendes időben (napi zárás). |
-| 1b | **Egypénztáras hely szabálya** | `[ ]` **NYITVA** — kétszer feltéve, még nincs válasz | Egyetlen pénztárgépnél nincs kereszt-ellenőrzés, tehát a tanú-séma nullára degradálódik. Ez pont az MVP jelenlegi célprofilja. |
-| 2 | **B1/c R1–R6** | `[ ]` **NYITVA** — R6 MEGERŐSÍTVE, a többi kitöltési kérdés | A kétlépcsős failover végrehajtási részletei: ki a tanú (és mi van egypénztáras helyen), miből ismeri fel a gép hogy Ő esett ki, az 5 perc paraméterezése és az ajánlat lejárata, több egyidejű gombnyomás, élő-de-elérhetetlen fő szerver, és hogy ne ajánljunk fel működésképtelen átkapcsolást. |
+| 1 | **B9/b** | `[ ]` **NYITVA — tisztázandó, nem találgatható** | A „2–3 gépnél nem kell, 4+ gépnél kötelező" szabály a VÉSZHELYZETI SZERVERRE vonatkozik, vagy a TANÚ-SÉMÁRA? A kettő különböző rendszert ír le, és az egyik olvasat visszahat a HA scope-jára és a fázistervre. |
+| 2 | **B1/c R1–R5** | `[ ]` **NYITVA** — R6 megerősítve; az R1 (ki a tanú) a B9/b tisztázásától függ | A kétlépcsős failover végrehajtási részletei: ki a tanú (és mi van egypénztáras helyen), miből ismeri fel a gép hogy Ő esett ki, az 5 perc paraméterezése és az ajánlat lejárata, több egyidejű gombnyomás, élő-de-elérhetetlen fő szerver, és hogy ne ajánljunk fel működésképtelen átkapcsolást. |
 | 3 | **E1** | `[ ]` **NYITVA** — a fázisterv még nincs megírva | Mi az MVP scope-ja? Enélkül nincs mihez mérni a haladást. **Az A4 után** írandó. |
 | — | ~~A1~~ | `[ELDÖNTVE]` | WPF, Windows 10 IoT Enterprise LTSC only. |
 | — | ~~A2~~ | `[ELDÖNTVE]` | Szerver-autoritatív + degradált gyorseladás. **Feltételes**: igazolatlan AEE-premisszán áll. |
 | — | ~~A2/a~~ | `[ELDÖNTVE]` | Kettős kieséskor a nyitott asztalok nem elérhetők → kézi újrafelütés. |
 | — | ~~A2/b~~ | `[ELDÖNTVE]` | A degradált gyorseladás **mindhárom része** (helyi napló, degradált felület, visszatéréskori egyeztetés) az MVP-ben van. |
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
+| — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
+| — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~B9/a~~ | `[ELDÖNTVE]` | **Egygépes helyen a pénztárgép MAGA a szerver.** Ezzel a B3 nyitott kérdése (futhat-e egy gépen szerver és kliens) eldőlt: **igen, támogatott konfiguráció**. Következmény: ez a legszűkösebb hardveres eset, és ott nincs hardverhiba-védelem. |
+| — | ~~Személyzeti üzenetek~~ | `[ELDÖNTVE]` | Három üzenet (a szerver gyanús / ez a gép a hibás / bizonytalan), „hálózat" szóhasználattal, plusz külön jelzés az internet hiányára. Tartalmilag jóváhagyva; a design-körben csak a megjelenés csiszolható. |
 | — | ~~A4~~ | `[ELDÖNTVE]` | **A visszaállás AUTOMATIKUS**, ha a fő és a tartalék 1 percig stabilan látják egymást és beszélnek is. A régi spec „csak szuperfiókkal" szabálya ELVETVE. **DE:** az árva tranzakciók KIMENTÉSE kötelező és automatikus, a KÖNYVELÉSÜK viszont nem lehet automatikus (duplikált adóügyi bizonylat kockázata). |
 | — | ~~A4/a~~ | `[ELDÖNTVE]` | **Tiszta vs. kemény átvétel** külön útvonal. Tiszta átvételnél (a régi fő él és elérhető a tartalék felől) a tartalék az átvétel ELŐTT leszívja a nem replikált tranzakciókat → tényleg nulla veszteség. Keményénél az árvák elkerülhetetlenek. |
 | — | ~~B1/c K1~~ | `[ELDÖNTVE]` | **Minden gép ÖNÁLLÓAN megy csökkentett módba**, akkor is, ha a többi működik. A csökkentett mód gépenkénti állapot, nem a helyé. |

@@ -137,21 +137,40 @@ Ezen felül mérnöki okból is korai:
 
 ---
 
-## 5. Repó- és git-állapot — FONTOS FIGYELMEZTETÉS
+## 5. Repó- és git-állapot
 
-**Ez a munka NINCS biztonságban.**
+> **JAVÍTVA (2026-08-22, 2. munkamenet).** Ez a szakasz korábban azt állította, hogy
+> „a munka NINCS biztonságban", a remote egy lokális `W:\...` útvonal, és a branch
+> `claude-coding`. **Mindhárom állítás elavult** — §2.4 (doksi-drift): egy elavult
+> „ez blokkolt" bekezdés a következő kört egy nem létező hátralék hajszolására küldi.
 
-- A `Siduri-Docs` submodule „remote"-ja egy **lokális útvonal ugyanezen a gépen**:
-  `W:\Wurfel_Obsidian_Safe\Siduri\Siduri-Docs`.
-- A **parent repónak egyáltalán nincs remote-ja.**
-- **GitHub sehol nincs a képben.** A `git push` lefut, de **nem mentés**.
+**Tényleges állapot (mérve, nem feltételezve — `git remote -v`, `git branch`):**
 
-§10 („a részeredményt commitold ÉS pushold — az ephemer környezet bármikor
-elmehet, és a távoli branch az egyetlen igazságforrás") **nem teljesül**: minden
-példány egy gépen, egy meghajtón van. Ha ez nem tudatos döntés, **GitHub remote-ot
-kell beállítani, mielőtt a terv tovább nő.**
+| Repó | GitHub remote | Tartalom |
+|------|---------------|----------|
+| `kafnyi/siduri-docs` | ✔ | 5 doksi + üres README |
+| `kafnyi/siduri-backend-server` | ✔ | csak README (üres) |
+| `kafnyi/siduri-pos-client` | ✔ | csak README (üres) |
+| `kafnyi/siduri-flutter-clients` | ✔ | csak README (üres) |
+| `kafnyi/siduri-updater` | ✔ | csak README (üres) |
+| `kafnyi/siduri-cloud-api` | ✔ | csak README (üres) |
 
-**Branch:** `claude-coding` (submodule és parent egyaránt).
+**Munkabranch mind a 6 repóban:** `claude/siduri-hospitality-system-gpixt0`
+(a `master` az alapértelmezett branch). §10 tehát **teljesül**: a távoli branch az
+igazságforrás, a környezet ephemer, ezért minden részeredmény commitolva ÉS
+pusholva megy.
+
+**A `Siduri-Docs` szerepe (a felhasználó kikötése, 2026-08-22):** **kizárólag**
+dokumentáció-tárolás. Kód nem kerül bele. Ide jön a teljes projekt-dokumentáció,
+és ide jönnek az AI-munkamenet saját, mindig naprakész állapot-doksijai
+(ez a fájl + a `NYITOTT_KERDESEK.md`) — utóbbiakra nincs formai vagy nyelvi
+megkötés, az egyetlen követelmény, hogy **soha ne maradjanak le a valóságtól**,
+akkor sem, ha a tényleges terv-dokumentáció épp lemaradt.
+
+**Nyitott következmény:** a **B8** (hol él az API-szerződés) javaslata „6. repo VAGY
+a `Siduri-Docs`-ban egy `contracts/` mappa" volt. Mivel a Docs csak doksinak van
+szánva, ez a `contracts/` ág **most gyengébb** — vagy 6. repót nyitunk, vagy a Docs
+kikötését lazítjuk. Eldöntendő a B8-nál.
 
 **Munkamenet-szabály (§10):** hosszú folyamat indítása előtt ellenőrizd, nincs-e
 félbeszakadt — és ha van, kérdezd meg, azt folytassuk-e.

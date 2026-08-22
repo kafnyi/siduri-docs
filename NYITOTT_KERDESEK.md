@@ -18,8 +18,11 @@
 > (2–3 gépnél opcionális, 4+ gépnél kötelező). ÚJ tétel: **B10** — kliens-oldali
 > tranzakció-archívum (az adatmennyiség nem akadály; az adatvédelem, a megőrzési idő és
 > az írásterhelés az).
-> **NYITVA maradt:** B10 három részkérdése, az R1 lépcsőnkénti alakjának jóváhagyása,
-> a B1/c R2–R5 kitöltése, majd E1 (fázisterv).
+> **ÚJ (hatodik kör):** B10/a, B10/b, B10/c eldöntve. Kiemelt: **a szerver jellemzően egy
+> dolgozó pénztárgép lesz**, nem irodai gép — ez átrendezi az adatvédelmi képet és a
+> teljesítménymérés súlyát. Megőrzés: **20 FORGALMAS nap**. Új fájl: **`MERESEK.md`**.
+> **NYITVA maradt:** a B1/b ellentmondása (dedikált-e a tartalék gép), van-e TPM a bázison,
+> az R1 lépcsőnkénti alakjának jóváhagyása, a B1/c R2–R5 kitöltése, majd E1 (fázisterv).
 > **Ez az EGY igazságforrás a nyitott döntésekre** (MERNOKISAROKKOVEK §2.4).
 > Ha egy tétel eldől, ITT jelöld `[ELDÖNTVE — <döntés>]`-ként, ne máshol.
 >
@@ -397,6 +400,27 @@ csak a B1/c (ki vált) és az A4 (failback) miatt maradnak.
 
 **Döntés (2026-08-22, 2. munkamenet):** a vészhelyzeti szerver **szintén J1900**,
 a meglévő telepített bázisból, **dedikált** gépként (nem egy pénztárgép mellékállása).
+
+> ### `[!]` FIGYELEM — ez a döntés ELLENTMONDANI LÁTSZIK egy későbbi kijelentésnek
+>
+> A felhasználó ugyanaznap, később ezt mondta:
+> *„a legtöbb esetben a szerver egy olyan gép lesz, ami egyébként kliens is, tehát
+> egy tényleges használatban levő POS. Nagyon kevés hely engedheti meg magának,
+> hogy egy irodában tárolt külön szervergépet vegyen és tartson fenn."*
+>
+> Ha a **fő** szerver jellemzően egy dolgozó pénztárgép, akkor **ugyanez a
+> gazdasági érv a tartalékra is áll** — egy hely, ami a fő szerverre sem vesz
+> külön gépet, a tartalékra végképp nem fog.
+>
+> **Ezt NEM oldom fel találgatással (§2.2).** A két olvasat érdemben eltérő
+> hardver-költségvetést jelent:
+> - **dedikált tartalék:** a gép csak PostgreSQL replikát visz → van szabad
+>   kapacitása;
+> - **tartalék egy dolgozó POS-on:** ugyanaz a J1900 viszi a WPF klienst, a
+>   másodkijelzős videót ÉS a PostgreSQL replikát — ez az M1-nél is szűkösebb eset.
+>
+> **`[ ]` TISZTÁZANDÓ a felhasználóval.** Amíg nincs tisztázva, a `MERESEK.md`
+> M1 tétele **mindkét változatot** mérendőként tartja.
 
 **Ebből következő MUNKAFELTEVÉS a replikációra — figyelem, ez MÉG NEM IGAZOLT (§4):**
 két J1900 között a **szinkron** replikáció várhatóan vállalhatatlan, mert szinkron
@@ -964,27 +988,88 @@ ez **őrt igényel**, nem kommentet.
    futtatható napi záráskor is: „minden kassza minden nyugtája megvan a
    szerveren?" Ez a §1 értelmében **állandóan futó őr**, nem ritkán érintett ág.
 
-#### `[ ]` A három VALÓDI akadály — nem a méret
+#### A három akadály — mindhárom megválaszolva (2026-08-22), de az első nagyobb lett
 
-**B10/a `[ ]` — Adatvédelem (GDPR).** Eddig a nyugtaadat a szerveren volt, egy
-hátsó helyiségben. Mostantól **minden pénztárgép 10 napnyi tranzakciót tart** —
-és ha a nyugtákon számlaadat, törzsvendég-azonosító vagy név szerepel, akkor egy
-pultba épített gép személyes adatot tárol. Egy pénztárgép **ellopható**; a
-szerver általában nem. Eldöntendő: mi kerülhet egyáltalán az archívumba, kell-e
-**titkosítás nyugalmi állapotban**, és hogyan illeszkedik a törlési igényhez (B7).
+**`[ELDÖNTVE + KITERJESZTVE]` B10/a — Adatvédelem**
 
-**B10/b `[ ]` — A megőrzési idő száma.** A javasolt 10 nap **feltűnően ugyanaz a
-szám**, mint a licenc offline türelmi ideje (19. fejezet). **Ne kössük őket
-össze** — két teljesen különböző dolgot védenek, és ha egy közös konstansra
-kerülnek, egyikük megváltoztatása némán elrontja a másikat (§13.1 hibaosztálya).
-Legyen **külön, konfigurálható** paraméter. A konkrét szám eldöntendő: a 10 nap
-bőven fedi a reális helyreállítási ablakot, és a méret alapján akár 30 is lehetne.
+**A felhasználó válasza NEM csak a kliens-archívumot érinti, hanem az egész
+adatvédelmi képet átrajzolja:**
 
-**B10/c `[ ]` — Írásterhelés az olcsó tárolón.** A pénztárgépekben gyakran olcsó
-SSD vagy eMMC van. A minden tranzakciónál lemezre szinkronizált, hozzáfűzéses
-írás elvben rendben van, de **§4 szerint mérendő** J1900-as gépen, nem
-feltételezendő — különösen az egygépes lépcsőn, ahol ugyanaz a lemez viszi a
-PostgreSQL-t is.
+> *„a legtöbb esetben a szerver egy olyan gép lesz, ami egyébként kliens is, tehát
+> egy tényleges használatban levő POS. Nagyon kevés hely engedheti meg magának,
+> hogy egy irodában tárolt külön szervergépet vegyen és tartson fenn."*
+
+**Ez ELSŐRANGÚ TERVEZÉSI BEMENET, nem mellékmegjegyzés.** Amit átrendez:
+
+1. **A kombinált szerver+kliens szerep nem az egygépes lépcső különlegessége,
+   hanem az ÁLTALÁNOS eset minden lépcsőn.** Eddig a B9/a döntés csak az
+   egygépes helyre mondta ki; most kiderül, hogy 3 gépes helyen is jellemzően
+   az egyik POS lesz a szerver.
+2. **Ezzel a legszűkösebb hardveres konfiguráció nem szélső eset, hanem az
+   ALAPÉRTELMEZÉS** (lásd B9/a 2. következménye). A teljesítménymérés súlya
+   ennek megfelelően nő.
+3. **A teljes adatbázis fizikailag a pultban lesz**, nem egy zárt irodában.
+
+**Amit ez az adatvédelemben jelent — őszintén:**
+
+**A fizikai lopás ellen szoftverrel nem lehet teljesen védekezni.** Ha valaki
+elviszi a pultból a gépet, elvitte a teljes adatbázist. Ezt ki kell mondani, nem
+elhallgatni. Amit tenni lehet, és amit `[ ]` el kell dönteni:
+
+- **Teljes lemeztitkosítás (BitLocker).** `[?]` **IGAZOLATLAN PREMISSZA (§13.5):**
+  a felügyelet nélküli, áramszünet után magától induló POS-nak jelszó nélkül kell
+  bootolnia, tehát a kulcsot a gépben tárolt **TPM**-hez kellene kötni. **A J1900
+  korabeli alaplapokon gyakran NINCS TPM.** Ezt a meglévő bázison **ellenőrizni
+  kell**, mielőtt bármit ígérünk — ha nincs TPM, ez az útvonal elesik, és marad a
+  gyengébb, jelszó-alapú vagy alkalmazásszintű változat.
+- **Adatminimalizálás.** Ez az, ami TPM nélkül is működik: a kliens-archívum
+  **ne tartalmazzon személyes adatot, ha nem muszáj** — bizonylat-azonosító,
+  időbélyeg, összegek, ÁFA-bontás, fizetési bontás igen; számlázási név/cím és
+  törzsvendég-azonosító **csak tokenizálva vagy sehogy**. Kevesebb tárolt adat =
+  kisebb kár lopáskor. **Ez tervezési szabály, nem konfiguráció.**
+- **Fizikai rögzítés** (zárható ház, Kensington-zár) — **telepítési követelmény**,
+  nem szoftver. A telepítési dokumentáció (D2) tétele.
+- **A lopás nem csak szivárgás, hanem ADATVESZTÉS is.** Ha a szerverként is
+  működő POS-t ellopják, a hely elveszti a teljes adatbázisát → a **felhőmentés
+  (D1) itt nem kényelmi funkció, hanem az egyetlen helyreállítási út.**
+
+**`[ ]` Külön eldöntendő, de már nem a B10 alatt:** ha a szerver egy pultban álló
+POS, akkor a **Windows-fiókok, a képernyőzár és a fájlrendszer-jogosultságok** is
+védelmi vonallá válnak — egy kioszk módból kilépő dolgozó máskülönben hozzáfér az
+adatbázis-fájlokhoz. Ez a B6 (kliens↔szerver biztonság) kiterjesztése.
+
+**`[ELDÖNTVE — 20 FORGALMAS nap, nem naptári nap]` B10/b — megőrzési idő**
+
+**Döntés (2026-08-22):** a kliens-archívum **alapértelmezetten 20 napnyi
+tranzakciót tart meg**, DE:
+
+- **A megőrzés egysége a FORGALMAS ÜZLETI NAP, nem a naptári nap.** A rendszer a
+  legutóbbi **20 olyan üzleti napot** tartja meg, amelyen **tényleges forgalom
+  volt**. Egy zárva töltött nap nem számít bele és nem is öregít ki semmit.
+- **Miért:** egy három hétre bezáró szezonális hely különben elveszítené a teljes
+  archívumát anélkül, hogy egyetlen tranzakció is történt volna. A naptári alapú
+  törlés itt pontosan azt semmisítené meg, amiért az archívum létezik.
+- **A 10 nappal (licenc offline türelmi idő) SZÁNDÉKOSAN NEM közös érték.**
+  A felhasználó megerősítette, hogy nem tervezte összekötni őket; a 20 nap
+  mozgásteret hagy. **Két külön, konfigurálható paraméter**, soha nem egy
+  konstans (§13.1 hibaosztálya).
+
+**Amit ez megkövetel, és külön ki kell mondani:**
+- **A „forgalmas nap" definíciója EGY helyen éljen**, és **ugyanaz legyen, mint a
+  logikai üzleti nap** határa (pl. hajnali 04:00) — különben a takarító és a
+  riportok más napokat számolnak, és a `[ ]` F4 (két-három párhuzamos
+  napzárás-fogalom) hibaosztálya itt is előjön.
+- **A NEM NYUGTÁZOTT adatot (a kimenő sort) a megőrzés SOHA nem törli**, kortól
+  függetlenül. A megőrzés kizárólag az archívumra vonatkozik.
+- **Ha a lemez tényleg megtelik**, az **riasztás**, nem néma takarítás. Nyugtázatlan
+  adatot eldobni tilos (§5: ami elmaradt, azt ne jelentsük elvégzettnek).
+
+**`[ELDÖNTVE — a nagy méréssel együtt]` B10/c — írásterhelés**
+
+A felhasználó döntése: **az összes teljesítménymérés az első éles teszt idejére
+van ütemezve**, amikor a rendszer kész. **Az írásterhelés is oda tartozik.**
+A mérendő tételek egységes nyilvántartása: **`MERESEK.md`** — abban ez a tétel
+nevesítve van.
 
 **Kapcsolódik:** A2/b (csökkentett mód és a helyi napló), A4 (visszaállás és az
 árva tranzakciók), F1 (idempotencia — az összevetéshez stabil azonosító kell
@@ -1292,7 +1377,8 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **B10** | `[ ]` **ÚJ, NYITVA** | Kliens-oldali tranzakció-archívum. Az adatmennyiség **nem akadály** (~10 MB / kassza / 10 nap, becsülve). A három valódi kérdés: (a) adatvédelem — minden pénztárgép személyes adatot tartana, és a gép ellopható; (b) a megőrzési idő száma, ami NE legyen közös a licenc türelmi idejével; (c) írásterhelés olcsó tárolón, mérendő. |
+| 1 | **B1/b ellentmondás** | `[ ]` **NYITVA — tisztázandó, nem találgatható** | A tartalék szerver **dedikált** gép, vagy — a „kevés hely vesz külön szervergépet" logika szerint — szintén egy dolgozó pénztárgép? A második esetben ugyanaz a J1900 viszi a WPF klienst, a másodkijelzős videót ÉS a PostgreSQL replikát. |
+| 1b | **B10/a maradéka** | `[ ]` **NYITVA** | Van-e TPM a meglévő J1900 bázison? Enélkül a felügyelet nélkül induló POS-on a teljes lemeztitkosítás útvonala elesik, és marad az adatminimalizálás + fizikai rögzítés. |
 | 1b | **R1 lépcsőnként** | `[ ]` **NYITVA** — jóváhagyásra | A tanú-séma lépcsőnkénti alakja a B9/b tisztázása után megírva; a felhasználó jóváhagyására vár. |
 | 2 | **B1/c R2–R5** | `[ ]` **NYITVA** — R6 megerősítve; az R1 lépcsőnként megírva, jóváhagyásra vár | A kétlépcsős failover végrehajtási részletei: ki a tanú (és mi van egypénztáras helyen), miből ismeri fel a gép hogy Ő esett ki, az 5 perc paraméterezése és az ajánlat lejárata, több egyidejű gombnyomás, élő-de-elérhetetlen fő szerver, és hogy ne ajánljunk fel működésképtelen átkapcsolást. |
 | 3 | **E1** | `[ ]` **NYITVA** — a fázisterv még nincs megírva | Mi az MVP scope-ja? Enélkül nincs mihez mérni a haladást. **Az A4 után** írandó. |
@@ -1303,6 +1389,9 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~B10/a~~ | `[ELDÖNTVE + KITERJESZTVE]` | **A szerver jellemzően egy dolgozó pénztárgép lesz** → a teljes adatbázis a pultban áll. A fizikai lopás ellen szoftverrel nem lehet teljesen védekezni; ki kell mondani. Amit tenni lehet: **adatminimalizálás** (tervezési szabály), lemeztitkosítás ha van TPM, fizikai rögzítés (telepítési tétel), és a felhőmentés mint EGYETLEN helyreállítási út lopás után. |
+| — | ~~B10/b~~ | `[ELDÖNTVE]` | **20 FORGALMAS üzleti nap** megőrzése, nem 20 naptári nap — egy zárva töltött nap nem számít bele és nem is öregít ki semmit. A licenc 10 napos türelmi idejével **szándékosan nem közös érték**. A nyugtázatlan adatot a megőrzés soha nem törli. |
+| — | ~~B10/c~~ | `[ELDÖNTVE]` | Az írásterhelés az első éles teszt nagy mérésének része → `MERESEK.md` M8. |
 | — | ~~B9/b~~ | `[ELDÖNTVE]` | A gépszám-szabály a **TARTALÉK SZERVERRE** vonatkozik: 2–3 gépnél opcionális, 4+ gépnél kötelező. Következmény: a „nincs tartalék szerver" **elsőrangú konfiguráció**, nem hibaállapot — ott átkapcsolást felajánlani sem szabad. |
 | — | ~~B9/a~~ | `[ELDÖNTVE]` | **Egygépes helyen a pénztárgép MAGA a szerver.** Ezzel a B3 nyitott kérdése (futhat-e egy gépen szerver és kliens) eldőlt: **igen, támogatott konfiguráció**. Következmény: ez a legszűkösebb hardveres eset, és ott nincs hardverhiba-védelem. |
 | — | ~~Személyzeti üzenetek~~ | `[ELDÖNTVE]` | Három üzenet (a szerver gyanús / ez a gép a hibás / bizonytalan), „hálózat" szóhasználattal, plusz külön jelzés az internet hiányára. Tartalmilag jóváhagyva; a design-körben csak a megjelenés csiszolható. |

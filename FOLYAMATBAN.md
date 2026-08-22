@@ -31,6 +31,7 @@ lásd „Miért nem kódolunk még".
 | `siduri_spec_hu.md` | Az eredeti rendszerterv (magyar) | **Részben ELAVULT** — inline `[MÓDOSÍTVA]` / `[NYITOTT]` jelölésekkel |
 | `siduri_superprompt_en.md` | Ugyanaz megaprompt formában (angol, Geminihez) | **Részben ELAVULT** — inline `[SUPERSEDED]` / `[OPEN]` jelölésekkel |
 | `FOLYAMATBAN.md` | Ez a fájl — állapot és folytatás | Élő |
+| **`MERESEK.md`** | **A mérendő tételek egységes nyilvántartása.** A felhasználó kiemelt utasítása: az első éles tesztnél MINDENT meg kell mérni | Élő — kötelezően frissítendő |
 | `UiUX/` (mappa) | UI/UX skill-készlet (7 skill, köztük WPF és Flutter stack-adatok) | Eszköz, a design-fázisban használandó — lásd 0.2 |
 
 **Ha a `siduri_spec_hu.md` / `siduri_superprompt_en.md` ellentmond a
@@ -100,7 +101,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Tizenhét döntés lezárva** (öt az 1., tizenkettő a 2. munkamenetben, mindkettő 2026-08-22).
+**Húsz döntés lezárva** (öt az 1., tizenöt a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -118,6 +119,8 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **B10/a** | *(ÚJ)* Adatvédelem a kliens-archívumban | **A szerver jellemzően egy dolgozó pénztárgép lesz**, nem irodai gép → a teljes adatbázis a pultban áll. A fizikai lopás ellen szoftverrel nem lehet teljesen védekezni — ezt ki kell mondani. Ellenszer: **adatminimalizálás** (tervezési szabály), lemeztitkosítás ha van TPM, fizikai rögzítés, és a felhőmentés mint egyetlen helyreállítási út lopás után | `NYITOTT_KERDESEK.md`, keress: `B10/a` |
+| **B10/b** | *(ÚJ)* Kliens-archívum megőrzési ideje | **20 FORGALMAS üzleti nap**, nem 20 naptári nap — egy zárva töltött nap nem számít bele és nem öregít ki semmit. A licenc 10 napos türelmi idejével szándékosan nem közös érték. Nyugtázatlan adatot a megőrzés soha nem töröl | `NYITOTT_KERDESEK.md`, keress: `B10/b` |
 | **B9/b** | *(ÚJ)* Mikor kötelező a tartalék szerver | **1 gép:** nincs. **2–3 gép:** opcionális. **4+ gép:** kötelező. Következmény: a „nincs tartalék szerver" elsőrangú konfiguráció, nem hibaállapot | `NYITOTT_KERDESEK.md`, keress: `B9/b` |
 | **B9/a** | *(ÚJ)* Egygépes telepítés | **A pénztárgép MAGA a szerver.** Ezzel eldőlt a korábban nyitott kérdés is: igen, futhat egy gépen szerver ÉS kliens — támogatott konfiguráció | `NYITOTT_KERDESEK.md`, keress: `B9` |
 | **Üzenetek** | *(ÚJ)* Személyzeti hibaüzenetek | **Három üzenet jóváhagyva** („hálózat", nem „internet"), plusz külön jelzés az internet hiányára | `NYITOTT_KERDESEK.md`, keress: `A személyzetnek szóló üzenetek` |
@@ -163,36 +166,33 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 
 ## 2. A KÖVETKEZŐ TÉTEL
 
-### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` B10 — kliens-oldali tranzakció-archívum
+### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` Két tisztázandó, nem találgatható tétel
 
-**Új tétel, a felhasználó felvetése.** Tárolják-e a pénztárgépek a saját
-tranzakcióikat ~10 napig, hogy a szerver egy vészhelyzeti átkapcsolás után le
-tudja kérni és összevetni őket?
+1. **`[ ]` Dedikált gép-e a tartalék szerver, vagy szintén egy dolgozó pénztárgép?**
+   **Ez ellentmondásnak látszik két, ugyanaznap tett kijelentés között.** Korábban
+   a tartalék „dedikált J1900"-ként lett rögzítve; később viszont a felhasználó azt
+   mondta, hogy *„a legtöbb esetben a szerver egy olyan gép lesz, ami egyébként
+   kliens is… nagyon kevés hely engedheti meg magának, hogy külön szervergépet
+   vegyen"*. Ha ez a **fő** szerverre igaz, a gazdasági érv a **tartalékra** is áll.
+   **A tét:** dedikált tartaléknál a gép csak a replikát viszi; dolgozó
+   pénztárgépen ugyanaz a J1900 viszi a WPF klienst, a másodkijelzős videót ÉS a
+   PostgreSQL replikát — **ez az M1-nél is szűkösebb konfiguráció.**
+   → `NYITOTT_KERDESEK.md`, keress: `FIGYELEM — ez a döntés ELLENTMONDANI LÁTSZIK`
 
-**Az adatmennyiség NEM akadály.** Becsült nagyságrend (nem mért): ~1,5–2 kB
-nyugtánként, ~1 MB/nap egy forgalmas kasszán, **~10 MB / kassza / 10 nap** —
-teljes eseménynaplóval is csak 50–100 MB. Egy 64 GB-os SSD-n ez semmi.
+2. **`[ ]` Van-e TPM a meglévő J1900 bázison?** Ez nem vélemény, hanem a
+   hardveren **ellenőrizhető tény**, de ellenőrizni kell. Ha nincs, akkor a
+   felügyelet nélkül, áramszünet után magától induló pénztárgépen a teljes
+   lemeztitkosítás útvonala elesik (a kulcsot nem lehet hova kötni), és marad az
+   adatminimalizálás + fizikai rögzítés. **Erre ne építsünk, amíg nincs
+   ellenőrizve.** → `NYITOTT_KERDESEK.md`, keress: `IGAZOLATLAN PREMISSZA (§13.5):`
 
-**Amit megvesz:** (1) „reméljük nincs hiány" helyett **bizonyítani tudjuk, mi
-hiányzik**; (2) egy helyreállítási út, ami eddig nem létezett — ha a halott fő
-szerver lemeze olvashatatlan, a kasszák archívuma az EGYETLEN megmaradt forrás;
-(3) napi záráskor is futtatható rutin-ellenőrzés, tehát gyakran futó őr.
+### 2.1.0 `[ ]` Jóváhagyásra vár (nem blokkoló)
 
-**A kötelező tervezési szabály, ami nélkül ez ártalmas:** a kliensen a **kimenő
-sor** (még nem nyugtázott, lejátszandó) és az **archívum** (már kiadott,
-bizonyíték) **szerkezetileg elkülönül**, és az archívumot **soha, semmilyen
-kódúton nem szabad írásként visszajátszani** — különben már lekönyvelt eladásokat
-könyvelnénk újra. Ez őrt igényel, nem kommentet.
-
-**A három valódi nyitott kérdés** → `NYITOTT_KERDESEK.md`, keress: `B10`
-1. **`[ ]` Adatvédelem.** Eddig a nyugtaadat a szerveren volt, hátsó helyiségben.
-   Mostantól minden pénztárgép 10 napnyit tartana — és egy pénztárgép ellopható.
-   Mi kerülhet bele, kell-e titkosítás, hogyan illeszkedik a törlési igényhez?
-2. **`[ ]` A megőrzési idő száma.** A 10 nap feltűnően ugyanaz, mint a licenc
-   offline türelmi ideje — **ne kössük őket közös konstansra**, két különböző
-   dolgot védenek. Külön, konfigurálható paraméter legyen.
-3. **`[ ]` Írásterhelés olcsó tárolón** (SSD/eMMC), különösen az egygépes
-   lépcsőn, ahol ugyanaz a lemez viszi a PostgreSQL-t is. Mérendő.
+- **A tanú-séma lépcsőnkénti alakja** — megírva a gépszám-lépcsők tisztázása után.
+  → keress: `A tanú-kérdés (R1) NEM oldódott meg`
+- **Az árva tranzakciók elétárásának időzítése** — a szerepcsere azonnali, de a
+  „N tétel rendezésre vár" képernyő ne ugorjon a pénztáros arcába csúcsidőben.
+  → keress: `A4/c`
 
 ### 2.1.1 `[ ]` A kétlépcsős failover kitöltési kérdései (R1–R5; az R6 megerősítve)
 
@@ -267,23 +267,27 @@ Az **A2** külön figyelmet érdemel: ez az egyetlen olyan tétel, ahol **már m
 döntés** áll igazolatlan premisszán. Ha az igazolás cáfolja, az A2-t és az A2/a-t
 újra kell nyitni.
 
-## 3.1 `[?]` MÉRÉST IGÉNYEL, nem becsülhető (§4)
+## 3.1 `[?]` MÉRÉST IGÉNYEL — a teljes lista átköltözött a `MERESEK.md`-be
 
-- **Failover adatvesztési ablak** J1900-on → `NYITOTT_KERDESEK.md:349`.
-  **Élesedett:** a tartalék szerver is J1900, és a replikáció aszinkron lesz —
-  tehát ez már nem elméleti kérdés, hanem az MVP egyik vállalása. Mérés nélkül
-  **semmilyen számot nem mondunk** az ügyfélnek.
-- **WPF kliens teljesítménye** J1900-on: 720p másodkijelzős videó + teljes képernyős
-  POS UI, 4 GB RAM mellett → `NYITOTT_KERDESEK.md:374`
-- **PostgreSQL memórialimitek** (`shared_buffers`, `work_mem`, `max_connections`)
+**A mérendő tételek külön fájlba kerültek: `MERESEK.md`.** Itt csak a mutató és a
+két legfontosabb tudnivaló marad (§2.4: egy igazságforrás, a többi mutató — és a
+mutató mondja ki, hogy mutató).
 
-Mindháromhoz **fizikai J1900 referenciagép kell** — beszerzési tétel, felvéve az
-E3-hoz (`NYITOTT_KERDESEK.md:629`).
-**ÚJ mérendő tétel:** a szinkron vs. aszinkron replikáció írási válaszideje egy
-valós J1900 PÁRON. A „szinkron kizárt” állítás jelenleg **érvelés, nem mérés** (§4).
-**Semmilyen teljesítmény- vagy adatvesztési vállalás nem tehető mérés előtt.**
+> ### ⚠ A FELHASZNÁLÓ KIEMELT UTASÍTÁSA (2026-08-22)
+> **AZ ELSŐ TÉNYLEGES ÉLES TESZTNÉL MINDENT MEG KELL MÉRNI.**
+> Ez nem opcionális lépés, hanem **szállítási kapu**. A mérésnek **külön fázist
+> kell kapnia** a fázistervben (E1), saját időkerettel — a mérés nem a fejlesztés
+> mellékterméke. Az éles teszt nem zárható le „úgy tűnt, jól ment" alapon.
 
----
+**A legfontosabb egyetlen tétel** (`MERESEK.md`, M1): **a kombinált szerver +
+pénztárgép egy J1900-on.** A felhasználó 2026-08-22-én kimondta, hogy *„a legtöbb
+esetben a szerver egy olyan gép lesz, ami egyébként kliens is"* — tehát ez
+**nem szélső eset, hanem az alapértelmezett telepítés.** Ha ez nem fér bele a
+hardverbe, nem egy funkció dől meg, hanem a telepítési modell.
+
+**Mind a mérésekhez fizikai J1900 referenciagép kell**, a replikációsokhoz
+**kettő** — beszerzési tétel, hetekig tarthat, érdemes a kódolással
+párhuzamosan elindítani.
 
 ## 4. Miért nem kódolunk még
 

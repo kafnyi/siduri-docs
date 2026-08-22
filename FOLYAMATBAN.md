@@ -31,6 +31,7 @@ lásd „Miért nem kódolunk még".
 | `siduri_spec_hu.md` | Az eredeti rendszerterv (magyar) | **Részben ELAVULT** — inline `[MÓDOSÍTVA]` / `[NYITOTT]` jelölésekkel |
 | `siduri_superprompt_en.md` | Ugyanaz megaprompt formában (angol, Geminihez) | **Részben ELAVULT** — inline `[SUPERSEDED]` / `[OPEN]` jelölésekkel |
 | `FOLYAMATBAN.md` | Ez a fájl — állapot és folytatás | Élő |
+| `UiUX/` (mappa) | UI/UX skill-készlet (7 skill, köztük WPF és Flutter stack-adatok) | Eszköz, a design-fázisban használandó — lásd 0.2 |
 
 **Ha a `siduri_spec_hu.md` / `siduri_superprompt_en.md` ellentmond a
 `NYITOTT_KERDESEK.md`-nek, a `NYITOTT_KERDESEK.md` nyer.** A két spec fejlécében ez
@@ -63,6 +64,37 @@ félreértésen alapul (§2.2: a hibás premissza a felhasználó döntésébe c
    lehetőségek nevei. A felhasználó a következményre szavaz, nem a címkére.
 
 4. **A dokumentáció és a beszélgetés nyelve magyar.** Formai megkötés nincs.
+
+---
+
+## 0.2 UI/UX skill-készlet — MEGVAN, a design-fázisban KÖTELEZŐEN használandó
+
+**A felhasználó 2026-08-22-én feltöltötte** a `UiUX/` mappát a `siduri-docs` repóba
+(master commit `e6d26a2`, a munkabranchre merge-elve). Explicit kérése:
+**„majd kérlek használd, amikor design tervezéshez jutunk."**
+
+**Hol van:** `siduri-docs/UiUX/.claude/skills/` — hét skill:
+`ui-ux-pro-max` (a fő, adatvezérelt design-intelligencia), `design-system`,
+`ui-styling`, `design`, `brand`, `banner-design`, `slides`.
+
+**Miért közvetlenül releváns — ellenőrizve, nem feltételezve:** a
+`ui-ux-pro-max/data/stacks/` mappában van **`wpf.csv`** ÉS **`flutter.csv`** —
+pontosan a projekt két kliens-stackje (WPF asztali pénztárgép, Flutter mobil
+kliensek). A `wpf.csv` 57 soros, hivatkozott (Microsoft Learn URL-ekkel) és
+dátumozott (`Verified At: 2026-08-13`) irányelvlista, súlyossági szinttel.
+Van `avalonia.csv` is, de azt az A1 döntés (WPF marad) szerint nem használjuk.
+
+**FIGYELEM — ezek MOST NEM aktív skillek a munkamenetben.** A `.claude/skills/`
+mappa a `UiUX/` alatt van, nem egy repó gyökerében, ezért a Claude Code nem
+tölti be automatikusan. **A design-fázis kezdetekor ezt rendezni kell:** vagy át
+kell másolni/linkelni a megfelelő repó gyökerébe (`siduri-pos-client/.claude/skills/`,
+`siduri-flutter-clients/.claude/skills/`), vagy közvetlenül adatként kell olvasni
+a CSV-ket. **Ez egy elvégzendő tétel, nem automatikus.**
+
+**Ütemezés:** a design-fázis a fázistervben (E1) fog helyet kapni. Addig ez a
+szakasz az emlékeztető, hogy megvan és hogy KÖTELEZŐ elővenni — §2.4 szerint
+enélkül a következő kör nulláról találná ki a design-irányelveket, miközben itt
+egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ---
 

@@ -101,7 +101,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Húsz döntés lezárva** (öt az 1., tizenöt a 2. munkamenetben, mindkettő 2026-08-22).
+**Huszonegy döntés lezárva** (öt az 1., tizenhat a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -119,6 +119,7 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **Szerepkiosztás** | *(ÚJ)* Melyik gép viheti a szerver-szerepet | **A tartalék MINDIG Windows POS vastagkliensen van, SOHA nem dedikált gépen.** A fő szerver jellemzően szintén POS-on; aki megengedheti, annál lehet dedikált. **Vékonykliens, KDS, rendeléskijelző egyiket sem viheti** | `NYITOTT_KERDESEK.md`, keress: `A „dedikált" szó pontosítása` |
 | **B10/a** | *(ÚJ)* Adatvédelem a kliens-archívumban | **A szerver jellemzően egy dolgozó pénztárgép lesz**, nem irodai gép → a teljes adatbázis a pultban áll. A fizikai lopás ellen szoftverrel nem lehet teljesen védekezni — ezt ki kell mondani. Ellenszer: **adatminimalizálás** (tervezési szabály), lemeztitkosítás ha van TPM, fizikai rögzítés, és a felhőmentés mint egyetlen helyreállítási út lopás után | `NYITOTT_KERDESEK.md`, keress: `B10/a` |
 | **B10/b** | *(ÚJ)* Kliens-archívum megőrzési ideje | **20 FORGALMAS üzleti nap**, nem 20 naptári nap — egy zárva töltött nap nem számít bele és nem öregít ki semmit. A licenc 10 napos türelmi idejével szándékosan nem közös érték. Nyugtázatlan adatot a megőrzés soha nem töröl | `NYITOTT_KERDESEK.md`, keress: `B10/b` |
 | **B9/b** | *(ÚJ)* Mikor kötelező a tartalék szerver | **1 gép:** nincs. **2–3 gép:** opcionális. **4+ gép:** kötelező. Következmény: a „nincs tartalék szerver" elsőrangú konfiguráció, nem hibaállapot | `NYITOTT_KERDESEK.md`, keress: `B9/b` |
@@ -168,23 +169,29 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 
 ### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` Két tisztázandó, nem találgatható tétel
 
-1. **`[ ]` Dedikált gép-e a tartalék szerver, vagy szintén egy dolgozó pénztárgép?**
-   **Ez ellentmondásnak látszik két, ugyanaznap tett kijelentés között.** Korábban
-   a tartalék „dedikált J1900"-ként lett rögzítve; később viszont a felhasználó azt
-   mondta, hogy *„a legtöbb esetben a szerver egy olyan gép lesz, ami egyébként
-   kliens is… nagyon kevés hely engedheti meg magának, hogy külön szervergépet
-   vegyen"*. Ha ez a **fő** szerverre igaz, a gazdasági érv a **tartalékra** is áll.
-   **A tét:** dedikált tartaléknál a gép csak a replikát viszi; dolgozó
-   pénztárgépen ugyanaz a J1900 viszi a WPF klienst, a másodkijelzős videót ÉS a
-   PostgreSQL replikát — **ez az M1-nél is szűkösebb konfiguráció.**
-   → `NYITOTT_KERDESEK.md`, keress: `FIGYELEM — ez a döntés ELLENTMONDANI LÁTSZIK`
+1. **`[ ]` Mit számolunk a méret-lépcsőknél: vastagklienst vagy összes eszközt?**
+   **Valódi hézag, nem szőrszálhasogatás.** A szerepkiosztás tisztázása után
+   kiderült, hogy szerepet **csak Windows POS vastagkliens vihet**. Ebből:
+   - **Vastagkliensben számolva** a referencia-étterem (3 POS + 2 tablet +
+     4 telefon + KDS + kijelző) „3 gépes" → a tartalék **opcionális**. Pedig ez egy
+     11 eszközös hely, ahol a szerver kiesése nagyon sokat visz.
+   - **Összes eszközben számolva** ugyanez „11 gépes" → **kötelező**. Viszont akkor
+     egy 1 POS + 5 telefonos hely is „6 gépes", ahol **kötelező lenne a tartalék,
+     de nincs hova tenni** — csak egy vastagkliens van, és az a fő szerver.
 
-2. **`[ ]` Van-e TPM a meglévő J1900 bázison?** Ez nem vélemény, hanem a
-   hardveren **ellenőrizhető tény**, de ellenőrizni kell. Ha nincs, akkor a
-   felügyelet nélkül, áramszünet után magától induló pénztárgépen a teljes
-   lemeztitkosítás útvonala elesik (a kulcsot nem lehet hova kötni), és marad az
-   adatminimalizálás + fizikai rögzítés. **Erre ne építsünk, amíg nincs
-   ellenőrizve.** → `NYITOTT_KERDESEK.md`, keress: `IGAZOLATLAN PREMISSZA (§13.5):`
+   **A hézag lényege:** a tartalék *szükségességét* az dönti el, **hány eszköz függ
+   a szervertől**; a *lehetőségét* viszont az, **hány Windows POS van.** A kettő
+   szétválhat. Eldöntendő, mi legyen, ha egy helynek kellene tartalék, de nincs
+   hova tennie: (a) vegyen még egy Windows POS-t, (b) kivételesen mégis dedikált
+   gépre kerül, (c) nincs tartalék, marad a csökkentett mód.
+   → `NYITOTT_KERDESEK.md`, keress: `A „gépszám" MÉRTÉKEGYSÉGE TISZTÁZANDÓ`
+
+2. **`[ ]` Van-e TPM a meglévő J1900 bázison?** Nem vélemény, hanem a hardveren
+   **ellenőrizhető tény** — de ellenőrizni kell. Ha nincs, akkor a felügyelet
+   nélkül, áramszünet után magától induló pénztárgépen a teljes lemeztitkosítás
+   útvonala elesik (a kulcsot nem lehet hova kötni), és marad az adatminimalizálás
+   + fizikai rögzítés. **Erre ne építsünk, amíg nincs ellenőrizve.**
+   → `NYITOTT_KERDESEK.md`, keress: `IGAZOLATLAN PREMISSZA (§13.5):`
 
 ### 2.1.0 `[ ]` Jóváhagyásra vár (nem blokkoló)
 
@@ -279,11 +286,18 @@ mutató mondja ki, hogy mutató).
 > kell kapnia** a fázistervben (E1), saját időkerettel — a mérés nem a fejlesztés
 > mellékterméke. Az éles teszt nem zárható le „úgy tűnt, jól ment" alapon.
 
-**A legfontosabb egyetlen tétel** (`MERESEK.md`, M1): **a kombinált szerver +
-pénztárgép egy J1900-on.** A felhasználó 2026-08-22-én kimondta, hogy *„a legtöbb
-esetben a szerver egy olyan gép lesz, ami egyébként kliens is"* — tehát ez
-**nem szélső eset, hanem az alapértelmezett telepítés.** Ha ez nem fér bele a
-hardverbe, nem egy funkció dől meg, hanem a telepítési modell.
+**A legfontosabb egyetlen tétel** (`MERESEK.md`, **M12**): **a tartalék POS
+átveszi a szolgálatot.** A tartalék mindig egy dolgozó pénztárgép, tehát átvételkor
+ugyanaz a J1900 viszi a saját kasszáját ÉS az egész hely kiszolgálását — a lehető
+legrosszabb pillanatban, mert a szerver akkor esik ki, amikor a hely dolgozik.
+**Ha a tartalék nem bírja, a failover rosszabbá teszi a helyzetet, nem jobbá.**
+Ez azt dönti el, érdemes-e egyáltalán átkapcsolni.
+
+Közvetlenül utána (M1): **a kombinált szerver + pénztárgép egy J1900-on** — a
+felhasználó kimondta, hogy *„a legtöbb esetben a szerver egy olyan gép lesz, ami
+egyébként kliens is"*, tehát ez **nem szélső eset, hanem az alapértelmezett
+telepítés.** Ha ez nem fér bele a hardverbe, nem egy funkció dől meg, hanem a
+telepítési modell.
 
 **Mind a mérésekhez fizikai J1900 referenciagép kell**, a replikációsokhoz
 **kettő** — beszerzési tétel, hetekig tarthat, érdemes a kódolással

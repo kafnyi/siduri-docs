@@ -21,8 +21,13 @@
 > **ÚJ (hatodik kör):** B10/a, B10/b, B10/c eldöntve. Kiemelt: **a szerver jellemzően egy
 > dolgozó pénztárgép lesz**, nem irodai gép — ez átrendezi az adatvédelmi képet és a
 > teljesítménymérés súlyát. Megőrzés: **20 FORGALMAS nap**. Új fájl: **`MERESEK.md`**.
-> **NYITVA maradt:** a B1/b ellentmondása (dedikált-e a tartalék gép), van-e TPM a bázison,
-> az R1 lépcsőnkénti alakjának jóváhagyása, a B1/c R2–R5 kitöltése, majd E1 (fázisterv).
+> **ÚJ (hetedik kör):** a szerepkiosztás tisztázva — **a tartalék MINDIG Windows POS-on van,
+> soha nem dedikált gépen**; vékonykliens/KDS/kijelző egyiket sem viheti. Négy új
+> következmény rögzítve (tartalék terhelése failovernél, a gép kikapcsolhatósága, Windows
+> Service kényszer, frissítési sorrend).
+> **NYITVA maradt:** a méret-lépcső mértékegysége (vastagkliensben vagy összes eszközben?),
+> van-e TPM a bázison, az R1 lépcsőnkénti alakjának jóváhagyása, a B1/c R2–R5 kitöltése,
+> majd E1 (fázisterv).
 > **Ez az EGY igazságforrás a nyitott döntésekre** (MERNOKISAROKKOVEK §2.4).
 > Ha egy tétel eldől, ITT jelöld `[ELDÖNTVE — <döntés>]`-ként, ne máshol.
 >
@@ -401,26 +406,62 @@ csak a B1/c (ki vált) és az A4 (failback) miatt maradnak.
 **Döntés (2026-08-22, 2. munkamenet):** a vészhelyzeti szerver **szintén J1900**,
 a meglévő telepített bázisból, **dedikált** gépként (nem egy pénztárgép mellékállása).
 
-> ### `[!]` FIGYELEM — ez a döntés ELLENTMONDANI LÁTSZIK egy későbbi kijelentésnek
+> ### `[TISZTÁZVA 2026-08-22]` A „dedikált" szó pontosítása — a tartalék SOHA nem dedikált
 >
-> A felhasználó ugyanaznap, később ezt mondta:
-> *„a legtöbb esetben a szerver egy olyan gép lesz, ami egyébként kliens is, tehát
-> egy tényleges használatban levő POS. Nagyon kevés hely engedheti meg magának,
-> hogy egy irodában tárolt külön szervergépet vegyen és tartson fenn."*
+> A fenti „dedikált gépként" megfogalmazás **pontatlan volt**, és a felhasználó
+> tisztázta. A **helyes** szabály:
 >
-> Ha a **fő** szerver jellemzően egy dolgozó pénztárgép, akkor **ugyanez a
-> gazdasági érv a tartalékra is áll** — egy hely, ami a fő szerverre sem vesz
-> külön gépet, a tartalékra végképp nem fog.
+> | Szerep | Hol fut |
+> |--------|---------|
+> | **Fő szerver** | **Jellemzően egy Windows POS vastagkliensen.** Aki megengedheti magának, annál lehet **dedikált** gépen. |
+> | **Tartalék (vészhelyzeti) szerver** | **MINDIG egy Windows POS vastagkliensen. SOHA nem dedikált gép** — ez csak vészhelyzeti szükségmegoldás, nem éri meg rá gépet venni. |
+> | Vékonykliens (tablet, telefon), KDS, rendeléskijelző | **SOHA nem viheti egyik szerepet sem.** |
 >
-> **Ezt NEM oldom fel találgatással (§2.2).** A két olvasat érdemben eltérő
-> hardver-költségvetést jelent:
-> - **dedikált tartalék:** a gép csak PostgreSQL replikát visz → van szabad
->   kapacitása;
-> - **tartalék egy dolgozó POS-on:** ugyanaz a J1900 viszi a WPF klienst, a
->   másodkijelzős videót ÉS a PostgreSQL replikát — ez az M1-nél is szűkösebb eset.
->
-> **`[ ]` TISZTÁZANDÓ a felhasználóval.** Amíg nincs tisztázva, a `MERESEK.md`
-> M1 tétele **mindkét változatot** mérendőként tartja.
+> **A felhasználó példája, szó szerint** (ezt tartsuk meg referencia-telepítésként):
+> egy étteremben van **3 Windows POS** (vastagkliens), **2 tablet**, **4 telefon**
+> (vékonykliensek), **1 KDS**, **1 rendeléskijelző**. Ekkor: az **egyik Windows POS
+> a fő szerver**, a maradék kettő **egyike a tartalék szerver**. A vékonykliensek,
+> a KDS és a rendeléskijelző egyiket sem viheti.
+
+**`[!]` NÉGY KÖVETKEZMÉNY, amit ez a tisztázás azonnal teremt**
+
+**(1) A tartalék gép terhelése a LEGROSSZABB pillanatban ugrik meg — és ezt eddig
+senki nem nézte meg.** A tartalék egy **dolgozó pénztárgép**: közben a WPF kliens
+fut rajta, a pénztáros ott üt fel. Amikor átveszi a szolgálatot, **ugyanaz a
+J1900 hirtelen elkezdi kiszolgálni az összes többi kasszát, a vékonyklienseket, a
+KDS-t, a nyomtató-útvonalakat — miközben tovább kell pénztárgépként is működnie.**
+
+**És ez pontosan a legrosszabb pillanatban történik:** a szerver akkor esik ki,
+amikor a hely dolgozik. **Ez a rendszer legkritikusabb mérése**, mert ha a
+tartalék nem bírja, akkor a failover **rosszabbá teszi a helyzetet, nem jobbá** —
+egy lassú, akadozó rendszer minden kasszán, egy gyors csökkentett mód helyett.
+→ `MERESEK.md`, M12.
+
+**(2) A szerepet vivő gépet valaki KIKAPCSOLHATJA.** Egy hátsó irodában álló
+szervergéphez senki nem nyúl. Egy pultban álló pénztárgépet a záró műszak
+**lekapcsol**, mert nem tudja, hogy az a szerver. Ez a hibaosztály **nem létezett
+eddig, és nagyon olcsó megelőzni:**
+- a szerepet vivő gép **láthatóan jelezze magán**, hogy ő a fő szerver / a
+  tartalék (állandó, nem eltüntethető jelzés a felületen);
+- **leállítás/újraindítás onnan figyelmeztetéssel és jogosultsághoz kötve**
+  történjen, ne egy sima Windows-leállítással;
+- a leállítás előtt mondja meg, **hány másik eszköz függ tőle éppen.**
+
+**(3) A szerver NEM futhat a pénztáros munkamenetében — Windows Service kell.**
+A pénztárgép teljes képernyős kioszk módban fut, felhasználói munkamenetben. Ha a
+szerver ugyanabban a munkamenetben futna, akkor **egy kijelentkezés, egy
+felhasználóváltás vagy egy képernyőzár megölné a szervert az egész helyen.**
+Tehát: **a szerver és a replika Windows Service-ként fut**, a bejelentkezett
+felhasználótól függetlenül. Ez a telepítési tétel (D2) kemény követelménye, és
+egyben biztonsági kérdés is (a service fiókja ne legyen a pénztáros fiókja).
+
+**(4) A FRISSÍTÉS sorrendje kritikussá vált — ez a `siduri-updater` repó
+követelménye, ami eddig sehol nem szerepelt.** Ha a pénztárgép-klienst frissítjük
+azon a gépen, ami egyben a szerver, akkor **a frissítés az egész helyet leállítja.**
+A frissítőnek **ismernie kell a szerepeket** és sorrendben kell dolgoznia:
+először a tartalékot, majd átkapcsolás, majd a régi főt, majd vissza. Ez nem
+apró: a frissítő így **függ a failover-mechanizmustól**, tehát a kettőt együtt
+kell tervezni.
 
 **Ebből következő MUNKAFELTEVÉS a replikációra — figyelem, ez MÉG NEM IGAZOLT (§4):**
 két J1900 között a **szinkron** replikáció várhatóan vállalhatatlan, mert szinkron
@@ -863,8 +904,29 @@ döntés (B1/a) teremtett: nem kell MINDEN helyre két dedikált gép.
 | Gépszám a helyen | Topológia | Vészhelyzeti szerver |
 |------------------|-----------|----------------------|
 | **1 gép** | **Az egyetlen pénztárgép MAGA a szerver** (kombinált szerep) | Nincs — nincs második gép |
-| **2–3 gép** | Külön szerver + pénztárgépek | **Nem kötelező, de LEHETŐSÉGKÉNT fenntartva** |
-| **4+ gép** | Külön szerver + pénztárgépek | **KÖTELEZŐ** |
+| **2–3 gép** | A fő szerver egy POS-on (vagy dedikált gépen); a tartalék MINDIG egy POS-on | **Nem kötelező, de LEHETŐSÉGKÉNT fenntartva** |
+| **4+ gép** | Ugyanaz | **KÖTELEZŐ** |
+
+> **`[ ]` A „gépszám" MÉRTÉKEGYSÉGE TISZTÁZANDÓ — valódi hézag.**
+> A táblázat „gépet" mond, de a tisztázás (lásd B1/b) kimondta, hogy **szerepet
+> csak Windows POS vastagkliens vihet** — vékonykliens, KDS és rendeléskijelző
+> nem. Ebből két, egymásnak ellentmondó olvasat adódik:
+>
+> - **Ha a lépcsőt VASTAGKLIENSBEN számoljuk:** a felhasználó példája (3 POS +
+>   2 tablet + 4 telefon + KDS + kijelző) „3 gépes" hely → a tartalék
+>   **opcionális**. Pedig ez egy 11 eszközös étterem, ahol a szerver kiesése
+>   nagyon sok mindent visz magával.
+> - **Ha ÖSSZES eszközben számoljuk:** ugyanez „11 gépes" → a tartalék
+>   **kötelező**. Viszont akkor egy 1 POS + 5 telefonos hely is „6 gépes",
+>   ahol **kötelező lenne a tartalék, de nincs hova tenni** (csak egy
+>   vastagkliens van, és az a fő szerver).
+>
+> **A hézag lényege:** a tartalék szükségességét az dönti el, **hány eszköz függ
+> a szervertől**; a tartalék *lehetőségét* viszont az, **hány Windows POS van.**
+> A kettő nem ugyanaz, és szétválhat. `[ ]` **Eldöntendő**, mi történjen, ha egy
+> helynek szüksége lenne tartalékra, de nincs hova tennie: (a) vegyen még egy
+> Windows POS-t, (b) kivételesen mégis dedikált gépre kerül a tartalék,
+> (c) nincs tartalék, marad a csökkentett mód.
 
 **`[ELDÖNTVE]` B9/a — az egygépes hely: a pénztárgép maga a szerver.**
 A felhasználó indoklása: *„az egyetlen gép maga a szerver, így annak elérésével
@@ -1377,7 +1439,7 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **B1/b ellentmondás** | `[ ]` **NYITVA — tisztázandó, nem találgatható** | A tartalék szerver **dedikált** gép, vagy — a „kevés hely vesz külön szervergépet" logika szerint — szintén egy dolgozó pénztárgép? A második esetben ugyanaz a J1900 viszi a WPF klienst, a másodkijelzős videót ÉS a PostgreSQL replikát. |
+| 1 | **B9 lépcső mértékegysége** | `[ ]` **ÚJ, NYITVA — valódi hézag** | A tartalék *szükségességét* az dönti el, hány eszköz függ a szervertől; a *lehetőségét* viszont az, hány Windows POS van. A kettő szétválhat: egy 1 POS + 5 telefonos helynek kellene tartalék, de nincs hova tennie. Mi történjen ilyenkor? |
 | 1b | **B10/a maradéka** | `[ ]` **NYITVA** | Van-e TPM a meglévő J1900 bázison? Enélkül a felügyelet nélkül induló POS-on a teljes lemeztitkosítás útvonala elesik, és marad az adatminimalizálás + fizikai rögzítés. |
 | 1b | **R1 lépcsőnként** | `[ ]` **NYITVA** — jóváhagyásra | A tanú-séma lépcsőnkénti alakja a B9/b tisztázása után megírva; a felhasználó jóváhagyására vár. |
 | 2 | **B1/c R2–R5** | `[ ]` **NYITVA** — R6 megerősítve; az R1 lépcsőnként megírva, jóváhagyásra vár | A kétlépcsős failover végrehajtási részletei: ki a tanú (és mi van egypénztáras helyen), miből ismeri fel a gép hogy Ő esett ki, az 5 perc paraméterezése és az ajánlat lejárata, több egyidejű gombnyomás, élő-de-elérhetetlen fő szerver, és hogy ne ajánljunk fel működésképtelen átkapcsolást. |
@@ -1389,6 +1451,7 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~B1/b pontosítás~~ | `[ELDÖNTVE]` | **A tartalék szerver SOHA nem dedikált gép — mindig egy Windows POS vastagkliens.** A fő szerver jellemzően szintén POS-on van, de aki megengedheti, annál lehet dedikált. Vékonykliens / KDS / rendeléskijelző egyik szerepet sem viheti. Négy következmény: a tartalék terhelése a legrosszabb pillanatban ugrik meg; a szerepet vivő gépet valaki kikapcsolhatja; a szerver Windows Service kell legyen, nem a pénztáros munkamenetében; és a frissítés sorrendje a `siduri-updater` kemény követelménye lett. |
 | — | ~~B10/a~~ | `[ELDÖNTVE + KITERJESZTVE]` | **A szerver jellemzően egy dolgozó pénztárgép lesz** → a teljes adatbázis a pultban áll. A fizikai lopás ellen szoftverrel nem lehet teljesen védekezni; ki kell mondani. Amit tenni lehet: **adatminimalizálás** (tervezési szabály), lemeztitkosítás ha van TPM, fizikai rögzítés (telepítési tétel), és a felhőmentés mint EGYETLEN helyreállítási út lopás után. |
 | — | ~~B10/b~~ | `[ELDÖNTVE]` | **20 FORGALMAS üzleti nap** megőrzése, nem 20 naptári nap — egy zárva töltött nap nem számít bele és nem is öregít ki semmit. A licenc 10 napos türelmi idejével **szándékosan nem közös érték**. A nyugtázatlan adatot a megőrzés soha nem törli. |
 | — | ~~B10/c~~ | `[ELDÖNTVE]` | Az írásterhelés az első éles teszt nagy mérésének része → `MERESEK.md` M8. |

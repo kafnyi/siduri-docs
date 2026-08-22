@@ -4,7 +4,7 @@
 > memória- és versenyhelyzet-állítás CSAK méréssel." Nélküle ezek a tételek
 > szétszóródnak a tervben, és a fázisterv írásakor egy részük némán kimarad.**
 >
-> **Utolsó frissítés:** 2026-08-22 (2. munkamenet)
+> **Utolsó frissítés:** 2026-08-22 (2. munkamenet, 7. kör — M12/M13 felvéve)
 > **Belépési pont a projekthez:** `FOLYAMATBAN.md`
 > **A döntések igazságforrása:** `NYITOTT_KERDESEK.md`
 
@@ -62,6 +62,37 @@ várakozási idő. **4 GB RAM mellett is**, mert a bázis egy része ennyi.
 
 **Miért kritikus:** ha ez nem fér bele, nem egy funkció dől meg, hanem a
 telepítési modell.
+
+### `[ ]` M12 — **A LEGKRITIKUSABB MÉRÉS: a tartalék POS átveszi a szolgálatot**
+
+**Miért ez a legfontosabb tétel az egész listán.** A tartalék szerver **mindig egy
+dolgozó Windows POS** (2026-08-22-i tisztázás) — nem dedikált gép. Amikor átveszi
+a szolgálatot, ugyanaz a J1900 hirtelen ezt viszi **egyszerre**:
+
+- a saját WPF pénztárgép-kliensét, amin közben a pincér/pultos dolgozik,
+- a PostgreSQL-t **teljes szerver-terheléssel** (nem csak replikaként),
+- az összes többi Windows POS kiszolgálását,
+- a vékonyklienseket (a példa szerint 2 tablet + 4 telefon),
+- a KDS-t és a rendeléskijelzőt,
+- a nyomtató-útvonaltervezést,
+- és a többi gép visszatéréskori napló-lejátszását.
+
+**És mindez a lehető legrosszabb pillanatban:** a szerver akkor esik ki, amikor a
+hely dolgozik, nem hajnali 3-kor.
+
+**Mit mérj:** a pénztári művelet válaszideje a tartalék gépen ÉS a többi kasszán,
+CPU- és RAM-telítettség, lemez várakozási idő, a vékonykliensek válaszideje,
+a nyomtatás késleltetése. **Terhelés: a referencia-telepítés** (3 Windows POS +
+2 tablet + 4 telefon + KDS + rendeléskijelző) **csúcsforgalommal.**
+
+**Miért nem halasztható:** ha a tartalék nem bírja, akkor a failover **rosszabbá
+teszi a helyzetet, nem jobbá** — egy akadozó rendszer minden kasszán, egy gyors,
+csökkentett mód helyett. Ez nem finomhangolási kérdés, hanem azt dönti el,
+**érdemes-e egyáltalán átkapcsolni.**
+
+### `[ ]` M13 — A tartalék POS terhelése NORMÁL üzemben (csak replikaként)
+Az M12 előtti, enyhébb eset: a gép pénztárgép, és közben folyamatosan fogadja a
+replikációs folyamot. Ha már ez is elviszi a válaszidőt, az M12 értelmetlen.
 
 ### `[ ]` M2 — PostgreSQL memórialimitek
 `shared_buffers`, `work_mem`, `max_connections`. **Mérendő paraméterek, nem
@@ -125,7 +156,9 @@ jött elő korábbi projektben.
 
 ## 5. Nyitott: mihez kell fizikai hardver
 
-**Mind az M1–M9 fizikai J1900 referenciagépet igényel, az M4/M5/M7 pedig
-KETTŐT.** Ez beszerzési és logisztikai tétel, nem fejlesztési — a
+**Mind az M1–M9 fizikai J1900 referenciagépet igényel, az M4/M5/M7/M13 pedig
+KETTŐT — az M12 pedig a TELJES referencia-telepítést** (3 Windows POS + 2 tablet
++ 4 telefon + KDS + rendeléskijelző), mert csak így mérhető a valós átvételi
+terhelés. Ez beszerzési és logisztikai tétel, nem fejlesztési — a
 `NYITOTT_KERDESEK.md` `E3` tételéhez tartozik, és **hetekig tarthat**.
 Érdemes a kódolással párhuzamosan elindítani.

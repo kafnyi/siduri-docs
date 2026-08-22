@@ -10,7 +10,7 @@
 > **A horgony frissítése a MUNKA RÉSZE, nem utómunka** (§10). Elavult horgony = §2.4
 > döntési premissza-hiba: a következő kört egy nem létező hátralék hajszolására küldi.
 
-**Utolsó frissítés:** 2026-08-22
+**Utolsó frissítés:** 2026-08-22 (2. munkamenet)
 **Fázis:** tervezés. **KÓDOLÁS MÉG NEM KEZDŐDÖTT EL, és nem is szabad elkezdeni** —
 lásd „Miért nem kódolunk még".
 
@@ -38,59 +38,126 @@ ki van írva, és a felülírt bekezdések inline meg vannak jelölve.
 
 ---
 
+## 0.1 A FELHASZNÁLÓVAL VALÓ KOMMUNIKÁCIÓ SZABÁLYAI — kötelező
+
+Ezek a felhasználó explicit kérései. Nem stílus, hanem működési követelmény: ha
+megszegjük, a felhasználó **nem tud dönteni**, és a döntés vagy elmarad, vagy
+félreértésen alapul (§2.2: a hibás premissza a felhasználó döntésébe csatornázódik).
+
+1. **SOHA ne hivatkozz csupasz tételazonosítóval** (`A2`, `B1`, `F3`, `§13.2`…)
+   a felhasználónak írt szövegben. A felhasználó **nem tudja fejből**, mit
+   jelentenek. **Mindig írd ki, MIRŐL SZÓL**, és az azonosító legfeljebb zárójeles
+   utalás legyen utána.
+   - ROSSZ: „az A2 miatt a B1 tétje átrendeződött”
+   - JÓ: „mivel a pénztárgép a szerver nélkül is tud eladni (ez volt a korábbi
+     döntés), a vészhelyzeti szerver kérdésének a tétje átrendeződött”
+   - **A dokumentumokra ez NEM vonatkozik** — ott az azonosítók a horgonyok, és a
+     §2.4 (egy igazságforrás) miatt kellenek. A szabály a **beszélgetésre** él.
+     Ezért van mostantól minden döntéstáblában egy „Miről szól” oszlop is.
+
+2. **Ha egy kérdés nem érthető, a felhasználó szólni fog — ilyenkor fejtsd ki
+   bővebben, ne ismételd meg ugyanúgy.** Volt rá példa: egy ütemezési kérdés
+   csupa azonosítóval volt feltéve, és emiatt megválaszolhatatlan volt.
+
+3. **Döntéskéréskor mindig legyen ott, mi az ÁRA a választásnak** — ne csak a
+   lehetőségek nevei. A felhasználó a következményre szavaz, nem a címkére.
+
+4. **A dokumentáció és a beszélgetés nyelve magyar.** Formai megkötés nincs.
+
+---
+
 ## 1. Mi KÉSZ
 
-Öt blokkoló döntés lezárva a 2026-08-22-i munkamenetben. **Mindegyik indoklással
-együtt** olvasandó — indoklás nélkül a döntések nem tapadnak meg, és a következő
-kör újratárgyalja őket.
+**Nyolc döntés lezárva** (öt az 1., három a 2. munkamenetben, mindkettő 2026-08-22).
+**Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
+meg, és a következő kör újratárgyalja őket.
 
-| Tétel | Döntés | Hol (`fájl:sor`) |
-|-------|--------|------------------|
-| **A1** | WPF marad; **Windows 10 IoT Enterprise (LTSC) only**, Linux törölve | `NYITOTT_KERDESEK.md:22` |
-| **A2** | **Szerver-autoritatív + degradált gyorseladás** a POS-on. Cache + append-only outbox, **nem** PG replika | `NYITOTT_KERDESEK.md:40` |
-| **A2/a** | Kettős kieséskor a **nyitott asztalok nem elérhetők** → kézi újrafelütés | `NYITOTT_KERDESEK.md:77` |
-| **B3** | J1900 **vegyes bázis** (szerver ÉS kliens) → **GraalVM kényszer marad**, plusz szoros WPF perf-költségvetés | `NYITOTT_KERDESEK.md:256` |
-| **E2** | 2–3 fős csapat + AI → **B8 az első hét tétele**, nem opcionális | `NYITOTT_KERDESEK.md:494` |
+| Tétel | Miről szól | Döntés | Hol (`fájl:sor`) |
+|-------|-----------|--------|------------------|
+| **A1** | POS kliens platformja | WPF marad; **Windows 10 IoT Enterprise (LTSC) only**, Linux törölve | `NYITOTT_KERDESEK.md:25` |
+| **A2** | A pénztárgép önállósága | **Szerver-autoritatív + degradált gyorseladás.** Cache + helyi, csak-hozzáfűzhető napló, **nem** PostgreSQL replika | `NYITOTT_KERDESEK.md:43` |
+| **A2/a** | Nyitott asztalok kettős kieséskor | **Nem elérhetők** → a pincér kézzel, gyorseladásként üti fel újra | `NYITOTT_KERDESEK.md:80` |
+| **A2/b** | *(ÚJ, 2. munkamenet)* A degradált mód ütemezése | **Mindhárom rész az MVP-ben**: helyi napló + degradált felület + visszatéréskori egyeztetés | `NYITOTT_KERDESEK.md:112` |
+| **B1/a** | *(ÚJ, 2. munkamenet)* Vészhelyzeti szerver / HA scope | **BENNE MARAD az MVP-ben** — az ajánlással szemben, tudatosan | `NYITOTT_KERDESEK.md:228` |
+| **B1/b** | *(ÚJ, 2. munkamenet)* A tartalék gép és a replikáció | A tartalék **szintén J1900**, dedikált. Munkafeltevés: **aszinkron** replikáció (a „szinkron kizárt" **még nincs mérve**). Az „automatikusan szinkronról aszinkronra váltó" ág **elvetve** | `NYITOTT_KERDESEK.md:253` |
+| **B3** | Minimum célhardver | J1900 **vegyes bázis** (szerver ÉS kliens) → **GraalVM kényszer marad**, plusz szoros WPF perf-költségvetés | `NYITOTT_KERDESEK.md:374` |
+| **E2** | Ki fejleszti | 2–3 fős csapat + AI → **B8 (API-szerződés) az első hét tétele**, nem opcionális | `NYITOTT_KERDESEK.md:612` |
 
-Ezen felül: új **F) szakasz** hét tétellel (`NYITOTT_KERDESEK.md:523`), ami egyik
+Ezen felül: **F) szakasz** hét tétellel (`NYITOTT_KERDESEK.md:647`-től), ami egyik
 eredeti doksiban sem szerepelt.
+
+### 1.1 Amit a 2. munkamenet döntései EGYÜTT okoznak — árazandó, nem újranyitandó
+
+Ez a három új döntés (HA az MVP-ben + aszinkron replikáció + teljes degradált mód)
+külön-külön mind védhető, de **együtt** két olyan következményt szülnek, amit a
+fázisterv (E1) írásakor NEVESÍTENI kell:
+
+1. **Minden telepítés legalább 2 dedikált gép** (fő + tartalék szerver), plusz a
+   pénztárgépek. Az E1 mostani munkafeltételezése („kis bár / büfé, 1–2 pénztár")
+   mellett ez 2–3 gépes minimum-telepítést jelent. Ez az ügyfél beszerzési és
+   árazási tétele. **Ez nem a B1/a újranyitása** — ha elfogadhatatlannak bizonyul,
+   az az E1 célprofilját kérdőjelezi meg (kihez szólunk), nem a HA-döntést.
+
+2. **Egy incidens után HÁROM helyen lesz adat, ami nincs mind ugyanott:**
+   a halott fő szerver lemezén (amit még nem replikált ki), a tartalék szerver
+   adatbázisában, és a pénztárgépek helyi naplóiban. Ebből következik, hogy a
+   **visszaállási procedúra az MVP legkockázatosabb egyetlen darabja**, és a
+   hardver-/hibaszimulátor (D5) **nem opcionális** hozzá — kézzel nem
+   reprodukálható. Részletek: `NYITOTT_KERDESEK.md:280` (B1/c).
 
 ---
 
 ## 2. A KÖVETKEZŐ TÉTEL
 
-### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` B1 — HA / failover
+### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` B1/c + A4 — ki vált át, és ki állítja vissza
 
-**Állapot:** a javaslat **meg van írva**, a felhasználó azt kérte, „beszéljük még át".
-**Nincs elfogadva. Erre építeni tilos.**
+**Ez az EGYETLEN blokkoló a fázisterv előtt.**
 
-- Javaslat: `NYITOTT_KERDESEK.md:190`
-- Kapcsolt tétel, **együtt döntendő**: **A4** kétszintű failback → `NYITOTT_KERDESEK.md:160`
-- Nyitott **üzleti** kérdés benne (nem mérnöki, §12): az Emergency Server a specben
-  **eladási érvként** szerepel; ha kikerül az MVP-ből, az a **termék pozicionálását**
-  érinti → `NYITOTT_KERDESEK.md:243`
+**Állapot:** a felhasználó kérte, hogy beszéljük át, mielőtt szavaz.
+**Nincs eldöntve. Erre építeni tilos.**
 
-**A javaslat öt pontja dióhéjban** (a részletek és az indoklás a fenti soron):
-1. Az A2 döntés **átrendezte a B1 tétjét** — az Emergency Server már kényelmi
-   funkció, nem katasztrófavédelem.
-2. Mindkét spec **fogalmi csúszása**: az USP az *internetkimaradás* elleni védelem;
-   az Emergency Server viszont *hardverhiba* ellen véd. Más esemény.
-3. Javaslat: **HA ki az MVP-ből**, de az **epoch-mező be a protokollba** az 1. naptól.
-4. A „szinkron replikáció, ami automatikusan aszinkronra vált" **csapda** (§5 néma
-   kudarc): pont akkor írsz védtelenül, amikor azt hiszed, védve vagy.
-5. **Kézi** failover, jogosultsághoz kötve (nem szerephez); a biztonsági háló az A2
-   degradált módja.
+- A kérdés és az új szempontok: `NYITOTT_KERDESEK.md:280` (B1/c)
+- **Együtt döntendő** a visszaállítással (failback): `NYITOTT_KERDESEK.md:180` (A4)
+- A történeti javaslatblokk (érvei a B1/c-hez továbbra is élnek):
+  `NYITOTT_KERDESEK.md:302`
 
-### 2.2 `[BLOKKOLVA A B1 ÁLTAL]` E1 — fázisterv
+**A három lehetőség dióhéjban:**
+1. **Ember nyom gombot**, jogosultsághoz kötve (nem szerephez, hogy a pultos is
+   megkaphassa). Soha nincs két fő szerver. Ára: valakinek észre kell vennie.
+2. **Automatika harmadik tanúval** — egy harmadik eszköz (akár egy pénztárgép) adja
+   a döntő szavazatot. Senkinek nem kell ébresztő. Ára: plusz komponens, és a
+   lease/fencing logika a rendszer legnehezebben tesztelhető része.
+3. **Automatika tanú nélkül** — hálózati szakadásnál két fő szerver, két párhuzamos
+   nyugtasorozat, aminek nincs helyes összefésülése. **Mérnökileg nem javasolt.**
 
-**A fázisterv még nincs megírva.** → `NYITOTT_KERDESEK.md:467`
+### 2.2 `[BLOKKOLVA A B1/c ÁLTAL]` E1 — fázisterv
+
+**A fázisterv még nincs megírva.** → `NYITOTT_KERDESEK.md:585`
 
 - **Megállapított tény:** nincs konkrét, névre szóló első fizető ügyfél.
 - **Munkafeltételezés** (felülvizsgálandó, amint van ügyfél): kis bár / büfé, 1–2
-  pénztár, pincér nélkül.
-- **Miért a B1 után:** ha a HA kikerül az MVP-ből, az több hét különbség a tervben.
+  pénztár, pincér nélkül. **FIGYELEM:** ezt a munkafeltételezést a 2. munkamenet
+  döntései feszítik — lásd 1.1 szakasz 1. pontja (minimum 2 dedikált gép).
+- **Miért a B1/c után:** a failover mechanizmusa több hét különbség a tervben
+  (a harmadik tanú + lease/fencing + szimulátor lényegesen több munka, mint egy
+  gomb és egy jogosultság).
 
----
+### 2.3 Ami a B1/c-től FÜGGETLENÜL már most elkezdhető (tervezésként, nem kódként)
+
+Ezek egyik nyitott döntéstől sem függenek, és mind a nyolc lezárt döntés
+következménye — a fázisterv úgyis mindet tartalmazni fogja:
+
+- **B8 — hol él az API-szerződés** (`NYITOTT_KERDESEK.md:449`). Az E2 döntés
+  (2–3 fő, három nyelv) miatt ez az „első hét" tétele. Új szempont az 5. szakaszból:
+  a Siduri-Docs csak doksinak van szánva, tehát a `contracts/` mappa ide nem fér
+  bele → vagy 6. repó, vagy a kikötés lazítása.
+- **F1 — idempotencia-kulcs minden kliens-írásra** (`NYITOTT_KERDESEK.md:647`).
+  Az A2/b döntés (teljes degradált mód) után ez már nem javaslat, hanem
+  **következmény**: helyi napló lejátszása idempotencia nélkül duplikált tételt ad.
+- **Epoch-mező (fencing) a protokollban.** A B1/a döntés (HA az MVP-ben) után ez
+  nem elővigyázatosság, hanem **működési követelmény** — ez akadályozza meg, hogy a
+  visszatérő régi fő szerver még kiszolgáljon klienseket.
+- **F2 — pénz- és mennyiség-reprezentáció.** Minden számítás alapja, semmitől nem függ.
 
 ## 3. `[?]` IGAZOLATLAN PREMISSZÁK — erre döntést építeni TILOS (§13.5)
 
@@ -112,13 +179,18 @@ döntés** áll igazolatlan premisszán. Ha az igazolás cáfolja, az A2-t és a
 
 ## 3.1 `[?]` MÉRÉST IGÉNYEL, nem becsülhető (§4)
 
-- **Failover adatvesztési ablak** J1900-on → `NYITOTT_KERDESEK.md:231`
+- **Failover adatvesztési ablak** J1900-on → `NYITOTT_KERDESEK.md:349`.
+  **Élesedett:** a tartalék szerver is J1900, és a replikáció aszinkron lesz —
+  tehát ez már nem elméleti kérdés, hanem az MVP egyik vállalása. Mérés nélkül
+  **semmilyen számot nem mondunk** az ügyfélnek.
 - **WPF kliens teljesítménye** J1900-on: 720p másodkijelzős videó + teljes képernyős
-  POS UI, 4 GB RAM mellett → `NYITOTT_KERDESEK.md:256`
+  POS UI, 4 GB RAM mellett → `NYITOTT_KERDESEK.md:374`
 - **PostgreSQL memórialimitek** (`shared_buffers`, `work_mem`, `max_connections`)
 
 Mindháromhoz **fizikai J1900 referenciagép kell** — beszerzési tétel, felvéve az
-E3-hoz (`NYITOTT_KERDESEK.md:511`).
+E3-hoz (`NYITOTT_KERDESEK.md:629`).
+**ÚJ mérendő tétel:** a szinkron vs. aszinkron replikáció írási válaszideje egy
+valós J1900 PÁRON. A „szinkron kizárt” állítás jelenleg **érvelés, nem mérés** (§4).
 **Semmilyen teljesítmény- vagy adatvesztési vállalás nem tehető mérés előtt.**
 
 ---
@@ -129,10 +201,12 @@ A felhasználó explicit kérése: *„kódolni egyelőre nem kell, még csak t�
 projectet és véssük kőbe a végleges, mindenre kiterjedő, nagyon pontos tervet."*
 
 Ezen felül mérnöki okból is korai:
-- két blokkoló döntés nyitva (B1, E1),
-- öt igazolatlan premissza (3. szakasz),
+- egy blokkoló döntés nyitva (B1/c — ki vált át a tartalék szerverre, és a vele
+  együtt döntendő A4 visszaállítás), és csak utána írható meg a fázisterv (E1),
+- öt igazolatlan premissza (3. szakasz) — köztük EGY olyan, amin **már meghozott
+  döntés** áll,
 - és **B8** — az API-szerződés helye — még nincs eldöntve
-  (`NYITOTT_KERDESEK.md:331`), ami 2–3 fős, három nyelvű csapatnál az **első hét**
+  (`NYITOTT_KERDESEK.md:449`), ami 2–3 fős, három nyelvű csapatnál az **első hét**
   tétele. Ha kód születik előtte, a varrat (§6) már szétcsúszott mire észrevesszük.
 
 ---
@@ -191,8 +265,12 @@ trailer nélkül.**
    („miért") a szabály része, nem díszítés.
 3. Olvasd el a `NYITOTT_KERDESEK.md`-t. A két spec-fájlt **csak ezután**, és a
    `[MÓDOSÍTVA]` / `[SUPERSEDED]` jelöléseket komolyan véve.
-4. A soron következő munka: **B1 lezárása a felhasználóval** (2.1 szakasz), majd
-   **E1 fázisterv** (2.2).
+4. **Olvasd el a 0.1 szakaszt** (kommunikációs szabályok) — ha ezt kihagyod, a
+   felhasználó nem tud dönteni, mert csupasz azonosítókkal fogsz kérdezni.
+5. A soron következő munka: **B1/c lezárása a felhasználóval** — ki vált át a
+   tartalék szerverre, amikor a fő meghal, és vele együtt az A4 (ki és hogyan
+   állítja vissza a fő szervert) — a 2.1 szakasz szerint. Majd **E1 fázisterv**
+   (2.2). Ami közben a döntéstől függetlenül vihető: 2.3 szakasz.
 
 **Ha egy tétel eldől:** jelöld `[ELDÖNTVE — <döntés>]`-ként a
 `NYITOTT_KERDESEK.md`-ben, **az indoklással együtt**, frissítsd a prioritási táblát

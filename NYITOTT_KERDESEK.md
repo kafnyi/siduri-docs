@@ -2,7 +2,10 @@
 
 > **Státusz:** nyitott, kódolás előtti tisztázásra vár.
 > **Forrás:** `siduri_spec_hu.md` + `siduri_superprompt_en.md` átolvasása (2026-08-22).
-> **Utolsó frissítés:** 2026-08-22 — A1, A2, A2/a, B3, E2 eldöntve; B1+A4 javaslat megírva (döntésre vár); F) szakasz felvéve.
+> **Utolsó frissítés:** 2026-08-22 (2. munkamenet) — ÚJ döntések: B1/a (HA az MVP-ben marad),
+> B1/b (a tartalék is J1900 → aszinkron a munkafeltevés), A2/b (a degradált mód mindhárom
+> része az MVP-ben). Korábbról: A1, A2, A2/a, B3, E2 eldöntve; F) szakasz felvéve.
+> **NYITVA maradt:** B1/c (ki vált át) + A4 (failback), majd utánuk E1 (fázisterv).
 > **Ez az EGY igazságforrás a nyitott döntésekre** (MERNOKISAROKKOVEK §2.4).
 > Ha egy tétel eldől, ITT jelöld `[ELDÖNTVE — <döntés>]`-ként, ne máshol.
 >
@@ -106,6 +109,31 @@ maradnak — a kézi újrafelütés a legvégső tartalék.
   nyitva lógnak és hamisítják a riportokat. Ez az A2 4. pontjának
   (reconciliation) része.
 
+#### `[ELDÖNTVE — a degradált mód TELJES EGÉSZÉBEN az MVP-ben van]` A2/b — ütemezés
+
+**Döntés (2026-08-22, 2. munkamenet):** a degradált gyorseladás mindhárom része az
+MVP-be kerül, akkor is, hogy közben a vészhelyzeti szerver (B1/a) is az MVP-ben van:
+
+1. **helyi tartós napló a pénztárgépen** (append-only outbox) — a pénztárgép a
+   szerver nélkül is tud eladni, és az eseményeket kiírja magának;
+2. **degradált felület** — a pénztáros LÁTJA, hogy korlátozott módban van, és ami
+   nem működik, az láthatóan tiltva van (nem némán bukik el);
+3. **visszatéréskori egyeztetés** (reconciliation) — a szerver visszatérésekor a
+   helyi napló lejátszása, sorrenden kívüli és múltbeli időbélyegű eseményekkel.
+
+**Miért kellett ezt külön eldönteni:** mert a vészhelyzeti szerver ugyanazt a bajt
+(a fő szerver kiesését) már lefedi, tehát felmerült, hogy a degradált mód
+megvalósítása halasztható, és MVP-ben elég lenne csak az, ami utólag drága
+(idempotencia-kulcs minden írásra, szerver-autoritatív modell). A felhasználó a
+**kétszeres védelmet** választotta.
+
+**Amit ez ÁRAZ (a fázistervben, E1, be kell írni):** a 3. pont, a
+visszatéréskori egyeztetés, **az MVP legkockázatosabb egyetlen darabja** — nem a
+kódmennyiség miatt, hanem mert egy incidens után három helyen lesz adat, ami nincs
+mind ugyanott (a halott master lemeze, a tartalék szerver adatbázisa, és a
+pénztárgépek helyi naplói). Lásd a B1/c alatti „három igazságforrás" bekezdést.
+Ehhez §1 szerint őr és §D5 szerint szimulátor kell — kézzel nem reprodukálható.
+
 #### Amit ez a döntés maga után von (elvégzendő a tervben)
 1. **Lokális tartós tár a POS-on** (nem PG replika). Mit cache-elünk: törzsadat,
    árak, ÁFA-szabályok (dátumozva, §13.3), jogosultságok, PIN-hash-ek,
@@ -174,7 +202,7 @@ visszafordíthatatlan műveletnél megmarad a négy szem.
 
 ## B) Architekturális döntések, amiket a spec nyitva hagy
 
-### `[ ]` B1 — Split-brain 2 node-dal matematikailag nem oldható meg
+### `[RÉSZBEN ELDÖNTVE]` B1 — Split-brain 2 node-dal matematikailag nem oldható meg
 Master + Emergency = 2 szavazó, **nincs kvórum**. Kell egy harmadik tanú (witness):
 egy POS kliens, egy olcsó RPi, egy shared lock a felhőben — vagy **explicit emberi
 failover** (a menedzser nyom egy gombot).
@@ -187,10 +215,97 @@ Mindkettőnek üzleti következménye van; ki kell mondani, melyiket vállaljuk.
 
 ---
 
-#### `[JAVASLAT — DÖNTÉSRE VÁR]` A 2026-08-22-i átbeszélés eredménye
+#### A B1 három részkérdésre bomlik — a státuszuk KÜLÖNBÖZŐ
 
-> **Státusz: NEM eldöntött.** A felhasználó azt kérte, beszéljük még át. Az alábbi
-> öt pont javaslat, nem döntés — **erre építeni nem szabad.**
+| Részkérdés | Státusz |
+|------------|---------|
+| **B1/a — Benne van-e a HA az MVP-ben?** | `[ELDÖNTVE — IGEN, benne marad]` (lásd alább) |
+| **B1/b — Milyen gép a tartalék szerver, és ebből mi következik a replikációra?** | `[ELDÖNTVE — szintén J1900]` (lásd alább) |
+| **B1/c — Ki vált át: ember vagy automatika?** | `[ ]` **NYITVA** — a felhasználó kérte, hogy még beszéljük át |
+
+---
+
+#### `[ELDÖNTVE — a HA BENNE MARAD az MVP-ben]` B1/a — HA scope
+
+**Döntés (2026-08-22, 2. munkamenet):** a teljes vészhelyzeti szerver gépezet
+(PostgreSQL replikáció, failover, fencing, split-brain tesztelés) **az MVP része**.
+
+**Fontos, hogy ez a döntés az AJÁNLÁSSAL SZEMBEN született, tudatosan.** Az
+alábbi „JAVASLAT" blokk öt pontja azt ajánlotta, hogy a HA kerüljön ki az MVP-ből.
+A felhasználó ezt ismerve döntött úgy, hogy maradjon benne. §12: ami
+viselkedés-/termékdöntés, az nem mérnöki hatáskör — a javaslat érvei
+**megmaradnak dokumentációként** (miért volt vitatható), de **nem újranyitandók**.
+
+**KÖVETKEZMÉNY, amit a döntés pillanatában még nem néztünk végig — a fázistervben
+(E1) be kell árazni, NEM a döntés újranyitása:**
+minden telepítés **legalább 2 dedikált gépet** igényel (master + tartalék), plusz a
+pénztárgépek. Az E1 jelenlegi munkafeltételezése („kis bár / büfé, 1–2 pénztár")
+mellett ez azt jelenti, hogy a legkisebb hiteles telepítés **2–3 gép**, nem 1–2.
+Ez beszerzési és árazási tétel az ügyfél oldalán. Ha az E1 fázisterv írásakor ez
+elfogadhatatlannak bizonyul, az az **E1 munkafeltételezését** kérdőjelezi meg
+(kihez szólunk), nem ezt a döntést.
+
+**KÖVETKEZMÉNY a spec 17. fejezetére:** a `siduri_spec_hu.md` 17. és a
+`siduri_superprompt_en.md` §17 `[NYITOTT — B1, A4]` / `[OPEN — B1, A4]` jelölései
+**részben feloldhatók** — a „kerüljön ki az MVP-ből" javaslat ELVETVE. A jelölések
+csak a B1/c (ki vált) és az A4 (failback) miatt maradnak.
+
+#### `[ELDÖNTVE — a tartalék szerver is J1900]` B1/b — a tartalék gép és a replikáció
+
+**Döntés (2026-08-22, 2. munkamenet):** a vészhelyzeti szerver **szintén J1900**,
+a meglévő telepített bázisból, **dedikált** gépként (nem egy pénztárgép mellékállása).
+
+**Ebből következő MUNKAFELTEVÉS a replikációra — figyelem, ez MÉG NEM IGAZOLT (§4):**
+két J1900 között a **szinkron** replikáció várhatóan vállalhatatlan, mert szinkron
+módban minden írás megvárja a lassabbik gép lemezét, és a pénztári tranzakció-
+válaszidő közvetlenül ettől függ. **Ezért a munkafeltevés: ASZINKRON replikáció.**
+
+**De ezt tilos tényként kezelni.** §4: „teljesítmény-állítás CSAK méréssel". A
+„szinkron kizárt" mondat jelenleg **érvelés, nem mérés**. Ami hiányzik hozzá:
+egy valós J1900 páron mért írási válaszidő szinkron és aszinkron módban, tipikus
+pénztári terhelés mellett. Amíg ez nincs meg:
+- az aszinkron a **tervezési alapeset**, mert ez a konzervatív irány
+  (aszinkronnál tudjuk, hogy adatot veszthetünk, és fel tudunk rá készülni;
+  szinkronnál azt hinnénk, hogy nem — az a rosszabb tévedés),
+- de **semmilyen számot nem írunk le** arról, hány tranzakció veszhet el.
+  Ez `[ ]` MÉRENDŐ tétel marad, hardverfüggő (E3).
+
+**A vonzó középút továbbra is CSAPDA — ez elvi alapon kimondható, mérés nélkül is.**
+Az ötlet, hogy „legyen szinkron, de ha a tartalék leáll, váltson automatikusan
+aszinkronra", pontosan a §5 néma kudarca: a mechanizmus, ami eldönti, hogy „a
+tartalék halott", hálózati particiónál téved — és amikor téved, **pont akkor írsz
+védtelenül, amikor azt hiszed, védve vagy**, és semmi nem szól. Rosszabb a
+vállaltan aszinkronnál, mert hamis biztonságot ad. **Ezt az ágat elvetjük.**
+
+#### `[ ]` B1/c — KI VÁLT ÁT: ember vagy automatika? — NYITVA
+
+**Státusz (2026-08-22, 2. munkamenet):** a felhasználó azt kérte, hogy még
+beszéljük át, mielőtt dönt. **Erre építeni tilos.** A három lehetőség és az
+átbeszélés anyaga a lenti „JAVASLAT" blokkban, plusz az alábbi, a mostani
+döntések fényében ÚJ szempont:
+
+**ÚJ, a mostani döntések által teremtett helyzet: három igazságforrás egy incidens
+után.** Mivel (a) a replikáció aszinkron, (b) a degradált gyorseladás teljes
+egészében az MVP-ben van, és (c) a HA is az MVP-ben van, egy szerverhiba után
+**három** helyen lesz adat, ami nincs mind ugyanott:
+1. a halott master lemezén (amit még nem replikált ki),
+2. a tartalék szerver adatbázisában (ami átvette a szolgálatot),
+3. a pénztárgépek helyi naplóiban (amiket degradált módban írtak).
+
+Ez nem hiba, hanem a három döntés együttes következménye — de azt jelenti, hogy a
+**visszaállási (failback) procedúra az MVP legkockázatosabb egyetlen darabja**, és
+a szimulátor (D5) nem opcionális hozzá. Az A4 (failback) ezért a B1/c-vel EGYÜTT
+döntendő, ahogy eddig is.
+
+---
+
+#### `[TÖRTÉNETI — a HA scope kérdésében ELVETVE]` A 2026-08-22-i átbeszélés javaslata
+
+> **Státusz: a 3. pontja (HA ki az MVP-ből) ELVETVE a B1/a döntéssel.** A blokk
+> **megmarad**, mert az érvei a B1/c-hez és az E1 fázistervhez továbbra is
+> relevánsak, és mert §12 szerint le kell írni, mit vetettünk el és miért.
+> Az 1., 2. és 4. pont **továbbra is érvényes megállapítás**; az 5. pont a B1/c
+> nyitott kérdésének egyik oldala.
 
 **1. Az A2 döntés ÁTRENDEZTE a B1 tétjét — ez a legfontosabb megállapítás.**
 Amíg az volt a kép, hogy a szerver halálakor a hely megáll, az Emergency Server
@@ -205,10 +320,13 @@ Emergency Server viszont a **lokális szerver HARDVERHIBÁJA** ellen véd, ami
 egy sokkal ritkább, teljesen más esemény. A két dolog összemosódik a doksiban,
 és ettől a HA indokoltabbnak látszik, mint amennyire az.
 
-**3. Javasolt scope-döntés:** a teljes HA (Emergency Server, replikáció, failover,
-fencing, split-brain tesztelés) **kerüljön ki az MVP-ből**, DE az **epoch-mező
-kerüljön be a protokollba az első naptól**, akkor is, ha egyelőre mindig `1`.
-Most ingyen van; utólag beletenni azt jelenti, hogy minden kliens minden
+**3. `[ELVETVE — lásd B1/a]` Javasolt scope-döntés:** ~~a teljes HA kerüljön ki az
+MVP-ből~~. **A felhasználó ezt elvetette: a HA az MVP része.**
+Ami ebből a pontból **ÉLETBEN MARAD és kötelező**: az **epoch-mező kerüljön be a
+protokollba az első naptól**. Sőt, most már nem opcionális elővigyázatosság, hanem
+**működési követelmény** — ha a failover tényleg megépül az MVP-ben, az epoch az a
+mechanizmus, ami megakadályozza, hogy a visszatérő régi master még kiszolgáljon
+klienseket (fencing). Utólag beletenni azt jelentené, hogy minden kliens minden
 verziójával kompatibilitást kell kezelni (D3).
 
 **4. A vonzó középút CSAPDA — ezt elvi alapon ki lehet mondani.**
@@ -632,19 +750,28 @@ Rögzítendő a kód előtt:
 
 ## Amit a kód előtt el kell dönteni (prioritás)
 
-**Állapot 2026-08-22 után:** A1, A2, A2/a, B3, E2 eldöntve. Maradt két blokkoló:
+**Állapot a 2026-08-22-i 2. munkamenet után:** nyolc tétel eldöntve.
+**EGYETLEN blokkoló maradt a fázisterv előtt: a B1/c.**
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **B1** | `[ ]` **NYITVA** — javaslat megírva, döntésre vár | Failover: automatikus witness-szel vagy emberi megerősítéssel? Szinkron vagy aszinkron replikáció? Kikerül-e a HA az MVP-ből? |
-| 2 | **E1** | `[ ]` **NYITVA** — a fázisterv még nincs megírva | Mi az MVP scope-ja? Enélkül nincs mihez mérni a haladást. **B1 után** írandó. |
+| 1 | **B1/c** | `[ ]` **NYITVA** — a felhasználó kérte, hogy beszéljük át | Ki vált át a tartalék szerverre, amikor a fő meghal: ember gombnyomásra, automatika harmadik tanúval, vagy automatika tanú nélkül? **Az A4-gyel EGYÜTT döntendő** (ugyanaz a mechanizmus). |
+| 2 | **A4** | `[ ]` **NYITVA** | Failback: ki és hogyan állítja vissza a fő szervert. A B1/c-vel együtt. |
+| 3 | **E1** | `[ ]` **NYITVA** — a fázisterv még nincs megírva | Mi az MVP scope-ja? Enélkül nincs mihez mérni a haladást. **A B1/c után** írandó. |
 | — | ~~A1~~ | `[ELDÖNTVE]` | WPF, Windows 10 IoT Enterprise LTSC only. |
 | — | ~~A2~~ | `[ELDÖNTVE]` | Szerver-autoritatív + degradált gyorseladás. **Feltételes**: igazolatlan AEE-premisszán áll. |
 | — | ~~A2/a~~ | `[ELDÖNTVE]` | Kettős kieséskor a nyitott asztalok nem elérhetők → kézi újrafelütés. |
+| — | ~~A2/b~~ | `[ELDÖNTVE]` | A degradált gyorseladás **mindhárom része** (helyi napló, degradált felület, visszatéréskori egyeztetés) az MVP-ben van. |
+| — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
+| — | ~~B1/b~~ | `[ELDÖNTVE]` | A tartalék szerver **szintén J1900**, dedikált. Munkafeltevés: **aszinkron** replikáció; a „szinkron kizárt" állítás **még nincs mérve** (§4). Az „automatikusan szinkronról aszinkronra váltó" ág **elvetve** (§5 néma kudarc). |
 | — | ~~B3~~ | `[ELDÖNTVE]` | J1900 vegyes bázis (szerver ÉS kliens) → GraalVM kényszer marad, plusz szoros WPF perf-költségvetés. |
 | — | ~~E2~~ | `[ELDÖNTVE]` | 2–3 fős csapat + AI → B8 az első hét tétele. |
 
-**Az A4 (failback) a B1-gyel EGYÜTT dőljön el** — ugyanaz a mechanizmus.
+**Az A4 (failback) a B1/c-vel EGYÜTT dőljön el** — ugyanaz a mechanizmus.
+
+**Az epoch-mező (fencing) mostantól nem elővigyázatosság, hanem KÖVETELMÉNY**, mert
+a failover ténylegesen megépül az MVP-ben. Lásd B1/a és a történeti javaslatblokk
+3. pontja.
 
 ### Kódolás előtti, IGAZOLANDÓ premisszák (§13.5)
 Ezekre **döntés nem építhető** forrás nélkül. Egyik sem verifikált tudás, mindegyik

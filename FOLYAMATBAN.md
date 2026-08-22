@@ -100,7 +100,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Tizenhat döntés lezárva** (öt az 1., tizenegy a 2. munkamenetben, mindkettő 2026-08-22).
+**Tizenhét döntés lezárva** (öt az 1., tizenkettő a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -118,6 +118,7 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **B9/b** | *(ÚJ)* Mikor kötelező a tartalék szerver | **1 gép:** nincs. **2–3 gép:** opcionális. **4+ gép:** kötelező. Következmény: a „nincs tartalék szerver" elsőrangú konfiguráció, nem hibaállapot | `NYITOTT_KERDESEK.md`, keress: `B9/b` |
 | **B9/a** | *(ÚJ)* Egygépes telepítés | **A pénztárgép MAGA a szerver.** Ezzel eldőlt a korábban nyitott kérdés is: igen, futhat egy gépen szerver ÉS kliens — támogatott konfiguráció | `NYITOTT_KERDESEK.md`, keress: `B9` |
 | **Üzenetek** | *(ÚJ)* Személyzeti hibaüzenetek | **Három üzenet jóváhagyva** („hálózat", nem „internet"), plusz külön jelzés az internet hiányára | `NYITOTT_KERDESEK.md`, keress: `A személyzetnek szóló üzenetek` |
 | **B3** | Minimum célhardver | J1900 **vegyes bázis** (szerver ÉS kliens) → **GraalVM kényszer marad**, plusz szoros WPF perf-költségvetés | `NYITOTT_KERDESEK.md:374` |
@@ -162,32 +163,36 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 
 ## 2. A KÖVETKEZŐ TÉTEL
 
-### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` B9/b — mire vonatkozik a gépszám-szabály?
+### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` B10 — kliens-oldali tranzakció-archívum
 
-**Ez az EGYETLEN nyitott kérdés, ami nem találgatható ki, és ami a fázistervet
-érdemben befolyásolja.**
+**Új tétel, a felhasználó felvetése.** Tárolják-e a pénztárgépek a saját
+tranzakcióikat ~10 napig, hogy a szerver egy vészhelyzeti átkapcsolás után le
+tudja kérni és összevetni őket?
 
-A felhasználó a telepítési méretosztályokról ezt mondta: *„egy egy pénztárgépes
-helyen az egyetlen gép maga a szerver, így annak elérésével nem lehet probléma.
-két vagy három gépes hely esetében nincs rá szükség, de lehetőségnek fenntartanám,
-4 vagy több gépes helyekre kell viszont mindenképpen."*
+**Az adatmennyiség NEM akadály.** Becsült nagyságrend (nem mért): ~1,5–2 kB
+nyugtánként, ~1 MB/nap egy forgalmas kasszán, **~10 MB / kassza / 10 nap** —
+teljes eseménynaplóval is csak 50–100 MB. Egy 64 GB-os SSD-n ez semmi.
 
-**Az egygépes rész egyértelmű és el van döntve** (lásd 1. szakasz, B9/a).
-**A második mondat viszont kétféleképp olvasható**, és a kettő különböző rendszer:
+**Amit megvesz:** (1) „reméljük nincs hiány" helyett **bizonyítani tudjuk, mi
+hiányzik**; (2) egy helyreállítási út, ami eddig nem létezett — ha a halott fő
+szerver lemeze olvashatatlan, a kasszák archívuma az EGYETLEN megmaradt forrás;
+(3) napi záráskor is futtatható rutin-ellenőrzés, tehát gyakran futó őr.
 
-- **(A) A vészhelyzeti szerverre vonatkozik.** 2–3 gépes helyen a tartalék szerver
-  opcionális, 4+ gépesen kötelező. → Ez azt jelentené, hogy a **legtöbb kis hely
-  NEM kap tartalék szervert**, ami visszahat a „vészhelyzeti szerver az MVP-ben
-  marad" döntésre és a fázisterv scope-jára.
-- **(B) A tanú-sémára vonatkozik** (ez volt a feltett kérdés tárgya). 2–3 gépes
-  helyen nem kell külön tanú-mechanizmus — elég a tartalék szervert megkérdezni —,
-  4+ gépesen kell a teljes, több tanús séma.
+**A kötelező tervezési szabály, ami nélkül ez ártalmas:** a kliensen a **kimenő
+sor** (még nem nyugtázott, lejátszandó) és az **archívum** (már kiadott,
+bizonyíték) **szerkezetileg elkülönül**, és az archívumot **soha, semmilyen
+kódúton nem szabad írásként visszajátszani** — különben már lekönyvelt eladásokat
+könyvelnénk újra. Ez őrt igényel, nem kommentet.
 
-A kettő **nem zárja ki egymást**, akár mindkettő igaz lehet. **§2.2: erre nem
-szabad találgatással építeni**, mert a hibás premissza a felhasználó következő
-döntésébe csatornázódna.
-
-→ `NYITOTT_KERDESEK.md`, keress rá: `B9/b`
+**A három valódi nyitott kérdés** → `NYITOTT_KERDESEK.md`, keress: `B10`
+1. **`[ ]` Adatvédelem.** Eddig a nyugtaadat a szerveren volt, hátsó helyiségben.
+   Mostantól minden pénztárgép 10 napnyit tartana — és egy pénztárgép ellopható.
+   Mi kerülhet bele, kell-e titkosítás, hogyan illeszkedik a törlési igényhez?
+2. **`[ ]` A megőrzési idő száma.** A 10 nap feltűnően ugyanaz, mint a licenc
+   offline türelmi ideje — **ne kössük őket közös konstansra**, két különböző
+   dolgot védenek. Külön, konfigurálható paraméter legyen.
+3. **`[ ]` Írásterhelés olcsó tárolón** (SSD/eMMC), különösen az egygépes
+   lépcsőn, ahol ugyanaz a lemez viszi a PostgreSQL-t is. Mérendő.
 
 ### 2.1.1 `[ ]` A kétlépcsős failover kitöltési kérdései (R1–R5; az R6 megerősítve)
 

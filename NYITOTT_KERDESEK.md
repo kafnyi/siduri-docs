@@ -14,8 +14,12 @@
 > **ÚJ (negyedik kör):** A4/b (billegés-védelem: növekvő várakozás + leállási határ),
 > A4/c (azonnali szerepcsere), a személyzeti üzenetek jóváhagyva, és ÚJ tétel: **B9**
 > — telepítési méretosztályok, ahol az egygépes helyen a pénztárgép maga a szerver.
-> **NYITVA maradt:** B9/b (mire vonatkozik a 2–3 vs. 4+ gépes szabály), a B1/c R1–R5
-> kitöltése, majd E1 (fázisterv).
+> **ÚJ (ötödik kör):** B9/b tisztázva — a gépszám-szabály a TARTALÉK SZERVERRE vonatkozik
+> (2–3 gépnél opcionális, 4+ gépnél kötelező). ÚJ tétel: **B10** — kliens-oldali
+> tranzakció-archívum (az adatmennyiség nem akadály; az adatvédelem, a megőrzési idő és
+> az írásterhelés az).
+> **NYITVA maradt:** B10 három részkérdése, az R1 lépcsőnkénti alakjának jóváhagyása,
+> a B1/c R2–R5 kitöltése, majd E1 (fázisterv).
 > **Ez az EGY igazságforrás a nyitott döntésekre** (MERNOKISAROKKOVEK §2.4).
 > Ha egy tétel eldől, ITT jelöld `[ELDÖNTVE — <döntés>]`-ként, ne máshol.
 >
@@ -869,22 +873,123 @@ tanú-kérdés (R1) tárgytalanná válik ezen a lépcsőn.
    helyen viszont valódi. Ez nem ok a kivételére — úgyis megépül —, de a
    fázistervben és a marketingben pontosan kell fogalmazni.
 
-**`[ ]` B9/b — TISZTÁZANDÓ: mire vonatkozik a „2–3 gépnél nem kell, 4+ gépnél
-kötelező" szabály?**
-A felhasználó mondata (*„két vagy három gépes hely esetében nincs rá szükség, de
-lehetőségnek fenntartanám, 4 vagy több gépes helyekre kell viszont
-mindenképpen"*) **kétféleképp olvasható**, és a kettő különböző rendszert ír le:
-- **(A) olvasat — a VÉSZHELYZETI SZERVERRE vonatkozik:** 2–3 gépes helyen a
-  tartalék szerver opcionális, 4+ gépesen kötelező.
-- **(B) olvasat — a TANÚ-SÉMÁRA vonatkozik** (ez volt a feltett kérdés tárgya):
-  2–3 gépes helyen nem kell külön tanú-mechanizmus (elég a tartalék szervert
-  megkérdezni), 4+ gépesen kell a teljes, több tanús séma.
+**`[ELDÖNTVE — a TARTALÉK SZERVERRE vonatkozik]` B9/b**
 
-**A két olvasat NEM zárja ki egymást — akár mindkettő igaz lehet.**
-**§2.2 szerint ezt nem szabad találgatással eldönteni**, mert a tét nagy: az (A)
-olvasat azt jelenti, hogy a legtöbb kis hely NEM kap tartalék szervert, ami
-visszahat a B1/a scope-döntésre és az E1 fázistervre.
-**Tisztázás alatt — erre építeni tilos.**
+**Tisztázva (2026-08-22):** a „2–3 gépnél nem kell, 4+ gépnél kötelező" szabály a
+**vészhelyzeti (tartalék) szerverre** vonatkozik, nem a tanú-sémára.
+
+**KÖVETKEZMÉNYEK, amiket ez maga után von:**
+
+1. **A „nincs tartalék szerver" NEM hibaállapot, hanem elsőrangú konfiguráció.**
+   A szoftvernek támogatnia kell, hogy egy helyen egyáltalán nincs tartalék.
+   Ilyenkor **átkapcsolást felajánlani sem szabad** — ez ugyanaz a szabály, mint
+   az R6 (ne kínáljunk olyat, ami nem működik), csak itt nem hiba miatt, hanem
+   mert nincs is mire kapcsolni. A felület mondja meg őszintén: „ezen a helyen
+   nincs tartalék szerver, a csökkentett mód a védelem".
+
+2. **A tanú-kérdés (R1) NEM oldódott meg, csak élesebb lett.** Most már
+   lépcsőnként kell megválaszolni:
+   - **1 gép:** tárgytalan (a gép maga a szerver).
+   - **2–3 gép, tartalék NÉLKÜL:** nincs mire átkapcsolni → tanú sem kell. A gép
+     csak azt akarja tudni, ŐT vágták-e le — ehhez a többi gépet kérdezi meg.
+   - **2–3 gép, tartalékkal:** a tartalék szerver a kézenfekvő tanú („te látod a
+     főt?"), plusz a többi gép.
+   - **4+ gép:** teljes, több tanús séma.
+   **`[ ]` Ez így elfogadható-e, jóváhagyásra vár.**
+
+3. **A csökkentett gyorseladás haszna ITT a legnagyobb.** A 2–3 gépes,
+   tartalék nélküli helyen a szerver kiesésekor a csökkentett mód **az egyetlen**
+   védelem — nem tartalék, nem másodlagos háló. Ez utólag igazolja azt a
+   döntést, hogy a csökkentett mód teljes egészében az MVP-ben van (A2/b).
+
+### `[ ]` B10 — Kliens-oldali TRANZAKCIÓ-ARCHÍVUM (új tétel, 2026-08-22)
+
+**A felhasználó felvetése:** tárolják-e a pénztárgépek a saját tranzakcióikat
+legalább 10 napig, hogy a szerver egy vészhelyzeti átkapcsolás után **le tudja
+kérni és összevetni** őket — így biztosabban elkerülhető az adatvesztés.
+Kérdése: **nem lenne túl sok adat?**
+
+#### Az adatmennyiség — BECSLÉS, nem mérés (§4)
+
+> **Ez számított nagyságrend explicit feltevésekből, NEM mért adat.** Valós
+> terméktörzs és valós nyugtaprofil mellett újraszámolandó. A feltevések:
+> nyugtánként ~4–5 tétel, tömör bináris/JSON alak, forgalmas kassza 500 nyugta/nap.
+
+| Tétel | Becsült méret |
+|-------|---------------|
+| Egy nyugta feje (időbélyeg, sorszám, kassza, felhasználó, műszak, végösszeg, ÁFA-bontás, fizetési bontás) | ~0,3–0,5 kB |
+| Egy tételsor (cikk, mennyiség, egységár, ÁFA-kulcs, kedvezmény, feltétek) | ~0,15–0,25 kB |
+| **Egy teljes nyugta** (~4–5 tétellel) | **~1,5–2 kB** |
+| **Egy forgalmas kassza napi forgalma** (500 nyugta) | **~1 MB / nap** |
+| **10 nap, egy kasszán** | **~10 MB** |
+| **10 nap, teljes eseménynaplóval** (nem csak lezárt nyugtákkal) — 5–10× szorzó | **~50–100 MB** |
+
+**Válasz: NEM sok. A tárhely nem korlát** — még a bőkezű, teljes eseménynaplós
+változat is elfér egy 64 GB-os SSD-n nagyságrendekkel. **Az akadály tehát nem a
+méret, hanem három másik dolog** (lásd lent).
+
+#### `[!]` A LEGFONTOSABB tervezési szabály, amit ez megkövetel
+
+**A kliensen KÉT, egymástól szerkezetileg elkülönített dolog van, és
+összekeverésük duplikált adóügyi bizonylatot okoz:**
+
+| | **KIMENŐ SOR (outbox)** | **ARCHÍVUM** |
+|---|---|---|
+| Mit tartalmaz | Amit a szerver **még nem nyugtázott** | Amit ez a kassza **valaha kiadott**, nyugtázottat is |
+| Mi történik vele | **Lejátszandó** a szerverre | **SOHA nem játszandó le automatikusan** |
+| Mikor törlődik | Nyugtázás után | N nap után, időalapon |
+| Szerepe | Az adat eljuttatása | **BIZONYÍTÉK** összevetéshez |
+
+**Ha az archívumot bárhol vissza lehet játszani írásként, az pontosan azt a hibát
+hozza vissza, ami ellen az egész felépítés véd: már lekönyvelt eladások
+újrakönyvelését.** Az archívum legyen **szerkezetileg csak olvasható** —
+ne csak konvencióból, hanem úgy, hogy a lejátszó kódút hozzá se férjen. §1 szerint
+ez **őrt igényel**, nem kommentet.
+
+#### Amit ez ténylegesen MEGVESZ — és ez valódi érték
+
+1. **„Reméljük, nincs hiány" helyett „be tudjuk bizonyítani, mi hiányzik".**
+   Egy kemény átvétel után a szerver meg tudja kérdezni: *„2-es kassza, mit adtál
+   ki 19:40 és 20:15 között?"*, és összevetheti az adatbázissal. Ez pontosan a §5
+   szerinti **pozitív bizonyíték**, szemben a „nem jött hibajelzés" alapú
+   következtetéssel.
+
+2. **Egy helyreállítási út, ami eddig NEM létezett.** Ha a halott fő szerver
+   lemeze **olvashatatlan** (gyakran pont ezért halt meg), akkor az árva
+   tranzakciókat onnan **nem lehet kimenteni** — az A4 kimentési útvonala ilyenkor
+   üres kézzel tér vissza. **A kasszák archívuma viszont megvan.** Ez a
+   „nulla adatvesztés" ígéretet olyan ágon is közelíti, ahol eddig semmi nem volt.
+
+3. **Rutinszerű ellenőrzés, nem csak katasztrófánál.** Ugyanez az összevetés
+   futtatható napi záráskor is: „minden kassza minden nyugtája megvan a
+   szerveren?" Ez a §1 értelmében **állandóan futó őr**, nem ritkán érintett ág.
+
+#### `[ ]` A három VALÓDI akadály — nem a méret
+
+**B10/a `[ ]` — Adatvédelem (GDPR).** Eddig a nyugtaadat a szerveren volt, egy
+hátsó helyiségben. Mostantól **minden pénztárgép 10 napnyi tranzakciót tart** —
+és ha a nyugtákon számlaadat, törzsvendég-azonosító vagy név szerepel, akkor egy
+pultba épített gép személyes adatot tárol. Egy pénztárgép **ellopható**; a
+szerver általában nem. Eldöntendő: mi kerülhet egyáltalán az archívumba, kell-e
+**titkosítás nyugalmi állapotban**, és hogyan illeszkedik a törlési igényhez (B7).
+
+**B10/b `[ ]` — A megőrzési idő száma.** A javasolt 10 nap **feltűnően ugyanaz a
+szám**, mint a licenc offline türelmi ideje (19. fejezet). **Ne kössük őket
+össze** — két teljesen különböző dolgot védenek, és ha egy közös konstansra
+kerülnek, egyikük megváltoztatása némán elrontja a másikat (§13.1 hibaosztálya).
+Legyen **külön, konfigurálható** paraméter. A konkrét szám eldöntendő: a 10 nap
+bőven fedi a reális helyreállítási ablakot, és a méret alapján akár 30 is lehetne.
+
+**B10/c `[ ]` — Írásterhelés az olcsó tárolón.** A pénztárgépekben gyakran olcsó
+SSD vagy eMMC van. A minden tranzakciónál lemezre szinkronizált, hozzáfűzéses
+írás elvben rendben van, de **§4 szerint mérendő** J1900-as gépen, nem
+feltételezendő — különösen az egygépes lépcsőn, ahol ugyanaz a lemez viszi a
+PostgreSQL-t is.
+
+**Kapcsolódik:** A2/b (csökkentett mód és a helyi napló), A4 (visszaállás és az
+árva tranzakciók), F1 (idempotencia — az összevetéshez stabil azonosító kell
+minden tranzakción), F3 (ki az igazságforrás: a Siduri vagy az adóügyi eszköz —
+az archívum ehhez is bizonyítékot ad), A3 (megőrzési kötelezettség).
 
 ---
 
@@ -1187,8 +1292,9 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **B9/b** | `[ ]` **NYITVA — tisztázandó, nem találgatható** | A „2–3 gépnél nem kell, 4+ gépnél kötelező" szabály a VÉSZHELYZETI SZERVERRE vonatkozik, vagy a TANÚ-SÉMÁRA? A kettő különböző rendszert ír le, és az egyik olvasat visszahat a HA scope-jára és a fázistervre. |
-| 2 | **B1/c R1–R5** | `[ ]` **NYITVA** — R6 megerősítve; az R1 (ki a tanú) a B9/b tisztázásától függ | A kétlépcsős failover végrehajtási részletei: ki a tanú (és mi van egypénztáras helyen), miből ismeri fel a gép hogy Ő esett ki, az 5 perc paraméterezése és az ajánlat lejárata, több egyidejű gombnyomás, élő-de-elérhetetlen fő szerver, és hogy ne ajánljunk fel működésképtelen átkapcsolást. |
+| 1 | **B10** | `[ ]` **ÚJ, NYITVA** | Kliens-oldali tranzakció-archívum. Az adatmennyiség **nem akadály** (~10 MB / kassza / 10 nap, becsülve). A három valódi kérdés: (a) adatvédelem — minden pénztárgép személyes adatot tartana, és a gép ellopható; (b) a megőrzési idő száma, ami NE legyen közös a licenc türelmi idejével; (c) írásterhelés olcsó tárolón, mérendő. |
+| 1b | **R1 lépcsőnként** | `[ ]` **NYITVA** — jóváhagyásra | A tanú-séma lépcsőnkénti alakja a B9/b tisztázása után megírva; a felhasználó jóváhagyására vár. |
+| 2 | **B1/c R2–R5** | `[ ]` **NYITVA** — R6 megerősítve; az R1 lépcsőnként megírva, jóváhagyásra vár | A kétlépcsős failover végrehajtási részletei: ki a tanú (és mi van egypénztáras helyen), miből ismeri fel a gép hogy Ő esett ki, az 5 perc paraméterezése és az ajánlat lejárata, több egyidejű gombnyomás, élő-de-elérhetetlen fő szerver, és hogy ne ajánljunk fel működésképtelen átkapcsolást. |
 | 3 | **E1** | `[ ]` **NYITVA** — a fázisterv még nincs megírva | Mi az MVP scope-ja? Enélkül nincs mihez mérni a haladást. **Az A4 után** írandó. |
 | — | ~~A1~~ | `[ELDÖNTVE]` | WPF, Windows 10 IoT Enterprise LTSC only. |
 | — | ~~A2~~ | `[ELDÖNTVE]` | Szerver-autoritatív + degradált gyorseladás. **Feltételes**: igazolatlan AEE-premisszán áll. |
@@ -1197,6 +1303,7 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~B9/b~~ | `[ELDÖNTVE]` | A gépszám-szabály a **TARTALÉK SZERVERRE** vonatkozik: 2–3 gépnél opcionális, 4+ gépnél kötelező. Következmény: a „nincs tartalék szerver" **elsőrangú konfiguráció**, nem hibaállapot — ott átkapcsolást felajánlani sem szabad. |
 | — | ~~B9/a~~ | `[ELDÖNTVE]` | **Egygépes helyen a pénztárgép MAGA a szerver.** Ezzel a B3 nyitott kérdése (futhat-e egy gépen szerver és kliens) eldőlt: **igen, támogatott konfiguráció**. Következmény: ez a legszűkösebb hardveres eset, és ott nincs hardverhiba-védelem. |
 | — | ~~Személyzeti üzenetek~~ | `[ELDÖNTVE]` | Három üzenet (a szerver gyanús / ez a gép a hibás / bizonytalan), „hálózat" szóhasználattal, plusz külön jelzés az internet hiányára. Tartalmilag jóváhagyva; a design-körben csak a megjelenés csiszolható. |
 | — | ~~A4~~ | `[ELDÖNTVE]` | **A visszaállás AUTOMATIKUS**, ha a fő és a tartalék 1 percig stabilan látják egymást és beszélnek is. A régi spec „csak szuperfiókkal" szabálya ELVETVE. **DE:** az árva tranzakciók KIMENTÉSE kötelező és automatikus, a KÖNYVELÉSÜK viszont nem lehet automatikus (duplikált adóügyi bizonylat kockázata). |

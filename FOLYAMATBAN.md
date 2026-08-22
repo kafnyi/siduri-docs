@@ -100,7 +100,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Nyolc döntés lezárva** (öt az 1., három a 2. munkamenetben, mindkettő 2026-08-22).
+**Kilenc döntés lezárva** (öt az 1., négy a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -112,6 +112,7 @@ meg, és a következő kör újratárgyalja őket.
 | **A2/b** | *(ÚJ, 2. munkamenet)* A degradált mód ütemezése | **Mindhárom rész az MVP-ben**: helyi napló + degradált felület + visszatéréskori egyeztetés | `NYITOTT_KERDESEK.md:112` |
 | **B1/a** | *(ÚJ, 2. munkamenet)* Vészhelyzeti szerver / HA scope | **BENNE MARAD az MVP-ben** — az ajánlással szemben, tudatosan | `NYITOTT_KERDESEK.md:228` |
 | **B1/b** | *(ÚJ, 2. munkamenet)* A tartalék gép és a replikáció | A tartalék **szintén J1900**, dedikált. Munkafeltevés: **aszinkron** replikáció (a „szinkron kizárt" **még nincs mérve**). Az „automatikusan szinkronról aszinkronra váltó" ág **elvetve** | `NYITOTT_KERDESEK.md:253` |
+| **B1/c** | *(ÚJ, 2. munkamenet)* Ki kapcsol át a tartalékra | **Kétlépcsős: a gép ellenőriz, az ember dönt.** Azonnali, látványos csökkentett-mód jelzés, ami megmondja mit ellenőrizzenek; átkapcsolás felajánlása csak 5 perc után; a gombot EMBER nyomja; és a gépnek fel kell ismernie, ha Ő esett ki a hálózatról | `NYITOTT_KERDESEK.md:281` |
 | **B3** | Minimum célhardver | J1900 **vegyes bázis** (szerver ÉS kliens) → **GraalVM kényszer marad**, plusz szoros WPF perf-költségvetés | `NYITOTT_KERDESEK.md:374` |
 | **E2** | Ki fejleszti | 2–3 fős csapat + AI → **B8 (API-szerződés) az első hét tétele**, nem opcionális | `NYITOTT_KERDESEK.md:612` |
 
@@ -141,28 +142,55 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 
 ## 2. A KÖVETKEZŐ TÉTEL
 
-### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` B1/c + A4 — ki vált át, és ki állítja vissza
+### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` A4 — ki állítja VISSZA a fő szervert
 
-**Ez az EGYETLEN blokkoló a fázisterv előtt.**
+**Ez az EGYETLEN megmaradt irány-döntés a fázisterv előtt.**
 
-**Állapot:** a felhasználó kérte, hogy beszéljük át, mielőtt szavaz.
-**Nincs eldöntve. Erre építeni tilos.**
+A „ki kapcsol át a tartalékra" kérdés **eldőlt** (lásd 1. szakasz, kétlépcsős
+failover). A párja — **ki és hogyan állítja vissza a fő szervert, miután a
+tartalék már kiszolgált** — még nem. → `NYITOTT_KERDESEK.md:180`
 
-- A kérdés és az új szempontok: `NYITOTT_KERDESEK.md:280` (B1/c)
-- **Együtt döntendő** a visszaállítással (failback): `NYITOTT_KERDESEK.md:180` (A4)
-- A történeti javaslatblokk (érvei a B1/c-hez továbbra is élnek):
-  `NYITOTT_KERDESEK.md:302`
+**Miért ez a veszélyesebb fele:** mire a fő szerver visszatér, a lemezén ott vannak
+azok a tranzakciók, amiket még nem sikerült átküldenie a tartaléknak (ez az
+aszinkron replikáció vállalt ára). Ha egyszerűen visszakapcsoljuk főnöknek, régi
+adatot szolgál ki, és **újra kiadja azokat a nyugtaszámokat, amiket a tartalék már
+felhasznált.** Tehát a visszatérő gépnek először tartalékként kell visszajönnie.
 
-**A három lehetőség dióhéjban:**
-1. **Ember nyom gombot**, jogosultsághoz kötve (nem szerephez, hogy a pultos is
-   megkaphassa). Soha nincs két fő szerver. Ára: valakinek észre kell vennie.
-2. **Automatika harmadik tanúval** — egy harmadik eszköz (akár egy pénztárgép) adja
-   a döntő szavazatot. Senkinek nem kell ébresztő. Ára: plusz komponens, és a
-   lease/fencing logika a rendszer legnehezebben tesztelhető része.
-3. **Automatika tanú nélkül** — hálózati szakadásnál két fő szerver, két párhuzamos
-   nyugtasorozat, aminek nincs helyes összefésülése. **Mérnökileg nem javasolt.**
+**A megválaszolatlan rész pedig az, hogy mi legyen a lemezén maradt
+tranzakciókkal** — azok nem szemetek, hanem valódi eladások, valódi kinyomtatott
+nyugtákkal. Erre nincs automatikus jó válasz.
 
-### 2.2 `[BLOKKOLVA A B1/c ÁLTAL]` E1 — fázisterv
+**Megírt, de EL NEM FOGADOTT javaslat — kétszintű visszaállítás:** a normál esetet
+a **helyi menedzser** végzi, egy képernyőn, ami **számmal kiírja**, hány tranzakció
+van a régi fő szerver lemezén, amit a tartalék soha nem kapott meg. A Siduri
+Systems szuperfiók **csak a veszélyes változathoz** kell: amikor a két adatbázis
+tényleg szétdivergált és az egyiket felül kell írni.
+
+### 2.1.1 `[ ]` A kétlépcsős failover hat KITÖLTÉSI kérdése (R1–R6)
+
+Nem irány-, hanem részletkérdések — a döntés megvan, ezek nélkül viszont nem
+implementálható. Mindegyik önállóan tud csendben elromlani.
+→ `NYITOTT_KERDESEK.md:340` környéke (keress az `R1` … `R6` jelölésekre)
+
+1. **R1 — ki a „tanú", és mi van EGYPÉNZTÁRAS helyen?** Ott a tanú-séma nullára
+   degradálódik, pedig az MVP célprofilja pont ilyen hely. Plusz: egy lekapcsolt
+   gép némasága NEM bizonyíték.
+2. **R2 — miből ismeri fel a gép, hogy Ő esett ki?** Ez **új architekturális
+   követelmény**: a pénztárgépeknek egymást és a tartalék szervert is látniuk kell
+   (eddig csillag-topológia volt). Felderítés + kölcsönös hitelesítés kell hozzá.
+3. **R3 — az 5 perc:** monoton időmérőn (nem fali órán), konfigurálhatóan, és
+   **az ajánlatnak le kell járnia**, ha közben visszatér a fő szerver.
+4. **R4 — több gép mutatja a gombot** → az átvétel legyen idempotens, az első nyer.
+5. **R5 — a fő szerver ÉL, csak nem érik el.** Innen: a fencinget a **kliensnek is**
+   ki kell kényszerítenie (régebbi epochú szerverrel tilos beszélni).
+6. **R6 — ha a tartalék sem egészséges, átkapcsolást felajánlani sem szabad.**
+
+Plusz egy **design-tétel**: az 5 perc ne üres visszaszámlálás legyen, hanem mutassa,
+mit állapított meg közben a gép; és a megerősítő képernyő számmal mondja meg a
+következményt, ne egyszerű igen/nem legyen (különben kialakul a „nyomd meg a zöld
+gombot" reflex).
+
+### 2.2 `[BLOKKOLVA AZ A4 ÁLTAL]` E1 — fázisterv
 
 **A fázisterv még nincs megírva.** → `NYITOTT_KERDESEK.md:585`
 
@@ -170,9 +198,8 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 - **Munkafeltételezés** (felülvizsgálandó, amint van ügyfél): kis bár / büfé, 1–2
   pénztár, pincér nélkül. **FIGYELEM:** ezt a munkafeltételezést a 2. munkamenet
   döntései feszítik — lásd 1.1 szakasz 1. pontja (minimum 2 dedikált gép).
-- **Miért a B1/c után:** a failover mechanizmusa több hét különbség a tervben
-  (a harmadik tanú + lease/fencing + szimulátor lényegesen több munka, mint egy
-  gomb és egy jogosultság).
+- **Miért az A4 után:** a visszaállítási procedúra a rendszer legdrágább és
+  legkockázatosabb művelete; a fázisterv nem árazható be nélküle.
 
 ### 2.3 Ami a B1/c-től FÜGGETLENÜL már most elkezdhető (tervezésként, nem kódként)
 

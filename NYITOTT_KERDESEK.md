@@ -5,7 +5,8 @@
 > **Utolsó frissítés:** 2026-08-22 (2. munkamenet) — ÚJ döntések: B1/a (HA az MVP-ben marad),
 > B1/b (a tartalék is J1900 → aszinkron a munkafeltevés), A2/b (a degradált mód mindhárom
 > része az MVP-ben). Korábbról: A1, A2, A2/a, B3, E2 eldöntve; F) szakasz felvéve.
-> **NYITVA maradt:** B1/c (ki vált át) + A4 (failback), majd utánuk E1 (fázisterv).
+> **ÚJ (ugyanaznap, később):** B1/c eldöntve — kétlépcsős failover (gép ellenőriz, ember dönt).
+> **NYITVA maradt:** A4 (failback) + a B1/c hat végrehajtási részlete (R1–R6), majd E1 (fázisterv).
 > **Ez az EGY igazságforrás a nyitott döntésekre** (MERNOKISAROKKOVEK §2.4).
 > Ha egy tétel eldől, ITT jelöld `[ELDÖNTVE — <döntés>]`-ként, ne máshol.
 >
@@ -221,7 +222,7 @@ Mindkettőnek üzleti következménye van; ki kell mondani, melyiket vállaljuk.
 |------------|---------|
 | **B1/a — Benne van-e a HA az MVP-ben?** | `[ELDÖNTVE — IGEN, benne marad]` (lásd alább) |
 | **B1/b — Milyen gép a tartalék szerver, és ebből mi következik a replikációra?** | `[ELDÖNTVE — szintén J1900]` (lásd alább) |
-| **B1/c — Ki vált át: ember vagy automatika?** | `[ ]` **NYITVA** — a felhasználó kérte, hogy még beszéljük át |
+| **B1/c — Ki vált át: ember vagy automatika?** | `[ELDÖNTVE — kétlépcsős: gép ellenőriz, ember dönt]` — hat végrehajtási részlet (R1–R6) nyitva |
 
 ---
 
@@ -277,12 +278,144 @@ tartalék halott", hálózati particiónál téved — és amikor téved, **pont
 védtelenül, amikor azt hiszed, védve vagy**, és semmi nem szól. Rosszabb a
 vállaltan aszinkronnál, mert hamis biztonságot ad. **Ezt az ágat elvetjük.**
 
-#### `[ ]` B1/c — KI VÁLT ÁT: ember vagy automatika? — NYITVA
+#### `[ELDÖNTVE — kétlépcsős: gép ellenőriz, ember dönt]` B1/c — ki vált át
 
-**Státusz (2026-08-22, 2. munkamenet):** a felhasználó azt kérte, hogy még
-beszéljük át, mielőtt dönt. **Erre építeni tilos.** A három lehetőség és az
-átbeszélés anyaga a lenti „JAVASLAT" blokkban, plusz az alábbi, a mostani
-döntések fényében ÚJ szempont:
+**Döntés (2026-08-22, 2. munkamenet).** Sem tisztán kézi, sem tisztán automatikus:
+**kétlépcsős.** A gép gyűjti a bizonyítékot, az ember hozza a döntést.
+
+**A folyamat, ahogy a felhasználó megfogalmazta:**
+
+1. **Amint a pénztárgép elveszti a szerverkapcsolatot — BÁRMI miatt —, látványosan
+   jelzi a csökkentett módot.** A jelzés **kattintható**, és a mögötte lévő
+   képernyő megmondja, mit tegyen a személyzet: **ellenőrizze a szervergépet és az
+   összes gép hálózatát.**
+2. **Átkapcsolást a rendszer NEM ajánl fel azonnal.** Csak akkor, ha a **tanúk
+   már több mint 5 perce** nem érik el a szervert.
+3. **Az átkapcsolást ekkor is EMBER indítja**, gombnyomással.
+4. **A pénztárgépnek fel kell ismernie, ha Ő esett ki a hálózatról**, és ilyenkor
+   **erre kell figyelmeztetnie, nem a szerver hibájára.**
+
+**Miért ez jobb, mint a felvázolt három lehetőség bármelyike:**
+- **A gépnek nincs joga átkapcsolni**, tehát egy téves detektálás ELVILEG nem tud
+  két fő szervert csinálni. A kétmasteres, összefésülhetetlen nyugtasorozat
+  hibaosztálya nem megoldódik, hanem **nem keletkezik** — ugyanaz az érvelési alak,
+  mint az A2-nél a konfliktusfeloldásnál.
+- **Az embernek nem kell diagnosztizálnia**, csak dönteni. A tiszta kézi változat
+  gyenge pontja pont az volt, hogy a pultostól várjuk el annak eldöntését, hogy a
+  szerver halott-e — amire nincs se ideje, se eszköze. Itt a gép már megnézte.
+- **Az 5 perces küszöb kiszűri a pillanatnyi akadásokat**, tehát nem lesz
+  „minden wifi-koccanásra felugró átkapcsolás-ajánlat" (kapunyitási zaj).
+- **A 4. pont a legértékesebb elem, és egyik felvázolt lehetőségben sem szerepelt.**
+  Enélkül a legvalószínűbb hibaeset (egyetlen pénztárgép wifije elmegy) úgy
+  jelenne meg, hogy „a szerver halott" — és a személyzet elrohanna újraindítani
+  egy tökéletesen egészséges szervert, közben a többi gép zavartalanul dolgozik.
+  Ez pontosan a §5 hibaosztálya megfordítva: a felület olyat állítana, ami nem igaz.
+
+**A tiszta kézi változathoz képest mi az ára:** semmi. Szigorúan jobb.
+**Az automatikushoz képest mi az ára:** hajnali 3-kor, ha senki nincs bent, a hely
+csökkentett módban működik reggelig. Ezt a felhasználó vállalja; a hálót az adja,
+hogy a pénztárgép csökkentett módban is tud eladni (A2/b).
+
+---
+
+##### `[ ]` A döntés VÉGREHAJTÁSI RÉSZLETEI — ezek külön eldöntendők
+
+A döntés iránya megvan, de hat olyan részlet van, ami nélkül nem
+implementálható, és mindegyik önállóan tud csendben elromlani. Ezek nem a
+döntés újranyitása, hanem a kitöltése.
+
+**R1 `[ ]` — Ki számít „tanúnak", és mit jelent, hogy „a tanúk nem érik el"?**
+A megfogalmazás többes számú. Tisztázandó: minden pénztárgép tanú, vagy kijelölt
+halmaz? Kell-e mindegyik egyetértése, többség, vagy elég N darab?
+**Kritikus alesetek, amikre külön szabály kell:**
+- **Egypénztáras telepítés.** Ekkor „a tanúk" = egyetlen gép, tehát nincs
+  kereszt-ellenőrzés, és a 4. pont (felismerni, hogy én estem ki) elveszti a fő
+  információforrását. **Az egész tanú-séma ilyenkor nullára degradálódik.**
+  Ez nem elméleti: az MVP jelenlegi célprofilja pont ilyen hely.
+- **Lekapcsolt gép némasága NEM bizonyíték.** Külön kell kezelni azt, hogy egy
+  gép JELENTI, hogy nem éri el a szervert, attól, hogy egy gépet MI nem érünk el.
+  Ha a kettő összemosódik, egy éjszakára lekapcsolt pénztárgép „szavazatként"
+  fog számítani. Ez a §5 néma kudarca: a jelzés hiánya nem bizonyíték.
+
+**R2 `[ ]` — MIBŐL ismeri fel a pénztárgép, hogy Ő esett ki?**
+A felhasználó követelménye világos, a mechanizmus nem magától értetődő: egy
+izolált gép definíció szerint nem tud senkitől megkérdezni semmit.
+Rendelkezésre álló jelek, növekvő értékben:
+- **saját hálózati interfész állapota** (kábel kihúzva, wifi lecsatlakozott) —
+  olcsó és egyértelmű, DE a gyakori esetre nem tüzel (az AP-hoz csatlakozva
+  vagyunk, csak az AP uplinkje halt meg);
+- **elér-e BÁRMI mást** (alapértelmezett átjáró, nyomtató, konyhai kijelző);
+- **eléri-e a TÖBBI pénztárgépet és a TARTALÉK szervert** — ez a legélesebb teszt:
+  ha a tartalékot eléri, a fő szervert nem, akkor **nem én vagyok a hibás**.
+
+**Ez egy ÚJ ARCHITEKTURÁLIS KÖVETELMÉNY, amit eddig egyik doksi sem tartalmazott:**
+a jelenlegi kép csillag alakú (mindenki a szerverrel beszél). A gép-gép közti
+elérhetőség-vizsgálathoz a pénztárgépeknek **egymást is látniuk kell**. Ennek ára
+van: felderítés (mDNS már tervben van) ÉS kölcsönös hitelesítés, mert a LAN nem
+megbízható (B6). Ezt a fázistervben nevesíteni kell.
+
+**R3 `[ ]` — Az 5 perc: mihez képest, milyen órán, és lejár-e az ajánlat?**
+- **Milyen órán:** a szerver elérhetetlen, tehát a pénztárgép saját óráján. Ezért
+  **monoton időmérő** kell, nem fali óra — különben egy óraállítás vagy egy
+  időzóna-váltás átugorja vagy befagyasztja a visszaszámlálást (§8, D4).
+- **Az 5 perc jó szám-e:** két irányba is vitatható. Egy pénteki csúcsban 5 perc
+  asztalkezelés nélkül sok. Ugyanakkor egy Windows-frissítés utáni újraindulás
+  simán tarthat tovább 5 percnél — és ha valaki az 5. percben átkapcsol, a 6.
+  percben visszatérő fő szerver miatt le kell futtatni a **visszaállítást**, ami a
+  rendszer legdrágább művelete. **Javaslat: legyen konfigurálható, 5 perc az
+  alapérték.**
+- **AZ AJÁNLATNAK LE KELL JÁRNIA.** Ha a fő szerver a 7. percben visszatér, miközben
+  az „átkapcsoljak?” ablak a képernyőn van, az ablaknak **magától és feltűnően
+  vissza kell vonulnia**. Enélkül valaki 20 perccel később, egy már egészséges
+  rendszeren nyomja meg, és fölöslegesen kikényszerít egy failovert. §5.
+
+**R4 `[ ]` — Több gépen jelenik meg a gomb. Mi van, ha többen nyomják meg?**
+Ha három pénztárgép mutatja az ajánlatot, három ember nyomhat rá. **Az átvételnek
+idempotensnek kell lennie:** az első nyer, a többi „már átkapcsolva" választ kap,
+nem hibát és nem második átvételt. Ez a F1 (idempotencia) mintája, itt vezérlési
+műveletre alkalmazva.
+
+**R5 `[ ]` — Mi van, ha a fő szerver ÉL, csak a pénztárgépek nem érik el?**
+Ez a legkellemetlenebb ág: a tartalékot arra kérjük, vegye át a szolgálatot,
+miközben a fő szerver él, és nyitott rendelések vannak nála.
+- Az átvétel előtt a tartalék **próbálja meg megmondani a főnek, hogy álljon le.**
+  Ha a fő hallja: tiszta, kockázatmentes átadás.
+- Ha nem hallja: a tartalék az ember felhatalmazására akkor is átvesz — és
+  **ekkor az epoch-mező (fencing) az egyetlen, ami megvéd.**
+- **Ebből következik, hogy a fencinget a KLIENSNEK is ki kell kényszerítenie:**
+  egy visszacsatlakozó pénztárgép, ami a nála ismertnél RÉGEBBI epochú szervert
+  talál, **köteles megtagadni a kommunikációt**. §6: a javítás mindkét oldala kell —
+  ha csak a szerver oldalon van fencing, a régi master a hozzá visszacsatlakozó
+  klienseket még kiszolgálja.
+
+**R6 `[ ]` — Ne ajánljuk fel azt, ami nem fog menni.**
+Ha a **tartalék szerver maga sem elérhető vagy nem egészséges**, akkor
+átkapcsolást **felajánlani sem szabad** — helyette azt kell kiírni, hogy mindkét
+szerver elérhetetlen, és a csökkentett mód folytatódik. §5: „a felület ne kínáljon
+olyat, ami nem működik".
+
+##### `[ ]` Amit a döntés MEGVALÓSÍTÁSA a felületen megkövetel (design-tétel)
+
+A várakozási 5 perc **ne üres visszaszámlálás legyen**, hanem mutassa, mit
+állapított meg közben a gép: „a te géped hálózata: rendben" / „másik 2 pénztárgép:
+szintén nem éri el a szervert" / „tartalék szerver: elérhető". Így amikor
+megjelenik az ajánlat, az ember **nem találgat**.
+
+**És egy kockázat, amit ez a konstrukció TEREMT:** ha a gép „javasolja" az
+átkapcsolást, a személyzetben kialakul a „nyomd meg a zöld gombot" reflex, és egy
+idő után ellenőrzés nélkül fogják nyomni. **Ellenszer:** a megerősítő képernyő ne
+egyszerű igen/nem legyen, hanem **mondja meg számmal a következményt** — hány
+tranzakció veszhet el —, amint ezt megmértük (§4).
+
+---
+
+**A B1/c-vel EGYÜTT döntendő A4 (failback) TOVÁBBRA IS NYITVA.** A felhasználó a
+„ki vált át" kérdésre válaszolt; a „ki és hogyan állítja vissza a fő szervert"
+kérdésre még nem.
+
+---
+
+##### A döntéskor is érvényes ÚJ szempont: három igazságforrás egy incidens után
 
 **ÚJ, a mostani döntések által teremtett helyzet: három igazságforrás egy incidens
 után.** Mivel (a) a replikáció aszinkron, (b) a degradált gyorseladás teljes
@@ -755,14 +888,15 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **B1/c** | `[ ]` **NYITVA** — a felhasználó kérte, hogy beszéljük át | Ki vált át a tartalék szerverre, amikor a fő meghal: ember gombnyomásra, automatika harmadik tanúval, vagy automatika tanú nélkül? **Az A4-gyel EGYÜTT döntendő** (ugyanaz a mechanizmus). |
-| 2 | **A4** | `[ ]` **NYITVA** | Failback: ki és hogyan állítja vissza a fő szervert. A B1/c-vel együtt. |
-| 3 | **E1** | `[ ]` **NYITVA** — a fázisterv még nincs megírva | Mi az MVP scope-ja? Enélkül nincs mihez mérni a haladást. **A B1/c után** írandó. |
+| 1 | **A4** | `[ ]` **NYITVA** | Failback: ki és hogyan állítja vissza a fő szervert, miután a tartalék kiszolgált. **Ez az egyetlen megmaradt irány-döntés a fázisterv előtt.** |
+| 2 | **B1/c R1–R6** | `[ ]` **NYITVA** — de nem irány-, hanem kitöltési kérdések | A kétlépcsős failover végrehajtási részletei: ki a tanú (és mi van egypénztáras helyen), miből ismeri fel a gép hogy Ő esett ki, az 5 perc paraméterezése és az ajánlat lejárata, több egyidejű gombnyomás, élő-de-elérhetetlen fő szerver, és hogy ne ajánljunk fel működésképtelen átkapcsolást. |
+| 3 | **E1** | `[ ]` **NYITVA** — a fázisterv még nincs megírva | Mi az MVP scope-ja? Enélkül nincs mihez mérni a haladást. **Az A4 után** írandó. |
 | — | ~~A1~~ | `[ELDÖNTVE]` | WPF, Windows 10 IoT Enterprise LTSC only. |
 | — | ~~A2~~ | `[ELDÖNTVE]` | Szerver-autoritatív + degradált gyorseladás. **Feltételes**: igazolatlan AEE-premisszán áll. |
 | — | ~~A2/a~~ | `[ELDÖNTVE]` | Kettős kieséskor a nyitott asztalok nem elérhetők → kézi újrafelütés. |
 | — | ~~A2/b~~ | `[ELDÖNTVE]` | A degradált gyorseladás **mindhárom része** (helyi napló, degradált felület, visszatéréskori egyeztetés) az MVP-ben van. |
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
+| — | ~~B1/c~~ | `[ELDÖNTVE]` | **Kétlépcsős failover:** a pénztárgép azonnal, látványosan jelzi a csökkentett módot és megmondja mit ellenőrizzenek; átkapcsolást csak 5 perc után ajánl fel; a gombot EMBER nyomja meg; és a gépnek fel kell ismernie, ha Ő esett ki a hálózatról. |
 | — | ~~B1/b~~ | `[ELDÖNTVE]` | A tartalék szerver **szintén J1900**, dedikált. Munkafeltevés: **aszinkron** replikáció; a „szinkron kizárt" állítás **még nincs mérve** (§4). Az „automatikusan szinkronról aszinkronra váltó" ág **elvetve** (§5 néma kudarc). |
 | — | ~~B3~~ | `[ELDÖNTVE]` | J1900 vegyes bázis (szerver ÉS kliens) → GraalVM kényszer marad, plusz szoros WPF perf-költségvetés. |
 | — | ~~E2~~ | `[ELDÖNTVE]` | 2–3 fős csapat + AI → B8 az első hét tétele. |

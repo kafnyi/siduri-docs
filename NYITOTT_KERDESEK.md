@@ -6,7 +6,13 @@
 > B1/b (a tartalék is J1900 → aszinkron a munkafeltevés), A2/b (a degradált mód mindhárom
 > része az MVP-ben). Korábbról: A1, A2, A2/a, B3, E2 eldöntve; F) szakasz felvéve.
 > **ÚJ (ugyanaznap, később):** B1/c eldöntve — kétlépcsős failover (gép ellenőriz, ember dönt).
-> **NYITVA maradt:** A4 (failback) + a B1/c hat végrehajtási részlete (R1–R6), majd E1 (fázisterv).
+> **ÚJ (ugyanaznap, harmadik kör):** A4 eldöntve — automatikus visszaállás 1 perc stabil
+> kölcsönös láthatóság után; tiszta vs. kemény átvétel külön útvonal; minden gép önállóan
+> megy csökkentett módba. Kimondva egy ÜTKÖZÉS: „automatikus visszaállás” + „nulla
+> adatvesztés” teljes automatizmussal nem teljesíthető együtt — a kimentés automatikus,
+> a könyvelés nem lehet az.
+> **NYITVA maradt:** A4/b (billegés-védelem), A4/c (mikor cseréljünk szerepet),
+> az egypénztáras hely szabálya, a B1/c R1–R5 kitöltése, majd E1 (fázisterv).
 > **Ez az EGY igazságforrás a nyitott döntésekre** (MERNOKISAROKKOVEK §2.4).
 > Ha egy tétel eldől, ITT jelöld `[ELDÖNTVE — <döntés>]`-ként, ne máshol.
 >
@@ -178,26 +184,117 @@ forrásból, emlékezetből írtam. **Döntés előtt jogszabályi forrás kell.
 Ha a kötelezettség fennáll, tisztázandó: tisztán lokális telepítésnél hova
 archiválunk (NAS? külső adathordozó? egyáltalán ne purge-eljünk?).
 
-### `[ ]` A4 — Failback csak Szuperfiókkal
-HU 17. / EN 17.: a Master visszaállítása csak Siduri Systems szuperfiókkal
-történhet. De a helyzet definíció szerint az, hogy a hely offline / szerverhiba van
-— **pont akkor nem érhető el a support.**
+### `[ELDÖNTVE — automatikus szerepcsere; a bizonylat-rendezés NEM automatikus]` A4 — failback
 
-Kell egy offline útvonal: challenge-response kód telefonon, vagy helyi menedzser +
-fizikai megerősítés.
+**A régi spec állítása (HU 17. / EN 17.): a Master visszaállítása csak Siduri
+Systems szuperfiókkal történhet. Ez ELVETVE** — a helyzet definíció szerint az,
+hogy a helyen szerverhiba van, tehát pont akkor nem érhető el a support.
 
-#### `[JAVASLAT — DÖNTÉSRE VÁR]` Kétszintű failback
-> **Státusz: NEM eldöntött.** A B1-gyel EGYÜTT dőljön el, mert ugyanaz a
-> mechanizmus. Lásd a B1 alatti javaslatblokkot.
+**Döntés (2026-08-22, 2. munkamenet):** a visszaállás **AUTOMATIKUS**, ha a fő és a
+tartalék szerver **1 percig stabilan látják egymást és tudnak is beszélgetni**.
+Emberi gombnyomás nem kell hozzá.
 
-- **Normál visszaállás:** helyi menedzser, a lokális admin felületen, egy
-  képernyővel, ami **konkrétan kiírja, hány tranzakció veszne el** (§5: néma
-  csonkolás helyett szám — „nincs több" látszatot ne keltsünk).
-- **Szuperfiók CSAK a veszélyes változathoz:** amikor a két adatbázis
-  szétdivergált, és az egyiket felül kell írni.
+**Miért BIZTONSÁGOS ez, miközben az automatikus ÁTkapcsolás nem volt az — a kettő
+NEM szimmetrikus, és ez a döntés kulcsindoklása:**
+- Az automatikus **átkapcsolás** pont akkor futna le, amikor a két gép **NEM tud
+  beszélni** egymással. Ez a kétértelmű eset: a némaság jelentheti azt is, hogy
+  „halott", és azt is, hogy „élek, csak nem érlek el". Innen származik a
+  kétmasteres kockázat.
+- Az automatikus **visszaállás** pont akkor fut le, amikor a két gép **TUD
+  beszélni**. A kétértelműség eltűnt: két, egymással kommunikáló gép meg tud
+  egyezni abban, ki a főnök, kvórum nélkül is.
 
-Így a támogatás elérhetetlensége nem blokkolja a normál esetet, viszont a
-visszafordíthatatlan műveletnél megmarad a négy szem.
+Tehát az automatizálás itt nem ugyanaz a kockázat, mint ott. **A felhasználó
+intuíciója helyes volt.**
+
+---
+
+#### `[!]` ÜTKÖZÉS, amit ki kell mondani: „automatikus visszaállás" + „nulla adatvesztés" nem teljesíthető EGYSZERRE
+
+A felhasználó kérése az volt, hogy a visszaálláskor a két szerver beszélgessen, és
+**a lehető legkevesebb, ha megoldható 0 adatvesztés** legyen. **Ezt a két
+követelményt együtt, teljes automatizmussal nem lehet teljesíteni** — az alábbi ok
+miatt, ami nem megvalósítási nehézség, hanem az adat alakjából következik.
+
+**Az adat nem „lemaradt", hanem ELÁGAZOTT.** A kiesés alatt:
+- a régi fő szerver lemezén ott vannak azok a tranzakciók, amiket **commitolt, de
+  nem replikált ki** (ez az aszinkron replikáció vállalt ára, lásd B1/b),
+- a tartalék eközben **saját tranzakciókat** vett fel, **saját bizonylat-sorszámokkal**,
+  amik ütközhetnek azokkal a számokkal, amiket a régi fő már kiadott.
+
+Ez **nem lemaradás, hanem villa (fork).** Két elágazott előzményt nem lehet
+„összeszinkronizálni" — az adatbázis-replikáció erre az esetre azt írja elő, hogy a
+régi fő szervert **vissza kell tekerni** az elágazás pontjáig, és onnan újra kell
+építeni az aktuális főnökből. **A visszatekerés viszont pont azokat a
+tranzakciókat dobja el, amiket a felhasználó meg akar őrizni.**
+
+**A feloldás — és ez a döntés végleges alakja:**
+
+| Lépés | Automatikus? | Miért |
+|-------|--------------|-------|
+| Stabilitás észlelése (1 perc kölcsönös láthatóság + tényleges kommunikáció) | **IGEN** | Mechanikus, nincs benne kétértelműség |
+| Az árván maradt tranzakciók **KIMENTÉSE** a régi fő szerver lemezéről, mielőtt bármit visszatekernénk | **IGEN, és KÖTELEZŐ** | Ez az, ami a „nulla adatVESZTÉS"-t garantálja: az adat nem semmisül meg |
+| A régi fő visszatekerése és újraépítése az aktuális főnökből | **IGEN** | Mechanikus |
+| Szerepcsere vissza (a régi fő megint a fő) | **IGEN** | Mechanikus |
+| A kimentett tranzakciók **KÖNYVELÉSE** az új idővonalon | **NEM — emberhez kell** | Lásd alább |
+
+**Miért nem lehet a KÖNYVELÉS automatikus:** azok a tranzakciók **valódi eladások,
+valódi kinyomtatott nyugtákkal, amiket valódi vendégek elvittek.** A bizonylat-
+sorszámaik viszont **ütközhetnek** azokkal, amiket a tartalék időközben kiadott.
+Ha automatikusan visszaimportálnánk őket, **duplikált adóügyi bizonylatot**
+hoznánk létre. Az adóügyi bizonylat visszamenőleges átszámozása nem opció.
+
+**Tehát a „nulla adatvesztés" ÍGY teljesül:** az adat **soha nem semmisül meg**
+(kimentés kötelező, a visszatekerés ELŐTT), és **hangosan a felhasználó elé kerül**
+rendezésre. Amit nem tudunk megígérni, az az, hogy a rendezés emberi közreműködés
+nélkül megtörténik. **Néma eldobás és néma visszaimportálás egyaránt TILOS** (§5).
+
+---
+
+#### `[ELDÖNTVE]` A4/a — TISZTA és KEMÉNY átvétel: két külön útvonal
+
+Ez a felhasználó „beszélgessenek egymással" kérésének a legerősebb formája, és
+**előre hozza a hasznot az átvételre is**, nem csak a visszaállásra:
+
+- **TISZTA átvétel** — a régi fő szerver ÉL és elérhető a tartalék felől (ez a
+  B1/c R5 esete: a pénztárgépek nem érik el, de a tartalék igen). Ekkor a tartalék
+  az átvétel ELŐTT **leszívja a fő szerver még nem replikált tranzakcióit**, majd
+  megmondja neki, hogy álljon le. **Eredmény: TÉNYLEG nulla adatvesztés, és a
+  visszaálláskor nincs mit rendezni.**
+- **KEMÉNY átvétel** — a régi fő szerver tényleg halott vagy elérhetetlen a
+  tartalék felől is. Ekkor az árva tranzakciók **elkerülhetetlenek**, és a fenti
+  kimentés-és-elétárás útvonal lép életbe.
+
+**Ezt a két utat a tervben KÜLÖN kell nevesíteni**, mert a felhasználónak tett
+ígéret is különbözik: tiszta átvételnél nulla veszteség ígérhető, keményénél nem.
+§13.5 / §4 analógia: ne ígérjünk olyat, ami csak az egyik ágon igaz.
+
+---
+
+#### `[ ]` A4/b — NYITVA: kell-e védelem az oda-vissza billegés ellen?
+
+**Új kockázat, amit az automatikus visszaállás teremt.** Ha a két szerver közti
+kapcsolat szakaszos (haldokló switch, rossz kábel), a következő hurok áll elő:
+1 perc stabilitás → automatikus visszaállás a főre → a kapcsolat megint elmegy →
+a pénztárgépek csökkentett módba mennek → 5 perc → ember átkapcsol a tartalékra →
+a kapcsolat visszajön → 1 perc → automatikus visszaállás → ...
+
+**Minden kör egy teljes szerepcsere**, aminek ára van (minden kliens újracsatlakozik,
+és minden körben keletkezhetnek árva tranzakciók). **Javaslat:** az 1 perc mellé
+(a) fokozatosan növekvő várakozás minden automatikus visszaállás után, és
+(b) egy határ — ha X visszaállás történt Y időn belül, az automatika **kikapcsol**,
+és hangosan szól, hogy emberi beavatkozás kell. **Döntésre vár.**
+
+#### `[ ]` A4/c — NYITVA: mikor történjen a visszaállás — azonnal, vagy csendes időben?
+
+**A visszaállás NEM sürgős.** A tartalék szerver közben rendesen kiszolgál; a hely
+működik. A szerepcsere viszont **minden kliens újracsatlakozását jelenti**, tehát
+egy rövid fennakadást — pénteken 20:00-kor ez fölösleges zavar, hajnali zárás után
+viszont ingyen van.
+
+**Javaslat:** az automatika ismerje fel, hogy „vissza lehet állni", de a tényleges
+szerepcserét **halassza a napi zárásra / egy csendes ablakra**, kivéve ha a
+menedzser azonnal kéri. **Döntésre vár** — ez termékdöntés, nem mérnöki (§12).
 
 ---
 
@@ -393,6 +490,96 @@ Ha a **tartalék szerver maga sem elérhető vagy nem egészséges**, akkor
 átkapcsolást **felajánlani sem szabad** — helyette azt kell kiírni, hogy mindkét
 szerver elérhetetlen, és a csökkentett mód folytatódik. §5: „a felület ne kínáljon
 olyat, ami nem működik".
+
+##### `[ELDÖNTVE]` B1/c kiegészítések (2026-08-22, 2. munkamenet, második kör)
+
+**K1 — MINDEN gép ÖNÁLLÓAN megy csökkentett módba.** Ha egy pénztárgép nem éri el a
+szervert, **azonnal csökkentett módba vágja magát, akkor is, ha a többi gép
+zavartalanul működik.** A csökkentett mód tehát **gépenkénti állapot**, nem a hely
+állapota, és nem függ a tanú-szavazástól. (A tanú-szavazás CSAK az átkapcsolás
+felajánlását vezérli, a saját módváltást nem.)
+
+**Miért ez fontos, és mi a KÖVETKEZMÉNYE — ez váratlan JÓ hír:** ettől a helyi
+napló + visszatéréskori egyeztetés **nem csak katasztrófánál fut le**, hanem
+minden egyes wifi-koccanásnál egyetlen gépen. Vagyis a rendszer legkockázatosabb
+darabja (az egyeztetés) **gyakran futó, tehát gyakran hibázó, tehát gyakran
+javított kód lesz** — nem olyan, ami évente egyszer, éles katasztrófában fut
+először. §1 szempontjából ez sokkal jobb, mint egy ritkán érintett ág.
+
+Egyszerű alesete: ha csak EGY gép esett ki, de a szerver él, akkor a gép a
+visszatéréskor **ugyanannak a szervernek** játssza le a naplóját. Nincs
+szerepcsere, nincs epoch-váltás — ez a legegyszerűbb egyeztetési út, és ez lesz a
+leggyakoribb.
+
+**K2 — az R6 MEGERŐSÍTVE.** Átkapcsolás felajánlása előtt a rendszer **kérdezze meg
+a tartalék szervert, hogy egyáltalán elérhető és egészséges-e.** Ha nem, az
+átkapcsolást **felajánlani sem szabad**.
+
+##### `[JAVASLAT — a felhasználó jóváhagyására vár]` A személyzetnek szóló üzenetek szövege
+
+A felhasználó kérte a két üzenetet, a megfogalmazást rám bízta. **Három** üzenetet
+javaslok, nem kettőt, mert a gép három érdemben különböző helyzetet tud
+megkülönböztetni, és a §5 („a felület ne állítson olyat, ami nem igaz") szerint
+nem szabad kettőbe gyömöszölni őket.
+
+**(1) A SZERVER a gyanús** — ez a gép eléri a többi gépet és/vagy a tartalék
+szervert, de a fő szervert nem:
+
+> ### ⚠ NINCS KAPCSOLAT A SZERVERREL — CSÖKKENTETT MÓD
+> **Eladni és nyugtát adni továbbra is tud.** Asztalkezelés most nem érhető el.
+>
+> **A hiba a szervergépen van, nem ezen a pénztárgépen.** Kérjük, ellenőrizze:
+> 1. **Be van kapcsolva a szervergép?** Világít rajta a bekapcsolás-jelző?
+> 2. **Be van dugva a hálózati kábele?** Villog a lámpa ott, ahol a kábel
+>    csatlakozik a géphez?
+> 3. **Ha be van kapcsolva és a kábel is rendben van: indítsa újra a szervergépet**
+>    (nyomja meg a bekapcsológombot, várjon amíg leáll, majd kapcsolja vissza),
+>    és **várjon 2–3 percet.**
+>
+> Ha 5 perc múlva sem áll helyre, a rendszer fel fogja ajánlani az átkapcsolást a
+> tartalék szerverre.
+
+**(2) EZ A GÉP a hibás** — nem ér el semmit, vagy rossz hálózaton van:
+
+> ### ⚠ EZ A GÉP NEM ÉRI EL A HÁLÓZATOT — CSÖKKENTETT MÓD
+> **Eladni és nyugtát adni továbbra is tud.** Asztalkezelés most nem érhető el.
+>
+> **A szerver valószínűleg rendben van — a hiba ezen a gépen van.
+> NE indítsa újra a szervergépet.** Kérjük, ellenőrizze:
+> 1. **Vezetékes gépnél:** be van dugva a hálózati kábel ebbe a gépbe? Villog a
+>    lámpa a csatlakozónál?
+> 2. **Wifis gépnél:** a **megfelelő** hálózathoz csatlakozik? Nem a **vendég-wifire**
+>    kapcsolt véletlenül? (A helyes hálózat neve: `<konfigból>`)
+> 3. Elég erős a wifi jel ezen a helyen?
+> 4. Ha a fentiek rendben vannak: **indítsa újra EZT a gépet.**
+
+**(3) BIZONYTALAN / az egész hálózat gyanús** — a gép semmit nem ér el, vagy
+egypénztáras helyen nincs mihez viszonyítania:
+
+> ### ⚠ NINCS HÁLÓZATI KAPCSOLAT — CSÖKKENTETT MÓD
+> **Eladni és nyugtát adni továbbra is tud.** Asztalkezelés most nem érhető el.
+>
+> **A rendszer nem tudja megállapítani, hol a hiba.** Kérjük, ellenőrizze
+> sorrendben:
+> 1. **A hálózati eszközt (switch / router):** be van kapcsolva, világítanak rajta
+>    a lámpák?
+> 2. **A szervergépet:** be van kapcsolva, be van dugva a hálózati kábele?
+> 3. **Ezt a gépet:** be van dugva a kábel, illetve a megfelelő wifihez csatlakozik?
+> 4. Ha nem talál hibát, **indítsa újra a hálózati eszközt, majd a szervergépet**,
+>    és várjon 3–5 percet.
+
+**`[!]` SZAKMAI PONTOSÍTÁS a felhasználó megfogalmazásához:** a felhasználó azt
+kérte, hogy az üzenet kérdezze meg, „kap-e internetet" a szervergép. **A lokális
+szervernek a pénztárgépek kiszolgálásához NEM kell internet, csak helyi hálózat.**
+Ha az üzenet „internetet" mond, a személyzet a szolgáltatót fogja hívni, miközben
+a valódi hiba egy switch. Ezért a fenti szövegekben **„hálózati kábel" és
+„hálózat"** szerepel, nem „internet".
+
+**Az internet ettől függetlenül számít**, csak MÁSRA: az adóhatósági
+adatszolgáltatáshoz és a felhőszinkronhoz. Ezért javasolt egy **külön, önálló
+jelzés** az internet hiányára, ami **nem keveredik** a szerverkapcsolat
+jelzésével — ez egyébként már körvonalazódik a 19. fejezet 18 órás
+riasztásában (C11).
 
 ##### `[ ]` Amit a döntés MEGVALÓSÍTÁSA a felületen megkövetel (design-tétel)
 
@@ -888,14 +1075,18 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **A4** | `[ ]` **NYITVA** | Failback: ki és hogyan állítja vissza a fő szervert, miután a tartalék kiszolgált. **Ez az egyetlen megmaradt irány-döntés a fázisterv előtt.** |
-| 2 | **B1/c R1–R6** | `[ ]` **NYITVA** — de nem irány-, hanem kitöltési kérdések | A kétlépcsős failover végrehajtási részletei: ki a tanú (és mi van egypénztáras helyen), miből ismeri fel a gép hogy Ő esett ki, az 5 perc paraméterezése és az ajánlat lejárata, több egyidejű gombnyomás, élő-de-elérhetetlen fő szerver, és hogy ne ajánljunk fel működésképtelen átkapcsolást. |
+| 1 | **A4/b + A4/c** | `[ ]` **NYITVA** | A visszaállás iránya eldőlt (automatikus), de két részlet nyitva: (b) kell-e védelem az oda-vissza billegés ellen, (c) azonnal történjen-e a szerepcsere vagy csendes időben (napi zárás). |
+| 1b | **Egypénztáras hely szabálya** | `[ ]` **NYITVA** — kétszer feltéve, még nincs válasz | Egyetlen pénztárgépnél nincs kereszt-ellenőrzés, tehát a tanú-séma nullára degradálódik. Ez pont az MVP jelenlegi célprofilja. |
+| 2 | **B1/c R1–R6** | `[ ]` **NYITVA** — R6 MEGERŐSÍTVE, a többi kitöltési kérdés | A kétlépcsős failover végrehajtási részletei: ki a tanú (és mi van egypénztáras helyen), miből ismeri fel a gép hogy Ő esett ki, az 5 perc paraméterezése és az ajánlat lejárata, több egyidejű gombnyomás, élő-de-elérhetetlen fő szerver, és hogy ne ajánljunk fel működésképtelen átkapcsolást. |
 | 3 | **E1** | `[ ]` **NYITVA** — a fázisterv még nincs megírva | Mi az MVP scope-ja? Enélkül nincs mihez mérni a haladást. **Az A4 után** írandó. |
 | — | ~~A1~~ | `[ELDÖNTVE]` | WPF, Windows 10 IoT Enterprise LTSC only. |
 | — | ~~A2~~ | `[ELDÖNTVE]` | Szerver-autoritatív + degradált gyorseladás. **Feltételes**: igazolatlan AEE-premisszán áll. |
 | — | ~~A2/a~~ | `[ELDÖNTVE]` | Kettős kieséskor a nyitott asztalok nem elérhetők → kézi újrafelütés. |
 | — | ~~A2/b~~ | `[ELDÖNTVE]` | A degradált gyorseladás **mindhárom része** (helyi napló, degradált felület, visszatéréskori egyeztetés) az MVP-ben van. |
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
+| — | ~~A4~~ | `[ELDÖNTVE]` | **A visszaállás AUTOMATIKUS**, ha a fő és a tartalék 1 percig stabilan látják egymást és beszélnek is. A régi spec „csak szuperfiókkal" szabálya ELVETVE. **DE:** az árva tranzakciók KIMENTÉSE kötelező és automatikus, a KÖNYVELÉSÜK viszont nem lehet automatikus (duplikált adóügyi bizonylat kockázata). |
+| — | ~~A4/a~~ | `[ELDÖNTVE]` | **Tiszta vs. kemény átvétel** külön útvonal. Tiszta átvételnél (a régi fő él és elérhető a tartalék felől) a tartalék az átvétel ELŐTT leszívja a nem replikált tranzakciókat → tényleg nulla veszteség. Keményénél az árvák elkerülhetetlenek. |
+| — | ~~B1/c K1~~ | `[ELDÖNTVE]` | **Minden gép ÖNÁLLÓAN megy csökkentett módba**, akkor is, ha a többi működik. A csökkentett mód gépenkénti állapot, nem a helyé. |
 | — | ~~B1/c~~ | `[ELDÖNTVE]` | **Kétlépcsős failover:** a pénztárgép azonnal, látványosan jelzi a csökkentett módot és megmondja mit ellenőrizzenek; átkapcsolást csak 5 perc után ajánl fel; a gombot EMBER nyomja meg; és a gépnek fel kell ismernie, ha Ő esett ki a hálózatról. |
 | — | ~~B1/b~~ | `[ELDÖNTVE]` | A tartalék szerver **szintén J1900**, dedikált. Munkafeltevés: **aszinkron** replikáció; a „szinkron kizárt" állítás **még nincs mérve** (§4). Az „automatikusan szinkronról aszinkronra váltó" ág **elvetve** (§5 néma kudarc). |
 | — | ~~B3~~ | `[ELDÖNTVE]` | J1900 vegyes bázis (szerver ÉS kliens) → GraalVM kényszer marad, plusz szoros WPF perf-költségvetés. |

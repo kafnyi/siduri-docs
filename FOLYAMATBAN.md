@@ -100,7 +100,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Kilenc döntés lezárva** (öt az 1., négy a 2. munkamenetben, mindkettő 2026-08-22).
+**Tizenkét döntés lezárva** (öt az 1., hét a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -113,6 +113,9 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/a** | *(ÚJ, 2. munkamenet)* Vészhelyzeti szerver / HA scope | **BENNE MARAD az MVP-ben** — az ajánlással szemben, tudatosan | `NYITOTT_KERDESEK.md:228` |
 | **B1/b** | *(ÚJ, 2. munkamenet)* A tartalék gép és a replikáció | A tartalék **szintén J1900**, dedikált. Munkafeltevés: **aszinkron** replikáció (a „szinkron kizárt" **még nincs mérve**). Az „automatikusan szinkronról aszinkronra váltó" ág **elvetve** | `NYITOTT_KERDESEK.md:253` |
 | **B1/c** | *(ÚJ, 2. munkamenet)* Ki kapcsol át a tartalékra | **Kétlépcsős: a gép ellenőriz, az ember dönt.** Azonnali, látványos csökkentett-mód jelzés, ami megmondja mit ellenőrizzenek; átkapcsolás felajánlása csak 5 perc után; a gombot EMBER nyomja; és a gépnek fel kell ismernie, ha Ő esett ki a hálózatról | `NYITOTT_KERDESEK.md:281` |
+| **A4** | *(ÚJ)* Ki állítja vissza a fő szervert | **AUTOMATIKUS**, ha a fő és a tartalék 1 percig stabilan látják egymást és beszélnek is. A régi „csak szuperfiókkal" szabály ELVETVE. **De:** az árva tranzakciók kimentése automatikus és kötelező, a KÖNYVELÉSÜK nem lehet automatikus | `NYITOTT_KERDESEK.md`, keress: `A4 — failback` |
+| **A4/a** | *(ÚJ)* Átvételi útvonalak | **Tiszta vs. kemény átvétel külön útvonal.** Ha a régi fő él és a tartalék eléri, a tartalék az átvétel ELŐTT leszívja a nem replikált tranzakciókat → tényleg nulla veszteség | `NYITOTT_KERDESEK.md`, keress: `A4/a` |
+| **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **B3** | Minimum célhardver | J1900 **vegyes bázis** (szerver ÉS kliens) → **GraalVM kényszer marad**, plusz szoros WPF perf-költségvetés | `NYITOTT_KERDESEK.md:374` |
 | **E2** | Ki fejleszti | 2–3 fős csapat + AI → **B8 (API-szerződés) az első hét tétele**, nem opcionális | `NYITOTT_KERDESEK.md:612` |
 
@@ -131,66 +134,91 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
    árazási tétele. **Ez nem a B1/a újranyitása** — ha elfogadhatatlannak bizonyul,
    az az E1 célprofilját kérdőjelezi meg (kihez szólunk), nem a HA-döntést.
 
-2. **Egy incidens után HÁROM helyen lesz adat, ami nincs mind ugyanott:**
+2. **`[FRISSÍTVE]` Egy incidens után HÁROM helyen lesz adat, ami nincs mind ugyanott:**
    a halott fő szerver lemezén (amit még nem replikált ki), a tartalék szerver
    adatbázisában, és a pénztárgépek helyi naplóiban. Ebből következik, hogy a
    **visszaállási procedúra az MVP legkockázatosabb egyetlen darabja**, és a
    hardver-/hibaszimulátor (D5) **nem opcionális** hozzá — kézzel nem
-   reprodukálható. Részletek: `NYITOTT_KERDESEK.md:280` (B1/c).
+   reprodukálható.
+
+   **Két utólagos enyhítés, ami időközben született, és a kockázatot ÉRDEMBEN
+   csökkenti — de nem szünteti meg:**
+   - **Tiszta átvételnél** (a régi fő él és a tartalék eléri) a tartalék az átvétel
+     ELŐTT leszívja a nem replikált tranzakciókat, tehát **árva adat nem is
+     keletkezik**. A három forrás kettőre csökken.
+   - Mivel **minden gép önállóan megy csökkentett módba** egy egyszerű wifi-koccanásnál
+     is, az egyeztető kód **gyakran fut** — nem évente egyszer, éles katasztrófában
+     először. Gyakran futó kód = gyakran javított kód.
+
+   Amit **nem** old meg egyik sem: a **kemény átvétel** (a régi fő tényleg halott)
+   ágán az árva tranzakciók elkerülhetetlenek, és a könyvelésük emberhez kell,
+   mert automatikus visszaimportálásuk duplikált adóügyi bizonylatot okozhat.
 
 ---
 
 ## 2. A KÖVETKEZŐ TÉTEL
 
-### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` A4 — ki állítja VISSZA a fő szervert
+### 2.1 `[FELHASZNÁLÓI DÖNTÉST IGÉNYEL]` Négy megmaradt részletkérdés
 
-**Ez az EGYETLEN megmaradt irány-döntés a fázisterv előtt.**
+**Irány-döntés már NINCS nyitva.** Az átkapcsolás és a visszaállás iránya egyaránt
+eldőlt (lásd 1. szakasz). Ami maradt, négy kitöltési kérdés — de kettő közülük
+érdemben befolyásolja a fázistervet.
 
-A „ki kapcsol át a tartalékra" kérdés **eldőlt** (lásd 1. szakasz, kétlépcsős
-failover). A párja — **ki és hogyan állítja vissza a fő szervert, miután a
-tartalék már kiszolgált** — még nem. → `NYITOTT_KERDESEK.md:180`
+1. **`[ ]` Egypénztáras hely szabálya — KÉTSZER feltéve, még nincs válasz.**
+   Egyetlen pénztárgépnél nincs kereszt-ellenőrzés, tehát a tanú-séma nullára esik,
+   és a „ki esett ki, én vagy a szerver?" felismerés elveszti a fő
+   információforrását. **Ez pont az MVP jelenlegi célprofilja** (kis bár, 1–2 pénztár).
+   Javasolt válasz: ilyenkor a **tartalék szerver maga a tanú** — a pénztárgép azt
+   kérdezi meg tőle: „te látod a fő szervert?". Elegáns, mert a tartalék úgyis ott
+   van, és pont azt a kérdést dönti el, amit kell.
+   → `NYITOTT_KERDESEK.md`, keress rá: `R1`
 
-**Miért ez a veszélyesebb fele:** mire a fő szerver visszatér, a lemezén ott vannak
-azok a tranzakciók, amiket még nem sikerült átküldenie a tartaléknak (ez az
-aszinkron replikáció vállalt ára). Ha egyszerűen visszakapcsoljuk főnöknek, régi
-adatot szolgál ki, és **újra kiadja azokat a nyugtaszámokat, amiket a tartalék már
-felhasznált.** Tehát a visszatérő gépnek először tartalékként kell visszajönnie.
+2. **`[ ]` Kell-e védelem az oda-vissza billegés ellen?** Szakaszos kapcsolatnál
+   (haldokló switch) az automatikus visszaállás végtelen szerepcsere-hurkot csinál.
+   Javaslat: növekvő várakozás minden visszaállás után + egy határ, ami után az
+   automatika kikapcsol és hangosan szól. → keress rá: `A4/b`
 
-**A megválaszolatlan rész pedig az, hogy mi legyen a lemezén maradt
-tranzakciókkal** — azok nem szemetek, hanem valódi eladások, valódi kinyomtatott
-nyugtákkal. Erre nincs automatikus jó válasz.
+3. **`[ ]` Mikor történjen a szerepcsere vissza — azonnal, vagy csendes időben?**
+   A visszaállás NEM sürgős (a tartalék rendesen kiszolgál), a szerepcsere viszont
+   minden kliens újracsatlakozását jelenti. Pénteken 20:00-kor fölösleges zavar,
+   zárás után ingyen van. Javaslat: ismerje fel azonnal, de HALASSZA a napi zárásra,
+   kivéve ha a menedzser azonnal kéri. **Termékdöntés.** → keress rá: `A4/c`
 
-**Megírt, de EL NEM FOGADOTT javaslat — kétszintű visszaállítás:** a normál esetet
-a **helyi menedzser** végzi, egy képernyőn, ami **számmal kiírja**, hány tranzakció
-van a régi fő szerver lemezén, amit a tartalék soha nem kapott meg. A Siduri
-Systems szuperfiók **csak a veszélyes változathoz** kell: amikor a két adatbázis
-tényleg szétdivergált és az egyiket felül kell írni.
+4. **`[ ]` A személyzetnek szóló három üzenet szövege — jóváhagyásra vár.**
+   A felhasználó kettőt kért, hármat írtam (a gép három érdemben különböző
+   helyzetet tud megkülönböztetni). **Egy szakmai pontosítást tartalmaznak:** a
+   felhasználó „internetet" kért az üzenetbe, de a lokális szervernek a
+   pénztárgépek kiszolgálásához NEM kell internet, csak helyi hálózat — ha az
+   üzenet internetet mond, a személyzet a szolgáltatót fogja hívni, miközben a
+   valódi hiba egy switch. → keress rá: `A személyzetnek szóló üzenetek`
 
-### 2.1.1 `[ ]` A kétlépcsős failover hat KITÖLTÉSI kérdése (R1–R6)
+### 2.1.1 `[ ]` A kétlépcsős failover kitöltési kérdései (R1–R5; az R6 megerősítve)
 
-Nem irány-, hanem részletkérdések — a döntés megvan, ezek nélkül viszont nem
-implementálható. Mindegyik önállóan tud csendben elromlani.
-→ `NYITOTT_KERDESEK.md:340` környéke (keress az `R1` … `R6` jelölésekre)
+Nem irány-, hanem részletkérdések. Mindegyik önállóan tud csendben elromlani.
+→ `NYITOTT_KERDESEK.md`, keress az `R1` … `R6` jelölésekre.
 
-1. **R1 — ki a „tanú", és mi van EGYPÉNZTÁRAS helyen?** Ott a tanú-séma nullára
-   degradálódik, pedig az MVP célprofilja pont ilyen hely. Plusz: egy lekapcsolt
-   gép némasága NEM bizonyíték.
+1. **R1 — ki a „tanú"**, és mi van egypénztáras helyen (lásd fent, 1. pont). Plusz:
+   egy lekapcsolt gép némasága NEM bizonyíték — külön kell kezelni azt, hogy egy gép
+   JELENTI, hogy nem éri el a szervert, attól, hogy MI nem érjük el a gépet.
 2. **R2 — miből ismeri fel a gép, hogy Ő esett ki?** Ez **új architekturális
    követelmény**: a pénztárgépeknek egymást és a tartalék szervert is látniuk kell
-   (eddig csillag-topológia volt). Felderítés + kölcsönös hitelesítés kell hozzá.
+   (eddig csillag-topológia volt, mindenki csak a szerverrel beszélt). Felderítés
+   + **kölcsönös hitelesítés** kell hozzá, mert a belső hálózat nem megbízható.
 3. **R3 — az 5 perc:** monoton időmérőn (nem fali órán), konfigurálhatóan, és
    **az ajánlatnak le kell járnia**, ha közben visszatér a fő szerver.
 4. **R4 — több gép mutatja a gombot** → az átvétel legyen idempotens, az első nyer.
-5. **R5 — a fő szerver ÉL, csak nem érik el.** Innen: a fencinget a **kliensnek is**
-   ki kell kényszerítenie (régebbi epochú szerverrel tilos beszélni).
-6. **R6 — ha a tartalék sem egészséges, átkapcsolást felajánlani sem szabad.**
+5. **R5 — a fő szerver ÉL, csak nem érik el.** Innen két dolog: a fencinget a
+   **kliensnek is** ki kell kényszerítenie (régebbi epochú szerverrel tilos
+   beszélni), ÉS ez a „tiszta átvétel" esete, ahol tényleg nulla veszteség érhető el.
+6. **R6 — `[MEGERŐSÍTVE]`** ha a tartalék sem egészséges, átkapcsolást felajánlani
+   sem szabad.
 
 Plusz egy **design-tétel**: az 5 perc ne üres visszaszámlálás legyen, hanem mutassa,
 mit állapított meg közben a gép; és a megerősítő képernyő számmal mondja meg a
 következményt, ne egyszerű igen/nem legyen (különben kialakul a „nyomd meg a zöld
 gombot" reflex).
 
-### 2.2 `[BLOKKOLVA AZ A4 ÁLTAL]` E1 — fázisterv
+### 2.2 `[MÁR CSAK RÉSZLETEK BLOKKOLJÁK]` E1 — fázisterv
 
 **A fázisterv még nincs megírva.** → `NYITOTT_KERDESEK.md:585`
 
@@ -198,8 +226,9 @@ gombot" reflex).
 - **Munkafeltételezés** (felülvizsgálandó, amint van ügyfél): kis bár / büfé, 1–2
   pénztár, pincér nélkül. **FIGYELEM:** ezt a munkafeltételezést a 2. munkamenet
   döntései feszítik — lásd 1.1 szakasz 1. pontja (minimum 2 dedikált gép).
-- **Miért az A4 után:** a visszaállítási procedúra a rendszer legdrágább és
-  legkockázatosabb művelete; a fázisterv nem árazható be nélküle.
+- **Mi hiányzik még hozzá:** a 2.1 négy részletkérdése közül az 1. (egypénztáras
+  hely) és a 3. (mikor cseréljünk szerepet) érdemben befolyásolja a scope-ot.
+  A 2. és a 4. nem — azok a fázistervvel párhuzamosan is eldönthetők.
 
 ### 2.3 Ami a B1/c-től FÜGGETLENÜL már most elkezdhető (tervezésként, nem kódként)
 

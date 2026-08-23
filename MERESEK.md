@@ -4,7 +4,7 @@
 > memória- és versenyhelyzet-állítás CSAK méréssel." Nélküle ezek a tételek
 > szétszóródnak a tervben, és a fázisterv írásakor egy részük némán kimarad.**
 >
-> **Utolsó frissítés:** 2026-08-22 (2. munkamenet, 7. kör — M12/M13 felvéve)
+> **Utolsó frissítés:** 2026-08-22 (2. munkamenet — M14 felvéve)
 > **Belépési pont a projekthez:** `FOLYAMATBAN.md`
 > **A döntések igazságforrása:** `NYITOTT_KERDESEK.md`
 
@@ -93,6 +93,17 @@ csökkentett mód helyett. Ez nem finomhangolási kérdés, hanem azt dönti el,
 ### `[ ]` M13 — A tartalék POS terhelése NORMÁL üzemben (csak replikaként)
 Az M12 előtti, enyhébb eset: a gép pénztárgép, és közben folyamatosan fogadja a
 replikációs folyamot. Ha már ez is elviszi a válaszidőt, az M12 értelmetlen.
+
+### `[ ]` M14 — A telephelyi szerver webes admin felületet is kiszolgál
+A hibrid webes architektúra (`gemini_cloud_spec_en.md` §2, R2) szerint **ugyanazt
+a webes admin alkalmazást a telephely saját szervere is kiszolgálja**, hogy
+internetkimaradáskor is elérhető legyen. Mivel a telephelyi szerver jellemzően
+**egy dolgozó Windows POS J1900-on**, ez az M1 terheléséhez **még hozzáad**:
+statikus fájlkiszolgálás + a riportokat/statisztikákat hajtó lekérdezések.
+
+**Mit mérj:** a riport-lekérdezések hatása a pénztári válaszidőre, amíg a
+manager a webes felületen dolgozik. **Ez a legvalószínűbb valós együttállás:**
+a főnök a hátsó asztalnál riportot néz, miközben a pult dolgozik.
 
 ### `[ ]` M2 — PostgreSQL memórialimitek
 `shared_buffers`, `work_mem`, `max_connections`. **Mérendő paraméterek, nem

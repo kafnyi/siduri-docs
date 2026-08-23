@@ -36,6 +36,14 @@
 > eredménye, a B12 jogi kérdése, a B1/c R2–R5 kitöltése.
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
 >
+> **ÚJ (tizennegyedik kör):** **Leltár** — az egyetlen jogos készlet-„felülírás", de
+> korrekciós mozgásként megvalósítva, fordulónapi elszámolással. **Több telephely
+> alapmodellként** (nem csak franchise). **A felhő raktár/receptúra = a telephelyi
+> adminfelület** → egy webes admin, két helyről kiszolgálva. **ÚJ FÁJL:**
+> `gemini_cloud_spec_en.md` — a Gemini felhő-specifikációja bemenetként, teljes
+> összevetéssel: egy pontja (felhő-szuperfiókos failback-engedélyezés) **FELÜLÍRVA**,
+> egy pontja (globálisan szinkronizált szuperfiók-jelszó) **biztonsági aggály**.
+>
 > **ÚJ (tizenharmadik kör):** **B16 kibővítve** — a felhő **teljes menedzsment-platform**
 > (beállítás-paritás, raktár, receptúra, statisztika, **zárolható értékek**,
 > **üzletlánc/franchise szint**). Ez ÚJ hierarchia-szintet vezet be a telephely fölé, és
@@ -1903,6 +1911,111 @@ vagy **mások**? Ha ugyanazok, akkor **egyszer építjük meg és két helyen
 jelenítjük meg** (a B16.7 séma-alapú megközelítése ezt támogatja). Ha mások,
 akkor kétszer építjük. **Ez hetekben mérhető különbség.**
 
+#### `[ELDÖNTVE]` B16.10 — A LELTÁR: az EGYETLEN jogos „felülírás", és hogyan legyen mégis mozgás
+
+**A felhasználó kiegészítése (2026-08-22):** kell egy **dedikált Leltár funkció**,
+ami **igenis felül tudja írni a készletet** — mert **ez a szerepe**: megadják, hogy
+egy adott időpontban ténylegesen mennyi van az alapanyagból.
+
+**Igaza van, és ez NEM mond ellent a B16.4 szabálynak** — ha jól építjük meg.
+
+##### A megoldás: a leltár sem egyenleget ír felül, hanem KORREKCIÓS MOZGÁST hoz létre
+
+| Rossz megvalósítás | Helyes megvalósítás |
+|---|---|
+| `készlet = 40` | `megszámolva: 40; a rendszer szerint 43; **korrekciós mozgás: −3**, ok: leltár` |
+| Az előzmény eltűnik | **Az előzmény megmarad, az eltérés látszik és riportálható** |
+| Nem derül ki, mennyi volt a hiány | **Pont a hiány a leltár EREDMÉNYE** — ez az egész értelme |
+
+**Ez ugyanazt éri el, amit a felhasználó kér** (a megszámolt mennyiség lesz az új
+készlet), **de közben megmarad az, amiért az egész készletmodell mozgás-alapú:**
+az eltérés **kimutatható, riportálható, és a „Kalkulált veszteség %"-hoz
+(spec 15./25.) hozzámérhető.** Egy néma felülírásnál épp az az adat veszne el,
+amiért leltározunk.
+
+##### `[!]` IDŐZÍTÉSI CSAPDA — ez a leltár klasszikus, néma hibája
+
+**A megszámolás ideje és a rögzítés ideje NEM ugyanaz.** A pultos 22:00-kor
+megszámolja, de csak 23:30-kor viszi be a gépbe — miközben a bár tovább árul.
+
+- Ha a rendszer az eltérést **a rögzítés pillanatának** készletéhez méri, akkor
+  **az 1,5 óra alatt eladott mennyiséget hiányként könyveli el**, majd a
+  korrekcióval **kitörli az időközbeni eladásokat a készletből.**
+- **Ez §7 elveszett-frissítése**, és **teljesen hihetőnek látszik** — a szám
+  „stimmel", csak rossz.
+
+**Kötelező szabály:** a leltárnak **saját, megadott FORDULÓNAPJA/időpontja** van,
+és az eltérés **az AKKORI készlethez** számolódik, nem a rögzítéséhez. A
+fordulónap és a rögzítés között történt mozgások **a korrekció után is
+érvényesek maradnak.**
+
+##### Hol futhat a leltár
+
+**A korrekciós mozgást a TELEPHELY könyveli el** (B16.4: a mennyiségi állapot
+telephely-autoritatív). A **felhőből kezdeményezhető és rögzíthető** — a webes
+felület úgyis közös (lásd `gemini_cloud_spec_en.md` R2) —, de a könyvelés a
+telephelyen történik, mozgásként.
+
+##### Amit ez maga után von
+
+- **Jogosultság:** a leltári korrekció **készletet és így árrést módosít** —
+  lopásgyanúnál pont ez a művelet a gyanús. **Jogosuláshoz kötve, teljes
+  audittal, indoklással** (C7).
+- **Részleges leltár** (csak egy raktár, csak egy termékcsoport) legyen
+  lehetséges — a nem leltározott tételekhez **ne keletkezzen korrekció**.
+  Néma nullázás tilos.
+- Kapcsolódik: spec 15. (standolás, kalkulált veszteség %), 22. (standoló app),
+  25. (valós árrés).
+
+#### `[ELDŐNTVE]` B16.11 — TÖBB TELEPHELY, nem csak franchise
+
+**A felhasználó pontosítása:** a több üzlet **nem csak franchise-kérdés** — lehet
+olyan ügyfél, akinek **három különálló üzlete** van, és **egy felületen** akarja
+kezelni őket.
+
+**Következmény:** a hierarchia **nem „franchise-funkció", hanem alapmodell.**
+A lánc/csoport szint akkor is létezik, ha nincs franchise — csak akkor
+egyszerűen „ennek a tulajdonosnak a három üzlete".
+
+**És a statisztika hatóköre ezzel érdemben bővül** (a felhasználó kiemelte):
+minden kimutatásnak, lekérdezésnek és menedzsment-funkciónak működnie kell
+- **egy üzletre**,
+- **több, kiválasztott üzletre**,
+- **a teljes csoportra / franchise-ra.**
+
+**`[!]` Ez nem „egy szűrő a riportokon".** Az összesítés **több telephely
+adatainak összefésülését** jelenti, ami:
+- **eltérő árakkal** (ha nem zárolt), **eltérő ÁFA-időszakokkal**, **eltérő
+  nyitvatartással és üzleti nap-határral** dolgozó helyeket ad össze;
+- **`[!]` és pont ezért kell a „mit jelent az összeg" kérdést eldönteni**:
+  két üzlet „napi forgalma" nem adható össze naivan, ha az egyik üzleti napja
+  04:00-kor, a másiké 06:00-kor fordul.
+- **`[ ]` Eldöntendő:** a csoportos riport **közös üzleti nap** szerint
+  összesít, vagy **telephelyenkénti üzleti nap** szerint, és a kettő
+  különbsége **látszódjon-e** a riporton.
+
+**Ez megerősíti, hogy a B7 (multi-tenancy) döntést ezzel EGYÜTT kell meghozni**,
+és hogy a több telephelyet átfogó lekérdezés **alapkövetelmény**, nem extra.
+
+#### `[ELDÖNTVE]` B16.12 — A felhő raktár/receptúra = a telephelyi adminfelület
+
+**A felhasználó megerősítette:** *„A felhő raktár- és receptúra-funkciói ugyanazok,
+mint a telephelyi adminfelületé, csak máshol megjelenítve."*
+
+**Ez a legjobb hír a paritás-problémára (B16.7)**, és a Gemini-dokumentum
+(`gemini_cloud_spec_en.md` §2) konkrét architektúrát is ad hozzá:
+
+> **EGY webes adminisztrációs alkalmazás, KÉT helyről kiszolgálva** — a
+> felhő-portálról, és internetkimaradáskor a telephely saját szerveréről.
+
+**Miért ez a legfontosabb következménye:** a §6 szerinti néma szétcsúszás
+**gyökerénél szűnik meg** — nincs két felület, amit szinkronban kellene tartani.
+Ami marad: a **két backend** (telephelyi szerver / felhő-API) paritása, és épp
+erre való a `B16.7` egységes beállítás-séma + paritás-őr.
+
+**→ Ez érdemben csökkenti a fázisterv (E1) egyik legnagyobb tételét: nem kétszer
+építjük meg a raktár- és receptúrakezelést.**
+
 #### `[ ]` Ami NYITVA marad ebből
 
 | Tétel | Kérdés |
@@ -1911,7 +2024,8 @@ akkor kétszer építjük. **Ez hetekben mérhető különbség.**
 | **B16/b** | Ütközés: nem zárolt érték, amit közben helyben is módosítottak — mi nyer? |
 | **B16/c** | Sorbaállított változtatás hosszú offline után: csak a végállapot menjen le? |
 | **B16/d** | Nagy hatókörű (lánc-szintű) változtatás kap-e extra védelmet? |
-| **B16/e** | A felhő raktár/receptúra funkciói azonosak a telephelyivel, vagy külön? (E1-hez) |
+| ~~**B16/e**~~ | **`[MEGVÁLASZOLVA]` Azonosak** — egy webes admin alkalmazás, két helyről kiszolgálva. Lásd B16.12. |
+| **B16/f** | Csoportos riport: **közös** üzleti nap szerint összesít, vagy **telephelyenkénti** szerint — és látszódjon-e a különbség? |
 | **B7** | **A multi-tenancy modellt ezzel EGYÜTT kell eldönteni** — a lánc-szintű összesített lekérdezés igénye szűkíti a lehetőségeket |
 
 ---
@@ -2514,6 +2628,9 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~B16.10~~ | `[ELDÖNTVE]` | **Leltár — az egyetlen jogos „felülírás", de mégis MOZGÁSKÉNT.** A megszámolt mennyiség és a rendszer szerinti eltérése **korrekciós mozgásként** könyvelődik, nem néma felülírásként — így az eltérés kimutatható marad, ami a leltár egész értelme. **Időzítési csapda:** az eltérést a **fordulónapi** készlethez kell mérni, nem a rögzítéséhez, különben a közben eladott mennyiséget hiányként könyveli és kitörli az időközbeni eladásokat. |
+| — | ~~B16.11~~ | `[ELDÖNTVE]` | **A több telephely nem franchise-funkció, hanem ALAPMODELL** — lehet olyan tulajdonos, akinek 3 különálló üzlete van. Minden kimutatásnak működnie kell egy üzletre, több kiválasztottra, és a teljes csoportra. |
+| — | ~~B16.12~~ | `[ELDÖNTVE]` | **A felhő raktár/receptúra = a telephelyi adminfelület**, csak máshol megjelenítve → **EGY webes admin alkalmazás, KÉT helyről kiszolgálva.** Ez a §6 néma szétcsúszást a gyökerénél szünteti meg, és érdemben csökkenti a fázisterv egyik legnagyobb tételét. |
 | — | ~~B16.1~~ | `[ELDÖNTVE]` | **A felhő teljes menedzsment-platform**, nem kiegészítő: teljes beállítás-paritás a POS-szal, raktárkezelés, alapanyag-mozgás, receptúrázás, statisztikák; **zárolható beállítások** (kiemelten ár és láthatóság); **üzletlánc/franchise szintű zárolható központi értékek**; visszajelzés a módosítás leérkezéséről; eszköz-láthatóság (mikor kommunikált utoljára, meg van-e nyitva). **Ez a legnagyobb scope-változás az egész munkamenetben, és önálló terméksávot jelent a fázistervben.** |
 | — | ~~B14.4~~ | `[ELDÖNTVE]` | **A SIDURI bizonylatszám formátuma: `xxxxxxyyyzzzzz`** — üzleti nap dátuma (a szervertől) + eszközszám + napi folyószám. Ez **megoldja mindkét korábbi aggályomat**: naponta újraindul, tehát soha nem fogy el; és a dátum-előtag miatt szám szerint időrendben áll. **Kikötés:** az `xxxxxx` az ÜZLETI NAP, nem a naptári nap — aki `DateTime.Now.Date`-ként írja meg, annak minden éjszakai helyen csendben elcsúszik a számozás. |
 | — | ~~B14 M2~~ | `[ELDÖNTVE, kiegészítve]` | A szerver adja ki az azonosítót és regisztráció nélkül nincs bizonylat — **helyes, de a klónt nem fogja meg**, mert a klón érvényes hitelesítéssel szinkronizál. **Hiányzó darab: hardveres ujjlenyomat (már tervben van a licencelésnél) + forgó hitelesítő adat.** Ha egy azonosító két ujjlenyomatról jelentkezik, **mindkettő tiltva**, amíg ember fel nem oldja. |

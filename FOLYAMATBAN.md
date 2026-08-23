@@ -29,6 +29,7 @@ lásd „Miért nem kódolunk még".
 | **`NYITOTT_KERDESEK.md`** | **AZ EGY IGAZSÁGFORRÁS a döntésekre** (§2.4) | Kötelező érvényű |
 | `MERNOKISAROKKOVEK.md` | Projekt-független mérnöki szabálygyűjtemény | Kötelezően alkalmazandó |
 | `siduri_spec_hu.md` | Az eredeti rendszerterv (magyar) | **Részben ELAVULT** — inline `[MÓDOSÍTVA]` / `[NYITOTT]` jelölésekkel |
+| `gemini_cloud_spec_en.md` | A Gemini felhő-specifikációja — **bemeneti dokumentum**, a munkamenet ELŐTTI állapot | **Csak a fájl végén lévő ÖSSZEVETÉSSEL együtt használható** — egy pontja felülírva, egy biztonsági aggály |
 | `siduri_superprompt_en.md` | Ugyanaz megaprompt formában (angol, Geminihez) | **Részben ELAVULT** — inline `[SUPERSEDED]` / `[OPEN]` jelölésekkel |
 | `FOLYAMATBAN.md` | Ez a fájl — állapot és folytatás | Élő |
 | **`MERESEK.md`** | **A mérendő tételek egységes nyilvántartása.** A felhasználó kiemelt utasítása: az első éles tesztnél MINDENT meg kell mérni | Élő — kötelezően frissítendő |
@@ -101,7 +102,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Harminchárom döntés lezárva** (öt az 1., huszonnyolc a 2. munkamenetben, mindkettő 2026-08-22).
+**Harminchat döntés lezárva** (öt az 1., harmincegy a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -119,6 +120,9 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **B16.12** | *(ÚJ)* Egy admin felület vagy kettő | **EGY webes admin alkalmazás, KÉT helyről kiszolgálva** (felhő + a telephely saját szervere offline-ra). A felhő raktár/receptúra ugyanaz, mint a telephelyi. **Ez a §6 néma szétcsúszást a gyökerénél szünteti meg** | `NYITOTT_KERDESEK.md`, keress: `B16.12` |
+| **B16.10** | *(ÚJ)* Leltár | Az **egyetlen jogos** készlet-„felülírás" — de **korrekciós mozgásként**, hogy az eltérés kimutatható maradjon. **Fordulónapi elszámolás**, nem a rögzítés időpontjához | `NYITOTT_KERDESEK.md`, keress: `B16.10` |
+| **B16.11** | *(ÚJ)* Több telephely | **Alapmodell, nem franchise-funkció.** Minden kimutatás működjön egy üzletre, több kiválasztottra és a teljes csoportra | `NYITOTT_KERDESEK.md`, keress: `B16.11` |
 | **B16.1** | *(ÚJ)* Mi a felhő szerepe | **Teljes menedzsment-platform**, nem kiegészítő: beállítás-paritás a POS-szal, raktár, alapanyag-mozgás, receptúrázás, statisztikák; **zárolható beállítások** (ár, láthatóság); **üzletlánc/franchise szintű központi értékek**; visszajelzés a leérkezésről; eszköz-láthatóság. **A legnagyobb scope-változás — önálló terméksáv a fázistervben** | `NYITOTT_KERDESEK.md`, keress: `B16` |
 | **B14.4** | *(ÚJ)* A bizonylatszám formátuma | **`xxxxxxyyyzzzzz`** = üzleti nap dátuma (a szervertől) + eszközszám + napi folyószám. Pl. `26082200300347`. **Naponta újraindul → soha nem fogy el**, és a dátum-előtag miatt szám szerint időrendben áll. **Kikötés: az `xxxxxx` az ÜZLETI NAP, nem a naptári nap** | `NYITOTT_KERDESEK.md`, keress: `B14.4` |
 | **B14 M2** | *(ÚJ)* Klónozás elleni védelem | A szerver adja ki az azonosítót és regisztráció nélkül nincs bizonylat — **de a klónt ez nem fogja meg.** Hiányzó darab: **hardveres ujjlenyomat + forgó hitelesítő adat**; két ujjlenyomat egy azonosítón → **mindkettő tiltva**, amíg ember fel nem oldja | `NYITOTT_KERDESEK.md`, keress: `M2 — az eszközazonosító` |

@@ -36,6 +36,13 @@
 > eredménye, a B12 jogi kérdése, a B1/c R2–R5 kitöltése.
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
 >
+> **ÚJ (tizenhetedik kör):** **`[!]` C11/a — MTÜ-IGAZOLÁS KELL az NTAK-adatszolgáltatáshoz**
+> (igazolt lelet; a célpiac NTAK-köteles, tehát ez belépési feltétel — de az
+> interfész-leírás nyilvános, tehát azonnal elkezdhető). **HELYESBÍTÉS: a felhasználó
+> feltevése, hogy a felhasználó kézzel is beküldheti a napi adatot, NEM igazolt.**
+> **C3/a helyesbítés — az ÉN javaslatom volt hibás**, az adókulcs-másolás a helyes.
+> **F4/K2** — négyrétegű terv a Munkanap-összefésülésre. **C3/c** — kategória-alapértékek.
+>
 > **ÚJ (tizenhatodik kör — nagy blokk):** **Fiskális üzemmódok** három esetre bontva
 > (új fájl: `FISKALIS_UZEMMODOK.md`, benne a kért e-pénztárgépes utánajárás
 > eredményével). **F4** — mind a négy nap-fogalom definiálva, **három új
@@ -2563,20 +2570,69 @@ helyesen állítsa be őket.** Ezért:
    **akkor sem, ha az egyik adókulcs (pl. az elviteles) hiányzik.**
    **Csak teljesen kitöltött adóadatokkal engedjük létrehozni.**
 
-#### `[!]` EGY MEGVALÓSÍTÁSI KIKÖTÉS, ami nélkül némán elromlik
+#### `[!]` HELYESBÍTÉS — az ÉN javaslatom volt HIBÁS, a felhasználóé a helyes
 
-A „másolja az adókört" **JELÖLŐKÉNT tárolandó, ne MÁSOLT ÉRTÉKKÉNT.**
+**Azt javasoltam, hogy a „megegyezik" JELÖLŐKÉNT tárolódjon, ne másolt
+értékként** — azzal az indoklással, hogy különben a helyben fogyasztásos kulcs
+átírásakor az elviteles csendben a régin marad.
 
-- **Ha az érték másolódik** a létrehozáskor: később valaki átírja a helyben
-  fogyasztásos kulcsot, és **az elviteles csendben a régin marad.**
-  A termék ettől kezdve **rossz adókulccsal** megy ki elvitelre — és a nyugta
-  szabályosnak látszik. Ez pontosan a §5 néma kudarca.
-- **Ha JELÖLŐ van tárolva** („az elviteles = a helyben fogyasztásos"), akkor a
-  feloldás **használatkor** történik, és **együtt mozognak.**
+**A felhasználó ellenérve erősebb, és elfogadom:**
 
-**A megjelenítés viszont mutassa a HATÁLYOS értéket is**, ne csak a jelölőt —
-ugyanaz az elv, mint a felhőből zárolt áraknál (`B16.3`): a felhasználó lássa,
-**mi az érték ÉS honnan jön.**
+> Ha az elviteles adókulcs **HIVATKOZÁS**, akkor amikor az ügyfél a helyben
+> fogyasztásos kulcsot lejjebb viszi (mert a könyvelő szólt), **az elviteles
+> is némán lejjebb megy vele.** A pizza eddig 27% volt mindkét módon; a helyben
+> fogyasztásos 18-ra változik; **és az elviteles is 18 lesz — ami súlyos
+> szabálysértés.**
+
+**A két hibairány NEM egyenrangú, és ez a döntő érv:**
+
+| Hibairány | Következmény |
+|---|---|
+| **Túl MAGAS adókulcsot alkalmazunk** | pénzügyi hátrány az ügyfélnek, **de nem jogsértés** |
+| **Túl ALACSONY adókulcsot alkalmazunk** | **adóhiány → jogsértés, bírság** |
+
+**Egy hivatkozás-alapú modell épp a veszélyes irányba hibázik automatikusan.**
+Egy másolat-alapú modell a biztonságos irányba (marad a régi, magasabb érték,
+amíg valaki hozzá nem nyúl). **§13-as gondolkodás: ahol a két hibairány ára
+eltér, a mechanizmus a kisebb kár felé dőljön.**
+
+#### `[ELDÖNTVE]` A felhasználó által megadott, elfogadott működés
+
+1. Az ügyfél beírja a **helyben fogyasztásos** adókulcsot.
+2. Bepipálja: **„az adókulcsok megegyeznek"** → a rendszer **MÁSOLJA** az
+   értéket, és **így menti** (két önálló érték).
+3. **Betöltéskor**: ha a két érték egyezik, a jelölő **bepipálva** jelenik meg,
+   és az elviteles mező **csak olvasható**, amíg ki nem veszik a pipát.
+4. **`[!]` Ha az ügyfél SZERKESZTI a helyben fogyasztásos kulcsot, a jelölő
+   AUTOMATIKUSAN kiugrik**, és az elviteles mező **írhatóvá válik, a KORÁBBI
+   értékkel.** → **a régi, magasabb érték marad, amíg nem nyúlnak hozzá.**
+5. Ha újra egyezővé akarja tenni, **újra bepipálhatja — de meg kell erősítenie.**
+
+**Ez a viselkedés a §5 szellemében is helyes:** a rendszer nem dönt csendben
+olyasmiben, aminek adóügyi következménye van — **hanem odaadja a döntést, és
+láthatóvá teszi, hogy döntés történt.**
+
+#### `[JAVASLAT]` Az „elviteles alapból a legmagasabb kulcs" ötlethez
+
+A felhasználó felvetette, hogy **az elviteles adókulcs alapból 27% legyen**, és
+manuálisan vagy jelölővel lehessen átírni.
+
+**Az elv helyes** (a biztonságos irányba dőljünk), **de a konkrét szám nem
+kerülhet a kódba.** §13.1: a beégetett `27` nem egy hiba, hanem egy hibaosztály,
+és az adókulcsok változnak.
+
+**Javaslat ugyanarra a célra, beégetés nélkül:**
+> Az elviteles adókulcs **alapértelmezése az adott napon érvényes
+> adókulcs-táblából a LEGMAGASABB kulcs** — nem a beégetett 27.
+>
+> Ugyanaz a védelem, de **dátumozott és adatvezérelt** (§13.1, §13.3), tehát egy
+> jogszabályváltozás nem igényel kódmódosítást.
+
+**`[ ]` Eldöntendő:** ez az alapértelmezés **előre ki legyen töltve** (az ügyfél
+felülírhatja), vagy **üresen hagyva** (és a kapu úgyis kikényszeríti a
+kitöltést)? Az előbbi kényelmesebb, az utóbbi kevésbé csábít a
+gondolkodás nélküli mentésre. **Javaslom az előre kitöltést**, mert a kapu
+(`C3/a` 3. pont) úgyis megvéd a hiánytól, és a magas kulcs a biztonságos irány.
 
 #### `[ ]` Kapcsolódó, még eldöntendő
 
@@ -2587,6 +2643,75 @@ ugyanaz az elv, mint a felhőből zárolt áraknál (`B16.3`): a felhasználó l
   értelmes, ahol a két kulcs tényleg eltér.** Ahol azonos (pl. alkohol),
   ott nincs mit fixen tartani. Ezt a szabályt ki kell mondani, különben a
   megvalósítás egy nem létező esetre készül.
+
+### `[JAVASLAT — támogatom, két kikötéssel]` C3/c — TERMÉKKATEGÓRIÁK és öröklött adó-alapértékek
+
+**A felhasználó felvetése (2026-08-22):** a termékeket **kötelező főkategóriába
+sorolni**, az **alkategória (vagy alkategóriák) opcionális**; és **a fő- és
+alkategóriákon is megadható alap adókulcs**, amit az új termék **első körben
+örököl**, de **manuálisan és/vagy utólag felülírható.**
+
+**Támogatom.** Két okból jó:
+1. **A gyakorlati hibát szünteti meg**, amiért az egész adókapu (`C3/a`) kell:
+   a kézzel, terméknént beírt adókulcsnál előbb-utóbb elgépel valaki. A
+   kategória-alapérték **a helyes értéket teszi az alapértelmezetté.**
+2. **Gyorsítja a telepítést** — ez az `1. ellenőrző kör` `T1.8` leletéhez
+   kapcsolódik (hogyan indul el egy új telephely adatokkal). Egy 400 tételes
+   itallap felvitele kategória-alapértékekkel nagyságrenddel gyorsabb.
+
+#### `[!]` 1. KIKÖTÉS — az öröklés MÁSOLÁS legyen, ne élő hivatkozás
+
+**Pontosan ugyanaz az érv, amit a felhasználó a `C3/a`-nál helyesen felhozott,
+és amiben nekem igaza lett:**
+
+> Ha a kategória adókulcsa **élő hivatkozás**, akkor egy kategória-szintű
+> módosítás **egyszerre, csendben átír több száz terméket** — és ha lefelé
+> mozdul, az **jogsértés minden érintett terméken egyszerre.**
+
+**Tehát: a kategória adókulcsa ALAPÉRTELMEZÉS a létrehozás pillanatában, és
+onnantól a termék saját, önálló értéke.**
+
+**`[JAVASLAT]` Ha a kategória alapértéke később változik**, a rendszer **ne
+írjon át semmit magától**, hanem **ajánljon fel egy áttekintett tömeges
+frissítést**: „ennek a kategóriának 137 terméke a régi kulcson áll —
+átnézed?", listával és egyenkénti kipipálással. **Soha ne néma tömeges írás.**
+
+#### `[!]` 2. KIKÖTÉS — ha TÖBB alkategória lehet, meg kell mondani, MELYIK nyer
+
+A felvetés **„alkategória, vagy alkategóriák"**-at mond, tehát egy termék
+**több alkategóriában** is lehet. Ekkor viszont **több, egymásnak ellentmondó
+adó-alapérték** vonatkozhat rá.
+
+**`[ ]` Eldöntendő, három lehetőség:**
+- **(a)** az adó-alapértéket **csak a főkategória** adhatja meg, az alkategóriák
+  csak csoportosítanak → **a legegyszerűbb, és nincs ütközés**;
+- **(b)** a termék megjelöl **egy „elsődleges" alkategóriát**, és onnan örököl;
+- **(c)** ütközéskor a rendszer **nem tölt ki semmit**, és kéri a kézi megadást.
+
+**Javaslom az (a)-t**, hacsak nincs erős üzleti igény a másikra: az alkategória
+**navigációs és riportolási eszköz**, az adókulcs viszont **jogi tulajdonság** —
+nem szerencsés a kettőt ugyanarra a fogalomra akasztani.
+
+#### `[!]` 3. FIGYELMEZTETÉS — a Siduri-kategória NEM azonos az NTAK-kategóriával
+
+Két különböző taxonómia, két különböző célra:
+
+| | **Siduri fő-/alkategória** | **NTAK fő-/alkategória** |
+|---|---|---|
+| Kié | a miénk / az ügyfélé | **az NTAK-é**, jogszabályi lista |
+| Mire jó | felület, gyorsgombok, riport, adó-alapérték | **adatszolgáltatás** |
+| Változtathatja az ügyfél | igen | **nem** |
+
+**Ha a kettőt egy mezőbe tesszük, mindkettő elromlik:** vagy az ügyfél nem
+tudja úgy csoportosítani a felületet, ahogy neki jó, vagy elrontja az
+adatszolgáltatást. **Két külön mező kell.**
+
+**`[JAVASLAT]` Ami viszont hasznos és olcsó:** a **Siduri-kategórián is
+megadható legyen egy NTAK-kategória alapértelmezés** — ugyanazzal a
+másolás-nem-hivatkozás szabállyal. Így az „Üdítők" kategóriába felvett új
+termék automatikusan a helyes NTAK-besorolást kapja, **és ez pont azt a
+kritikus pillanatot enyhíti** (`C3/b` 1. pont), amikor egy hely utólag válik
+NTAK-kötelessé.
 
 ### `[ELDÖNTVE]` C3/b — NTAK-KATEGÓRIA a terméken: feltételesen kötelező
 
@@ -2663,6 +2788,92 @@ A 13. pont „teljesen új negatív fiskális nyugtát" ír. Az AEE-s gépeknek 
 sztornó/visszáru-szabályaik vannak (mit engednek, milyen hivatkozással) — ezt a
 gyártói protokoll dönti el, nem mi. A tényleges protokolldokumentáció ismerete
 nélkül ez a fejezet nem tervezhető meg.
+
+### `[!] [ÚJ, IGAZOLT LELET]` C11/a — AZ NTAK-HOZ MTÜ-IGAZOLÁS KELL A SZOFTVERNEK
+
+> **Ez a 2. legsúlyosabb lelet az egész átvizsgálásban** (az online pénztárgépek
+> 2028-as kifutása után), és **eddig sehol nem szerepelt a tervben.**
+
+#### A tény
+
+> **„az adatszolgáltatásra kizárólag az NTAK-kal kommunikálni képes, az MTÜ által
+> kiállított Igazolással rendelkező vendéglátó szoftverek használhatóak."**
+
+A folyamat: a szoftvergyártó megkapja az **RMS Interfész leírást**, felkészül,
+majd **validációs tesztet** kell teljesítenie. Sikeres teszt után az **MTÜ
+Igazolást állít ki**, felveszi a szoftvert az NTAK RMS-adatbázisába, és kiadja az
+**éles környezeti azonosítót**. A tesztkörnyezethez **telephelyenkénti NTAK RMS
+(teszt) tanúsítvány** kell, és a beküldött üzeneteket **elektronikusan alá kell
+írni.**
+
+**Forrás:** [NTAK — Vendéglátás információs oldal](https://info.ntak.hu/vendeglatas),
+[RMS Interfész leírás v1.06 (PDF)](https://info.ntak.hu/media/uploads/docs/RMS_Interfesz_leiras_v106.pdf),
+[NTAK Vendéglátás szakmodul felhasználói útmutató](https://info.ntak.hu/media/uploads/docs/ntak_vendeglatas_szakmodul_felhasznaloi_utmutato.pdf).
+
+#### `[!]` Miért ez súlyos a terv szempontjából
+
+**A célpiac definíció szerint NTAK-köteles.** A `siduri_spec_hu.md` 1. pontja
+szó szerint: *„Magyar KKV vendéglátás (12 millió Ft árbevétel feletti, **NTAK
+köteles** helyek)."*
+
+> **Tehát: MTÜ-igazolás nélkül a Siduri a saját megcélzott piacát jogszerűen
+> nem tudja kiszolgálni.** Ez nem „jó lenne", hanem **belépési feltétel.**
+
+**Ez egy KAPU a fázistervben, átfutási idővel** — nem egy fejlesztési feladat,
+amit párhuzamosan el lehet végezni. A validációs teszthez **kész, működő
+adatszolgáltatásra van szükség**, tehát a sorrend kötött:
+adatmodell → NTAK-modul → tesztkörnyezet → validációs teszt → Igazolás → **csak
+ezután élesíthető NTAK-köteles helyen.**
+
+#### Amiért ez mégis JOBB hír, mint a fiskális oldal
+
+| | **NTAK (MTÜ)** | **Fiskális eszköz (gyártó)** |
+|---|---|---|
+| Van-e nyilvános interfész-leírás | **IGEN** — az RMS Interfész leírás **letölthető** | `[?]` valószínűleg NDA-hoz kötött |
+| Van-e tesztkörnyezet | **IGEN**, nevesítve | `[?]` gyártófüggő |
+| Ki a partner | **egy** szervezet (MTÜ) | **gyártónként külön** |
+
+**Tehát az NTAK-integráció MOST elkezdhető** — a specifikáció a kezünkben van,
+nem kell hozzá senkivel szerződni előbb. **Ez a `E3` beszerzési tétel egyik
+darabját azonnal kiveszi a blokkolók közül.**
+
+#### `[ ]` Amit ez azonnal megkövetel
+
+1. **`[ ]` Az RMS Interfész leírás v1.06 letöltése és feldolgozása** — ez a
+   **konkrét adatmodell-követelmény** az értékesítési adatokra. **Ez befolyásolja
+   a termék-, kategória- és bizonylat-modellt**, tehát **a kódolás előtt kell
+   elolvasni**, nem közben.
+2. **`[!]` Tanúsítványkezelés mint FUNKCIÓ.** Telephelyenkénti tanúsítvány +
+   üzenetaláírás → **kiadás, tárolás, megújítás, lejárat-figyelés, több
+   telephely.** Ez a `C11` eredeti „tanúsítványkezelés" aggálya, **most már
+   igazoltan.** És a `B10/a` fényében: **a tanúsítvány privát kulcsa egy
+   pult mögött álló gépen lesz** — védeni kell.
+3. **`[ ]` A validációs teszt a FÁZISTERV nevesített mérföldköve legyen**, saját
+   időkerettel, mint a mérési fázis.
+4. **`[ ]` Az MTÜ-igazolás VERZIÓHOZ kötött** — „a kiállítás napján érvényes
+   követelményeknek való megfelelést igazolja". **Kérdés: minden szoftververzió
+   után újra kell-e validálni?** Ez a `D3` (verziókompatibilitás) és a
+   `siduri-updater` szempontjából is fontos. **Utánajárandó.**
+
+#### `[!]` HELYESBÍTÉS a felhasználó feltevéséhez
+
+A felhasználó (2026-08-22) így fogalmazott: *„az NTAK adatszolgáltatást minden
+esetben vagy a szoftware **vagy a felhasználó végzi az NTAK felületén**."*
+
+| Állítás | Ítélet |
+|---|---|
+| A pénztárgép nem küld az NTAK-nak | **IGAZ** — a pénztárgép a NAV felé küld forgalmi adatot; az NTAK statisztikai adatot kap, azt a szoftver küldi |
+| A napi adatszolgáltatást a szoftver végzi | **IGAZ**, és **automatikusan**, a nap lezárása után |
+| A felhasználó kézzel is beküldheti az NTAK felületén | **`[!]` NEM IGAZOLT — a forrás szerint erre nincs mód.** A napi adatszolgáltatásra **kizárólag MTÜ-igazolással rendelkező szoftver** használható. Az NTAK online felületén a **regisztrációs adatok** (nyitvatartás, üzlettípus) módosíthatók, nem a napi forgalmi adat |
+
+**Miért fontos ez a különbség:** ha lenne kézi út, akkor az `1. fiskális mód`
+(Siduri mint belső rendszer, adóügyi eszköz nélkül) esetén az ügyfél maga
+megoldhatná. **Így viszont nem.** Ebből következik:
+
+> **Az `1. módban` (belső rendszer) egy NTAK-köteles hely számára az
+> adatszolgáltatást is A SIDURINAK kell teljesítenie** — vagy a hely
+> **egy másik, igazolt szoftvert is használ** mellette.
+> **Ez az 1. mód alatt nyitva hagyott kérdést megválaszolja.**
 
 ### `[?]` C11 — NTAK részletek
 Hiányzik: szoftver-regisztráció és tanúsítványkezelés (tárolás, megújítás, több
@@ -2896,28 +3107,141 @@ kiadja a `26082200300001`-et** → **duplikált bizonylatszám.**
 **Ez a legkisebb változtatás, ami a problémát megszünteti** — nem szabállyal
 kezeli, hanem **nem engedi keletkezni.** `[ ]` **Jóváhagyásra vár.**
 
-##### `[!] K2 — A 25 órás kényszerleállás ÜTKÖZIK a csökkentett móddal`
+##### `[ELDÖNTVE + TERV]` K2 — A MUNKANAP OFFLINE NYITÁSA ÉS ÖSSZEFÉSÜLÉSE
 
-**Két korábbi döntés feszül egymásnak:**
-- **25 óra után minden gép megáll**, amíg nem nyitnak új Munkanapot;
-- **a Munkanap a HELYÉ, tehát a szerveren dől el;**
-- **de a csökkentett mód épp arról szól, hogy a szerver NEM elérhető.**
+**A felhasználó pontosítása (2026-08-22):** a Munkanapot **bármelyik gépen meg
+lehet nyitni**, de **a szerver tartja számon**, és **ő kommunikálja a kliensek
+felé.** Kiesésnél ez a szerep a tartalék szerverre száll. **Marad a nehéz eset:
+mi van, ha minden offline** — és akkor akár **öt Munkanap** is nyílhat ugyanarra
+a dátumra, amiket **össze kell hozni.**
 
-**Következmény, ha nem kezeljük:** a szerver kiesik 23:00-kor, a pénztárgépek
-csökkentett módban dolgoznak — **és 25 óra elteltével MEGÁLLNAK**, mert nem
-tudnak új Munkanapot nyitni. **A csökkentett mód pont akkor mondja fel a
-szolgálatot, amikor a legnagyobb szükség lenne rá.**
+> **A felhasználó kérése:** *„ennek a megoldására nagyban számítok a
+> segítségedre és ha van esetleg egy konkrét, pontos ötleted, azt mondd."*
+> Az alábbi a javaslatom, **négy rétegben**. A lényeg: **három réteg megelőzi a
+> problémát, és csak a negyedik javít** — mert az összefésülést nem megoldani
+> kell, hanem **nem engedni keletkezni.**
 
-**`[ ]` Kell rá szabály.** Három lehetőség, döntést igényel:
-- **(a)** csökkentett módban a pénztárgép **maga nyithat Munkanapot**, a
-  `B14.7` óra-ellenőrzéssel és a tanúk megkérdezésével — visszatéréskor a
-  szerver egyezteti;
-- **(b)** a 25 órás plafon csökkentett módban **felfüggesztődik**, és a
-  szerver visszatérésekor **azonnal ki kell zárni** a Munkanapot;
-- **(c)** marad a kemény leállás — **vállaltan**, kiírva az ügyfélnek.
+---
 
-**Az (a) illeszkedik legjobban a többi döntéshez**, de ez a legtöbb munka, és
-felveti a `B14.7` alatti „két gép, két Munkanap" hézagot.
+###### `[!]` ELŐSZÖR A JÓ HÍR: az összefésülés MÁR MOST sokkal kisebb probléma, mint amilyennek látszik
+
+**Három dolog, ami NEM sérül egy összefésüléskor** — és ezek a legdrágábbak
+lennének:
+
+| | Miért nem sérül |
+|---|---|
+| **A bizonylatszámok** | A `K1` döntés óta a szám a **DÁTUMHOZ** kötődik, **nem a Munkanaphoz.** Egy bizonylat átsorolása másik Munkanap alá **nem változtat egyetlen kinyomtatott számot sem.** |
+| **A fiskális oldal** | A Z-jelentések a **MŰSZAKHOZ** tartoznak, ami **eszközönkénti** — és a modell szerint **egy Munkanapon több Műszak is normális.** Az adóügyi eszközön **semmit nem kell összefésülni.** |
+| **Az NTAK-adatszolgáltatás** | Az NTAK egysége a **tárgynap = naptári nap**, nem a Munkanap. **Az összefésülés az NTAK-küldést nem érinti.** |
+
+**Vagyis az összefésülés kizárólag a BELSŐ riportokat érinti** — a Munkanapra
+vetített forgalmat, a műszakegyeztetést, a napi zárást. **Egyetlen külső,
+jogilag kötött rendszer sem függ tőle.**
+
+**Ez nem szerencse, hanem a `K1` döntés hozadéka** — érdemes látni, hogy a
+döntések itt összeértek.
+
+---
+
+###### 1. RÉTEG — MEGELŐZÉS: a szerver ELŐRE kiosztja a következő Munkanap azonosítóját
+
+**Ez a legerősebb és a legolcsóbb elem, és eddig nem merült fel.**
+
+> Amíg a szerver **egészséges**, minden eszköznek **előre odaadja a KÖVETKEZŐ
+> Munkanap azonosítóját** — egy generált azonosítót, dátum nélkül.
+>
+> Ha később a szerver kiesik, és egy eszköznek Munkanapot kell nyitnia,
+> **azt az előre kapott azonosítót használja.**
+>
+> **Mivel MINDEN eszköz UGYANAZT az azonosítót kapta, mindegyik UGYANAZT a
+> Munkanapot nyitja meg — akkor is, ha egymást sem látják.**
+> **Nincs mit összefésülni.**
+
+**Miért működik teljes hálózati összeomlásnál is:** az azonosítót **még a baj
+előtt** kapták meg. Nem kell hozzá kommunikáció a nyitás pillanatában.
+
+**Mi kell hozzá:** egy mező az eszköz helyi tárában, és a szerver adja hozzá
+minden szinkronhoz. **Gyakorlatilag ingyen van.**
+
+**Mikor NEM elég:** ha egy eszköz **nem volt online**, amikor az azonosítót
+kiosztották (pl. most hozták be). Akkor nincs tokene → a 2. réteg lép.
+
+###### 2. RÉTEG — MEGELŐZÉS: kérdezd meg a tanúkat nyitás előtt
+
+**Ez már el van döntve** (`B14.7`), itt csak megerősítem és élesítem:
+
+> **A Munkanap offline nyitása ELŐTT a gép kötelezően megkérdezi az elérhető
+> tanúkat** (a többi Windows POS, a tartalék szerver, KDS, kijelző):
+> **„van nálad nyitott Munkanap?"**
+>
+> - **Ha bárkinél van → ÁTVESZI azt**, nem nyit újat.
+> - Ha senkinél sincs, de van előre kapott azonosítója → azt használja (1. réteg).
+> - Ha egyik sem → **csak ekkor** nyit sajátot.
+
+**Az 1. és 2. réteg együtt lefedi a reális esetek túlnyomó részét.** Több
+Munkanap **csak akkor** keletkezik, ha a gépek **egymást sem látják** ÉS
+**nem volt előre kiosztott azonosítójuk** — ez már ritka együttállás.
+
+###### 3. RÉTEG — JAVÍTÁS: automatikus átsorolás, KIZÁRÓLAG azonos dátumon belül
+
+Ha mégis több Munkanap keletkezett **ugyanarra a dátumra**, a szerver
+visszatéréskor **automatikusan összevonja őket.** A művelet:
+
+1. **Túlélő kiválasztása:** a **legkorábban nyitott** Munkanap marad meg.
+2. **Átsorolás:** a többi Munkanap **összes bizonylata és eseménye** a túlélő alá
+   kerül. **Egyetlen bizonylatszám sem változik** (lásd fent).
+3. **Időhatárok:** a túlélő nyitása a **legkorábbi**, zárása a **legkésőbbi**.
+4. **Továbbmutató nyom:** a beolvasztott Munkanapok **nem tűnnek el**, hanem
+   „beolvasztva ide: X" állapotot kapnak. **Ez kritikus**, mert:
+5. **Késve érkező eszköz:** ha egy gép csak napokkal később csatlakozik vissza,
+   az ő bizonylatai egy **már beolvasztott** Munkanapra hivatkoznak — a
+   továbbmutató nyom alapján **automatikusan a túlélő alá kerülnek.**
+   Enélkül ezek árván maradnának.
+6. **Naplózás:** az összevonás **auditált esemény** — mit, mibe, mikor, hány
+   bizonylattal.
+
+**`[!]` Két szabály, ami nélkül a saját rendszerünk utasítaná el a javítást:**
+
+- **A 25 órás korlát a NYITÁSRA vonatkozik, nem az összefésült Munkanapra.**
+  Ha az egyik gép 06:00-kor, a másik 20:00-kor nyitott, az összevont Munkanap
+  **hosszabb lehet 25 óránál** — ez **utólagos tény**, nem szabálysértés.
+  Az érvényesítés ne bukjon el rajta.
+- **Az összevont Munkanap „összevont" jelölést kap**, és **a menedzsernek
+  látnia kell**, mielőtt lezárja. **A rendszer az adatot rendbe teszi
+  automatikusan, de a TÉNYT nem hallgatja el** (§5).
+
+###### 4. RÉTEG — ESZKALÁCIÓ: eltérő DÁTUM nem összefésülhető
+
+**`[!]` Ha a Munkanapok DÁTUMA eltér** (mert az egyik gép órája rossz volt),
+**az NEM összefésülési feladat.**
+
+**Miért:** a **dátum benne van a kinyomtatott bizonylatszámban.** Két különböző
+dátum-előtaggal kiadott bizonylatot **nem lehet egy dátum alá vonni** — a papír
+már a vendégnél van.
+
+**Ez tehát óra-incidens**, aminek a feloldása:
+- **emberi**, dokumentált, indoklással;
+- a rendszer **kilistázza pontosan**, melyik gép melyik dátumon mit adott ki;
+- és **ez a legerősebb érv a `B14.7` óra-monotonitás védelem mellett** — mert
+  az ilyen incidenst **meg kell előzni**, javítani már nem lehet rendesen.
+
+---
+
+###### Összefoglalva: a négy réteg együtt
+
+| Réteg | Mit tesz | Költség |
+|-------|----------|---------|
+| **1. Előre kiosztott azonosító** | **megelőzi** — mindenki ugyanazt nyitja | **elhanyagolható** |
+| **2. Tanúk megkérdezése** | **megelőzi** — átveszi a meglévőt | már eldöntött mechanizmus |
+| **3. Automatikus átsorolás** | **javít**, azonos dátumon belül | közepes, de mechanikus |
+| **4. Emberi feloldás** | eltérő dátum — óra-incidens | ritka, dokumentált |
+
+**A lényeg: a felhasználó félelme („lehet 5 Munkanap is, amiket egybe kell
+hozni") jogos, DE az 1. és 2. réteggel ez az eset nagyrészt meg sem történik** —
+és amikor mégis, a 3. réteg **mechanikus**, mert a `K1` döntés miatt
+**egyetlen kinyomtatott számhoz sem kell hozzányúlni.**
+
+**`[ ] Jóváhagyásra vár.**
 
 ##### `[!] K3 — A MŰSZAK = adóügyi napzárás, tehát a fiskális napszámláló GYORSABBAN fogy`
 
@@ -3129,11 +3453,12 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **F4/K1 — bizonylatszám-ütközés** | `[ ]` **A felhasználó maga jelezte; javaslat megírva** | Ha egy dátumra két Munkanap esik és a folyószám Munkanaponként indul újra, **duplikált bizonylatszám** keletkezik. Javaslat: a számláló kulcsa **(eszköz, dátum)**, ne (eszköz, Munkanap). |
-| 2 | **F4/K2 — a 25 órás leállás vs. csökkentett mód** | `[ ]` **ÜTKÖZÉS két döntés között** | 25 óra után minden gép megáll, de új Munkanapot a szerver nyit — miközben a csökkentett mód épp arról szól, hogy a szerver nem elérhető. A csökkentett mód így pont akkor mondaná fel a szolgálatot, amikor kell. |
-| 3 | **B17/a — a felhő írás-modellje** | `[ ]` **DÖNTÉST IGÉNYEL** | Az „aktív-aktív, mindkettőn minden adat" a legnehezebb konfiguráció. Javaslat: **írás egy helyen automatikus átvétellel, olvasás megosztva** — ez teljesíti a célt az aktív-aktív írás ára nélkül. |
+| 1 | **`[!]` C11/a — MTÜ-igazolás az NTAK-hoz** | **IGAZOLT LELET, kapu a fázistervben** | **Az NTAK-adatszolgáltatásra kizárólag MTÜ-igazolással rendelkező szoftver használható**, validációs teszt után. A célpiac definíció szerint NTAK-köteles → **igazolás nélkül a Siduri a saját piacát nem tudja kiszolgálni.** JÓ HÍR: az interfész-leírás **nyilvános és letölthető**, tesztkörnyezet van → **azonnal elkezdhető.** |
+| 2 | **Fiskális: kell-e engedély a MI szoftverünknek?** | `[?]` **NEM eldönthető nyilvános anyagból** | Ha igen, hetekben-hónapokban és pénzben mérhető. Közvetlen kérdés a NAV-hoz és egy gyártóhoz — **korán indítandó**. Lásd `FISKALIS_UZEMMODOK.md` 4.4. |
+| 3 | **B17/a — a felhő írás-modellje** | `[ELFOGADVA a javaslat]` | Írás egy helyen automatikus átvétellel, olvasás megosztva. Marad nyitva: szinkron vagy aszinkron a két felhős szerver között, és földrajzi elhelyezés. |
 | 4 | **B17/d — a felhő MENTÉSE** | `[ ]` **ÚJ HÉZAG** | A replikáció NEM mentés: a törölt vagy elrontott adat átreplikálódik. A telephelyre ezt már kimondtuk (`D1`), a felhőre nem — pedig ott MINDEN ügyfél adata egy helyen van. |
-| 5 | **Fiskális: kell-e engedély a MI szoftverünknek?** | `[?]` **NEM eldönthető nyilvános anyagból** | Ha igen, hetekben-hónapokban és pénzben mérhető. Közvetlen kérdés a NAV-hoz és egy gyártóhoz — **korán indítandó**. Lásd `FISKALIS_UZEMMODOK.md` 4.4. |
+| 5 | **F4/K2 — a Munkanap-összefésülés terve** | `[ ]` **JÓVÁHAGYÁSRA VÁR** | Négyrétegű javaslat: (1) a szerver előre kiosztja a következő Munkanap azonosítóját → mindenki ugyanazt nyitja, **nincs mit összefésülni**; (2) tanúk megkérdezése; (3) automatikus átsorolás azonos dátumon belül; (4) eltérő dátum → emberi feloldás. |
+| 6 | **C3/c — kategória-alapértékek** | `[ ]` **JÓVÁHAGYÁSRA VÁR** | Támogatom, két kikötéssel: az öröklés **másolás legyen, ne élő hivatkozás**; és több alkategóriánál meg kell mondani, melyik nyer (javaslat: csak a főkategória adhat adó-alapértéket). |
 | 6 | **B14.7 — két gép, két üzleti nap offline** | `[ ]` **hézag, döntést igényel** | Ha a szerver halott és két pénztárgép egymástól függetlenül nyit üzleti napot eltérő órával, **kettéhasad a napi zárás és az adatszolgáltatás** — és a bizonylatszámok már ki vannak nyomtatva. Javasolt ellenszer: nyitás előtt kötelezően kérdezze meg a tanúkat. |
 | 2 | **B16.4 — beállítás vs. mennyiségi állapot** | `[ ]` **A LEGFONTOSABB MOST ELDÖNTENDŐ** | A felhő lehet autoritatív a **törzsadatra** (ár, láthatóság, receptúra) — de a **készlet futó egyenleg**, aminek nem lehet két gazdája. Javaslat: a felhő küldhet „vegyél fel 20 darabot"-ot, de soha nem „a készlet mostantól 40"-et. Utólag katasztrofális. |
 | 3 | **B16.7 — beállítás-paritás őre** | `[ ]` **DÖNTÉST IGÉNYEL** | „A felhőn minden beállítás legyen, ami a POS-on" — két felület, két repó, két nyelv, semmilyen fordító nem köti össze őket. §6 szerint **garantáltan szétcsúszik**, hacsak a beállítások nem EGY sémából épülnek, paritás-őrrel. Élesíti a B8-at. |
@@ -3152,6 +3477,8 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~C3/a HELYESBÍTÉS~~ | `[ELDÖNTVE — a felhasználónak volt igaza]` | Az adókulcs-„megegyezik" **MÁSOLAT legyen, ne hivatkozás** — az én jelölő-javaslatom hibás volt. Indok: egy hivatkozás a helyben fogyasztásos kulcs csökkentésekor **az elvitelest is némán lecsökkentené**, ami adóhiány. A két hibairány ára nem egyenlő: túl magas kulcs pénzügyi hátrány, túl alacsony **jogsértés** — a mechanizmus a kisebb kár felé dőljön. |
+| — | ~~F4/K1~~ | `[ELFOGADVA]` | A bizonylatszám-számláló kulcsa **(eszköz, dátum)**, nem (eszköz, Munkanap). Egy dátumra nyíló második Munkanap folytatja a számozást; a Munkanap külön mező. **Mellékhaszon: ettől lett az összefésülés mechanikusan megoldható.** |
 | — | ~~Fiskális üzemmódok~~ | `[ELDÖNTVE]` | **Három üzemmód:** (1) belső rendszer adóügyi eszköz nélkül, (2) online pénztárgép, (3) e-pénztárgép. Részletek: **`FISKALIS_UZEMMODOK.md`**. Az 1. módban `[!]` a nyomtatott papírt **„NEM ADÓÜGYI BIZONYLAT"** jelöléssel kell ellátni, különben nyugtának néz ki. |
 | — | ~~F4~~ | `[ELDÖNTVE]` | **Mind a négy nap-fogalom definiálva.** MUNKANAP = a HELYÉ, max 25 óra (23:30-nál figyelmeztetés, 25 óránál kényszerleállás), nem naptári nap, egy dátumra több is nyitható. MŰSZAK = az ESZKÖZÉ, az adóügyi munkanap. NTAK tárgynap = naptári nap. |
 | — | ~~C3/a~~ | `[ELDÖNTVE]` | **Termékenként két adókulcs** (helyben / elvitel), megjelölhető az azonosság, és **termék nem hozható létre hiányos adóadattal**. Az adó megadása az ügyfél felelőssége. **Kikötés:** az „azonos" JELÖLŐKÉNT tárolandó, ne másolt értékként, különben a helyben fogyasztásos kulcs átírásakor az elviteles csendben a régin marad. |

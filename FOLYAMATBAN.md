@@ -101,7 +101,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Huszonkét döntés lezárva** (öt az 1., tizenhét a 2. munkamenetben, mindkettő 2026-08-22).
+**Huszonnégy döntés lezárva** (öt az 1., tizenkilenc a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -119,6 +119,8 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **B12** | *(ÚJ)* Kockázatvállalási nyilatkozat | **Alkalmazásban elérhető űrlap, érintőképernyős aláírással**, elmentve ÉS a fő felhőszerverre továbbítva, visszakereshetően, időbélyeggel, védve. A terv négy dolgot tesz hozzá: a szöveg verzióját is menteni kell; két időbélyeg, a mérvadó a felhőé; offline útvonal kell; és konfiguráció-változáskor ÚJ nyilatkozat | `NYITOTT_KERDESEK.md`, keress: `B12` |
+| **TPM** | *(ÚJ)* Van-e a bázison | **MINDKÉT ágra készülünk** — a titkosítás konfigurációs képesség, és az admin felület kiírja, melyik ágon vagyunk. Az ellenőrzés a felhasználónál folyamatban | `NYITOTT_KERDESEK.md`, keress: `MINDKÉT ÁGRA készülünk` |
 | **B9 jellege** | *(ÚJ)* Kikényszerített-e a méret-lépcső | **Nem — ÉRTÉKESÍTÉSI AJÁNLÁS.** Ha kellene tartalék de nincs hova tenni, dedikált szervergépet ajánlunk (az nem POS, így egyetlen Windows POS is elláthatja a tartalék szerepet). Ha az ügyfél a kockázat ismeretében elutasítja, elfogadjuk. **A szoftver semmilyen konfigurációt nem utasíthat el** | `NYITOTT_KERDESEK.md`, keress: `A lépcső AJÁNLÁS` |
 | **Szerepkiosztás** | *(ÚJ)* Melyik gép viheti a szerver-szerepet | **A tartalék MINDIG Windows POS vastagkliensen van, SOHA nem dedikált gépen.** A fő szerver jellemzően szintén POS-on; aki megengedheti, annál lehet dedikált. **Vékonykliens, KDS, rendeléskijelző egyiket sem viheti** | `NYITOTT_KERDESEK.md`, keress: `A „dedikált" szó pontosítása` |
 | **B10/a** | *(ÚJ)* Adatvédelem a kliens-archívumban | **A szerver jellemzően egy dolgozó pénztárgép lesz**, nem irodai gép → a teljes adatbázis a pultban áll. A fizikai lopás ellen szoftverrel nem lehet teljesen védekezni — ezt ki kell mondani. Ellenszer: **adatminimalizálás** (tervezési szabály), lemeztitkosítás ha van TPM, fizikai rögzítés, és a felhőmentés mint egyetlen helyreállítási út lopás után | `NYITOTT_KERDESEK.md`, keress: `B10/a` |
@@ -168,24 +170,52 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 
 ## 2. A KÖVETKEZŐ TÉTEL
 
-### 2.1 A FÁZISTERV MOST MÁR MEGÍRHATÓ
+### 2.1 A KÖVETKEZŐ MUNKA — a felhasználó által kért sorrend
 
-**Nincs több blokkoló döntés.** Ami nyitva maradt, az mind párhuzamosan
-elintézhető a fázisterv írásával:
+A felhasználó 2026-08-22-én ezt kérte: **először zárjuk le a maradék apróságokat,
+utána KÉT ELLENŐRZŐ KÖR**, és csak azután megyünk tovább.
 
-1. **`[ ]` Van-e TPM a meglévő J1900 bázison?** Hardveren ellenőrizhető tény, nem
-   vélemény. Ha nincs, a felügyelet nélkül induló pénztárgépen a teljes
-   lemeztitkosítás útvonala elesik, és marad az adatminimalizálás + fizikai
-   rögzítés. → keress: `IGAZOLATLAN PREMISSZA (§13.5):`
-2. **`[ ]` A tanú-séma lépcsőnkénti alakja** — megírva, jóváhagyásra vár.
-   → keress: `A tanú-kérdés (R1) NEM oldódott meg`
-3. **`[ ]` A kockázatvállalás rögzítése** — javaslat megírva, jóváhagyásra vár:
-   a „nincs tartalék szerver" tény kerüljön be a konfigurációba (mikor, ki
-   tájékoztatta), és az admin felület **állandóan** mutassa a hely védelmi
-   szintjét. Indok: az informált kockázatvállalás csak akkor véd, ha **adat**, nem
-   beszélgetés. → keress: `informált kockázatvállalás`
-4. **`[ ]` Az árva tranzakciók elétárásának időzítése** — javaslat megírva.
+#### 2.1.a `[ ]` Jóváhagyásra vár (nem blokkoló)
+1. **B11 — a tanú-séma teljes terve megírva**, a felhasználó elolvassa és
+   jóváhagyja. → `NYITOTT_KERDESEK.md`, keress: `B11`
+2. **A4/c finomítása** — az árva tranzakciók elétárásának időzítése.
    → keress: `A4/c`
+
+#### 2.1.b `[FOLYAMATBAN, a felhasználónál]`
+3. **TPM-ellenőrzés a meglévő J1900 bázison.** Addig mindkét ágra készülünk.
+
+#### 2.1.c `[ ]` ELSŐ ELLENŐRZŐ KÖR — teljességi és jogi
+A felhasználó kérése szó szerint: *„hogy biztos mindent lezártunk-e, minden jó-e,
+nem maradt-e ki ötlet, amit még jónak vagy beleillőnek gondolsz, és mindenhol
+megfelelünk-e a magyar jogszabályi előírásoknak."*
+
+**Amit ez a kör tartalmaz:**
+- **Teljességi kritikus** (§11): mi maradt ki — nem futtatott metszet,
+  ellenőrizetlen állítás, el nem olvasott forrás?
+- **Az összes `[ ]` és `[?]` tétel átvizsgálása**: van-e olyan, ami eldönthető,
+  vagy amiről kiderült, hogy tárgytalan?
+- **Új ötletek**, amiket a terv megérdemel, de eddig nem merültek fel.
+- **`[!]` JOGI MEGFELELÉS — FORRÁSSAL.** §13.5: jogi állítás forrásmegjelölés
+  nélkül nem használható, és **nem csatornázható a felhasználó döntésébe**.
+  Jelenleg **öt igazolatlan jogi/hatósági premissza** áll a tervben (3. szakasz),
+  és mindegyiket **hatályos forrásból kell ellenőrizni**, nem emlékezetből.
+  Ehhez a körhöz **web-keresés kell** — ez nem írható meg a fejemből.
+
+#### 2.1.d `[ ]` MÁSODIK ELLENŐRZŐ KÖR — adverzariális
+A felhasználó kérése: *„egy szkeptikus ellenőrzés a teljes tervre, hogy hol
+csúszhat félre, mi nem jó, mi hiányos, illetve az első ellenőrzés pontjai, csak
+sokkal szkeptikusabban."*
+
+**Módszertan (§11):** adverzariális verifikáció — a feladat a **CÁFOLAT**, nem a
+megerősítés; bizonytalanságnál az alapértelmezés: **cáfolva**.
+**Perspektíva-diverz**: helyesség / biztonság / megfelelés / üzemeltethetőség /
+„valóban reprodukálható-e" lencsékkel, mert ezek mást fognak meg.
+
+**Külön célpont** (§11): **az ebben a munkamenetben hozott 24 döntés**, mert a
+leletek többsége mindig a friss munkában van, nem a régiben.
+
+#### 2.1.e `[ ]` Csak ezek UTÁN: E1 — a fázisterv
+Mind a 26 fejezet besorolása, a mérési fázissal mint önálló szakasszal.
 
 ### 2.1.0 `[!]` Amit a fázisterv írásakor NEM szabad elfelejteni
 

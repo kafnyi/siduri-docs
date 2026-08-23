@@ -29,9 +29,15 @@
 > korlát**; öt támogatott telepítési kombináció rögzítve. Élesen kimondva: a csökkentett
 > mód **nem véd minden lépcsőn** — az „1 POS = szerver + sok vékonykliens" konfiguráció
 > teljesen védtelen, nem „kicsit kevésbé védett".
-> **NYITVA maradt (egyik sem blokkolja a fázistervet):** TPM-ellenőrzés a bázison, az R1
-> lépcsőnkénti alakja, a kockázatvállalás rögzítésének módja, a B1/c R2–R5 kitöltése.
+> **ÚJ (kilencedik kör):** **B12** — kockázatvállalási nyilatkozat aláírással és felhőbe
+> továbbítva (ELDÖNTVE); **B11** — a tanú-séma teljes terve megírva (JÓVÁHAGYÁSRA VÁR);
+> TPM: mindkét ágra készülünk, az ellenőrzés folyamatban.
+> **NYITVA maradt (egyik sem blokkolja a fázistervet):** B11 jóváhagyása, a TPM-ellenőrzés
+> eredménye, a B12 jogi kérdése, a B1/c R2–R5 kitöltése.
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
+>
+> **A felhasználó két ELLENŐRZŐ KÖRT kért a jelenlegi tervekre** — lásd
+> `FOLYAMATBAN.md` 2.2 szakasz.
 > **Ez az EGY igazságforrás a nyitott döntésekre** (MERNOKISAROKKOVEK §2.4).
 > Ha egy tétel eldől, ITT jelöld `[ELDÖNTVE — <döntés>]`-ként, ne máshol.
 >
@@ -1132,7 +1138,15 @@ adatvédelmi képet átrajzolja:**
 elviszi a pultból a gépet, elvitte a teljes adatbázist. Ezt ki kell mondani, nem
 elhallgatni. Amit tenni lehet, és amit `[ ]` el kell dönteni:
 
-- **Teljes lemeztitkosítás (BitLocker).** `[?]` **IGAZOLATLAN PREMISSZA (§13.5):**
+- **Teljes lemeztitkosítás (BitLocker).** `[ELDÖNTVE — MINDKÉT ÁGRA készülünk]`
+  A felhasználó (2026-08-22): *„egyelőre még nem tudom megmondani, készüljünk fel
+  mindkét alternatívára, de a napokban ezt majd ellenőrzöm és pontosítom."*
+  **Tehát a terv nem feltételezhet TPM-et, de nem is zárhatja ki:** a
+  titkosítás legyen **konfigurációs képesség**, amit a telepítő a gépen talált
+  adottságok szerint kapcsol be, és az admin felület **írja ki, melyik ágon
+  vagyunk** („ezen a gépen a lemez titkosítva / NINCS titkosítva"). §5: ne
+  hallgassuk el, ha nincs védelem.
+  `[?]` **IGAZOLATLAN PREMISSZA (§13.5), ellenőrzés alatt:**
   a felügyelet nélküli, áramszünet után magától induló POS-nak jelszó nélkül kell
   bootolnia, tehát a kulcsot a gépben tárolt **TPM**-hez kellene kötni. **A J1900
   korabeli alaplapokon gyakran NINCS TPM.** Ezt a meglévő bázison **ellenőrizni
@@ -1191,6 +1205,188 @@ nevesítve van.
 árva tranzakciók), F1 (idempotencia — az összevetéshez stabil azonosító kell
 minden tranzakción), F3 (ki az igazságforrás: a Siduri vagy az adóügyi eszköz —
 az archívum ehhez is bizonyítékot ad), A3 (megőrzési kötelezettség).
+
+### `[JAVASLAT — JÓVÁHAGYÁSRA VÁR]` B11 — A TANÚ-SÉMA részletes terve
+
+> **Státusz:** a felhasználó kérte, hogy írjam le a tervet, majd elolvassa és
+> jóváhagyja. **Amíg nincs jóváhagyva, erre építeni nem szabad.**
+
+#### B11.0 A séma SOHA nem dönt — csak bizonyítékot gyűjt
+
+**Ez a legfontosabb tervezési tulajdonsága, és ez teszi olcsóvá és
+kockázatmentessé.** Mivel az átkapcsolást mindig ember indítja (B1/c), a
+tanú-sémának **nem kell elosztott konszenzus-protokollnak lennie.** Nem szavaz,
+nem választ vezetőt, nem oszt zárolást. **Csak kitölt egy képernyőt.**
+
+**Következmény:** ha a tanú-sémában hiba van, annak az eredménye egy
+**rosszabbul tájékozott ember**, nem két fő szerver és nem szétdivergált
+nyugtasorozat. Ezért nem kell hozzá az a hibatűrő gépezet (lease, fencing,
+kvórum), ami az automatikus failoverhez kellene.
+
+#### B11.1 Két külön kérdés, ugyanazzal a mechanizmussal
+
+| | Kérdés | Mit dönt el |
+|---|--------|-------------|
+| **Q1** | Én estem ki, vagy a szerver halott? | **Melyik személyzeti üzenet jelenjen meg** (a három közül) |
+| **Q2** | Tényleg 5+ perce elérhetetlen a szerver, több nézőpontból? | **Felajánljuk-e az átkapcsolást** |
+
+#### B11.2 Ki lehet tanú
+
+**Tanú = olyan Siduri-eszköz, ami (a) hálózati tápról megy, (b) a nyitvatartás
+alatt elvárhatóan folyamatosan bekapcsolva van, és (c) telepítéskor tanúnak van
+konfigurálva.**
+
+| Eszköz | Tanú? | Miért |
+|--------|-------|-------|
+| Windows POS vastagkliens | **IGEN** | Mindig bekapcsolva, vezetékes vagy stabil wifi, a mi szoftverünk fut rajta |
+| Tartalék szerver (ami egy POS) | **IGEN, és a legerősebb** | Ha ő látja a főt, akkor a fő él |
+| KDS | **IGEN** | Hálózati tápról megy, folyamatosan bekapcsolva, és WebSocketen beszél a szerverrel — tehát TUDJA, eléri-e |
+| Rendeléskijelző | **IGEN** | Ugyanaz |
+| Tablet, telefon (vékonykliens) | **NEM** | Zsebben van, alszik, lemerül. A némasága semmit nem jelent. Legfeljebb **gyenge pozitív jel**: ha elérem, a hálózatom legalább részben él |
+
+#### B11.3 A LEGFONTOSABB SZABÁLY: a némaság NEM szavazat
+
+| Amit a tanú tesz | Mit ér |
+|------------------|--------|
+| **Válaszol**, és azt mondja: „én sem érem el a szervert" | **Bizonyíték**, hogy a szerver halott |
+| **Válaszol**, és azt mondja: „én elérem a szervert" | **Bizonyíték**, hogy a szerver ÉL, és a hiba köztem és a szerver között van |
+| **Nem válaszol** | **SEMMIT nem ér.** Lehet lekapcsolva, lehet ugyanazon szakadás mögött, mint én |
+
+**Miért kell ezt külön kimondani:** ez pontosan a §5 hibaosztálya. Ha a némaság
+szavazatnak számítana, egy éjszakára lekapcsolt pénztárgép „szavazna" a szerver
+halála mellett, és a rendszer egy egészséges szerverről állítaná, hogy halott.
+
+#### B11.4 A döntési menet — amit a pénztárgép lefuttat
+
+**1. lépés — Egyáltalán a hálózaton vagyok?**
+- Nem érek el SEMMIT (se Siduri-eszközt, se az alapértelmezett átjárót)
+  → **ÉN estem ki.** → **(2)-es üzenet**, és a visszaszámláló **NEM indul**.
+- Elérek legalább egy Siduri-eszközt → tovább.
+
+**2. lépés — Mit mondanak a tanúk?**
+- **Bármelyik tanú azt mondja: „én elérem a szervert"** → **a szerver ÉL.**
+  → **(2)-es üzenet változata** („a szerver rendben van, a hiba a te géped és a
+  szerver között van"). A visszaszámláló **NEM indul**.
+- **Minden válaszoló tanú azt mondja: „én sem érem el"** → **a szerver halott.**
+  → **(1)-es üzenet**, és a visszaszámláló **INDUL**.
+- **Elérek eszközöket, de egyik sem tanú** (pl. csak telefonokat), **vagy
+  egyetlen tanú sem válaszol** → **BIZONYTALAN.** → **(3)-as üzenet**, és a
+  visszaszámláló **indul** (mert a szerver tényleg lehet halott), de a
+  megerősítő képernyő **kiírja, hogy nem volt kereszt-ellenőrzés.**
+
+**3. lépés — Átkapcsolás felajánlása.** MIND a négynek teljesülnie kell:
+1. van egyáltalán konfigurált tartalék szerver *(ha nincs → soha nem ajánlunk)*,
+2. a tartalék **válaszol és egészségesnek jelenti magát** (R6),
+3. eltelt az 5 perc (monoton időmérőn, R3),
+4. **legalább egy rajtam kívüli tanú** is megerősíti, hogy nem éri el a
+   szervert — **kivéve**, ha nincs más tanú (lásd a degenerált esetet lent),
+   ekkor ezt a megerősítő képernyő explicit kiírja.
+
+#### B11.5 Telepítési kombinációnként
+
+| Telepítés | Tanúk | Mi működik |
+|-----------|-------|-----------|
+| **1 Windows POS = szerver** | — | A kérdés fel sem merül: nincs hálózati ugrás a szerverig |
+| **2+ POS, egyikük szerver, NINCS tartalék** | a többi POS, KDS, kijelző | Csak a **Q1** él (kinek a hibája). Átkapcsolást **soha nem ajánlunk** — nincs mire |
+| **2+ POS, egyikük szerver, VAN tartalék** | a többi POS + **a tartalék** + KDS, kijelző | A **teljes séma**. A tartalék a legerősebb tanú |
+| **Dedikált szerver + 2+ POS + tartalék** | az összes POS + a tartalék + KDS, kijelző | A legjobb eset: sok, egymástól független tanú |
+| **`[!]` Dedikált szerver + 1 POS, és a tartalék ezen az EGY POS-on van** | KDS/kijelző, ha van; különben **SENKI** | **Degenerált eset.** A POS-nak magának kell döntenie. Ez nem baj, mert **az ember úgyis megerősíti** — de a megerősítő képernyőnek **ki kell írnia, hogy nem volt független megerősítés** |
+
+#### B11.6 Mit üzennek egymásnak a tanúk
+
+**Nagyon keveset — és szándékosan semmilyen üzleti adatot.** Egy állapotcsomag:
+- ki vagyok (eszközazonosító), mi a szerepem,
+- **mikor beszéltem utoljára sikeresen a fő szerverrel**,
+- elérem-e most a fő szervert / a tartalékot,
+- mennyi ideje vagyok csökkentett módban.
+
+Ettől olcsó (elhanyagolható hálózati és processzorterhelés) és **kicsi a
+biztonsági felülete**.
+
+#### B11.7 `[!]` Biztonsági követelmény, ami ebből következik
+
+**A tanú-üzeneteket hitelesíteni KELL.** Enélkül bárki, aki a vendég-wifire
+felcsatlakozik, tanúnak adhatja ki magát és **hazudhat** („én sem érem el a
+szervert") — hogy kikényszerítsen egy átkapcsolás-ajánlatot.
+
+**A kár korlátozott**, mert ember úgyis megerősíti — de zaklató vektor, és
+pontosan az a fajta, ami éles helyzetben tetézi a bajt. Ez a B6
+(eszközregisztráció + kölcsönös hitelesítés) hatálya alá tartozik: **a tanú-séma
+nem külön biztonsági rendszert igényel, hanem a meglévő eszközregisztrációt
+használja.**
+
+#### B11.8 Mi történik, ha a tanúk tartósan ellentmondanak egymásnak?
+
+Nem kell feloldani — **nem szavazás.** Ilyenkor a **(3)-as, bizonytalan** üzenet
+jelenik meg, és a képernyő **nyersen felsorolja a tényeket**: melyik gép mit lát,
+mikor beszélt utoljára a szerverrel. **Az ember lát olyat, amit a gép nem** — ez
+volt az egész kétlépcsős konstrukció alapgondolata (B1/c).
+
+---
+
+### `[ELDÖNTVE — kell, aláírással és felhőbe továbbítva]` B12 — Kockázatvállalási nyilatkozat
+
+**A felhasználó kérése (2026-08-22):** legyen egy **alkalmazásban elérhető
+űrlap**, amit a végén egy kijelölt mezőben **alá kell írni**; a rendszer
+**elmenti**, és **továbbítja a fő felhőszerverre**, hogy meglegyen és
+**visszakereshető** legyen — **időbélyegekkel, hitelesítve és védve.**
+
+#### Amit ebből technikailag meg tudunk csinálni
+
+1. **Aláírás érintőképernyőn.** A pénztárgép érintőképernyős, ez természetes.
+2. **`[!]` A SZÖVEG VERZIÓJÁT is el kell menteni, nem csak azt, hogy aláírták.**
+   Két év múlva a nyilatkozat szövege más lesz. Ha csak azt tároljuk, hogy „X
+   aláírta", akkor **nem tudjuk bizonyítani, MIT írt alá.** Ezért a mentett
+   csomag tartalmazza a **pontos, akkor érvényes szöveget**, nem hivatkozást rá.
+3. **A csomag tartalma:** a telephely azonosítója; a nyilatkozat teljes szövege
+   és verziószáma; **az aláíráskori TELJES konfiguráció** (mely gépek, milyen
+   szereppel, van-e tartalék); az aláíró neve és beosztása; az aláírás képe;
+   a bejelentkezett felhasználó; az eszköz ujjlenyomata.
+4. **Ujjlenyomat (hash) és lánc.** Az egész csomagról készül egy lenyomat, és
+   minden új nyilatkozat **az előzőhöz láncolódik** — így egy dokumentum utólagos
+   eltüntetése vagy átírása kimutatható.
+5. **`[!]` KÉT időbélyeg, és a MÉRVADÓ a felhőé.** A helyi gép órája az ügyfél
+   gépének órája — **nem megbízható** (átállítható, elcsúszhat, lásd D4). Ezért
+   tároljuk **mindkettőt**: amit a helyi gép állít, és amit a **felhő ad
+   érkezéskor** — és **a felhőé a mérvadó.**
+6. **`[!]` OFFLINE ÚTVONAL KELL.** Egy friss telepítésen **gyakran még nincs
+   internet** — épp azt állítjuk be. Tehát a nyilatkozat a **kimenő sorba** kerül,
+   megváltoztathatatlanul, és akkor megy fel, amikor lesz kapcsolat.
+   **Amíg a felhő nem igazolta vissza, az admin felület írja ki, hogy
+   „helyben rögzítve, a felhő még nem igazolta vissza"** — §5: pozitív
+   bizonyíték kell, nem a hibajelzés hiánya.
+7. **Védelem:** nyugalmi állapotban titkosítva (amennyire a B10/a keretei
+   engedik), és a **kliens eszközkulcsával aláírva**, hogy a felhő igazolni tudja
+   az eredetét.
+
+#### `[!]` Amit a felhasználó nem említett, de nélküle az egész elavul
+
+**Ha a konfiguráció később megváltozik, a régi nyilatkozat MÁR NEM A VALÓSÁGRÓL
+SZÓL.** Ha az ügyfél fél év múlva vesz egy negyedik pénztárgépet, vagy leszereli
+a tartalékot, akkor van egy aláírt papírunk egy olyan felállásról, ami már nem
+létezik — **ami rosszabb a semminél, mert hamis biztonságot ad.**
+
+**Ezért:** a rendszer **vesse össze a jelenlegi konfigurációt az utoljára aláírt
+állapottal**, és ha eltér, **kérjen új nyilatkozatot**, illetve jelezze az admin
+felületen, hogy az aktuális felállásra **nincs érvényes kockázatvállalás.**
+
+#### `[?]` IGAZOLATLAN JOGI PREMISSZA (§13.5) — ezt NEM tudom igazolni
+
+**Egy érintőképernyőn rajzolt aláírás NEM minősített elektronikus aláírás.**
+Amit a fenti csomag ad, az **erős bizonyíték**, nem minősített aláírás.
+
+**Hogy ez a konkrét jogi célra (felelősségkorlátozás) elegendő-e, azt NEM tudom
+megmondani, és nem is fogom megtippelni.** Ez jogi kérdés, forrás kell hozzá.
+**A tervezett jogi ellenőrzési kör tétele.** Amíg nincs igazolva, a rendszer
+építhető (a bizonyíték-érték magától is hasznos), de **semmilyen jogi hatást nem
+állíthatunk róla** sem a doksiban, sem az ügyfélnek.
+
+#### `[ ]` Adatvédelmi következmény
+
+A nyilatkozat **személyes adatot tartalmaz** (aláíró neve, aláírásképe), és
+**a mi felhőnkbe kerül.** Ettől Siduri Systems adatkezelővé válik erre az adatra.
+Kell hozzá: megőrzési szabály, tájékoztató, és illeszkednie kell a B7
+(felhő-adatvédelem) tételhez.
 
 ---
 
@@ -1493,9 +1689,9 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **TPM-ellenőrzés** | `[ ]` **NYITVA — hardveren ellenőrizhető tény** | Van-e TPM a meglévő J1900 bázison? Enélkül a felügyelet nélkül induló POS-on a teljes lemeztitkosítás útvonala elesik, és marad az adatminimalizálás + fizikai rögzítés. **Nem blokkolja a fázistervet.** |
-| 2 | **R1 lépcsőnkénti alakja** | `[ ]` **jóváhagyásra vár** | A tanú-séma telepítési kombinációnként. **Nem blokkolja a fázistervet.** |
-| 3 | **Kockázatvállalás rögzítése** | `[ ]` **jóváhagyásra vár** | Javaslat: a „nincs tartalék szerver" tény kerüljön be a konfigurációba (mikor, ki tájékoztatta), és az admin felület állandóan mutassa a hely védelmi szintjét. |
+| 1 | **B11 — tanú-séma** | `[ ]` **JÓVÁHAGYÁSRA VÁR** — a teljes terv megírva | A felhasználó kérte, hogy írjam le, majd elolvassa és elfogadja. Lényege: a séma SOHA nem dönt, csak bizonyítékot gyűjt az embernek — ezért nem kell hozzá elosztott konszenzus. **Nem blokkolja a fázistervet.** |
+| 2 | **TPM-ellenőrzés** | `[FOLYAMATBAN]` — a felhasználó a napokban ellenőrzi | Addig **mindkét ágra készülünk**: a titkosítás konfigurációs képesség, és az admin felület kiírja, melyik ágon vagyunk. **Nem blokkolja a fázistervet.** |
+| 3 | **B12 jogi kérdése** | `[?]` **IGAZOLATLAN, jogi kör tétele** | Az érintőképernyős aláírás nem minősített elektronikus aláírás. Hogy a felelősségkorlátozáshoz elég-e, forrás nélkül nem állítható. |
 | 1b | **R1 lépcsőnként** | `[ ]` **NYITVA** — jóváhagyásra | A tanú-séma lépcsőnkénti alakja a B9/b tisztázása után megírva; a felhasználó jóváhagyására vár. |
 | 2 | **B1/c R2–R5** | `[ ]` **NYITVA** — R6 megerősítve; az R1 lépcsőnként megírva, jóváhagyásra vár | A kétlépcsős failover végrehajtási részletei: ki a tanú (és mi van egypénztáras helyen), miből ismeri fel a gép hogy Ő esett ki, az 5 perc paraméterezése és az ajánlat lejárata, több egyidejű gombnyomás, élő-de-elérhetetlen fő szerver, és hogy ne ajánljunk fel működésképtelen átkapcsolást. |
 | 3 | **E1** | `[ ]` **NYITVA** — a fázisterv még nincs megírva | Mi az MVP scope-ja? Enélkül nincs mihez mérni a haladást. **Az A4 után** írandó. |
@@ -1506,6 +1702,7 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~B12~~ | `[ELDÖNTVE]` | **Kockázatvállalási nyilatkozat**: alkalmazásban elérhető űrlap, érintőképernyős aláírással, elmentve ÉS a fő felhőszerverre továbbítva, visszakereshetően, időbélyeggel, védve. Négy dolog, amit a terv hozzátesz: (1) a SZÖVEG VERZIÓJÁT is menteni kell, nem csak azt hogy aláírták; (2) KÉT időbélyeg, és a MÉRVADÓ a felhőé, mert a helyi óra az ügyfél gépéé; (3) offline útvonal, mert friss telepítésen gyakran nincs internet — és amíg a felhő nem igazolta vissza, ezt ki kell írni; (4) **konfiguráció-eltérés esetén ÚJ nyilatkozat kell**, különben egy már nem létező felállásról van aláírt papírunk. |
 | — | ~~B9 lépcső jellege~~ | `[ELDÖNTVE]` | **A gépszám-lépcső ÉRTÉKESÍTÉSI AJÁNLÁS, nem kikényszerített korlát.** Ha kellene tartalék de nincs hova tenni → dedikált szervergépet ajánlunk (az nem POS, így egyetlen Windows POS is elláthatja a tartalék szerepet). Ha az ügyfél a kockázat ismeretében elutasítja, elfogadjuk. Fordítva is: 2 POS-os hely kérésére megcsináljuk. **A szoftver semmilyen konfigurációt nem utasíthat el.** |
 | — | ~~B1/b pontosítás~~ | `[ELDÖNTVE]` | **A tartalék szerver SOHA nem dedikált gép — mindig egy Windows POS vastagkliens.** A fő szerver jellemzően szintén POS-on van, de aki megengedheti, annál lehet dedikált. Vékonykliens / KDS / rendeléskijelző egyik szerepet sem viheti. Négy következmény: a tartalék terhelése a legrosszabb pillanatban ugrik meg; a szerepet vivő gépet valaki kikapcsolhatja; a szerver Windows Service kell legyen, nem a pénztáros munkamenetében; és a frissítés sorrendje a `siduri-updater` kemény követelménye lett. |
 | — | ~~B10/a~~ | `[ELDÖNTVE + KITERJESZTVE]` | **A szerver jellemzően egy dolgozó pénztárgép lesz** → a teljes adatbázis a pultban áll. A fizikai lopás ellen szoftverrel nem lehet teljesen védekezni; ki kell mondani. Amit tenni lehet: **adatminimalizálás** (tervezési szabály), lemeztitkosítás ha van TPM, fizikai rögzítés (telepítési tétel), és a felhőmentés mint EGYETLEN helyreállítási út lopás után. |

@@ -32,6 +32,7 @@ lásd „Miért nem kódolunk még".
 | `gemini_cloud_spec_en.md` | A Gemini felhő-specifikációja — **bemeneti dokumentum**, a munkamenet ELŐTTI állapot | **Csak a fájl végén lévő ÖSSZEVETÉSSEL együtt használható** — egy pontja felülírva, egy biztonsági aggály |
 | `siduri_superprompt_en.md` | Ugyanaz megaprompt formában (angol, Geminihez) | **Részben ELAVULT** — inline `[SUPERSEDED]` / `[OPEN]` jelölésekkel |
 | `FOLYAMATBAN.md` | Ez a fájl — állapot és folytatás | Élő |
+| **`MVP_DEFINICIO.md`** | **Mit jelent az „MVP"** ebben a projektben + az öt címke (`ALAP`/`MVP`/`v1`/`v2`/`VÍZIÓ`) | **Kötelező érvényű** — ha bárhol „MVP" szerepel, ezt kell alatta érteni |
 | **`ELLENORZES_2_ADVERZARIALIS.md`** | **A 2. ellenőrző kör** — szkeptikus átvizsgálás; a feladat a CÁFOLAT volt | Élő; **hat teendő, egy súlyos strukturális lelet** |
 | **`FISKALIS_UZEMMODOK.md`** | A három fiskális üzemmód + az e-pénztárgépes integráció utánajárása | Élő; **hat kérdés a NAV/gyártó felé** |
 | **`ELLENORZES_1_TELJESSEG_JOGI.md`** | **Az 1. ellenőrző kör jelentése** — jogi megfelelés forrásokkal + teljességi vizsgálat | Élő; **négy lelet DÖNTÉST igényel** |
@@ -232,14 +233,24 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 | **5** | **`[ ]` Néhány napos ELŐMÉRÉS valós J1900-on** | A legdrágább feltevés (kombinált szerver+POS) cáfolata, **mielőtt ráépítünk mindent.** Nem kell hozzá a Siduri. | hardver kell |
 | **6** | **`[ ]` E1 — fázisterv, és az ELSŐ dolga: `MVP`/`v1`/`v2`/`vízió` címke MINDEN döntésre** | Enélkül a jelenlegi ~50 döntés **úgy néz ki, mintha mind MVP lenne.** | a fázisterv része |
 
-#### `[!]` A 2. kör legsúlyosabb megállapítása — ezt a fázisterv nem kerülheti meg
+#### `[LEZÁRVA — a felhasználó döntése]` A 2. kör `A1` leletje: méret vs. csapat
 
-> **A terv MINŐSÉGE magas, de a MÉRETE nem illeszkedik a 2–3 fős csapathoz.**
-> Nagyságrendileg **15–30 ember-éves program** lett belőle, és
-> **mind a tizenhét tervezési kör BŐVÍTETTE a scope-ot, egyik sem szűkítette.**
->
-> Minden egyes bővítés **önmagában védhető volt** — ezért nem tűnt fel.
-> **A fázisterv az a pont, ahol ez eldől.**
+**A felhasználó döntése (2026-08-22):** a létszám **nem** korlát — ha bővíteni
+kell, azt megoldja. **Az `A1` lelet ezzel lezárva, nem hozzuk fel újra.**
+
+**`[!]` DE öt dolog akkor sem gyorsul a létszámtól**, és ha ezekkel úgy
+számolunk, mintha igen, **az ütemezés hibás lesz:** (1) a külső kapuk
+sorbaállása, (2) a sorrendi függések (az MTÜ-validációhoz működő modul kell),
+(3) a hardver igazsága, (4) a külső dokumentáció megérkezése, és
+**(5) a varrat-kockázat, ami NŐ a létszámmal** — több ember, három nyelv, hat
+repó → **több néma szétcsúszás.** Az API-szerződés és a paritás-őr ettől
+**sürgősebb lesz, nem kevésbé.** → `MVP_DEFINICIO.md` 0. szakasz.
+
+**`[!]` És egy fogalmi váltás:** amíg a létszám volt a korlát, azért fázisoltunk,
+mert „ennyi fér bele". Most **más okból fázisolunk, és ez jobb ok:**
+**hogy a lehető leghamarabb megtudjuk, hol tévedtünk.** Ebből az következik,
+hogy **az MVP-t nem a legkisebb munkára kell szabni, hanem a legtöbb tanulásra
+egységnyi munkára.**
 
 #### `[!]` A második: nincs TERMÉKMODELL
 

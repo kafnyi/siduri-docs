@@ -70,6 +70,31 @@ félreértésen alapul (§2.2: a hibás premissza a felhasználó döntésébe c
 
 4. **A dokumentáció és a beszélgetés nyelve magyar.** Formai megkötés nincs.
 
+5. **`[!]` NE FINOMKODJ. A tények kimondása mindig előrébb való a kényelemnél.**
+   A felhasználó explicit utasítása (2026-08-22), a 2. ellenőrző kör után:
+
+   > *„nem probléma, ha fájó pontok kerültek elő, mert pontosan ez a lényege…
+   > hogy most derüljenek ki a hibák és hiányosságok, amikor még »olcsón«
+   > javíthatóak… Egy összeadás is akkor ad pontos, tiszta végeredményt, ha az
+   > összeadandó számok ismertek! Többet árt egy kényelemből vagy kedvességből
+   > elhallgatott infó, mint a kegyetlen valóság, mert míg utóbbira lehet
+   > készülni és tenni ellene, az előbbi egyszer csak váratlanul megbosszulhatja
+   > magát."*
+
+   **Mit jelent ez a gyakorlatban:**
+   - **Rossz hírt NEM tompítunk**, és nem temetünk jó hírek közé.
+   - **Ha egy döntés nem bírja el a saját súlyát, azt ki kell mondani**, akkor is,
+     ha a felhasználó hozta.
+   - **A saját tévedéseimet ugyanolyan élesen jelentem**, mint a másokét (§12).
+   - **A bizonytalanságot nem kerekítjük bizonyossággá** — `[?]` marad `[?]`.
+   - **Ami nincs kész, az nincs kész** — nem „nagyrészt kész" (§5).
+
+   **Ez nem stílus, hanem a MERNOKISAROKKOVEK működési feltétele:** a §2.2
+   (ne csatornázz ellenőrizetlen premisszát a felhasználó döntésébe), a §5
+   (a néma kudarc a legveszélyesebb hibaosztály) és a §12 (mondd ki, mit
+   hagytál ki és miért) **mind erre épül.** Egy elhallgatott lelet ugyanolyan
+   néma kudarc, mint egy hamis zöld pipa.
+
 ---
 
 ## 0.2 UI/UX skill-készlet — MEGVAN, a design-fázisban KÖTELEZŐEN használandó

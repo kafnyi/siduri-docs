@@ -1060,17 +1060,142 @@ mozgatunk rá** — nem az egy adatbázist próbáljuk nagyobbra hizlalni.
 
 #### `[ ]` Ami még nyitva marad
 
+#### `[JAVASLAT]` B17/b — szinkron vagy aszinkron? — és miért NEM ugyanaz a kérdés, mint a telephelyen
+
+**`[!]` A telephelyi érvelés itt NEM érvényes, és ezt fontos kimondani.**
+
+A telephelyen azért esett ki a szinkron replikáció, mert **minden írás
+megvárná a lassabbik gép lemezét, és ez közvetlenül a PÉNZTÁRI VÁLASZIDŐT
+rontaná** — a pénztáros áll, a sor nő.
+
+**A felhőben ez nem így van:**
+
+> **A pénztárgép NEM a felhőbe ír.** A pénztárgép a **telephelyi** szerverbe ír.
+> A felhő **kötegelt szinkront** kap és a **webes admin felületet** szolgálja ki.
+>
+> **Mindkettő tűr néhány ezredmásodperc többletet.** Egy pincér sem áll tőle.
+
+**Tehát a szinkron replikáció a felhőben MEGFIZETHETŐ**, miközben a telephelyen
+nem volt az. Ugyanaz a technika, **más a költsége, mert más a hívó.**
+
+##### `[!]` DE két szerverrel a szinkron csapdába visz — hárommal nem
+
+| Felállás | Adatvesztés failovernél | Mi történik, ha egy gép kiesik |
+|----------|-------------------------|--------------------------------|
+| **2 gép, aszinkron** | van (néhány másodperc) | a másik átveszi, működik |
+| **2 gép, szinkron** | **nincs** | **`[!]` A MÁSIK IS MEGÁLL** — mert nincs kitől visszaigazolást kapni |
+| **3 gép, többségi visszaigazolás** | **nincs** | **működik tovább** — kettő még mindig többség |
+
+**A felhasználó célja — *„ne lehessen a mi oldalunkról kimaradás"* — két géppel
+és szinkron replikációval NEM teljesíthető**, mert a másodlagos kiesése
+megállítaná az elsődlegest is. **Három géppel viszont mindkettő teljesül
+egyszerre: nulla adatvesztés ÉS nincs kimaradás.**
+
+**Ez pontosan az a „harmadik szavazó", amit a telephelyen nem tudtunk
+megvalósítani** (mert az ügyfél gépeit lekapcsolják) — **a felhőben viszont
+ez rajtunk múlik, tehát megtehetjük.**
+
+**`[JAVASLAT — döntésre]` Három csomópont, többségi visszaigazolással.**
+A felhasználó megfogalmazása („két fizikai szerver… a későbbiekben akár több")
+ezzel nem ütközik — csak a harmadik gép **előbb** kell, mint gondoltuk.
+
+**Ha mégis pontosan kettő marad:** akkor **vállaltan aszinkron**, a
+veszteségablak kimondva — és **soha nem szabad automatikusan szinkronról
+aszinkronra váltani** (ez a `B1/b`-nél már lefektetett szabály, itt is él).
+
+#### `[JAVASLAT]` B17/c — földrajzi elhelyezés
+
+| | Egy adatközpont | **Két, egymáshoz KÖZELI adatközpont** | Távoli régiók |
+|---|---|---|---|
+| Túléli-e a tűz/áramszünet/víz esetet | **NEM** | **igen** | igen |
+| Szinkron replikáció késleltetése | elhanyagolható | **néhány ms — vállalható** | tíz-száz ms |
+
+**Javaslat: két (vagy három) EU-n belüli, egymáshoz közeli adatközpont.**
+Ez túléli az egy-telephelyes katasztrófát, és a szinkron replikáció is
+megfizethető marad. **GDPR miatt EU-n belül** — ez a `B7` tétel része.
+
+**`[!]` Kimondandó, mert könnyű elsiklani fölötte:** a „két fizikai szerver
+ugyanabban a szobában" **nem katasztrófavédelem** — egyetlen tűz, egyetlen
+elázás, egyetlen áramügy mindkettőt viszi. **Ha már két gépet veszünk, tegyük
+őket két helyre**, különben a pénz nagy részét kidobtuk.
+
+#### `[!] [ÚJ HÉZAG — a legkomolyabb ezek közül]` B17/d — A FELHŐ MENTÉSE
+
+**A replikáció NEM mentés.** A `D1` tétel ezt a telephelyre már kimondta:
+*„a hibás vagy törölt adat szépen átreplikálódik."* **A felhőre eddig nem
+mondtuk ki — pedig ott MINDEN ügyfél adata egy helyen van.**
+
+##### Mi ellen véd a replikáció, és mi ellen NEM
+
+| Esemény | Replikáció | Mentés |
+|---------|-----------|--------|
+| Meghal egy szerver | **véd** | nem kell hozzá |
+| Valaki **letöröl** valamit | **NEM véd** — átreplikálódik azonnal | **véd** |
+| Hibás migráció / szoftverhiba adatot ront | **NEM véd** | **véd** |
+| Zsarolóvírus, feltört fiók | **NEM véd** | **csak ha a mentést nem éri el** |
+
+##### `[!]` Négy követelmény, ami nélkül a mentés látszat
+
+1. **Időbeli visszaállítási pontok** (point-in-time), nem csak „a tegnapi
+   állapot". Egy hibás migráció **percek alatt** ront el mindent.
+2. **`[!]` A mentés MÁS hozzáférési úton legyen, MÁS jogosultsággal.** Ha az a
+   fiók, ami a szervereket kezeli, **törölni is tudja a mentéseket**, akkor egy
+   feltört fiók ellen **a mentés nem véd.** Ez nem elméleti — ez a zsarolóvírus
+   első lépése.
+3. **Írás-egyszer / módosíthatatlan megőrzés** egy ideig — hogy a mentést **utólag
+   se lehessen elrontani**, még jogosultsággal se.
+4. **A visszaállítást KI KELL PRÓBÁLNI, rendszeresen.** §5: *„a jelzés hiánya nem
+   bizonyíték a sikerre."* **Egy mentés, amiből még soha nem állítottunk vissza,
+   nem mentés, hanem remény.**
+
+##### `[!]` A valós igény nem a teljes visszaállítás, hanem az EGY BÉRLŐÉ
+
+**Ez a legfontosabb tervezési következmény, és könnyű kihagyni.**
+
+A gyakorlatban **nem** az lesz, hogy „elveszett az egész felhő". Hanem az, hogy
+**„a Kék Rák étterem menedzsere letörölte a teljes terméklistát"**.
+
+**Ha a mentésből csak a TELJES adatbázist tudjuk visszaállítani, akkor egy ügyfél
+hibájának javításához MINDEN MÁS ÜGYFÉL friss adatát is visszaforgatnánk** — ami
+sokkal nagyobb kár, mint az eredeti baj. **Tehát a mentésnek
+BÉRLŐNKÉNTI visszaállítást kell támogatnia.**
+
+**Ez visszahat a `B7` multi-tenancy döntésre:** a **bérlő szerinti szétosztás**
+(amit a `B17` bővíthetőség miatt már javasoltunk) **ezt is olcsóbbá teszi** —
+egy bérlő adatai egy helyen vannak, tehát külön menthetők és visszaállíthatók.
+**Két független érv ugyanarra a döntésre.**
+
+##### `[!]` És egy megnyugtató, illetve egy nyugtalanító megállapítás
+
+**Megnyugtató:** a rendszer **offline-first**, tehát **minden telephely önmaga is
+részleges mentés.** Egy felhő-katasztrófa után a **friss** adat nagyrészt
+visszaszedhető a telephelyekről (a szerverekről és a pénztárgép-archívumokból).
+**A sitek nem állnak meg egy felhőkimaradástól** — ez az architektúra ingyen
+kapott haszna.
+
+**Nyugtalanító:** **ez a 8 ÉVES ARCHÍVUMRA NEM IGAZ.** Az `A3` döntés szerint a
+telephely 30 nap után purge-öl, és **a hosszú távú megőrzést a felhő teljesíti.**
+
+> **Tehát a 8 éves jogi archívum az EGYETLEN adat az egész rendszerben, aminek
+> SEHOL NINCS második példánya a felhőn kívül.**
+>
+> **Ez a legpótolhatatlanabb adat, amink van** — és jogszabályi kötelezettség
+> áll rajta. **A legerősebb védelmet ez érdemli**, nem az operatív adatbázis.
+
+**`[ ]` Ebből következik egy külön eldöntendő tétel:** a **jogi archívum** és az
+**operatív adatbázis** **külön mentési rendszert** kapjon-e, eltérő megőrzéssel?
+**Javaslom: igen** — mert eltérő a céljuk (helyreállítás vs. megőrzés), eltérő a
+megőrzési idejük (napok-hetek vs. 8 év), és **eltérő a pótolhatóságuk.**
+
+#### `[ ]` Ami még nyitva marad
+
 | Tétel | Kérdés |
 |-------|--------|
-| **B17/a** | Írás egy helyen (javaslat) vagy megosztva is? |
-| **B17/b** | Szinkron vagy vállaltan aszinkron replikáció a két felhős szerver között? |
-| **B17/c** | A két szerver **földrajzilag** hol van? Egy adatközpont = egy tűzeset. Két adatközpont = nagyobb késleltetés a szinkronnál. **És GDPR: EU-n belül** (`B7`). |
-| **B17/d** | **Mi a mentés?** A replikáció **NEM mentés** — egy törölt vagy elrontott adat szépen átreplikálódik. Ez a `D1` tétel a felhőre alkalmazva, és **eddig sehol nem szerepelt.** |
-
-**`[!]` A B17/d a legkomolyabb ezek közül**, és pontosan az a hiba, amit a `D1`
-a telephelyre már kimondott: *„a HA nem backup — a hibás vagy törölt adat szépen
-átreplikálódik a Standbyra."* **A felhőben ugyanez igaz, és ott MINDEN ügyfél
-adata egy helyen van.**
+| **B17/a** | `[ELFOGADVA]` Írás egy helyen, automatikus átvétellel; olvasás megosztva. |
+| **B17/b** | **2 gép aszinkronnal, vagy 3 gép szinkronnal?** (javaslat: 3) |
+| **B17/c** | Két/három **EU-n belüli, közeli** adatközpont — **ne egy szobában.** |
+| **B17/d** | A mentés négy követelménye + **bérlőnkénti visszaállítás**. |
+| **B17/e** | **Külön mentési rendszer a 8 éves jogi archívumnak?** (javaslat: igen) |
 
 ### `[ ]` B7 — Multi-tenancy a felhőben
 Nincs specifikálva: schema-per-tenant / DB-per-tenant / row-level. GDPR: adatexport,
@@ -2676,21 +2801,65 @@ onnantól a termék saját, önálló értéke.**
 frissítést**: „ennek a kategóriának 137 terméke a régi kulcson áll —
 átnézed?", listával és egyenkénti kipipálással. **Soha ne néma tömeges írás.**
 
-#### `[!]` 2. KIKÖTÉS — ha TÖBB alkategória lehet, meg kell mondani, MELYIK nyer
+#### `[ELDÖNTVE — ALULRÓL FELFELÉ öröklés; az ÉN javaslatom volt rosszabb]` 2. kikötés
 
-A felvetés **„alkategória, vagy alkategóriák"**-at mond, tehát egy termék
-**több alkategóriában** is lehet. Ekkor viszont **több, egymásnak ellentmondó
-adó-alapérték** vonatkozhat rá.
+**Azt javasoltam, hogy adó-alapértéket csak a FŐkategória adhasson**, mert több
+alkategóriánál nem tudni, melyik nyer.
 
-**`[ ]` Eldöntendő, három lehetőség:**
-- **(a)** az adó-alapértéket **csak a főkategória** adhatja meg, az alkategóriák
-  csak csoportosítanak → **a legegyszerűbb, és nincs ütközés**;
-- **(b)** a termék megjelöl **egy „elsődleges" alkategóriát**, és onnan örököl;
-- **(c)** ütközéskor a rendszer **nem tölt ki semmit**, és kéri a kézi megadást.
+**A felhasználó ellenpéldája megcáfolta:**
 
-**Javaslom az (a)-t**, hacsak nincs erős üzleti igény a másikra: az alkategória
-**navigációs és riportolási eszköz**, az adókulcs viszont **jogi tulajdonság** —
-nem szerencsés a kettőt ugyanarra a fogalomra akasztani.
+> Főkategória: **Italok** → 1. szintű alkategória: **Üdítők** → 2. szintű
+> alkategóriák: **„helyben készült italok"** és **„dobozos üdítők"**.
+>
+> A limonádé (helyben készült) **más adókulcs alá eshet**, mint a dobozos üdítő
+> fix magasabb kulcsa. **A „Italok" főkategória szintjén ez nem is
+> megadható** — ott nincs egyetlen helyes érték.
+
+**A felhasználónak igaza van, és az érv általánosítható:**
+> **Minél mélyebb a kategória, annál PONTOSABBAN tudja, mi a helyes adókulcs.**
+> A főkategória a leggyengébb hely az adó-alapértéknek, nem a legerősebb.
+
+**ELFOGADOTT SZABÁLY — öröklés ALULRÓL FELFELÉ:**
+a rendszer a **legmélyebb alkategóriától indul**, és **felfelé halad** az első
+olyan szintig, ami megadja az értéket; **legvégül a főkategóriáig.**
+
+##### `[!]` Amit a mélységi öröklés MEGKÖVETEL — négy pontosítás
+
+**(1) A kategóriaszerkezet FA legyen, ne CÍMKE-halmaz.**
+Az „alulról felfelé" **csak akkor egyértelmű**, ha a terméknek **EGY útvonala
+van** a fában (Italok → Üdítők → dobozos üdítők). Ha egy termék **egyszerre
+több, egymással nem rokon kategóriában** is lehetne (pl. „Üdítők" ÉS „Akciós"
+ÉS „Nyári kínálat"), akkor **két azonos mélységű ág is adhatna eltérő
+adókulcsot** — és nincs sorrend köztük.
+
+**Javaslat:** legyen **egy kategóriafa** (adó-alapértékkel, egy útvonal), és
+**ha kell csoportosítás promócióhoz/navigációhoz, az legyen KÜLÖN „címke"
+fogalom — adó-jelentés nélkül.** Így mindkét igény megvan, ütközés nélkül.
+**`[ ]` Jóváhagyásra vár.**
+
+**(2) A hiányzó értékek KÜLÖN-KÜLÖN öröklődnek.**
+Ha a legmélyebb alkategória **csak a helyben fogyasztásos** kulcsot adja meg, az
+elviteleset nem, akkor **az elviteleshez tovább kell menni felfelé** — nem az
+van, hogy „az első szint, ami bármit ad, mindkettőt adja".
+Enélkül az elviteles üresen maradna, a kapu (`C3/a`) blokkolná a mentést, és a
+felhasználó nem értené, miért.
+
+**(3) A létrehozáskor LÁTSZÓDJON, HONNAN jött az érték.**
+„27% — örökölve innen: *dobozos üdítők*". Így a felvivő **azonnal látja, ha rossz
+kategóriába tette**, és nem utólag, egy adóellenőrzésen. Ugyanaz az elv, mint a
+felhőből zárolt áraknál (`B16.3`): **az érték mellett a forrása is látszik.**
+
+**(4) `[!]` Ha egy terméket KÉSŐBB áthelyeznek másik kategóriába, az adókulcsa
+NEM változik.** Mert másolat, nem hivatkozás (1. kikötés). **Ezt ki kell írni a
+felületre**, különben mindenki azt hiszi, hogy újraöröklődik — és pont az
+újraöröklődés lenne a veszélyes irány.
+**Javaslat:** áthelyezéskor a rendszer **kérdezze meg**: „az új kategória
+alapértéke X — átvegyük?" — döntéssel, ne automatikusan.
+
+**(5) A fa legyen véges és körmentes.** Egy kategória ne lehessen a saját őse
+(ez fa-szerkesztőkben klasszikus hibaforrás), és **a mélységnek legyen ésszerű
+korlátja** (javaslat: 3–4 szint) — különben az öröklési lánc kibogozhatatlan
+lesz, és a felület is használhatatlan.
 
 #### `[!]` 3. FIGYELMEZTETÉS — a Siduri-kategória NEM azonos az NTAK-kategóriával
 

@@ -36,8 +36,15 @@
 > eredménye, a B12 jogi kérdése, a B1/c R2–R5 kitöltése.
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
 >
+> **ÚJ (tizedik kör):** **B13** — átvétel előtti begyűjtés a kliensektől (a felhasználó
+> ötlete, elfogadásra ajánlom): ha az ELSŐ bizonylat előtt fut le, megszünteti a
+> sorszám-ütközést, ami az árva tranzakciók problémáját nehézzé tette.
+> **B11.3/b** — öndiagnosztikai létra: az alhálózat-/változásvizsgálat erős, az
+> internet-ping gyenge, ezért külön sorba kerül. ÚJ HIÁNY: a vékonykliensek nem
+> vezetnek archívumot, tehát a begyűjtés nem éri el őket.
+>
 > **A felhasználó két ELLENŐRZŐ KÖRT kért a jelenlegi tervekre** — lásd
-> `FOLYAMATBAN.md` 2.2 szakasz.
+> `FOLYAMATBAN.md` 2.1.c és 2.1.d szakasz.
 > **Ez az EGY igazságforrás a nyitott döntésekre** (MERNOKISAROKKOVEK §2.4).
 > Ha egy tétel eldől, ITT jelöld `[ELDÖNTVE — <döntés>]`-ként, ne máshol.
 >
@@ -1206,6 +1213,121 @@ nevesítve van.
 minden tranzakción), F3 (ki az igazságforrás: a Siduri vagy az adóügyi eszköz —
 az archívum ehhez is bizonyítékot ad), A3 (megőrzési kötelezettség).
 
+### `[JAVASLAT — ELFOGADÁSRA AJÁNLOM]` B13 — ÁTVÉTEL ELŐTTI BEGYŰJTÉS a kliensektől
+
+> **A felhasználó ötlete (2026-08-22).** Amikor a tartalék átveszi a szolgálatot,
+> kérdezze le az összes klienstől az utolsó szinkron óta (plusz egy átfedő ablak)
+> keletkezett tranzakciókat. Az átfedés validál, az azon túli rész pedig
+> **bepótolja azt, ami eddig csak a fő szerveren létezett.**
+
+#### `[!]` Ez az ötlet TÖBBET old meg, mint amire szánva volt
+
+Az árva tranzakciók problémája **nem attól volt nehéz, hogy hiányzik az adat** —
+az adat mindig megvolt valahol. **Attól volt nehéz, hogy a BIZONYLAT-SORSZÁMOK
+ÜTKÖZNEK.** Ha a fő szerver kiadta az 1001–1015 sorszámokat, de csak 1010-ig
+replikált, akkor a tartalék azt hiszi, 1011 következik — és ha ő is kiad egy
+1011-est, két különböző eladás kap azonos sorszámot. **Ezt utólag nem lehet
+helyrehozni**, mert a papír már a vendégnél van.
+
+**A felhasználó ötlete pontosan ezt előzi meg — DE CSAK EGY FELTÉTELLEL:**
+
+> ### A begyűjtésnek az ELSŐ bizonylat kiadása ELŐTT kell lefutnia.
+>
+> Ha a begyűjtés a takeover **része**, és a tartalék **csak utána** kezd
+> bizonylatot kiadni, akkor megtanulja a valódi legmagasabb sorszámot, és
+> **1016-tal folytatja, nem 1011-gyel. Ütközés SOHA nem keletkezik.**
+>
+> Ha a begyűjtés a kiszolgálás megkezdése UTÁN futna, az ötlet **nem javít,
+> hanem ront**: pontosan azokat az ütköző rekordokat importálná be, amiket a
+> tartalék időközben már kiosztott.
+
+**Ezzel a nehéz probléma könnyű problémává válik:** ütközés nélkül az árva
+tranzakciók behozatala **közönséges, idempotens adatimport**, nem
+összefésülhetetlen elágazás. A `A4` alatti „a könyvelésük nem lehet automatikus"
+korlát **nagyrészt feloldódik** — a maradék az, amit a kliensek nem láttak
+(lásd lent).
+
+#### Mit gyűjt be, és mit NEM
+
+**BEGYŰJTHETŐ — és ez a lényeg, mert ez az árva tranzakciók zöme:**
+minden kliens-eredetű írás: eladás, rendelés, fizetés, sztornó, készpénzmozgás.
+Ezek mind valamelyik kliensen keletkeztek, tehát a kliens archívumában megvannak.
+
+**NEM gyűjthető be — ezt ki kell mondani, különben hamis biztonságot ad:**
+
+| Mi marad ki | Miért | Súlyosság |
+|-------------|-------|-----------|
+| **Szerver-eredetű adat** — napi zárás összesítők, adóhatósági beküldés állapota, felhőszinkron vízjelek, ütemezett feladatok eredménye | A kliens sosem látta ezeket | Kicsi darab, de **nem nulla** — az egyeztetés nem tűnik el, csak összezsugorodik |
+| **Egy olyan kliens adata, ami az átvételkor szintén halott** (pl. közös áramkör esett ki) | Nem tudjuk lekérdezni **abban a pillanatban** | **Nem végleges veszteség**, ha a begyűjtés **megismételhető**, amikor az a gép visszatér — lásd lent |
+| **Vékonykliens (telefon, tablet) adata** | `[!]` **Ez ÚJ HIÁNY:** a jelenlegi terv szerint a helyi archívum a POS-okon van. Egy telefonról feladott, a fő szerver által nyugtázott, de nem replikált rendelés **sehol máshol nincs meg** | **Eldöntendő:** a vékonykliensek is vezessenek-e kis archívumot? |
+
+#### Három módosítás, amit javaslok az ötlethez
+
+**1. `[!]` A begyűjtés az ELSŐ bizonylat kiadása ELŐTT fusson** — lásd fent.
+Ez nem finomítás, hanem a feltétel, amitől az ötlet működik.
+
+**2. Az ablak ne fix 5 perc legyen, hanem KLIENSENKÉNT SZÁMÍTOTT.**
+A fix 5 perc feltételezi, hogy a replikációs lemaradás 5 percnél kisebb volt.
+**Egy terhelt J1900-on ez nem garantált** — épp azért választottunk aszinkron
+replikációt, mert a lemaradást nem tudjuk előre. Ha a lemaradás 8 perc volt, egy
+5 perces ablak **némán kihagy 3 percnyi adatot.** §5.
+
+**Robusztus változat:** a tartalék minden kliensnek megmondja, **mi az utolsó
+tranzakciója, amit ő ismer** — a kliens pedig **mindent visszaküld, ami azután
+jött**, plusz egy átfedő darabot. Így az ablak **automatikusan pontos**, akármekkora
+volt a lemaradás, és **a felhasználó átfedés-ötlete megmarad**, mert az az
+értékes rész.
+
+**3. Időkorlát + explicit „hiányos" állapot, ne várakozás.**
+Ha egy kliens nem válaszol N másodpercen belül, **a hely nem állhat meg miatta.**
+A tartalék vegye át a szolgálatot, de **jegyezze fel és LÁTHATÓAN írja ki**, hogy
+melyik géptől nem sikerült begyűjteni, tehát **az egyeztetés hiányos**. §5:
+a jelzés hiánya nem bizonyíték a sikerre.
+**És a begyűjtés legyen MEGISMÉTELHETŐ**, ne egyszeri: amikor a hiányzó gép
+visszatér, automatikusan fusson le rá is.
+
+#### Miért BIZTONSÁGOS az átfedés — és miért értékes
+
+**Biztonságos**, mert minden kliens-írás egyedi azonosítót visz (F1). Egy már
+meglévő tranzakció újbóli beküldése **no-op**, nem duplikátum. Az átfedésnek
+tehát nincs ára.
+
+**Értékes**, mert **ellenőrzést** ad: az átfedő szakaszban a tartaléknak és a
+kliensnek **ugyanazt kell látnia**. Ha eltérnek, az **hiba jele** — és ilyenkor
+**meg kell állni és szólni**, nem továbbmenni. Ez pontosan §5 pozitív
+bizonyítéka: nem azt feltételezzük, hogy stimmel, hanem ellenőrizzük.
+
+#### `[?]` Egy premissza, ami az egészet EGYSZERŰBBÉ tenné, ha igaz
+
+Ha igaz az `A2` alatti (még **igazolatlan**) feltevés, hogy **az adóügyi eszköz
+maga állítja ki és sorszámozza a jogi bizonylatot**, akkor **a sorszám-ütközés
+problémája NEM IS LÉTEZIK**: minden kassza adóügyi eszköze a saját számlálóját
+vezeti, helyben, és az túléli a szerver halálát.
+
+**Ekkor a begyűjtés célja már nem az ütközés megelőzése, hanem pusztán az
+adat-teljesség** — továbbra is hasznos, de nem kritikus időzítésű.
+
+**Ez erősen indokolja, hogy azt a premisszát MIELŐBB igazoljuk**, mert két
+érdemben különböző takeover-eljárást ír elő. Felvéve az első ellenőrzési kör
+tételei közé.
+
+#### `[ ]` Biztonsági megjegyzés
+
+A begyűjtés **beviteli csatorna**: egy feltört vagy hamisított kliens
+**kitalált eladásokat** adhatna be az átvételi ablakban. Ellenszer: az
+eszközregisztráció (B6), a kliens kulcsával aláírt tételek, és — ha az adóügyi
+eszköz a sorszámozó — az adóügyi eszköz naplójával való összevetés (F3).
+
+#### Összegzés: mennyire jó az ötlet?
+
+**Nagyon jó, és az egyik legértékesebb hozzájárulás ebben a tervezési körben.**
+Nem apró javítás: **a terv legkockázatosabb darabját zsugorítja össze.**
+Az egyeztetés nem tűnik el (a szerver-eredetű adat és az elérhetetlen gépek
+miatt), de **a nehéz része — az összefésülhetetlen sorszám-elágazás — megszűnik**,
+feltéve, hogy a begyűjtés az első bizonylat előtt fut le.
+
+---
+
 ### `[JAVASLAT — JÓVÁHAGYÁSRA VÁR]` B11 — A TANÚ-SÉMA részletes terve
 
 > **Státusz:** a felhasználó kérte, hogy írjam le a tervet, majd elolvassa és
@@ -1256,7 +1378,80 @@ konfigurálva.**
 szavazatnak számítana, egy éjszakára lekapcsolt pénztárgép „szavazna" a szerver
 halála mellett, és a rendszer egy egészséges szerverről állítaná, hogy halott.
 
+#### `[JAVASLAT — a felhasználó felvetése + módosítás]` B11.3/b — ÖNDIAGNOSZTIKAI LÉTRA
+
+> **A felhasználó felvetése (2026-08-22):** legyen internet-ellenőrzés (pl. ping egy
+> erre a célra fenntartott szerverre), illetve nézze meg a gép, hogy az IP-címe és
+> az alhálózata egyezik-e a többiekével és a szerverével — ha nem változott semmi
+> a saját hálózatában, akkor a probléma nem vele van.
+
+**Az alhálózat- és változás-vizsgálat ötlete ERŐS, az internet-ping GYENGE.**
+Az alábbi létra megtartja az erős részt és a helyére teszi a gyengét.
+
+##### A létra — olcsóbbtól a drágábbig, informatívtól a kevésbé informatívig
+
+| # | Vizsgálat | Mit bizonyít | Költség |
+|---|-----------|--------------|---------|
+| **1** | **Él-e a saját hálózati kapcsolat?** (kábel bedugva / wifi csatlakozva) | Ha NEM: **egyértelműen én vagyok a hibás.** Azonnali, biztos válasz | nulla |
+| **2** | **Változott-e a hálózati identitásom** az utolsó sikeres szerver-kapcsolat óta? IP, alhálózati maszk, átjáró IP-je, **az átjáró MAC-címe**, wifinél az **SSID ÉS a BSSID** (a konkrét hozzáférési pont MAC-je) | **Ez a legerősebb egyetlen jel.** Ha az azonosságom megváltozott, **nálam történt valami** — másik hálózatra kerültem, más AP-hoz kapcsolódtam, más IP-t kaptam | nulla hálózati forgalom |
+| **3** | **Elérem-e a saját alapértelmezett átjárómat?** | A kapcsolatom és az IP-beállításom **működik** — tehát a hiba nem a saját kábelemnél/wifimnél van | egy csomag, helyi |
+| **4** | **Elérem-e a többi Siduri-eszközt?** (a tanú-séma) | **EZ adja meg a valódi választ:** én vagyok-e, vagy a szerver | kicsi, helyi |
+| **5** | Van-e internetem? | **Egyik kérdésre sem válaszol** — külön sorban, külön célra | külső függőség |
+
+##### `[!]` Miért NEM szabad az internet-ellenőrzést a szerver-diagnózisba keverni
+
+1. **Mindkét irányban gyenge a korreláció.** Lehet internetem és mégsem érem el a
+   szervert (rossz alhálózat, vendég-wifi, 4G-stick). És **lehet, hogy nincs
+   internetem, miközben minden tökéletesen működik** — ez az offline-first
+   rendszer NORMÁL állapota egy szolgáltatói kimaradás alatt.
+2. **`[!]` Aktívan félrevezethet.** Ha az internet megy, a személyzet arra jut,
+   hogy „a hálózat rendben van" — miközben a valódi hiba egy switch.
+   Ha nem megy, **a szolgáltatót fogják hívni** — pontosan az a hibaosztály,
+   ami miatt a személyzeti üzenetekből kivettük az „internet" szót (B12 alatti
+   szakmai pontosítás).
+3. **Új üzemeltetési függőség.** Egy „erre a célra fenntartott szerver" azt
+   jelenti, hogy **nekünk kell üzemeltetni**, rendelkezésre állással — és ha az
+   a végpont áll le, **hibás diagnózist gyártunk.**
+4. **Az átjáró jobb próba nála**, és ingyen van: helyi, gyors, nem függ tőlünk.
+
+##### Amit viszont MEGTARTUNK az internet-ellenőrzésből
+
+**Külön, egyértelműen megcímkézett sorként** jelenjen meg — mert az internetnek
+**van** jelentősége, csak **másra**: az adóhatósági adatszolgáltatásra és a
+felhőszinkronra. Ez amúgy is külön jelzést kapott (lásd a személyzeti üzenetek
+alatti pontosítást és a 19. fejezet 18 órás riasztását). **Így nem vész el, de
+nem is szennyezi a szerver-diagnózist.**
+
+##### `[!]` A legértékesebb elem, ami ebből az ötletből következik: MI VÁLTOZOTT
+
+A 2. pont nem csak igen/nem választ tud adni — **meg tudja mondani, MI változott.**
+A gép minden sikeres szerver-kapcsolatkor **elmenti a működő hálózati
+azonosságát**, és kieséskor összeveti.
+
+Egy olyan képernyő, ami azt írja ki, hogy:
+
+> *„Utoljára 19:42-kor beszéltél a szerverrel. Azóta ez a gép átkapcsolt a
+> `Bar-AP` hozzáférési pontról a `Terasz-AP`-ra, és új IP-címet kapott egy másik
+> alhálózaton."*
+
+**nagyságrendekkel többet ér, mint bármilyen ping-eredmény** — mert nem csak azt
+mondja meg, hogy baj van, hanem **hogy mi történt.** Ez egyben a támogatás
+(F5) eszköze is: ez a néhány sor pontosan az, amit péntek este telefonon
+kérdezgetni kellene.
+
+**Ez a `MERESEK.md`-be nem tartozik** — nem mérés, hanem naplózás és
+összehasonlítás, elhanyagolható költséggel.
+
 #### B11.4 A döntési menet — amit a pénztárgép lefuttat
+
+**0. lépés — Öndiagnosztika (B11.3/b létra 1–3. foka), hálózati forgalom nélkül vagy
+majdnem anélkül.**
+- **Nincs kapcsolat** (kábel kihúzva / wifi lecsatlakozott) → **ÉN estem ki**,
+  azonnal, kérdezősködés nélkül. → **(2)-es üzenet.**
+- **Megváltozott a hálózati azonosságom** (IP, alhálózat, átjáró MAC, SSID/BSSID)
+  → **erős jel, hogy nálam történt valami.** → **(2)-es üzenet**, és **írja ki,
+  MI változott.**
+- **Nem érem el a saját átjárómat** → **ÉN estem ki.** → **(2)-es üzenet.**
 
 **1. lépés — Egyáltalán a hálózaton vagyok?**
 - Nem érek el SEMMIT (se Siduri-eszközt, se az alapértelmezett átjárót)
@@ -1689,7 +1884,10 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **B11 — tanú-séma** | `[ ]` **JÓVÁHAGYÁSRA VÁR** — a teljes terv megírva | A felhasználó kérte, hogy írjam le, majd elolvassa és elfogadja. Lényege: a séma SOHA nem dönt, csak bizonyítékot gyűjt az embernek — ezért nem kell hozzá elosztott konszenzus. **Nem blokkolja a fázistervet.** |
+| 1 | **B13 — átvétel előtti begyűjtés** | `[ ]` **ELFOGADÁSRA AJÁNLOM** | A felhasználó ötlete. **A terv legkockázatosabb darabját zsugorítja össze**: ha a begyűjtés az ELSŐ bizonylat kiadása ELŐTT fut le, a sorszám-ütközés — ami az árva tranzakciók problémáját nehézzé tette — **nem keletkezik**. Három módosítással ajánlom. |
+| 1b | **B11.3/b — öndiagnosztikai létra** | `[ ]` **ELFOGADÁSRA AJÁNLOM** | A felhasználó felvetése alapján. Az **alhálózat-/változásvizsgálat erős**, az **internet-ping gyenge és félrevezethet** — ezért az utóbbi külön, megcímkézett sorba kerül, és nem befolyásolja a szerver-diagnózist. |
+| 1c | **Vékonykliens archívum** | `[ ]` **ÚJ HIÁNY, eldöntendő** | A B13 begyűjtés csak azt éri el, ami valamelyik gép archívumában van. A telefonok/tabletek jelenleg NEM vezetnek archívumot → egy telefonról feladott, nyugtázott de nem replikált rendelés sehol nincs meg. |
+| 1d | **B11 — tanú-séma** | `[ ]` **JÓVÁHAGYÁSRA VÁR** | A séma SOHA nem dönt, csak bizonyítékot gyűjt — ezért nem kell hozzá elosztott konszenzus. |
 | 2 | **TPM-ellenőrzés** | `[FOLYAMATBAN]` — a felhasználó a napokban ellenőrzi | Addig **mindkét ágra készülünk**: a titkosítás konfigurációs képesség, és az admin felület kiírja, melyik ágon vagyunk. **Nem blokkolja a fázistervet.** |
 | 3 | **B12 jogi kérdése** | `[?]` **IGAZOLATLAN, jogi kör tétele** | Az érintőképernyős aláírás nem minősített elektronikus aláírás. Hogy a felelősségkorlátozáshoz elég-e, forrás nélkül nem állítható. |
 | 1b | **R1 lépcsőnként** | `[ ]` **NYITVA** — jóváhagyásra | A tanú-séma lépcsőnkénti alakja a B9/b tisztázása után megírva; a felhasználó jóváhagyására vár. |

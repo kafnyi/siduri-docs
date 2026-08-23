@@ -176,10 +176,20 @@ A felhasználó 2026-08-22-én ezt kérte: **először zárjuk le a maradék apr
 utána KÉT ELLENŐRZŐ KÖR**, és csak azután megyünk tovább.
 
 #### 2.1.a `[ ]` Jóváhagyásra vár (nem blokkoló)
-1. **B11 — a tanú-séma teljes terve megírva**, a felhasználó elolvassa és
-   jóváhagyja. → `NYITOTT_KERDESEK.md`, keress: `B11`
-2. **A4/c finomítása** — az árva tranzakciók elétárásának időzítése.
+1. **B13 — átvétel előtti begyűjtés a kliensektől.** A felhasználó ötlete,
+   **elfogadásra ajánlom** — ez a terv legkockázatosabb darabját zsugorítja
+   össze. Három módosítással: a begyűjtés az ELSŐ bizonylat előtt fusson; az
+   ablak kliensenként számított legyen, ne fix 5 perc; időkorlát + explicit
+   „hiányos" állapot. → `NYITOTT_KERDESEK.md`, keress: `B13`
+2. **B11.3/b — öndiagnosztikai létra.** A felhasználó felvetése alapján; az
+   internet-ellenőrzés külön, megcímkézett sorba kerül, és nem befolyásolja a
+   szerver-diagnózist. → keress: `ÖNDIAGNOSZTIKAI LÉTRA`
+3. **B11 — a tanú-séma teljes terve**, jóváhagyásra. → keress: `B11`
+4. **A4/c finomítása** — az árva tranzakciók elétárásának időzítése.
    → keress: `A4/c`
+5. **`[ ] ÚJ HIÁNY` — vezessenek-e a vékonykliensek is archívumot?** A begyűjtés
+   csak azt éri el, ami valamelyik gép archívumában van; a telefonok/tabletek
+   most nem vezetnek ilyet. → keress: `Vékonykliens (telefon, tablet) adata`
 
 #### 2.1.b `[FOLYAMATBAN, a felhasználónál]`
 3. **TPM-ellenőrzés a meglévő J1900 bázison.** Addig mindkét ágra készülünk.

@@ -101,7 +101,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Harminckét döntés lezárva** (öt az 1., huszonhét a 2. munkamenetben, mindkettő 2026-08-22).
+**Harminchárom döntés lezárva** (öt az 1., huszonnyolc a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -119,6 +119,7 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **B16.1** | *(ÚJ)* Mi a felhő szerepe | **Teljes menedzsment-platform**, nem kiegészítő: beállítás-paritás a POS-szal, raktár, alapanyag-mozgás, receptúrázás, statisztikák; **zárolható beállítások** (ár, láthatóság); **üzletlánc/franchise szintű központi értékek**; visszajelzés a leérkezésről; eszköz-láthatóság. **A legnagyobb scope-változás — önálló terméksáv a fázistervben** | `NYITOTT_KERDESEK.md`, keress: `B16` |
 | **B14.4** | *(ÚJ)* A bizonylatszám formátuma | **`xxxxxxyyyzzzzz`** = üzleti nap dátuma (a szervertől) + eszközszám + napi folyószám. Pl. `26082200300347`. **Naponta újraindul → soha nem fogy el**, és a dátum-előtag miatt szám szerint időrendben áll. **Kikötés: az `xxxxxx` az ÜZLETI NAP, nem a naptári nap** | `NYITOTT_KERDESEK.md`, keress: `B14.4` |
 | **B14 M2** | *(ÚJ)* Klónozás elleni védelem | A szerver adja ki az azonosítót és regisztráció nélkül nincs bizonylat — **de a klónt ez nem fogja meg.** Hiányzó darab: **hardveres ujjlenyomat + forgó hitelesítő adat**; két ujjlenyomat egy azonosítón → **mindkettő tiltva**, amíg ember fel nem oldja | `NYITOTT_KERDESEK.md`, keress: `M2 — az eszközazonosító` |
 | **B14 M4** | *(ÚJ)* Előzmény visszakérése | A kliens **lekérheti a saját előzményét** a szervertől → gépcsere után az új gép feltölti magát. Három kikötéssel (hiányos lehet, hitelesítés+audit, explicit gépcsere) | `NYITOTT_KERDESEK.md`, keress: `M4 —` |
@@ -193,13 +194,24 @@ utána KÉT ELLENŐRZŐ KÖR**, és csak azután megyünk tovább.
    ha bármelyik másik gép már nyitott üzleti napot, **azt vegye át.**
    → `NYITOTT_KERDESEK.md`, keress: `ÚJ HÉZAG, amit ez a forgatókönyv feltár`
 
-2. **`[ ]` B16 — távoli konfiguráció a felhőből.** A felhasználó egy
-   mellékmondatban új képességet nevezett meg (az ügyfél a webes felületen
-   **beállításokat végez távolról**). Ez **kétirányúvá teszi a felhő-kapcsolatot**,
-   és négy dolgot vet fel: mit szabad egyáltalán távolról átírni (egy ÁFA-kulcs
-   átírása adóügyi következményű!); mi nyer, ha helyben is módosult; hogyan
-   látszik, hogy egy **offline** helyszín még nem vette át; és hogy ez a rendszer
-   egyik legértékesebb támadási felülete. → keress: `B16`
+2. **`[!]` B16.4 — a legfontosabb most eldöntendő: BEÁLLÍTÁS vs. KÉSZLET.**
+   A felhő lehet autoritatív a **törzsadatra** (ár, láthatóság, receptúra) —
+   de a **készlet nem érték, hanem futó egyenleg**, amit a telephelyen percenként
+   csökkentenek az eladások. Ha a felhő „felülírja 40-re", miközben közben 3
+   fogyott, **az a 3 eltűnik, és az eredmény hihetőnek látszik.** Javasolt szabály:
+   a felhő küldhet **„vegyél fel 20 darabot"**-ot, de soha nem **„a készlet
+   mostantól 40"**-et. → keress: `B16.4`
+
+3. **`[!]` B16.7 — a beállítás-paritás őre.** „A felhőn minden beállítás legyen,
+   ami a POS-on" — két felület, két repó, két nyelv, és **semmilyen fordító nem
+   köti össze őket.** §6 szerint garantáltan szétcsúszik: minden új POS-beállítás
+   némán hiányozni fog a felhőből, amíg egy ügyfél nem keresi. Javaslat: a
+   beállítások **EGY sémából** épüljenek mindkét felületen, **paritás-őrrel**.
+   Ez élesíti a B8-at (hol él az API-szerződés). → keress: `B16.7`
+
+4. **`[ ]` B7 + lánc-szint EGYÜTT döntendő.** A franchise **új hierarchia-szintet**
+   vezet be a telephely fölé, és a lánc-szintű összesített lekérdezés igénye
+   érdemben szűkíti a multi-tenancy lehetőségeit. → keress: `B16.2`
 
 #### 2.1.a `[ ]` Jóváhagyásra vár (nem blokkoló)
 1. **B13 — átvétel előtti begyűjtés a kliensektől.** A felhasználó ötlete,

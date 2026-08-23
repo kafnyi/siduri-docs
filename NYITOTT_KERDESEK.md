@@ -36,6 +36,12 @@
 > eredménye, a B12 jogi kérdése, a B1/c R2–R5 kitöltése.
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
 >
+> **ÚJ (tizenharmadik kör):** **B16 kibővítve** — a felhő **teljes menedzsment-platform**
+> (beállítás-paritás, raktár, receptúra, statisztika, **zárolható értékek**,
+> **üzletlánc/franchise szint**). Ez ÚJ hierarchia-szintet vezet be a telephely fölé, és
+> **a B7 multi-tenancy döntést magához köti**. Kiemelt új megállapítás: **a törzsadat lehet
+> felhő-autoritatív, a KÉSZLET nem** — az futó egyenleg, aminek nem lehet két gazdája.
+>
 > **ÚJ (tizenkettedik kör):** a bizonylatszám **végleges formátuma** rögzítve
 > (`xxxxxxyyyzzzzz` — üzleti nap + eszköz + napi folyószám); ez **mindkét korábbi
 > aggályomat megoldja** (kimerülés, rendezés). **HELYESBÍTÉS: az én érvem az adóügyi
@@ -1701,53 +1707,212 @@ tárolni **kockázatot vinne fel egy zsebben hordott eszközre, haszon nélkül.
 
 ---
 
-### `[ ]` B16 — TÁVOLI KONFIGURÁCIÓ A FELHŐBŐL (új tétel, 2026-08-22)
+### `[RÉSZBEN ELDÖNTVE]` B16 — A FELHŐ MINT TELJES MENEDZSMENT-PLATFORM (új tétel, 2026-08-22)
 
-**A felhasználó egy mellékmondatban új képességet nevezett meg**, ami egyik
-eredeti doksiban sem szerepelt így: *„a szerver esetén a központi felhővel való
-kommunikációhoz, amiből majd az online felületen látja az ügyfél a saját adatait
-és tud beállításokat végezni távolról."*
+> **`[!]` EZ A LEGNAGYOBB SCOPE-VÁLTOZÁS AZ EGÉSZ TERVEZÉSI MUNKAMENETBEN.**
+> A felhasználó kimondta, hogy a felhő nem kiegészítő, hanem **teljes értékű
+> menedzsment-platform** — és ez a specifikáció 18. fejezetéhez képest
+> **nagyságrenddel több.**
 
-A specifikáció 18. fejezete „felhő platformot tenant- és licenckezelésre" ír —
-**a helyszín TÁVOLI KONFIGURÁLÁSA ennél lényegesen többet jelent**, és külön
-tervezést igényel.
+#### B16.1 Amit a felhasználó kimondott (2026-08-22)
 
-#### Miért nem apró kiegészítés
+1. **`[ELDÖNTVE]` Teljes beállítás-paritás:** *„a felhőn minden beállításnak
+   elérhetőnek kell lennie, aminek a POS-on is."* Kevés kivétel lesz, azok
+   később tisztázandók.
+2. **`[ELDÖNTVE]` A felhő funkciói:** raktárkezelés, alapanyag-mozgás,
+   receptúrázás, kimutatások, grafikonok, diagramok, **minden elképzelhető
+   statisztika és üzletmenedzsment.**
+3. **`[ELDÖNTVE]` A kommunikáció kétirányú**, és **kifejezetten védettnek kell lennie.**
+4. **`[ELDÖNTVE]` ZÁROLHATÓ beállítások:** a felhőben zárolható egy érték
+   (kiemelten **termékárak** és **termék-láthatóságok**), és akkor
+   **a POS-on nem írható át.**
+5. **`[ELDÖNTVE]` ÜZLETLÁNC / FRANCHISE:** zárolható **központi** értékek több
+   üzletre (pl. a franchise árlistája minden üzletben fix, csak a felhőben
+   állítható).
+6. **`[ELDÖNTVE]` Visszajelzés:** látszódjon, hogy a módosítás **lement-e** a gépekre.
+7. **`[ELDÖNTVE]` Eszköz-láthatóság:** melyik eszköz **mikor kommunikált utoljára**,
+   **meg van-e nyitva.**
 
-1. **`[!]` Ez KÉTIRÁNYÚVÁ teszi a felhő-kapcsolatot.** Eddig a felhő
-   **fogadó** oldal volt (adatszinkron, licenc-életjel, adatszolgáltatás
-   biztonsági másolata). Most **utasítást is küld lefelé.** Ez teljesen más
-   biztonsági és megbízhatósági osztály.
-2. **`[!]` Ütközés a helyi beállítással.** Az ügyfél a felhőben átír egy árat,
-   miközben a helyi menedzser ugyanazt a terméket a helyi felületen módosítja.
-   **Melyik nyer?** A rendszer szerver-autoritatív a LOKÁLIS állapotra — most
-   viszont egy MÁSODIK autoritás jelent meg. **Szabály kell rá**, különben ez a
-   §6 varrat-hibaosztálya: mindkét oldal „sikeresen" ír, és csendben szétcsúsznak.
-3. **`[!]` Offline sorbaállás.** Ha a helyszín offline, a felhőben elvégzett
-   beállítás **nem érkezik meg.** Az ügyfél viszont a felhőben azt látja, hogy
-   megtörtént. **Ez §5 néma kudarca**, csak a felhasználó felé fordítva:
-   a felület olyat mutat elvégzettként, ami nem történt meg.
-   → **Kell egy állapot: „a helyszín még nem vette át"**, láthatóan.
-4. **`[!]` Biztonsági célpont.** Egy távoli csatorna, ami **meg tudja változtatni
-   egy pénztárgép konfigurációját** (árak, ÁFA-hozzárendelés, jogosultságok),
-   a rendszer egyik legértékesebb támadási felülete. Kell hozzá: erős
-   hitelesítés, **jogosultsághoz kötés**, és **teljes audit** — ki, mikor, mit
-   írt át távolról (F5, F7).
-5. **Mit szabad egyáltalán távolról átírni?** Nem mindegy. Egy termék ára: igen.
-   Egy ÁFA-kulcs hozzárendelés: **veszélyes** (adóügyi következménye van, §13).
-   Egy adóügyi eszköz beállítása: **valószínűleg nem.** **Explicit, szűk
-   listát kell definiálni**, nem „mindent, ami a helyi admin felületen megy".
+#### B16.2 `[!]` Ez egy ÚJ HIERARCHIA-SZINTET vezet be, ami eddig nem létezett
 
-#### `[ ]` Eldöntendő
+A terv eddigi modellje: **felhő → bérlő (tenant) → telephely → eszköz.**
+A franchise/üzletlánc **egy új szintet szúr be**: **lánc / csoport**, a
+telephely FÖLÉ.
 
-- Mely beállítások írhatók át távolról (szűk, nevesített lista)?
-- Ütközéskor mi nyer — a felhő, a helyi, vagy „az újabb"? És **hogyan látja
-  bárki, hogy volt ütközés?**
-- Offline helyszínnél a sorbaállított változtatás **meddig érvényes**, és mi
-  történik, ha közben helyben is módosult?
+**Ez nem egy jelölő mező, hanem öröklődési hierarchia**, és három dolgot érint:
 
-**Kapcsolódik:** B7 (multi-tenancy), B6 (biztonság), F5 (támogathatóság),
-F7 (jogosultsági modell), 18. és 19. fejezet.
+- **az adatmodellt:** minden beállítás-értéknek tudnia kell, **melyik szinten
+  definiálták**, és **zárolt-e ott**;
+- **a jogosultsági modellt (F7):** ki szerkeszthet melyik szinten;
+- **`[!]` a multi-tenancy kérdését (B7), ami MÉG NYITVA VAN** — és ez a
+  követelmény érdemben szűkíti a lehetséges válaszokat. Egy lánc **több
+  telephelyet átfogó lekérdezéseket** akar (összesített statisztika, közös
+  árlista); ez a telephelyenként külön adatbázis irányt drágábbá teszi.
+  **A B7-et ezzel együtt kell eldönteni, nem külön.**
+
+#### B16.3 `[JAVASLAT]` A beállítás-öröklődés konkrét alakja
+
+**Most olcsó, utólag az egész felületet átírja.** Javaslat:
+
+Minden beállítás-érték két dolgot hordoz: **melyik szinten definiálták**
+(lánc / telephely / eszköz), és **zárolt-e azon a szinten**.
+
+**Feloldás:** a legspecifikusabb **nem zárolt** szint értéke nyer.
+Egy **zárolt** magasabb szint **minden alacsonyabbat felülír**.
+
+**`[!]` És egy kikötés, ami nélkül a helyi menedzser azt hiszi, elromlott a
+rendszer:** a felületnek **nem elég a HATÁLYOS értéket mutatnia — a FORRÁSÁT is
+mutatnia kell.**
+
+> „Ár: 1 200 Ft — **a központ állította be, zárolva**"
+> szemben azzal, hogy „Ár: 1 200 Ft".
+
+Enélkül a helyi menedzser újra és újra próbálná átírni, és nem értené, miért nem
+sikerül. §5: a felület ne kínáljon olyat, ami nem működik — itt: **ha nem
+szerkeszthető, azt MONDJA MEG, ne csak visszautasítsa.**
+
+**`[!]` A zárolást a TELEPHELYI SZERVERNEK is ki kell kényszerítenie**, nem csak
+a felhőnek. Ha csak a felhő felülete rejti el, akkor a helyi admin felület, egy
+importálás vagy egy közvetlen adatbázis-írás megkerüli. Ez a terv máshol már
+lefektetett szabálya (a UI-elrejtés nem kikényszerítés, B6/F7) — itt is él.
+
+#### B16.4 `[!]` A LEGFONTOSABB HATÁROVONAL: BEÁLLÍTÁS vs. MENNYISÉGI ÁLLAPOT
+
+**Ez az az egy dolog, amit szerintem MOST kell eldönteni, mert utólag
+katasztrofális.**
+
+A felsorolásban két, gyökeresen különböző dolog keveredik:
+
+| | **Törzsadat / beállítás** | **Mennyiségi, futó állapot** |
+|---|---|---|
+| Példa | ár, láthatóság, receptúra, termékadat, jogosultság | **készletszint**, eladások, pénztárállás |
+| Természete | **érték, amit felülírsz** | **egyenleg, ami mozgásokból áll össze** |
+| Lehet-e két írója | igen, ha van feloldási szabály (fent) | **NEM. SOHA.** |
+
+**Miért nem lehet a készletnek két gazdája:** az ár egy érték — ha két helyről
+írják, a feloldási szabály eldönti, melyik nyer, és kész. **A készlet viszont
+nem érték, hanem egy futó egyenleg**, amit a telephelyen percenként csökkentenek
+az eladások. Ha a felhő „felülírja" a készletet 40-re, miközben a telephelyen
+közben 3 fogyott, **az a 3 eltűnik** — és nem is derül ki, mert az eredmény
+hihetőnek látszik. Ez §7 klasszikus elveszett-frissítése, csak két rendszer között.
+
+**JAVASOLT SZABÁLY:**
+
+> - **Törzsadat és beállítás:** lehet **felhő-autoritatív**, zárolással,
+>   a fenti öröklődés szerint. ✔
+> - **Mennyiségi, futó állapot** (készlet, forgalom, kassza): **KIZÁRÓLAG
+>   telephely-autoritatív**, és **csak felfelé** áramlik.
+> - **A felhő KEZDEMÉNYEZHET készletmozgást** (bevételezés, selejtezés,
+>   raktárközi mozgás) — de az **MOZGÁSKÉNT megy le**, amit a telephely
+>   könyvel el, **nem egyenleg-felülírásként.**
+>
+> Egy mondatban: **a felhő küldhet „vegyél fel 20 darabot"-ot, de soha nem
+> küldhet „a készlet mostantól 40"-et.**
+
+#### B16.5 `[ELFOGADVA + kiegészítés]` Visszajelzés: lement-e a módosítás
+
+A felhasználó kérése helyes és §5-konform. Amit hozzáteszek:
+
+- **Három állapot kell, nem kettő:** *elküldve* / *a telephely átvette* /
+  **`[!]` az összes érintett eszköz alkalmazta.** A második és a harmadik nem
+  ugyanaz: a telephelyi szerver megkaphatta, miközben egy pénztárgép offline volt
+  és még a régi árral dolgozik.
+- **Offline telephelynél a felhő NE mutassa elvégzettnek.** Ez a §5 néma kudarca,
+  a felhasználó felé fordítva: a felület olyat mutatna késznek, ami nem történt meg.
+- **`[ ]` Meddig él a sorbaállított változtatás?** Ha egy telephely három hétig
+  offline (szezonális zárás), és közben háromszor módosult ugyanaz az ár —
+  **mind a három lemenjen sorban, vagy csak a végállapot?** A végállapot a
+  helyes, de akkor **az audit naplóban a köztes lépéseknek meg kell maradniuk.**
+- **`[ ]` Mi van, ha közben HELYBEN is módosult** egy nem zárolt érték? Ez az
+  ütközés, amire szabály kell.
+
+#### B16.6 `[ELFOGADVA + FONTOS KORLÁT]` Eszköz-láthatóság a felhőben
+
+A kérés jó és olcsó. **De van egy korlát, amit ki kell írni a felületre,
+különben rendszeresen félrevezet:**
+
+> **`[!]` A felhő tudása a TELEPHELY kapcsolatán át jön.** Ha a telephely
+> internetkapcsolata megszakad, a felhő **egyetlen eszközről sem tud semmit** —
+> de a képernyőn ez úgy fog kinézni, mintha **mind a 8 eszköz halott lenne.**
+>
+> **A felületnek meg kell különböztetnie:** „ez az eszköz nem elérhető"
+> ⟷ **„a telephely offline, tehát nem tudom, mi van az eszközökkel".**
+> A kettő összemosása pánikot okoz egy olyan helyzetben, ahol valójában csak a
+> szolgáltató van kint. §5: a jelzés hiánya nem bizonyíték.
+
+**Továbbá:** az „utoljára kommunikált" időbélyeg **önmagában értelmezhetetlen.**
+3 perce = rendben; 3 órája nyitvatartási időben = baj. **Adjunk mellé
+értelmezést** (rendben / késik / nem elérhető), a várt életjel-gyakoriság
+alapján — ne a felhasználóra hagyjuk a fejszámolást.
+
+#### B16.7 `[!]` PARITÁS-KÖVETELMÉNY — ez a §6 varrat-hibaosztálya, és GARANTÁLTAN elromlik
+
+*„A felhőn minden beállításnak elérhetőnek kell lennie, aminek a POS-on is."*
+
+**Ez a kimondottan legveszélyesebb fajta követelmény**, mert:
+- **két külön felület**, két külön repóban, **két külön nyelven** írva
+  (helyi admin: a backend-szerver; felhő: a felhő-API),
+- **semmilyen fordító nem köti össze őket**,
+- **minden új beállítás**, amit valaki hozzáad a POS-hoz, **némán hiányozni fog
+  a felhőből**, amíg valaki oda is beírja — és **senki nem fogja észrevenni**,
+  amíg egy ügyfél nem keresi.
+
+Ez szó szerint a MERNOKISAROKKOVEK §6 kimért esete: *„EXPLICIT felsorolás vs.
+AUTOMATIKUS szerializáció → néma szétcsúszás… paritás-őr KÖTELEZŐ."*
+
+**JAVASLAT — és ez a B8 (hol él az API-szerződés) tételt élesíti:**
+a beállítások **EGY helyen legyenek definiálva** (nevesített séma/regiszter:
+azonosító, típus, szint, zárolható-e, alapérték, érvényességi szabály), és
+**mindkét felület EBBŐL épüljön** — generálva vagy adatvezérelten.
+Plusz **automatikus paritás-őr**, ami padlós (§1.3): ha 0 beállítást vizsgált,
+az HIBA, nem siker.
+
+**Ha ez nem így épül, a paritás-követelmény teljesítése kézi munkává válik, és
+a §6 szerint garantáltan szétcsúszik.**
+
+#### B16.8 `[ ]` Biztonság — konkrétan, mert „védett legyen" önmagában nem terv
+
+A lefelé menő csatorna **árat, ÁFA-hozzárendelést, láthatóságot és
+jogosultságot** tud átírni **egy egész láncon**. Ez a rendszer legértékesebb
+támadási felülete. Amit a tervbe javaslok:
+
+1. **Kölcsönös hitelesítés**, és **minden parancs aláírva** — a telephely
+   ellenőrizze az eredetet, ne csak a csatornát.
+2. **Idempotens parancsok** — az újraküldés ne alkalmazza kétszer (F1 mintája).
+3. **`[!]` A telephely VALIDÁLJON, ne vakon alkalmazzon.** Egy felhőből érkező
+   ÁFA-hozzárendelés, ami nem szerepel a **dátumozott** adókulcs-táblában (§13.3),
+   **elutasítandó a telephelyen** — nem alkalmazandó. A bizalom nem mentesít az
+   ellenőrzés alól.
+4. **Teljes audit:** ki, mikor, mit írt át távolról, melyik telephelyre.
+   Ez F5 és F7 hatálya.
+5. **`[ ]` Nagy hatókörű változtatás külön védelmet érdemel.** Egy feltört
+   felhő-fiók **egy egész franchise árait nullázhatja.** Megfontolandó:
+   négy szem elve lánc-szintű ár-műveletnél, vagy késleltetett/értesített
+   élesítés. **Eldöntendő.**
+
+#### B16.9 `[!]` Következmény a FÁZISTERVRE (E1)
+
+**A felhő ezzel nem „az 5. repó", hanem önálló terméksáv.** Raktárkezelés,
+receptúrázás, statisztika, lánc-kezelés, zárolható öröklődés, kétirányú
+konfiguráció — ez a mennyiség **külön fázisolást igényel**, és érdemben
+befolyásolja, mi fér bele az első kiadásba.
+
+**Külön kérdés, amit az E1-nél fel kell tenni:** a felhő raktár- és
+receptúra-funkciói **ugyanazok**, mint a telephelyi adminfelületé, csak máshol —
+vagy **mások**? Ha ugyanazok, akkor **egyszer építjük meg és két helyen
+jelenítjük meg** (a B16.7 séma-alapú megközelítése ezt támogatja). Ha mások,
+akkor kétszer építjük. **Ez hetekben mérhető különbség.**
+
+#### `[ ]` Ami NYITVA marad ebből
+
+| Tétel | Kérdés |
+|-------|--------|
+| **B16/a** | Mely beállítások NEM lesznek elérhetők a felhőből? (a felhasználó szerint „kevés kivétel", később tisztázandó) |
+| **B16/b** | Ütközés: nem zárolt érték, amit közben helyben is módosítottak — mi nyer? |
+| **B16/c** | Sorbaállított változtatás hosszú offline után: csak a végállapot menjen le? |
+| **B16/d** | Nagy hatókörű (lánc-szintű) változtatás kap-e extra védelmet? |
+| **B16/e** | A felhő raktár/receptúra funkciói azonosak a telephelyivel, vagy külön? (E1-hez) |
+| **B7** | **A multi-tenancy modellt ezzel EGYÜTT kell eldönteni** — a lánc-szintű összesített lekérdezés igénye szűkíti a lehetőségeket |
 
 ---
 
@@ -2332,7 +2497,9 @@ Rögzítendő a kód előtt:
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
 | 1 | **B14.7 — két gép, két üzleti nap offline** | `[ ]` **ÚJ HÉZAG, döntést igényel** | Ha a szerver halott és két pénztárgép egymástól függetlenül nyit üzleti napot eltérő órával, **kettéhasad a napi zárás és az adatszolgáltatás** — és a bizonylatszámok már ki vannak nyomtatva. Javasolt ellenszer: nyitás előtt kötelezően kérdezze meg a tanúkat. |
-| 2 | **B16 — távoli konfiguráció a felhőből** | `[ ]` **ÚJ TÉTEL** | Kétirányúvá teszi a felhő-kapcsolatot. Eldöntendő: mit szabad távolról átírni, mi nyer ütközéskor, és hogyan látszik, hogy egy offline helyszín még nem vette át a változtatást. |
+| 2 | **B16.4 — beállítás vs. mennyiségi állapot** | `[ ]` **A LEGFONTOSABB MOST ELDÖNTENDŐ** | A felhő lehet autoritatív a **törzsadatra** (ár, láthatóság, receptúra) — de a **készlet futó egyenleg**, aminek nem lehet két gazdája. Javaslat: a felhő küldhet „vegyél fel 20 darabot"-ot, de soha nem „a készlet mostantól 40"-et. Utólag katasztrofális. |
+| 3 | **B16.7 — beállítás-paritás őre** | `[ ]` **DÖNTÉST IGÉNYEL** | „A felhőn minden beállítás legyen, ami a POS-on" — két felület, két repó, két nyelv, semmilyen fordító nem köti össze őket. §6 szerint **garantáltan szétcsúszik**, hacsak a beállítások nem EGY sémából épülnek, paritás-őrrel. Élesíti a B8-at. |
+| 4 | **B7 + a lánc-szint** | `[ ]` **EGYÜTT döntendő** | A franchise egy ÚJ hierarchia-szintet vezet be a telephely fölé, és a lánc-szintű összesített lekérdezés igénye érdemben szűkíti a multi-tenancy lehetőségeit. |
 | 3 | **B14.5 — jogi kérdés** | `[?]` **A JOGI KÖR KIEMELT TÉTELE** | Megfelel-e a több párhuzamos számtartomány a folyamatos sorszámozás követelményének? Forrás nélkül nem állítható. Ha egyetlen sorozat kell, a B14 megdől. |
 | 4 | **B11 — tanú-séma** | `[ ]` **JÓVÁHAGYÁSRA VÁR** | A séma SOHA nem dönt, csak bizonyítékot gyűjt — ezért nem kell hozzá elosztott konszenzus. |
 | 2 | **TPM-ellenőrzés** | `[FOLYAMATBAN]` — a felhasználó a napokban ellenőrzi | Addig **mindkét ágra készülünk**: a titkosítás konfigurációs képesség, és az admin felület kiírja, melyik ágon vagyunk. **Nem blokkolja a fázistervet.** |
@@ -2347,6 +2514,7 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~B16.1~~ | `[ELDÖNTVE]` | **A felhő teljes menedzsment-platform**, nem kiegészítő: teljes beállítás-paritás a POS-szal, raktárkezelés, alapanyag-mozgás, receptúrázás, statisztikák; **zárolható beállítások** (kiemelten ár és láthatóság); **üzletlánc/franchise szintű zárolható központi értékek**; visszajelzés a módosítás leérkezéséről; eszköz-láthatóság (mikor kommunikált utoljára, meg van-e nyitva). **Ez a legnagyobb scope-változás az egész munkamenetben, és önálló terméksávot jelent a fázistervben.** |
 | — | ~~B14.4~~ | `[ELDÖNTVE]` | **A SIDURI bizonylatszám formátuma: `xxxxxxyyyzzzzz`** — üzleti nap dátuma (a szervertől) + eszközszám + napi folyószám. Ez **megoldja mindkét korábbi aggályomat**: naponta újraindul, tehát soha nem fogy el; és a dátum-előtag miatt szám szerint időrendben áll. **Kikötés:** az `xxxxxx` az ÜZLETI NAP, nem a naptári nap — aki `DateTime.Now.Date`-ként írja meg, annak minden éjszakai helyen csendben elcsúszik a számozás. |
 | — | ~~B14 M2~~ | `[ELDÖNTVE, kiegészítve]` | A szerver adja ki az azonosítót és regisztráció nélkül nincs bizonylat — **helyes, de a klónt nem fogja meg**, mert a klón érvényes hitelesítéssel szinkronizál. **Hiányzó darab: hardveres ujjlenyomat (már tervben van a licencelésnél) + forgó hitelesítő adat.** Ha egy azonosító két ujjlenyomatról jelentkezik, **mindkettő tiltva**, amíg ember fel nem oldja. |
 | — | ~~B14 M4~~ | `[ELFOGADVA]` | **A kliens visszakérheti a saját előzményét a szervertől** → gépcsere után az új gép feltölti magát. Három kikötés: a visszatöltött archívum **hiányosabb lehet** (meg kell jelölni), adatkiadási csatorna (hitelesítés + audit), és a gépcsere **explicit, engedélyezett művelet** legyen. |

@@ -32,6 +32,7 @@ lásd „Miért nem kódolunk még".
 | `gemini_cloud_spec_en.md` | A Gemini felhő-specifikációja — **bemeneti dokumentum**, a munkamenet ELŐTTI állapot | **Csak a fájl végén lévő ÖSSZEVETÉSSEL együtt használható** — egy pontja felülírva, egy biztonsági aggály |
 | `siduri_superprompt_en.md` | Ugyanaz megaprompt formában (angol, Geminihez) | **Részben ELAVULT** — inline `[SUPERSEDED]` / `[OPEN]` jelölésekkel |
 | `FOLYAMATBAN.md` | Ez a fájl — állapot és folytatás | Élő |
+| **`FISKALIS_UZEMMODOK.md`** | A három fiskális üzemmód + az e-pénztárgépes integráció utánajárása | Élő; **hat kérdés a NAV/gyártó felé** |
 | **`ELLENORZES_1_TELJESSEG_JOGI.md`** | **Az 1. ellenőrző kör jelentése** — jogi megfelelés forrásokkal + teljességi vizsgálat | Élő; **négy lelet DÖNTÉST igényel** |
 | **`MERESEK.md`** | **A mérendő tételek egységes nyilvántartása.** A felhasználó kiemelt utasítása: az első éles tesztnél MINDENT meg kell mérni | Élő — kötelezően frissítendő |
 | `UiUX/` (mappa) | UI/UX skill-készlet (7 skill, köztük WPF és Flutter stack-adatok) | Eszköz, a design-fázisban használandó — lásd 0.2 |
@@ -103,7 +104,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Harmincnyolc döntés lezárva** (öt az 1., harminchárom a 2. munkamenetben, mindkettő 2026-08-22).
+**Negyvenöt döntés lezárva** (öt az 1., negyven a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -121,6 +122,12 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **Fiskális módok** | *(ÚJ)* Hány üzemmód van | **Három:** belső rendszer / online pénztárgép / e-pénztárgép. Az 1. módban a papírt **„NEM ADÓÜGYI BIZONYLAT"** jelöléssel kell ellátni | `FISKALIS_UZEMMODOK.md` |
+| **F4** | *(ÚJ)* A nap-fogalmak | **MUNKANAP** = a hely egészéé, max 25 óra (23:30 figyelmeztetés, 25 óra kényszerleállás), nem naptári nap. **MŰSZAK** = eszközönkénti, az adóügyi munkanap. **NTAK tárgynap** = naptári nap | `NYITOTT_KERDESEK.md`, keress: `F4 — A NAP-FOGALMAK` |
+| **C3/a,b** | *(ÚJ)* ÁFA és NTAK a terméken | **Két adókulcs kötelezően kitöltve**, az azonosság **jelölőként** tárolva. Az NTAK-kategória **feltételesen** kötelező (van-e kulcs) | `NYITOTT_KERDESEK.md`, keress: `C3/a` |
+| **C2/a,b** | *(ÚJ)* Ár-történet és termék-életciklus | A bizonylat az **eladáskori** árat, adót ÉS nevet tárolja. Három állapot: aktív / inaktív / **soft delete** — de egyik sem rejti el a **történetből** | `NYITOTT_KERDESEK.md`, keress: `C2/a` |
+| **A3** | *(ÚJ)* Purge és megőrzés | **A felhő a jogi archívum** (8 év). A „tisztán lokális" topológia így önmagában nem elegendő | `NYITOTT_KERDESEK.md`, keress: `A3 — purge` |
+| **B17** | *(ÚJ)* A felhő rendelkezésre állása | **Két fizikai szerver**, fő + másodlagos, automatikus átcsatornázással. **A telephelyi kézi megoldás indoklása NEM vihető át** — a felhőben mi uraljuk az infrastruktúrát | `NYITOTT_KERDESEK.md`, keress: `B17` |
 | **F7/a** | *(ÚJ)* Jogosultsági szintek | **Az ügyfél maga is létrehozhat/módosíthat szinteket** (pl. „Pultfőnök"), nem csak egyedi kivételeket. Frissítéskor érkező ÚJ jogosultság a meglévő szinteken **alapból tiltott**, de feltűnő jelzéssel | `NYITOTT_KERDESEK.md`, keress: `F7/a` |
 | **F7/b** | *(ÚJ)* A Siduri admin fiók | **Sérthetetlen** (az ügyfél nem módosíthatja, nem csökkentheti, nem írja át a jelszavát) + **fix offline belépés** kell. Javaslat: **telephelyenkénti** hitelesítő adattal, látható audittal | `NYITOTT_KERDESEK.md`, keress: `F7/b` |
 | **B16.12** | *(ÚJ)* Egy admin felület vagy kettő | **EGY webes admin alkalmazás, KÉT helyről kiszolgálva** (felhő + a telephely saját szervere offline-ra). A felhő raktár/receptúra ugyanaz, mint a telephelyi. **Ez a §6 néma szétcsúszást a gyökerénél szünteti meg** | `NYITOTT_KERDESEK.md`, keress: `B16.12` |

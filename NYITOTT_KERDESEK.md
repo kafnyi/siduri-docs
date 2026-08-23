@@ -36,6 +36,14 @@
 > eredménye, a B12 jogi kérdése, a B1/c R2–R5 kitöltése.
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
 >
+> **ÚJ (tizenhatodik kör — nagy blokk):** **Fiskális üzemmódok** három esetre bontva
+> (új fájl: `FISKALIS_UZEMMODOK.md`, benne a kért e-pénztárgépes utánajárás
+> eredményével). **F4** — mind a négy nap-fogalom definiálva, **három új
+> következménnyel** (bizonylatszám-ütközés; a 25 órás leállás ütközik a csökkentett
+> móddal; a Műszak = fiskális napzárás). **C3/a-b** — ÁFA és NTAK a terméken.
+> **C2/a-b** — árváltozás-történet és a termék életciklusa (soft delete).
+> **A3** — a felhő a jogi archívum. **B17** — a felhő saját rendelkezésre állása.
+>
 > **ÚJ (tizenötödik kör):** **F7/a** — szerkeszthető jogosultsági szintek (a frissítéskor
 > érkező ÚJ jogosultságok alapból tiltottak, de feltűnő jelzéssel). **F7/b** — a Siduri
 > admin fiók sérthetetlen + fix offline belépés; javaslat: telephelyenkénti hitelesítő
@@ -226,7 +234,45 @@ nem akadálya a szabályos nyugtaadásnak — sem technikailag, sem jogilag.
 térni a „(b) semmi — a hely megáll" ághoz. **Kódolás előtt igazolandó.**
 Kapcsolódik: C10, C11, F3.
 
-### `[?]` A3 — 30 napos purge vs. megőrzési kötelezettség
+### `[ELDÖNTVE — a felhő a jogi archívum]` A3 — purge és megőrzés
+
+**Döntés (2026-08-22), az 1. ellenőrző kör `L6` lelete után:** az adatok
+**a felhős szerveren** tárolódnak hosszú távon. A 8 éves megőrzési
+kötelezettséget (számviteli tv. 169. §) tehát **a felhő teljesíti**, nem a
+telephelyi gép.
+
+**Ez egyben a `L6` alatt felvázolt három út közül az elsőt választja**, és
+következik belőle:
+- **`[!]` A „tisztán lokális" topológia (spec 4.) önmagában NEM elegendő** egy
+  megfelelést igénylő ügyfélnek. Vagy nem adjuk ilyen formában, vagy az ügyfél
+  saját archiválási megoldást vállal — **és ezt a `B12` kockázatvállalási
+  nyilatkozatban rögzíteni kell.**
+- **`[!]` A purge SOHA nem törölhet olyat, aminek a megőrzéséről nincs POZITÍV
+  BIZONYÍTÉK** (§5). Nem elég, hogy „elküldtük" — **igazoltan meg kell lennie
+  a felhőben**, mielőtt a helyi példány törlődik.
+
+#### `[ ] KÉSŐBBI TERV` — összetett archiválási folyamat a felhőben
+
+**A felhasználó jelezte (2026-08-22), előre, hogy ne felejtsük el:** szeretne egy
+**összetett, akár túloptimalizált archiválási folyamatot** is a felhőben, hogy
+**a szerver tárhelyét se pazaroljuk feleslegesen.**
+
+**`[KÉSŐBBI FÁZIS]` — most nem tervezzük meg**, de **három dolgot most olcsó
+nem elrontani**, és később drága javítani:
+
+1. **A bizonylat legyen ÖNMAGÁBAN ÉRTELMEZHETŐ** (lásd `C2/a`: az eladáskori
+   név, ár, adókulcs benne van). **Egy archivált bizonylat, aminek a
+   megértéséhez a mai terméktörzs kell, nem archiválható önállóan** — és pont
+   az kell, hogy 8 év múlva is olvasható legyen, „a könyvelési feljegyzések
+   hivatkozása alapján visszakereshető módon" (169. §).
+2. **A tömörítés/hidegtárolás NE veszítsen felbontást.** Egy „napi összesítővé
+   tömörített" archívum **nem teljesíti** a bizonylat-szintű megőrzést.
+   Az összesítés **riport**, nem archívum.
+3. **A visszatöltés menete legyen kipróbálva, ne csak megtervezve.** Egy
+   archívum, amiből még soha nem állítottunk vissza, **nem archívum, hanem
+   remény** (§5: pozitív bizonyíték).
+
+**`[ ]` Felvéve a fázistervbe (`E1`) későbbi tételként.**
 A lokális szerver 30 nap után törli a felszinkronizált nyugtákat és event logot
 (HU 2., EN 2.). A számviteli megőrzés viszont több év → ebből az következne, hogy
 **a felhő nem opcionális, hanem a jogi archívum**, ami ellentmond a 4. pontnak
@@ -919,6 +965,105 @@ A LAN nem megbízható (vendég wifi ugyanazon az AP-n). Szükséges:
 - **a 4 jegyű PIN mindössze 10 000 kombináció** → rate limit + lockout kötelező;
 - PIN hash (argon2/bcrypt), nem sima hash;
 - API-szintű jogosultságellenőrzés, nem csak gomb-elrejtés a UI-on.
+
+### `[RÉSZBEN ELDÖNTVE]` B17 — A FELHŐ SAJÁT RENDELKEZÉSRE ÁLLÁSA (új tétel, 2026-08-22)
+
+**A felhasználó döntése:** a felhő is **két fizikai szerver** ugyanazzal a
+szoftverrel — egy **fő** és egy **másodlagos**. **Minden adat mindkét helyen
+meg kell legyen.** A fő szerver **terhelés függvényében megoszthassa a
+feladatokat** és **automatikusan átcsatornázhassa a forgalmat** a másodlagosra,
+**hogy a mi oldalunkról ne lehessen kimaradás.** A **folyamatos szinkron
+elengedhetetlen**, és **a bővíthetőség a mi oldalunkon is fontos.**
+
+#### `[!]` A LEGFONTOSABB, amit ki kell mondani: NE MÁSOLJUK IDE A TELEPHELYI MEGOLDÁST
+
+A telephelyen **kézi átkapcsolást** választottunk, mert **két gép nem tud
+többségi szavazást tartani**, és a hálózati szakadás megkülönböztethetetlen a
+géphaláltól.
+
+**A felhőben ez NEM így van, és ez FONTOS különbség:**
+
+| | Telephely | **Felhő** |
+|---|---|---|
+| Ki uralja az infrastruktúrát | az ügyfél | **mi** |
+| Lehet-e harmadik szavazó | nehezen (lekapcsolják a gépeket) | **igen, olcsón** |
+| Van-e menedzselt adatbázis-szolgáltatás automatikus átvétellel | nincs | **igen** |
+| Lehet-e terheléselosztó előtte | nem életszerű | **igen** |
+
+**Tehát a felhőben az AUTOMATIKUS átvétel nem ugyanaz a kockázat**, mint a
+telephelyen — ott azért volt veszélyes, mert nem tudtunk kvórumot építeni.
+**Itt tudunk.** A telephelyi döntés indoklása **nem vihető át**, és nem is szabad
+átvinni (§2.1: a premisszát itt is igazolni kell, nem analógiából venni).
+
+#### `[!]` DE: az „aktív-aktív, mindkettőn minden adat, folyamatos szinkron" a LEGNEHEZEBB konfiguráció
+
+A kérés három eleme **együtt** a legnehezebb elosztott rendszer:
+1. **minden adat mindkét helyen** +
+2. **terhelésmegosztás** (tehát mindkettő dolgozik) +
+3. **folyamatos szinkron**
+
+**Ha ez azt jelenti, hogy MINDKÉT szerver ÍR**, akkor **konfliktusfeloldás
+kell** — ugyanaz a probléma, amit a telephelyen `A2`-vel szándékosan
+elkerültünk. Két helyen egyszerre módosított árlista, két helyre egyszerre
+felküldött bizonylat: **nincs rá általános jó válasz.**
+
+#### `[JAVASLAT — döntésre]` A kérés teljesíthető, de bontsuk szét ÍRÁSRA és OLVASÁSRA
+
+> - **ÍRÁS: egy helyen.** Egy szerver fogadja az írásokat, a másik forró
+>   tartalék, **automatikus átvétellel** (ezt a felhőben biztonságosan meg
+>   tudjuk csinálni, lásd fent). **Konfliktus nem keletkezhet.**
+> - **OLVASÁS: mindkettőn.** A riportok, statisztikák, grafikonok, a webes
+>   felület böngészése — **ez a terhelés túlnyomó része** — elosztható.
+>
+> **Ez teljesíti a felhasználó célját** („ne lehessen a mi oldalunkról
+> kimaradás", „terhelés függvényében ossza meg a feladatokat"), **anélkül hogy
+> megfizetnénk az aktív-aktív írás árát.**
+
+**`[ ]` Döntést igényel.** Ha a felhasználó ragaszkodik az írás megosztásához is,
+az **vállalható**, de akkor **nevesíteni kell a konfliktusfeloldási szabályt**
+minden írható adatfajtára — ez érdemi munka és kockázat.
+
+#### `[!]` A „folyamatos szinkron" ugyanaz a csapda, mint a telephelyen
+
+A `B1/b`-nél már kimondtuk: **a „szinkron, ami baj esetén automatikusan
+aszinkronra vált" a legrosszabb választás**, mert pont akkor írsz védtelenül,
+amikor azt hiszed, védve vagy. **Ez a felhőben is ugyanúgy igaz.**
+**Vagy vállaltan szinkron** (a másodlagos kiesése lassítja/megállítja a főt),
+**vagy vállaltan aszinkron** (failovernél veszhet néhány másodperc) —
+**a néma átváltás tilos.**
+
+#### `[!]` Bővíthetőség: ez ELDÖNTI a `B7` multi-tenancy kérdést
+
+A felhasználó külön kiemelte a bővíthetőséget. **Ez összeér a `B7`-tel, ami még
+nyitva van, és a `B16.2` lánc-hierarchiával.**
+
+**`[JAVASLAT]` A természetes bővítési út a BÉRLŐ SZERINTI szétosztás
+(sharding):** ha a kapacitás elfogy, **új szervert állítunk be, és bérlőket
+mozgatunk rá** — nem az egy adatbázist próbáljuk nagyobbra hizlalni.
+
+**Egyetlen kikötéssel, ami MOST olcsó és később drága:**
+> **Egy LÁNC (franchise / többtelephelyes tulajdonos) MINDIG EGY szétosztási
+> egységen belül maradjon.**
+>
+> Enélkül a lánc-szintű összesített lekérdezés — ami a `B16.11` szerint
+> **alapkövetelmény** — **két adatbázison átívelő lekérdezéssé válik**, ami
+> nagyságrenddel drágább és lassabb.
+
+**`[ ]` A `B7` és a `B17` bővíthetőség EGYÜTT döntendő.**
+
+#### `[ ]` Ami még nyitva marad
+
+| Tétel | Kérdés |
+|-------|--------|
+| **B17/a** | Írás egy helyen (javaslat) vagy megosztva is? |
+| **B17/b** | Szinkron vagy vállaltan aszinkron replikáció a két felhős szerver között? |
+| **B17/c** | A két szerver **földrajzilag** hol van? Egy adatközpont = egy tűzeset. Két adatközpont = nagyobb késleltetés a szinkronnál. **És GDPR: EU-n belül** (`B7`). |
+| **B17/d** | **Mi a mentés?** A replikáció **NEM mentés** — egy törölt vagy elrontott adat szépen átreplikálódik. Ez a `D1` tétel a felhőre alkalmazva, és **eddig sehol nem szerepelt.** |
+
+**`[!]` A B17/d a legkomolyabb ezek közül**, és pontosan az a hiba, amit a `D1`
+a telephelyre már kimondott: *„a HA nem backup — a hibás vagy törölt adat szépen
+átreplikálódik a Standbyra."* **A felhőben ugyanez igaz, és ott MINDEN ügyfél
+adata egy helyen van.**
 
 ### `[ ]` B7 — Multi-tenancy a felhőben
 Nincs specifikálva: schema-per-tenant / DB-per-tenant / row-level. GDPR: adatexport,
@@ -2330,9 +2475,149 @@ teljesen hiányzik**:
 - nyitott árú tételek,
 - **súly szerinti termékek + mérleg integráció** — utóbbi sehol nem szerepel.
 
+### `[ELDÖNTVE]` C2/a — ÁRVÁLTOZÁS-TÖRTÉNET: a bizonylat az ELADÁSKORI árat és ÁFÁ-t tárolja
+
+**Döntés (2026-08-22):** a bizonylat **az eladás pillanatában érvényes árat és
+adókulcsot tárolja**, nem hivatkozást a termékre.
+
+**Miért kellett kimondani:** enélkül egy áremelés **visszamenőleg átírná a régi
+riportokat** — a tavalyi forgalom a mai árakon jelenne meg. És a
+`B16` (felhőből, akár láncszinten zárolt ár) után ez **még valószínűbb**, mert
+az árat távolról, tömegesen is át lehet írni.
+
+**Amit ez konkrétan jelent:**
+- a bizonylattétel tárolja: **a termék azonosítóját ÉS a nevét ÉS az egységárat
+  ÉS az adókulcsot ÉS a kedvezményt** — mind az akkori állapot szerint;
+- **a NÉV is** — különben egy átnevezett termék visszamenőleg átírja a régi
+  nyugták olvasatát;
+- ugyanez a szabály él a **receptúrára és a beszerzési átlagárra** is, ha az
+  árrés-riportnak visszamenőleg is helyesnek kell lennie. **`[ ]` Ez utóbbi
+  külön eldöntendő** — az árrés visszamenőleges pontossága drágább, mint az
+  eladási áré.
+
+### `[ELDÖNTVE]` C2/b — TERMÉK ÉLETCIKLUS: inaktiválás, soft delete, és a törlés tilalma
+
+**Döntés (2026-08-22):** egy **már eladott terméket nem szabad törölni** — de az
+**inaktiváláson felül** kell egy **soft delete** alternatíva is arra az esetre,
+*„ha ténylegesen rossz terméket csináltak és nem akarják javítani."*
+
+#### A három állapot, és mi a különbség
+
+| Állapot | Mikor | Látszik az eladási felületen | Látszik a történetben / riportban |
+|---------|-------|------------------------------|-----------------------------------|
+| **Aktív** | normál | igen | igen |
+| **Inaktív** | szezonális, átmenetileg nem árulják | **nem** | **igen** — és **visszakapcsolható** |
+| **Soft-deleted** | elrontott termék, nem javítják | **nem** | **igen** — de **nem szánják visszahozni** |
+
+**`[!]` A LEGFONTOSABB SZABÁLY, ami mindkettőre igaz:**
+> **Sem az inaktiválás, sem a soft delete NEM rejtheti el a terméket a
+> TÖRTÉNETBŐL.** Egy régi nyugta, riport vagy készletmozgás **továbbra is meg
+> kell mutassa**, mit adtak el. Ha a soft delete kiveszi a riportokból,
+> **a tavalyi forgalom megváltozik** — ami ugyanaz a hibaosztály, mint a
+> `C2/a`-nál.
+
+**A soft delete tehát az ELÉRHETŐSÉGET szünteti meg, nem a TÉNYT.**
+
+#### `[ ]` Amit még el kell dönteni
+
+1. **`[JAVASLAT]` Ha egy termék SOHA nem szerepelt egyetlen bizonylaton vagy
+   készletmozgáson sem, akkor legyen ténylegesen TÖRÖLHETŐ.** Ez a tiszta
+   megoldás az „elgépeltem, újra létrehozom" esetre — nem hagy szemetet.
+   **A kapu: bármilyen felhasználás után már csak soft delete.**
+2. **`[ ]` Visszavonható-e a soft delete?** Javaslom: igen, de **külön
+   jogosultsághoz kötve** — különben a soft delete és az inaktiválás
+   megkülönböztethetetlenné válik a gyakorlatban.
+3. **`[ ]` Mi történik, ha a soft-deleted termék szerepel egy RECEPTÚRÁBAN vagy
+   egy MENÜBEN?** Néma törés lenne, ha a menü egyik eleme eltűnik.
+   **Ellenőrzés kell a művelet előtt**, felsorolva, hol használják.
+4. **`[ ]` A vonalkód / gyorsgomb felszabadul-e?** Ha egy soft-deleted termék
+   megtartja a vonalkódját, az új termék nem kaphatja meg. Ha felszabadul,
+   a régi bizonylatok vonalkód szerinti visszakeresése félrevezet.
+   **Eldöntendő** — javaslom: **a vonalkód szabaduljon fel**, mert az fizikai
+   azonosító, és a visszakeresés úgyis a bizonylatszámon megy.
+
 ### `[ ]` C2 — Árazás
 Csak kedvezmények vannak. Hiányzik: happy hour / idősávos ár, zóna szerinti ár
 (terasz vs. belső), ár-verziózás (mikortól érvényes), kuponok.
+
+### `[ELDÖNTVE]` C3/a — ÁFA A TERMÉKEN: két kulcs, kötelező kitöltés, NTAK-kategória
+
+**A felhasználó döntése (2026-08-22) — és a felelősség tisztázása:**
+
+> *„az áfa megadása a termékekhez az ügyfél felelőssége, és mi ezért garanciát
+> nem is vállalunk, mi csak a lehetőséget kell biztosítsuk."*
+
+**Ez helyes és fontos határkijelölés.** A rendszer **eszközt ad**, nem
+adótanácsot. Az 1. ellenőrző kör `L7` leletében leírt jogi finomságok
+(helyben készített ital vs. palackozott, a vevő fogyasztási szándéka) **nem a
+szoftver feladatai** — de **a szoftvernek lehetővé kell tennie, hogy az ügyfél
+helyesen állítsa be őket.** Ezért:
+
+#### Amit a rendszer biztosít
+
+1. **Termékenként KÉT adókulcs megadható:** egy **helyben fogyasztásra**, egy
+   **elvitelre**.
+2. **Megjelölhető, hogy az elviteles adókulcs MEGEGYEZIK a helyben
+   fogyasztásossal** — ekkor a rendszer „másolja" az adókört.
+3. **`[!]` BIZTONSÁGI KAPU:** **termék NEM hozható létre adókulcs nélkül**, és
+   **akkor sem, ha az egyik adókulcs (pl. az elviteles) hiányzik.**
+   **Csak teljesen kitöltött adóadatokkal engedjük létrehozni.**
+
+#### `[!]` EGY MEGVALÓSÍTÁSI KIKÖTÉS, ami nélkül némán elromlik
+
+A „másolja az adókört" **JELÖLŐKÉNT tárolandó, ne MÁSOLT ÉRTÉKKÉNT.**
+
+- **Ha az érték másolódik** a létrehozáskor: később valaki átírja a helyben
+  fogyasztásos kulcsot, és **az elviteles csendben a régin marad.**
+  A termék ettől kezdve **rossz adókulccsal** megy ki elvitelre — és a nyugta
+  szabályosnak látszik. Ez pontosan a §5 néma kudarca.
+- **Ha JELÖLŐ van tárolva** („az elviteles = a helyben fogyasztásos"), akkor a
+  feloldás **használatkor** történik, és **együtt mozognak.**
+
+**A megjelenítés viszont mutassa a HATÁLYOS értéket is**, ne csak a jelölőt —
+ugyanaz az elv, mint a felhőből zárolt áraknál (`B16.3`): a felhasználó lássa,
+**mi az érték ÉS honnan jön.**
+
+#### `[ ]` Kapcsolódó, még eldöntendő
+
+- **`[ ]` Mi történik a MEGLÉVŐ termékekkel, ha később új kötelező adómező
+  jelenik meg?** A kapu csak az újakra hat. A régiek migrációja kell — és amíg
+  nincs kitöltve, **jelezni kell**, nem csendben elengedni.
+- **`[ ]` Az `L7` szerinti „bruttó ár fix marad" kikötés (spec 9.) CSAK ott
+  értelmes, ahol a két kulcs tényleg eltér.** Ahol azonos (pl. alkohol),
+  ott nincs mit fixen tartani. Ezt a szabályt ki kell mondani, különben a
+  megvalósítás egy nem létező esetre készül.
+
+### `[ELDÖNTVE]` C3/b — NTAK-KATEGÓRIA a terméken: feltételesen kötelező
+
+**A felhasználó döntése:** az NTAK fő- és alkategória **kiválasztását biztosítani
+kell a termékekhez**, de:
+
+| A hely állapota | Az NTAK-kategória |
+|---|---|
+| **Nincs NTAK-kulcs beillesztve** (nem NTAK-köteles) | **NEM kötelező**, és **ne is figyelmeztessünk** rá |
+| **Van NTAK-kulcs** (integrálva van) | **kötelező** — vagy legalábbis **erősen figyelmeztetünk** a kötelezettségre |
+
+**Ez jó tervezés:** a rendszer **abból következtet, amit tud** (van-e kulcs),
+nem kérdezget feleslegesen. §5 fordítottja: ne zaklassunk olyasmivel, ami az
+adott helyen nem értelmezhető.
+
+#### `[ ]` Amit ez megkövetel
+
+1. **`[!]` A kulcs beillesztésének PILLANATA a kritikus.** Amikor egy hely
+   utólag NTAK-kötelessé válik és beteszi a kulcsot, **az összes MEGLÉVŐ terméke
+   kategória nélkül áll.** Kell rá:
+   - **tömeges kitöltő felület** (kategória hozzárendelése termékcsoportokhoz),
+   - **és egy le nem tűnő jelzés**, amíg van kategória nélküli, forgalmazott termék.
+   **Enélkül az adatszolgáltatás hiányos lesz, és az csendben történik.**
+2. **`[ ]` Kötelező vagy csak figyelmeztetés?** A felhasználó a kettő közül
+   nem választott („vagy legyen kötelező… vagy erősen figyelmeztessük").
+   **Javaslom: figyelmeztetés a termék mentésekor, DE kemény tiltás az
+   ÉRTÉKESÍTÉSRE** — kategória nélküli terméket ne lehessen eladni olyan
+   helyen, ami NTAK-integrált. Így a rögzítés nem akad meg, de hiányos adat
+   nem kerül forgalomba. **Döntést igényel.**
+3. **Az NTAK-kategórialista ADATVEZÉRELT és VERZIÓZOTT legyen** (§13.1, §13.3) —
+   a lista változhat, és **kódkiadás nélkül frissíthetőnek kell lennie.**
 
 ### `[ ]` C3 — `[RÉSZBEN ELDÖNTVE]` ÁFA-mátrix
 A „mit égetünk be" kérdés **lezárva**: a MERNOKISAROKKOVEK §13.1–13.3 szerint az
@@ -2554,6 +2839,98 @@ hiányán.
 
 Kapcsolódik: C10, B4, D5.
 
+### `[ELDÖNTVE — mind a négy nap definiálva]` F4 — A NAP-FOGALMAK
+
+> **A felhasználó definíciói (2026-08-22).** Ez lezárja az `F4` tételt és az
+> 1. ellenőrző kör `T1.1` leletét is: eddig **négy nap-fogalom élt a tervben,
+> egyik sem definiálva.**
+
+| Fogalom | Definíció | Kihez tartozik |
+|---------|-----------|----------------|
+| **MUNKANAP** (üzleti nap) | A rendszerben nyitott Munkanap **nyitásától a lezárásáig** tartó, **legfeljebb 25 órás** intervallum. **Nem naptári nap**, lehet eltolódás. **Ugyanarra a dátumra több Munkanap is nyitható.** | **A HELY EGÉSZE** — minden eszközre közösen |
+| **MŰSZAK** (adóügyi munkanap) | Az adóügyi eszköz saját munkanapja. **Minden eszköz külön Műszakot nyit** a Munkanapon belül, zárhatja és nyithat újat. | **ESZKÖZÖNKÉNT** |
+| **NTAK TÁRGYNAP** | Az adott értékesítés **naptári napja**. | jogszabályi fogalom |
+| **NAPTÁRI NAP** | 00:00 – 23:59. | — |
+
+#### A Munkanap időzítése
+
+- **23 óra 30 perc** eltelte után **figyelmeztetés**: a Munkanapot 24 óránként
+  le kell zárni.
+- **1 óra türelmi idő.**
+- **25 óra letelte után MINDEN GÉP MEGÁLL** — nincs értékesítés, amíg új
+  Munkanapot nem nyitnak.
+
+#### Miért jó ez a modell
+
+**A Munkanap a helyé, a Műszak az eszközé** — és ez tisztán megoldja azt, ami
+eddig kavarodás volt: „egy Munkanapon több Műszak" kérdése **szerkezetileg**
+oldódik meg, nem szabállyal.
+
+---
+
+#### `[!]` HÁROM KÖVETKEZMÉNY, amit ez a definíció TEREMT
+
+##### `[!] K1 — A BIZONYLATSZÁM ÜTKÖZIK, ha egy dátumra több Munkanap esik`
+
+**A felhasználó maga jelezte:** *„lehet több munkanapot is nyitni ugyanarra a
+dátumra is, ezt is le kell majd kezelni valahogy a nyugtaszámokat illetően."*
+
+**A probléma pontosan:** a bizonylatszám `xxxxxxyyyzzzzz`, ahol `xxxxxx` a
+**dátum**. Ha a folyószám (`zzzzz`) **Munkanaponként** indul újra, és **két
+Munkanap ugyanarra a dátumra esik**, akkor a 3-as eszköz **mindkét Munkanapon
+kiadja a `26082200300001`-et** → **duplikált bizonylatszám.**
+
+**JAVASOLT MEGOLDÁS — a legegyszerűbb, ami működik:**
+
+> **A folyószám ne MUNKANAPONKÉNT induljon újra, hanem DÁTUMONKÉNT.**
+> A számláló kulcsa: **(eszköz, dátum-előtag)** — nem (eszköz, Munkanap).
+>
+> Ha egy dátumra második Munkanap nyílik, a számláló **egyszerűen folytatódik**
+> ott, ahol az első abbahagyta. **Ütközés nem keletkezhet**, a formátum nem
+> változik, és a napi 99 999-es keret **több Munkanapra is bőven elég.**
+>
+> **Melyik Munkanaphoz tartozott a bizonylat, az KÜLÖN MEZŐ** — nem a
+> sorszámból olvassuk ki. (Amúgy sem lenne szabad: §8, a megjelenített/származtatott
+> érték nem alkalmas állapot-felismerésre.)
+
+**Ez a legkisebb változtatás, ami a problémát megszünteti** — nem szabállyal
+kezeli, hanem **nem engedi keletkezni.** `[ ]` **Jóváhagyásra vár.**
+
+##### `[!] K2 — A 25 órás kényszerleállás ÜTKÖZIK a csökkentett móddal`
+
+**Két korábbi döntés feszül egymásnak:**
+- **25 óra után minden gép megáll**, amíg nem nyitnak új Munkanapot;
+- **a Munkanap a HELYÉ, tehát a szerveren dől el;**
+- **de a csökkentett mód épp arról szól, hogy a szerver NEM elérhető.**
+
+**Következmény, ha nem kezeljük:** a szerver kiesik 23:00-kor, a pénztárgépek
+csökkentett módban dolgoznak — **és 25 óra elteltével MEGÁLLNAK**, mert nem
+tudnak új Munkanapot nyitni. **A csökkentett mód pont akkor mondja fel a
+szolgálatot, amikor a legnagyobb szükség lenne rá.**
+
+**`[ ]` Kell rá szabály.** Három lehetőség, döntést igényel:
+- **(a)** csökkentett módban a pénztárgép **maga nyithat Munkanapot**, a
+  `B14.7` óra-ellenőrzéssel és a tanúk megkérdezésével — visszatéréskor a
+  szerver egyezteti;
+- **(b)** a 25 órás plafon csökkentett módban **felfüggesztődik**, és a
+  szerver visszatérésekor **azonnal ki kell zárni** a Munkanapot;
+- **(c)** marad a kemény leállás — **vállaltan**, kiírva az ügyfélnek.
+
+**Az (a) illeszkedik legjobban a többi döntéshez**, de ez a legtöbb munka, és
+felveti a `B14.7` alatti „két gép, két Munkanap" hézagot.
+
+##### `[!] K3 — A MŰSZAK = adóügyi napzárás, tehát a fiskális napszámláló GYORSABBAN fogy`
+
+Ha a **Műszak** az adóügyi eszköz munkanapja, akkor **a Műszak lezárása fiskális
+napzárást (Z-jelentést) vált ki** az eszközön — nem csak Siduri-oldali könyvelés.
+**Ezt ki kell mondani**, mert különben valaki „csak egy Siduri-státuszváltásnak"
+fogja megvalósítani.
+
+**És van egy számszerű következménye:** a fiskális azonosítóban a napszámláló
+4 jegyű (9999 zárás). Korábban **napi egy zárással ~27 évet** számoltam.
+**Ha egy hely naponta 3 Műszakot zár, az ~9 év.** Nem riasztó, de
+**nem is 27** — és a szám a tervben szerepel, tehát pontosítom.
+
 ### `[ ]` F4 — Két, egymástól független „napi zárás"
 A rendszerben **két** napzárás-fogalom él, és a spec nem köti össze őket:
 - **NTAK napi zárás** (HU 14., EN 14.) — aszinkron forgalmi/ÁFA-összesítő,
@@ -2752,7 +3129,12 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **B14.7 — két gép, két üzleti nap offline** | `[ ]` **ÚJ HÉZAG, döntést igényel** | Ha a szerver halott és két pénztárgép egymástól függetlenül nyit üzleti napot eltérő órával, **kettéhasad a napi zárás és az adatszolgáltatás** — és a bizonylatszámok már ki vannak nyomtatva. Javasolt ellenszer: nyitás előtt kötelezően kérdezze meg a tanúkat. |
+| 1 | **F4/K1 — bizonylatszám-ütközés** | `[ ]` **A felhasználó maga jelezte; javaslat megírva** | Ha egy dátumra két Munkanap esik és a folyószám Munkanaponként indul újra, **duplikált bizonylatszám** keletkezik. Javaslat: a számláló kulcsa **(eszköz, dátum)**, ne (eszköz, Munkanap). |
+| 2 | **F4/K2 — a 25 órás leállás vs. csökkentett mód** | `[ ]` **ÜTKÖZÉS két döntés között** | 25 óra után minden gép megáll, de új Munkanapot a szerver nyit — miközben a csökkentett mód épp arról szól, hogy a szerver nem elérhető. A csökkentett mód így pont akkor mondaná fel a szolgálatot, amikor kell. |
+| 3 | **B17/a — a felhő írás-modellje** | `[ ]` **DÖNTÉST IGÉNYEL** | Az „aktív-aktív, mindkettőn minden adat" a legnehezebb konfiguráció. Javaslat: **írás egy helyen automatikus átvétellel, olvasás megosztva** — ez teljesíti a célt az aktív-aktív írás ára nélkül. |
+| 4 | **B17/d — a felhő MENTÉSE** | `[ ]` **ÚJ HÉZAG** | A replikáció NEM mentés: a törölt vagy elrontott adat átreplikálódik. A telephelyre ezt már kimondtuk (`D1`), a felhőre nem — pedig ott MINDEN ügyfél adata egy helyen van. |
+| 5 | **Fiskális: kell-e engedély a MI szoftverünknek?** | `[?]` **NEM eldönthető nyilvános anyagból** | Ha igen, hetekben-hónapokban és pénzben mérhető. Közvetlen kérdés a NAV-hoz és egy gyártóhoz — **korán indítandó**. Lásd `FISKALIS_UZEMMODOK.md` 4.4. |
+| 6 | **B14.7 — két gép, két üzleti nap offline** | `[ ]` **hézag, döntést igényel** | Ha a szerver halott és két pénztárgép egymástól függetlenül nyit üzleti napot eltérő órával, **kettéhasad a napi zárás és az adatszolgáltatás** — és a bizonylatszámok már ki vannak nyomtatva. Javasolt ellenszer: nyitás előtt kötelezően kérdezze meg a tanúkat. |
 | 2 | **B16.4 — beállítás vs. mennyiségi állapot** | `[ ]` **A LEGFONTOSABB MOST ELDÖNTENDŐ** | A felhő lehet autoritatív a **törzsadatra** (ár, láthatóság, receptúra) — de a **készlet futó egyenleg**, aminek nem lehet két gazdája. Javaslat: a felhő küldhet „vegyél fel 20 darabot"-ot, de soha nem „a készlet mostantól 40"-et. Utólag katasztrofális. |
 | 3 | **B16.7 — beállítás-paritás őre** | `[ ]` **DÖNTÉST IGÉNYEL** | „A felhőn minden beállítás legyen, ami a POS-on" — két felület, két repó, két nyelv, semmilyen fordító nem köti össze őket. §6 szerint **garantáltan szétcsúszik**, hacsak a beállítások nem EGY sémából épülnek, paritás-őrrel. Élesíti a B8-at. |
 | 4 | **B7 + a lánc-szint** | `[ ]` **EGYÜTT döntendő** | A franchise egy ÚJ hierarchia-szintet vezet be a telephely fölé, és a lánc-szintű összesített lekérdezés igénye érdemben szűkíti a multi-tenancy lehetőségeit. |
@@ -2770,6 +3152,14 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~Fiskális üzemmódok~~ | `[ELDÖNTVE]` | **Három üzemmód:** (1) belső rendszer adóügyi eszköz nélkül, (2) online pénztárgép, (3) e-pénztárgép. Részletek: **`FISKALIS_UZEMMODOK.md`**. Az 1. módban `[!]` a nyomtatott papírt **„NEM ADÓÜGYI BIZONYLAT"** jelöléssel kell ellátni, különben nyugtának néz ki. |
+| — | ~~F4~~ | `[ELDÖNTVE]` | **Mind a négy nap-fogalom definiálva.** MUNKANAP = a HELYÉ, max 25 óra (23:30-nál figyelmeztetés, 25 óránál kényszerleállás), nem naptári nap, egy dátumra több is nyitható. MŰSZAK = az ESZKÖZÉ, az adóügyi munkanap. NTAK tárgynap = naptári nap. |
+| — | ~~C3/a~~ | `[ELDÖNTVE]` | **Termékenként két adókulcs** (helyben / elvitel), megjelölhető az azonosság, és **termék nem hozható létre hiányos adóadattal**. Az adó megadása az ügyfél felelőssége. **Kikötés:** az „azonos" JELÖLŐKÉNT tárolandó, ne másolt értékként, különben a helyben fogyasztásos kulcs átírásakor az elviteles csendben a régin marad. |
+| — | ~~C3/b~~ | `[ELDÖNTVE]` | **NTAK-kategória feltételesen kötelező:** nincs NTAK-kulcs → nem kell és nem is figyelmeztetünk; van kulcs → kötelező vagy erős figyelmeztetés. **Kritikus pillanat:** amikor egy hely utólag illeszt be kulcsot, minden meglévő terméke kategória nélkül áll. |
+| — | ~~C2/a~~ | `[ELDÖNTVE]` | **A bizonylat az ELADÁSKORI árat, adókulcsot ÉS NEVET tárolja**, nem hivatkozást — különben egy áremelés vagy átnevezés visszamenőleg átírja a régi riportokat. |
+| — | ~~C2/b~~ | `[ELDÖNTVE]` | **Három állapot:** aktív / inaktív (szezonális, visszakapcsolható) / **soft delete** (elrontott termék). **Egyik sem rejtheti el a terméket a TÖRTÉNETBŐL** — csak az elérhetőséget szünteti meg. Javaslat: soha nem használt termék legyen ténylegesen törölhető. |
+| — | ~~A3~~ | `[ELDÖNTVE]` | **A felhő a jogi archívum** — a 8 éves megőrzést a felhő teljesíti. Következmény: a „tisztán lokális" topológia önmagában nem elegendő, és ezt a kockázatvállalási nyilatkozatban rögzíteni kell. Későbbi tervként felvéve az összetett felhős archiválás. |
+| — | ~~B17~~ | `[RÉSZBEN ELDÖNTVE]` | **A felhő is két fizikai szerver**, fő + másodlagos, minden adat mindkettőn, terhelésmegosztás, automatikus átcsatornázás. **Fontos:** a telephelyi „kézi átkapcsolás" indoklása **NEM vihető át** ide — a felhőben mi uraljuk az infrastruktúrát, tehát az automatikus átvétel biztonságosan megépíthető. |
 | — | ~~F7/a~~ | `[ELDÖNTVE]` | **Szerkeszthető jogosultsági SZINTEK** — az ügyfél maga hozhat létre szintet (pl. „Pultfőnök"), nem csak egyedi kivételeket. **Frissítési csapda felvéve:** egy új verzió új jogosultságai a meglévő, testreszabott szinteken **alapból TILTOTTAK**, de a felület **feltűnően jelezze**, hogy N új jogosultság érkezett és át kell nézni — különben az új funkció némán nem működik. |
 | — | ~~F7/b~~ | `[ELDÖNTVE]` | **A Siduri admin fiók sérthetetlen** (nem módosítható, jogköre nem csökkenthető, jelszava nem írható át az ügyfél által), és **van fix offline belépési lehetőség** — a felhasználó a biztonsági aggály ismeretében tartja fenn. **Javaslat a megvalósításra:** ugyanez a képesség **telephelyenkénti** hitelesítő adattal (egy kiszivárgás egy telephelyet érint, nem mindet), challenge–response elsődleges úttal. Kötelező kísérők: sebességkorlát, **az ügyfél számára is látható, törölhetetlen audit**, látható jelzés a gépen, időkorlát. |
 | — | ~~B16.10~~ | `[ELDÖNTVE]` | **Leltár — az egyetlen jogos „felülírás", de mégis MOZGÁSKÉNT.** A megszámolt mennyiség és a rendszer szerinti eltérése **korrekciós mozgásként** könyvelődik, nem néma felülírásként — így az eltérés kimutatható marad, ami a leltár egész értelme. **Időzítési csapda:** az eltérést a **fordulónapi** készlethez kell mérni, nem a rögzítéséhez, különben a közben eladott mennyiséget hiányként könyveli és kitörli az időközbeni eladásokat. |

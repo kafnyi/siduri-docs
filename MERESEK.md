@@ -4,7 +4,7 @@
 > memória- és versenyhelyzet-állítás CSAK méréssel." Nélküle ezek a tételek
 > szétszóródnak a tervben, és a fázisterv írásakor egy részük némán kimarad.**
 >
-> **Utolsó frissítés:** 2026-08-22 (2. munkamenet — M14 felvéve)
+> **Utolsó frissítés:** 2026-08-23 (3. munkamenet — M15–M18 felvéve)
 > **Belépési pont a projekthez:** `FOLYAMATBAN.md`
 > **A döntések igazságforrása:** `NYITOTT_KERDESEK.md`
 
@@ -173,3 +173,38 @@ KETTŐT — az M12 pedig a TELJES referencia-telepítést** (3 Windows POS + 2 t
 terhelés. Ez beszerzési és logisztikai tétel, nem fejlesztési — a
 `NYITOTT_KERDESEK.md` `E3` tételéhez tartozik, és **hetekig tarthat**.
 Érdemes a kódolással párhuzamosan elindítani.
+
+---
+
+## 6. Fiskális eszköz és napló — a 2026-08-23-i körből
+
+### `[ ]` M15 — **Elfogadja-e az adóügyi eszköz a NULLA összegű tételt?**
+A gyártói protokoll szerint a nulla összegű tétel támogatott. Hogy az adott
+firmware és a NAV-engedély is elfogadja-e, az **nem következik ebből**.
+
+**Ez blokkoló mérés:** ha nem fogadja el, a teljes „ár nélküli módosító =
+szövegsor" megoldás (G2.3) újratervezendő, és visszajön az elvetett kerülőút
+kérdése.
+
+**Mérés:** éles készüléken, nulla összegű tétel küldése, a hibakód és a kinyomott
+bizonylat rögzítése. Ugyanebben a menetben: **negatív mennyiség**
+(göngyölegvisszavétel) és **negatív ár** viselkedése.
+
+### `[ ]` M16 — Melyik gyűjtőre mehet a DRS visszaváltási díj?
+A 8 fix rekeszben nincs DRS-hely (G1). A TAM az egyetlen jelölt, de a TAM
+„tárgyi adómentes", ami **nem azonos** az „áfa hatályán kívülivel".
+**Ez elsősorban kérdés a gyártó és/vagy a NAV felé, másodsorban mérés** —
+ha megengedett az AJT rekesz újrakiosztása, azt is ki kell próbálni.
+
+### `[ ]` M17 — Nyomtatási válaszidő és a bizonylat teljes ciklusideje
+Mivel a **kliens nyomtat** és a szerver nincs a kritikus úton (G7), a nyugta
+kiadásának ideje gyakorlatilag a fiskális eszköz válaszidejétől függ.
+**Mérendő:** egy átlagos (6 tételes) és egy nagy (25 tételes, módosítókkal,
+szétrobbantott menüvel) bizonylat teljes ciklusa, a több parancsos küldés
+darabolásával együtt. Ebből derül ki, hány tétel felett lassul érezhetően.
+
+### `[ ]` M18 — Az audit napló KÉT ágának tényleges mérete
+A becslés (G9.2): biztonsági ág ~150–300 rekord/nap/telephely, működési ág
+~3000–5000. **A működési ág viszi a tárhelyet, nem a biztonsági.**
+**Mérendő:** valós forgalom mellett a rekordszám, a tömörített méret, és a
+hash-lánc írási költsége a biztonsági ágon.

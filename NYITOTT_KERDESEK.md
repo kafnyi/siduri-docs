@@ -3754,3 +3754,315 @@ a spec állítása vagy emlékezetből írt feltevés:
 | **C10** | „Teljesen új negatív fiskális nyugta" sztornóra | A teljes sztornó-folyamat (13.) |
 | **C11** | 24 órás NTAK adatszolgáltatási limit, 18 órás riasztás | A 19. pont SLA-figyelmeztetése |
 | **C12** | Az e-nyugta iránnyal most nem kell foglalkozni | A bizonylat-modell alakja |
+
+---
+
+## G) A 2026-08-23-i kör — módosítók, menü, DRS, pénz, audit napló, nyomtatás
+
+Ez a kör három bemenetből dolgozott: a feltöltött **gyűjtőkiosztás**, a feltöltött
+**gyártói AEE illesztő-protokoll** (lásd G0 — jogi korlát), és a **DRS**
+elsődleges forrásokból végzett kutatása.
+
+### `[JOGI KORLÁT — KÖTELEZŐ BETARTANI]` G0 — A gyártói protokolldokumentum nem publikálható
+
+A kapott illesztő-protokoll PDF **kifejezett szerzői jogi nyilatkozatot hordoz**:
+a kiadó kizárólagos tulajdona, írásbeli engedély nélkül másolása és terjesztése
+tilos. Partneri megállapodás **nincs** — eddig egyetlen, szöveg nélküli e-mailes
+válasz érkezett egy integrációs megkeresésre.
+
+**Ebből következő, kötelező szabályok:**
+
+| # | Szabály |
+|---|---------|
+| G0.1 | A dokumentum tartalma **semmilyen formában nem kerülhet a dokumentációba** — sem idézet, sem parancstáblázat, sem „átfogalmazva, de felismerhetően". |
+| G0.2 | A dokumentációban a fiskális illesztés **csak absztrakt szinten** írható le: „a fiskális adapter a gyártó helyi szolgáltatásával kommunikál; a konkrét parancskészletet a gyártó zárt dokumentációja írja le". Portszám, parancsnevek, mezőnevek, hibakódok **nem**. |
+| G0.3 | A protokoll részletei **kizárólag a fejlesztéshez** használhatók. |
+| G0.4 | A gyártóspecifikus illesztő **elkülönített modulban** éljen, a többi kódtól tisztán elválasztva, hogy bármikor kiemelhető legyen. |
+| G0.5 | **NYITOTT KOCKÁZAT:** a megvalósított illesztőkód szükségszerűen tartalmazni fogja a parancsneveket. Ha bármelyik repó valaha publikussá válik, a modult ki kell emelni. **Eldöntendő: a repók privátok maradnak-e.** |
+
+**Járulékos, nem jogi kockázat, amit ki kell mondani:** partneri megállapodás
+nélkül olyan termékhez illesztünk, amihez **nincs támogatási szerződésünk, nincs
+tesztkészülékünk és nincs értesítésünk a firmware-változásokról**. A fiskális
+mérföldkő ezért **fizikai tesztkészülék nélkül nem zárható le** — ez ütemezési
+korlát, nem fejlesztési feladat.
+
+### `[ELDÖNTVE]` G1 — A gyűjtőkiosztás 8 fix rekesze kemény korlát
+
+A kapott kiosztás: **Termék 5% / 18% / 27%**, **Szervizdíj 5% / 18% / 27%**,
+**TAM**, **AJT** — összesen 8, **egy sem szabad**.
+
+| # | Következmény |
+|---|--------------|
+| G1.1 | Az áfakulcs-készlet kötött: **5 / 18 / 27 / TAM / AJT**. Más nem küldhető. A validációt a **terméktörzs mentésénél** kell megfogni, nem nyomtatáskor — ott már késő. |
+| G1.2 | **A szervizdíjnak saját, áfakulcsonkénti gyűjtői vannak.** A szervizdíjat tehát **nem szabad** a termék tételébe olvasztani, és **áfakulcsonként bontva** kell számolni, nem egyetlen záró összegként. *A korábbi tervben ez rosszul szerepelt — javítandó.* |
+| G1.3 | Az **AJT** (adójegyes termék) vendéglátásban gyakorlatilag használatlan → ez az egyetlen esélyes szabad rekesz, ha a gyártó megengedi az újrakiosztást. **Kérdés a gyártó felé.** |
+| G1.4 | Bármi új igény (pl. DRS visszaváltási díj, G4) csak meglévő rekesz terhére fér be. |
+
+### `[ELDŐLT — a felhasználó jobb megoldást adott]` G2 — Módosítók
+
+#### G2.1 — FreeLimit (ingyenes választások száma)
+
+Csoportszintű mező: hány elem választható ingyen, mielőtt a többi fizetőssé válik.
+Független a `min`/`max`-tól.
+
+**DÖNTÉS:** a `FreeLimit` mellé **külön beállítás, hogy MELYIK elemek ingyenesek**,
+három lehetőséggel: **legdrágább / legolcsóbb / legelső**.
+**Alapértelmezés: LEGELSŐ** (a választás sorrendje szerint).
+Az ügyfél állítja be, akár termékenként.
+
+*Az eredeti javaslat (fix „legdrágább" logika, kapcsolóval) elvetve — a
+háromállású, ügyfél által vezérelt változat jobb: nem mi döntjük el helyette,
+mi az üzletpolitikája.*
+
+#### G2.2 — A módosító MINDIG eltérés (ez a kör legfontosabb egyszerűsítése)
+
+**DÖNTÉS:** az alapállapot a **receptúra**. A ketchup a hamburger receptjének
+része, nem módosító. Aki „ketchup nélkül" opciót akar, **levonó módosítót** csinál rá.
+
+**Miért ez a jó modell:** nem kell minden receptúra-tételt egyesével automatikus
+módosítóvá alakítani, és **megszűnik az „alapállapot vs. eltérés" megkülönböztetés
+a nyomtatási logikában**.
+
+**Ebből következő, egyszerű szabály:**
+
+> **Ami módosítóként a sorra kerül, az MINDIG eltérés vagy fontos egyedi kérés →
+> MINDIG nyomtatjuk és MINDIG megjelenítjük a KDS-en.** Kivétel nincs.
+
+**Járulékos következmények, amiket a modellbe kell tenni:**
+
+| # | Következmény |
+|---|--------------|
+| G2.2.a | A **levonó módosítónak be kell tudnia nyúlni a szülőtermék receptjébe.** Nem elég, hogy „saját receptje van" — ki kell tudnia venni egy összetevőt a szülő levonásából. |
+| G2.2.b | A levonó módosító **ANYAGRA (összetevőre) hivatkozzon, ne konkrét receptsorra.** Így egyetlen „Ketchup nélkül" módosító minden olyan terméken működik, aminek a receptjében ketchup van; ahol nincs, ott nem csinál semmit (beállításkor érdemes figyelmeztetni). |
+| G2.2.c | A `default` (előre bejelölt) jelző **megmarad**, de **csak előválasztásra** — a kötelező választású csoportoknál (pl. „milyen köret?") gyorsít. **A nyomtatásra nincs hatása:** ami a soron van, az nyomtatódik. |
+| G2.2.d | A levonó módosító **visszaírja a készletet** — ez a lényege. |
+
+#### G2.3 — Ár nélküli módosító = szövegsor, nem tétel
+
+A gyártói protokoll a tételsorhoz **szöveges kiegészítő mezőket** kínál. Az ár
+nélküli módosító oda való: megjelenik a termék alatt, de **nem tétel** — nincs ára,
+áfája, gyűjtője.
+
+**Szabály:** *ár nélküli módosító = szövegsor; áras módosító = önálló tétel.*
+Harmadik eset nincs.
+
+**Ezzel a korábban felmerült „0 Ft-os módosító legyen 1 Ft, és vonjunk le 1 Ft-ot
+a termék árából" megoldás ELVETVE**, mert:
+
+- több 0 Ft-os módosítónál halmozódik → a nyugtán nem az étlapi ár szerepel
+  (**ártájékoztatási jogsértés**, akkor is, ha a végösszeg stimmel);
+- áfakulcsot vált, ha a termék és a módosító más kulcson van;
+- mennyiséggel szorzódik;
+- a százalékos kedvezmény alapját elrontja.
+
+⚠️ **MÉRENDŐ:** a protokoll szerint a nulla összegű tétel támogatott, de hogy az
+adott firmware és a NAV-engedély elfogadja-e, azt **éles készüléken kell
+ellenőrizni** → `MERESEK.md`.
+
+#### G2.4 — Levonó módosító: külön fiskális útvonal
+
+A protokollban a **negatív ár nem „mínusz forintos tétel", hanem tételsztornó**.
+Egy „sajt nélkül −100 Ft" módosító tehát **nem küldhető negatív árú eladási
+sorként**. Két járható út: a kedvezmény-mechanizmuson keresztül, vagy a termék
+árába építve.
+
+**Tervezési következmény:** a **levonó és a hozzáadó módosítónak külön útja van a
+fiskális rétegben.** Ezt most kell szétválasztani a modellben.
+
+Ugyanitt jó hír: a **negatív mennyiség a protokollban göngyölegvisszavétel** —
+a DRS-visszaváltás (G4) natívan támogatott, nem kell kerülőút.
+
+### `[ELDÖNTVE]` G3 — Összetett menü
+
+**Szerkezet:** terméken „ez menü" jelző + **menükomponensek**; komponensenként
+`min`/`max` (alapértelmezés pontosan 1) és választható termékek; a rendszer
+automatikusan felugrik, amíg minden komponens ki nincs töltve.
+
+| # | Döntés |
+|---|--------|
+| G3.1 | **Felár a komponens–termék PÁROSÍTÁSON**, nem a komponensen. („ital: üdítő +0, frissen facsart +390") |
+| G3.2 | A menükomponens **külön entitás**, nem módosítócsoport — az opciói **termékek**, saját recepttel, készlettel, áfakulccsal, NTAK-kategóriával. |
+| G3.3 | **A menü a nyugtán SZÉTROBBAN a komponenseire.** A menü neve fejléc-szövegsor, alatta a komponensek, mindegyik a saját áfakulcsán. |
+| G3.4 | Az ár szétosztása **a komponensek egyedi listaárainak arányában**, a kerekítési maradék a legnagyobb komponensre. **Determinisztikus** — két azonos menü mindig ugyanazokat a számokat adja. |
+
+**Miért kötelező a szétrobbantás:** vegyes áfakulcsú menü (5%-os étel + 27%-os
+palackos üdítő) egyetlen fiskális sorként **nem küldhető**, mert két gyűjtőre kell
+mennie. Ezen felül az NTAK komponensenkénti kategóriát vár, a készlet pedig
+komponensenkénti receptet fogyaszt.
+
+⚠️ **ELLENŐRIZENDŐ:** az NTAK-specifikáció ír-e elő külön menükezelést. A nyilvános
+NTAK vendéglátás útmutatók ezt nem részletezik egyértelműen — **hivatalosan
+megkérdezendő**.
+
+### `[ÚJ TERÜLET — a tervben eddig nem szerepelt]` G4 — DRS (kötelező visszaváltási díj)
+
+Kutatva elsődleges és szakmai forrásokból (NAV adózási kérdés 2023-11;
+450/2023. (X. 4.) Korm. rendelet; kamarai és szakmai összefoglalók).
+
+#### G4.1 — Tényállás
+
+| Tétel | Tartalom |
+|-------|----------|
+| Összeg | **darabonként egységesen 50 Ft**, nem újrahasználható (egyutas) csomagolásra |
+| Termékkör | **0,1–3 liter** űrtartalmú, fogyasztásra kész vagy koncentrátum italtermék csomagolása — üveg, fém, műanyag |
+| Kivétel | **tej és tejtartalmú italtermék** |
+| Áfa | **NEM része az értékesítés adóalapjának** — nem 0%, nem áfamentes, hanem **az áfa hatályán kívüli tétel**. A nyugtán/számlán **a termék árától elkülönítve** kell feltüntetni. |
+| Visszaváltáskor | **az adóalap nem csökkenthető** a díjjal |
+| Újrahasználható csomagolás | **más szabály**: az áfatörvény általános betétdíj-szabályai, a díj **benne van** az adóalapban |
+| Visszaváltóhely | a vendéglátóhelynek **nem kötelező** üzemeltetnie; önkéntes csatlakozás |
+
+#### G4.2 — A minket leginkább érintő szabály
+
+> **Helyben fogyasztásnál, ha a csomagolás a vendéglátóhelyen marad, a
+> visszaváltási díjat nem terheljük a vendégre. Elvitelnél, amikor a palack a
+> vendéggel távozik, fel kell számítani, külön tételként, az áfa hatályán kívül.**
+
+Vagyis **ugyanaz a termék két különbözőképpen viselkedik ugyanazon a napon,
+ugyanazon a gépen** — kizárólag a teljesítési módtól függően.
+
+#### G4.3 — Teendők
+
+| # | Teendő | Címke |
+|---|--------|-------|
+| G4.a | Terméktörzs: **`DRS-köteles csomagolás`** jelző + **`csomagolástípus`** (egyutas / újrahasználható) — a kettő áfakezelése eltér | MVP |
+| G4.b | A díj összege **központi, verziózott paraméter** (most 50 Ft), **nem konstans a kódban**; a régi bizonylatok a régi értéket őrzik | MVP |
+| G4.c | A felszámítás **a teljesítési módhoz kötött, nem a termékhez**. Teljesítési mód váltásakor (helyben → elvitel) **utólag hozzáadható/levehető a nyitott rendelésen**, auditnaplózva | MVP |
+| G4.d | **Külön nyugtasor a termék alatt, saját gyűjtőn.** ⚠️ A 8 fix rekeszben nincs DRS-hely; a TAM az egyetlen jelölt, **de a TAM „tárgyi adómentes", ami nem azonos az „áfa hatályán kívülivel"** → **kérdés a gyártó / NAV felé** | blokkoló |
+| G4.e | **A díj NEM árbevétel** — átfutó tétel. A forgalmi riportokból, a jutalékalapból és a napi zárás forgalmi számából **ki kell venni** | MVP |
+| G4.f | Visszavétel (a vendég hozza a palackot, kap 50 Ft-ot): a protokollban natívan támogatott, **de a hely nem kötelezett visszaváltóhely lenni** → **nem MVP**, opcionális funkció | v1/v2 |
+| G4.g | **DRS-egyenleg** (beszerzésen kifizetett vs. visszaváltással visszakapott) | v2 |
+
+### `[ELDÖNTVE]` G5 — Pénz, kerekítés, valuta
+
+| # | Döntés |
+|---|--------|
+| G5.1 | **Bruttó alapú számolás.** Ha az árlistán 1500 van, akkor 1500 az igazság; a nettó és az áfa ebből származik. |
+| G5.2 | **A visszaszámolás áfakulcs-csoportonként, bizonylatszinten történik**, nem soronként — mert a pénztárgép is így számol, és a soronkénti kerekítés garantáltan 1–2 Ft eltérést szül a mi összesítőnk és a gép nyugtája között. |
+| G5.3 | **Két pénztípus:** *ár/összeg* = **egész forint (int64)**; *egységköltség* (beszerzési egységár, mozgóátlagár, receptösszetevő) = **nagy pontosságú tizedes (6 tizedes)**. Lebegőpontos szám pénz közelében **sehol**. |
+| G5.4 | **Kerekítés csak készpénznél, 5 Ft-ra.** Vegyes fizetésnél **a készpénzes részre** vonatkozik, nem a végösszegre. |
+| G5.5 | **A kerekítést mi számoljuk, elküldjük, és a gép válaszát összevetjük.** Eltérés esetén a bizonylat **nem záródhat le csendben** — hiba, kezelői beavatkozással. |
+| G5.6 | **EUR:** árfolyam napnyitás előtt megadva, felülírásig érvényes. **A pénztárgép saját valutaárfolyam-beállítását is ki kell írni és vissza kell olvasni.** A bizonylat **tárolja a felhasznált árfolyamot**. Ha napnyitáskor nincs árfolyam: **az előzőt viszi tovább feltűnő figyelmeztetéssel, nem blokkol**. **Visszajáró forintban.** Csak készpénzre. |
+
+### `[ELDÖNTVE]` G6 — Nyelvek
+
+Magyar + angol + német **kötelező**; szomszédos nyelvek később.
+
+| # | Döntés |
+|---|--------|
+| G6.1 | **Két külön feladat:** (1) **szoftverszövegek** — teljes körű, mindhárom nyelven; (2) **tartalom** (terméknév, kategórianév, módosítónév, allergén) — **az ügyfél adata**, mezőnként opcionális, **magyar visszaesési értékkel**. Kényszeríteni tilos, mert akkor nem tölti fel a törzset. |
+| G6.2 | **A fiskális nyugta magyar** — jogszabályi kötöttség. A többnyelvűség a nem fiskális példányon, a QR-os vendégoldalon, az e-nyugta megjelenítésén és a kijelzőkön él. |
+| G6.3 | **A POS-felületet német szövegekkel kell tesztelni**, nem magyarral: a német átlagosan 25–35%-kal hosszabb, és a J1900-as gépek kis felbontású érintőképernyőjén tördel. **Elfogadási kritérium a UiUX körben.** |
+
+### `[ELDÖNTVE — a felhasználó döntése, kockázatvállalással]` G7 — Ki nyomtat
+
+**A KLIENS nyomtat** (nála van az adóügyi eszköz és a nyomtató). **Kivétel: a
+vékonykliens** — helyette a szerver.
+
+**Az „előzetes szándékrögzítés a szerverre" javaslat ELVETVE.** Indoklás
+(a felhasználóé, elfogadva): ha a gép meghal, úgyis támogatás kell; ha
+feléleszthető, magától szinkronizál; ha nem, munkatárs jelzi és pótoljuk.
+Cserébe **a szerver nem kerül minden nyomtatás kritikus útjába** — ez a döntő
+érv, mert (a) akadozó szervernél minden nyugta várna, és (b) **szerver nélkül a
+vészhelyzeti mód sem működne**.
+
+*Pontosítás a rend kedvéért: az eredeti javaslat nem folyamatos kliens-szerver
+csevegést jelentett, hanem bizonylatonként egy írást — a hálózati terhelés érve
+tehát nem áll. A **késleltetés** és a **vészhelyzeti mód** érve viszont áll, és
+önmagában elég.*
+
+| # | Döntés / teendő |
+|---|-----------------|
+| G7.1 | **Elfogadott kockázat:** ha a kliens kinyomtat, majd meghal a jelzés előtt, a pénztárgépben van egy lezárt adóügyi bizonylat, amiről a rendszer nem tud. Feloldás: **támogatói úton, az adóügyi eszköz saját naplójából.** |
+| G7.2 | **Enyhítés, ami nem sérti a döntést:** a kliens a nyomtatási szándékot **HELYBEN** rögzítse (ugyanabba a helyi outboxba, ami degradált módban amúgy is működik) a gép hívása előtt. Költsége: **egy helyi lemezírás, nulla hálózat, nulla szerverfüggés.** Áramszünet/összeomlás után (a tipikus eset) a bizonyíték megvan; fizikailag megsemmisült gépnél úgyis támogatás kell. |
+| G7.3 | **Nyitott, külön kérdés:** az adóügyi eszköz **egyetlen géphez** van kötve. Ha az a gép meghal, a nyitott asztalokat sehol nem lehet lezárni — **a szerver-HA ezen nem segít.** Teendő: (a) 4+ gépes helyre **legalább 2 adóügyi eszköz** ajánlása, (b) **a nyomtatási feladat átirányítása másik gép eszközére**. |
+| G7.4 | **A vékonykliens nem vehet fel fizetést**: a képesség megépül, de kikapcsolva. **Ne fordítási kapcsoló legyen**, hanem **szerveroldali, az admin felületen meg nem jelenő jogosultság**, amit a kliens minden fizetési kísérletnél megkérdez — így helyi fájl átírásával nem oldható fel, és a bekapcsolás **auditnaplózható**. |
+
+### `[ELDÖNTVE]` G8 — Óraszinkron
+
+| # | Döntés |
+|---|--------|
+| G8.1 | **A telephelyen a szerver az óra.** A kliensek hozzá szinkronizálnak, **nem az internethez** → a telephely offline is önmagával konzisztens. A szerver, ha van net, NTP-hez igazodik és **rögzíti az elcsúszást**. |
+| G8.2 | **Az adóügyi eszköz órája külön** — napnyitáskor összehasonlítandó. Javaslat: **30 mp felett figyelmeztetés, 5 perc felett a napnyitás blokkolva.** *(Jóváhagyásra vár.)* |
+| G8.3 | **Minden óraállítás auditnaplózott**, régi és új értékkel. |
+| G8.4 | **A sorrendezés soha nem a faliórán múlik** — monoton növekvő számláló adja; a faliórát csak megjelenítésre és jogi időbélyegre használjuk. |
+
+### `[ELDÖNTVE]` G9 — Audit napló
+
+#### G9.1 — Alapelvek
+
+- **Csak hozzáfűzhető** — nincs `UPDATE`, nincs `DELETE`, adatbázisszinten kikényszerítve.
+- **Hash-lánc** a biztonsági/számviteli ágon: minden rekord tartalmazza az előző hash-ét → utólagos átírás vagy kivágás matematikailag kimutatható.
+- **Felhős horgonyzás:** a lánc aktuális hash-e időnként felmegy a felhőbe. Enélkül a lánc nem véd az ellen, ha valaki az **egész adatbázist** korábbi állapotra állítja vissza.
+- **A Siduri admin sem törölheti.** Purge csak kor alapján, felhős archívumba.
+- Rekordtartalom: **ki** (felhasználó + eszköz + **az akkori** szerepe), **mikor** (eszközóra + szerveróra + monoton sorszám), **mi**, **hol**, **mi volt előtte / utána**, és ahol kötelező: **miért** (indokkód + szabad szöveg).
+
+#### G9.2 — KÉT KÜLÖN ÁRAM (a tárhely-aggály nyomán)
+
+A felhasználó jogosan kérdőjelezte meg, megéri-e mindent naplózni. A válasz:
+**nem egy napló van, hanem kettő, eltérő garanciával és költséggel.**
+
+| | **(A) Biztonsági / számviteli audit** | **(B) Működési eseménynapló** |
+|---|---|---|
+| Mi kerül bele | sztornó, kedvezmény, árfelülírás, jogosultság, beállítás, napnyitás/-zárás, átállás, leltári felülírás, óraállítás, fiókynyitás eladás nélkül | tételfelvitel, asztalmozgás, rendelésállapot — az **asztaltörténet / felhasználó-történet** nézetek forrása |
+| Hash-lánc | **igen** | nem (felesleges és lassít) |
+| Megőrzés | **8 év** (felhőben) | **1 év** (felhőben) |
+| Helyi megőrzés | **30 nap** | **30 nap** |
+| Nagyságrend / telephely / nap | ~150–300 rekord | ~3000–5000 rekord |
+| Éves méret / telephely | néhány tíz MB | ~0,5 GB |
+
+**A hangsúlyos lelet:** a tárhelyet **nem a biztonsági események viszik el, hanem
+az asztaltörténet-nézet** — de az az ügyfélnek adott érték, tehát megéri.
+A hash-lánc viszont csak az (A) ágon indokolt: napi 5000 soron pazarlás és lassít,
+napi 200-on ingyen van.
+**Valós mérés:** `MERESEK.md`.
+
+#### G9.3 — Hozzáférés
+
+| # | Döntés |
+|---|--------|
+| G9.3.a | **A nyers auditot CSAK MI látjuk.** Az ügyfél nem kap nyers adatbázissor-nézetet. Kért adatokat kiküldünk. |
+| G9.3.b | Az ügyfél **kurált, vizuális nézeteket** kap, célzottan elhelyezve: **asztaltörténet** (egy asztalra kattintva, az adott munkanapra), **felhasználó-történet** („bejelentkezett, felütött a 3-as asztalra 1 gyrost, kilépett"). Szép, könnyen érthető megjelenítés, nem száraz lista. |
+| G9.3.c | **Technikai következmény:** a napló legyen **entitásonként (asztal, felhasználó, rendelés) hatékonyan lekérdezhető** → indexelési követelmény. Kell **esemény → emberi mondat** sablonkészlet, **többnyelvűen**. |
+| G9.3.d | **Az olvasás NEM naplózódik.** Helyette a **jogosultsági beállítások** szabják meg, ki mit láthat. Következmény: a **jogosultságváltozás naplózása felértékelődik**. |
+
+#### G9.4 — Munkajogi figyelmeztetés
+
+**DÖNTÉS: csak figyelmeztetünk, sablont NEM adunk.** Indok (a felhasználóé,
+elfogadva): ez a munkáltató kötelezettsége, és egy elavuló sablonért minket
+hibáztatnának.
+
+**Kiegészítés:** a figyelmeztetés **ott jelenjen meg, ahol a funkciót használják**
+(a felhasználó-történet megnyitásakor), **ne csak egyszer a telepítéskor** — mert
+a felhasználó-történet nézet **munkavállalói megfigyelés**, függetlenül attól,
+milyen szépen néz ki.
+
+#### G9.5 — Ha nem lehet kiírni
+
+**Enyhe változat:** előre lefoglalt helyi vésztartalék-pufferbe ír, feltűnő
+riasztás, és amint lehet, összefésül. Ha a vésztartalék is betelik, **akkor** áll meg.
+
+*Megjegyzés a listáról: a felhasználó fenntartja, hogy a naplózandó események
+listája szűkíthető lehet. **Később átnézzük** — kivenni megírt naplózási tételt
+könnyebb, mint utólag újat írni.*
+
+### `[ELDÖNTVE]` G10 — Árazás
+
+| # | Döntés |
+|---|--------|
+| G10.1 | **Áfakulcs-változáskor a BRUTTÓ marad** (1500 marad 1500). A nettó árbevétel változik, az árlista nem. **Következmény, amit ki kell írni a felületen:** egy áfakulcs-változás **azonnal átírja a haszonkulcsot**. |
+| G10.2 | **NINCS külön elviteli bruttó ár.** Ha a hamburger 1500 és elvitelre kérik, az ügyfél elesik ~21%-nyi haszontól — **ez így működik Magyarországon, és bele van kalkulálva**. Csak a **két áfakulcs** van külön, a **bruttó ár egy**. |
+| G10.3 | **Következmény G10.2-ből:** mivel a bruttó azonos, de az áfa eltér, **a nettó árbevétel teljesítési módonként más** → minden **árrés- és food cost-riportot teljesítési módonként bontva** kell számolni, sosem vegyített bruttón. Kell egy riport, ami megmutatja, **mennyibe kerül az elviteles arány** a tulajdonosnak. |
+| G10.4 | **Kiszerelések: az ügyfél ad árat, a rendszer NEM számol.** A 0,5 l csapolt sör 1000 Ft, a 0,3 l **nem 600, hanem amennyit az ügyfél mond** (pl. 750). Súly/térfogat szerinti árazás **is** legyen, de csak ahol kérik. |
+| G10.5 | **A kiszerelés a termék gyermeke**, nem külön termék: közös név, kategória, áfakulcs, NTAK-kategória; **saját bruttó ár és saját receptmennyiség**. Riportban együtt is, külön is látszik. |
+| G10.6 | **Ártörténet a terméktörzsben is** (mikortól meddig mennyi volt) — a bizonylat eladáskori árán felül. Enélkül a „miért esett a márciusi árrés" kérdésre nincs válasz. |
+
+### `[ÁLTALÁNOS TERVEZÉSI ELV — a felhasználó fogalmazta meg]` G11
+
+> **„Ne próbáljuk megmondani, hogy mit szeretne az ügyfél. Hagyjuk, hogy olyan
+> szabadon és pontosan állíthassa be a termékeit és a kiszereléseit, ahogy szeretné."**
+
+Ez ugyanaz az elv, mint az áfa **másolás-nem-hivatkozás** döntésénél (C3/a) és a
+`FreeLimit` háromállású beállításánál (G2.1). Általánosítva:
+
+**Ahol az ügyfélnek valós üzleti oka lehet eltérni a számított értéktől, ott a
+számított érték legyen EGYSZERI KITÖLTŐ SEGÉDLET, soha ne élő hivatkozás.**

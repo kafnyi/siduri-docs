@@ -10,7 +10,7 @@
 > **A horgony frissítése a MUNKA RÉSZE, nem utómunka** (§10). Elavult horgony = §2.4
 > döntési premissza-hiba: a következő kört egy nem létező hátralék hajszolására küldi.
 
-**Utolsó frissítés:** 2026-08-22 (2. munkamenet)
+**Utolsó frissítés:** 2026-08-23 (3. munkamenet — módosítók, menü, DRS, pénz, audit napló, nyomtatás)
 **Fázis:** tervezés. **KÓDOLÁS MÉG NEM KEZDŐDÖTT EL, és nem is szabad elkezdeni** —
 lásd „Miért nem kódolunk még".
 
@@ -131,7 +131,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Negyvenöt döntés lezárva** (öt az 1., negyven a 2. munkamenetben, mindkettő 2026-08-22).
+**Hatvanhat döntés lezárva** (öt az 1., negyven a 2., huszonegy a 3. munkamenetben).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -180,6 +180,22 @@ meg, és a következő kör újratárgyalja őket.
 | **B3** | Minimum célhardver | J1900 **vegyes bázis** (szerver ÉS kliens) → **GraalVM kényszer marad**, plusz szoros WPF perf-költségvetés | `NYITOTT_KERDESEK.md:374` |
 | **E2** | Ki fejleszti | 2–3 fős csapat + AI → **B8 (API-szerződés) az első hét tétele**, nem opcionális | `NYITOTT_KERDESEK.md:612` |
 
+| **G0** | *(ÚJ, 3. munkamenet)* A gyártói AEE protokolldokumentum | **JOGI KORLÁT.** Szerzői jogi nyilatkozattal védett, partneri megállapodás NINCS. **A tartalma semmilyen formában nem kerülhet a dokumentációba** — csak absztrakt leírás. Külön kockázat: nincs támogatási szerződés és nincs tesztkészülék → **a fiskális mérföldkő fizikai készülék nélkül nem zárható le** | `NYITOTT_KERDESEK.md`, keress: `G0` |
+| **G1** | *(ÚJ)* A gyűjtőkiosztás 8 fix rekesze | **Kemény korlát.** Áfakulcs-készlet: 5 / 18 / 27 / TAM / AJT, más nem küldhető → **validáció a terméktörzs mentésénél**. **A szervizdíjnak saját, áfakulcsonkénti gyűjtői vannak** → nem olvasztható a termék tételébe *(a korábbi terv itt hibás volt)*. Szabad rekesz **nincs** | `NYITOTT_KERDESEK.md`, keress: `G1 —` |
+| **G2.1** | *(ÚJ)* FreeLimit | A darabszám mellé **külön beállítás, MELYIK elemek ingyenesek**: **legdrágább / legolcsóbb / legelső**, akár termékenként. **Alapértelmezés: LEGELSŐ** | `NYITOTT_KERDESEK.md`, keress: `G2.1` |
+| **G2.2** | *(ÚJ)* Módosító vs. receptúra | **Az alapállapot a RECEPTÚRA.** A módosító **mindig eltérés** → **mindig nyomtatjuk és mindig kimegy a KDS-re**, kivétel nincs. Ezzel megszűnik az „alapállapot vs. eltérés" nyomtatási logika. A levonó módosító **anyagra hivatkozik**, és be tud nyúlni a szülőtermék receptjébe | `NYITOTT_KERDESEK.md`, keress: `G2.2` |
+| **G2.3** | *(ÚJ)* Ár nélküli módosító | **Szövegsor, nem tétel.** Az „1 Ft-os áthelyezés" **ELVETVE** (ártájékoztatási jogsértés, áfakulcs-váltás, mennyiséggel szorzódás). ⚠️ **Éles készüléken ellenőrizendő**, hogy a nulla összegű tétel átmegy-e | `NYITOTT_KERDESEK.md`, keress: `G2.3` |
+| **G2.4** | *(ÚJ)* Levonó módosító fiskálisan | A negatív ár a protokollban **tételsztornó**, nem mínuszos tétel → **a levonó és a hozzáadó módosítónak KÜLÖN fiskális útja van**. A negatív mennyiség viszont **göngyölegvisszavétel** → a DRS-visszaváltás natívan megvan | `NYITOTT_KERDESEK.md`, keress: `G2.4` |
+| **G3** | *(ÚJ)* Összetett menü | Termékjelző + **menükomponensek** (min/max, alap 1), felár a **komponens–termék párosításon**. **A menü a nyugtán SZÉTROBBAN** a komponenseire, az ár a listaárak arányában osztva, determinisztikusan. Kötelező, mert vegyes áfakulcs egy sorban nem küldhető, és az NTAK komponensenkénti kategóriát vár | `NYITOTT_KERDESEK.md`, keress: `G3 —` |
+| **G4** | *(ÚJ)* DRS — kötelező visszaváltási díj | **Új terület, eddig nem szerepelt.** 50 Ft/db, egyutas 0,1–3 l ital-csomagolás, tej kivétel, **az áfa hatályán kívüli tétel**, elkülönítve a nyugtán. **A lelet: helyben fogyasztásnál nem terheljük a vendégre, elvitelnél igen** → ugyanaz a termék kétféleképp viselkedik. **A díj nem árbevétel.** Blokkoló: melyik gyűjtőre mehet | `NYITOTT_KERDESEK.md`, keress: `G4 —` |
+| **G5** | *(ÚJ)* Pénz, kerekítés, valuta | **Bruttó alapú számolás**; a visszaszámolás **áfakulcs-csoportonként, bizonylatszinten**, nem soronként. **Két pénztípus**: egész forint (ár) és nagy pontosságú tizedes (egységköltség); lebegőpont sehol. Kerekítés csak készpénzre, **a készpénzes részre**. EUR: napnyitás előtti árfolyam, **a gépbe is ki kell írni**, visszajáró forintban | `NYITOTT_KERDESEK.md`, keress: `G5 —` |
+| **G6** | *(ÚJ)* Nyelvek | HU + EN + DE kötelező. **Két külön feladat**: szoftverszöveg (teljes) és **tartalom** (az ügyfél adata, mezőnként opcionális, magyar visszaeséssel). **A fiskális nyugta magyar.** A felületet **német szövegekkel kell tesztelni** | `NYITOTT_KERDESEK.md`, keress: `G6 —` |
+| **G7** | *(ÚJ)* Ki nyomtat | **A KLIENS**, vékonykliensnél a szerver. Az „előzetes szándékrögzítés a szerverre" **ELVETVE** — a szerver nem kerülhet minden nyomtatás kritikus útjába (késleltetés + a vészhelyzeti mód szerver nélkül is működjön). **Elfogadott kockázat.** Enyhítés: a szándék **helyben** rögzül, nulla hálózattal. **Nyitott: az adóügyi eszköz egyetlen géphez kötött — a szerver-HA ezen nem segít** | `NYITOTT_KERDESEK.md`, keress: `G7 —` |
+| **G8** | *(ÚJ)* Óraszinkron | **A telephelyi szerver az óra**, a kliensek hozzá igazodnak (nem az internethez). Az adóügyi eszköz órája külön ellenőrzendő napnyitáskor. **Minden óraállítás auditnaplózott.** A sorrendezés monoton számlálón, nem a faliórán | `NYITOTT_KERDESEK.md`, keress: `G8 —` |
+| **G9** | *(ÚJ)* Audit napló | **KÉT külön áram:** (A) biztonsági/számviteli — hash-lánccal, 8 év, ~200 rekord/nap; (B) működési (asztal- és felhasználó-történet) — lánc nélkül, 1 év, ~4000 rekord/nap. **A tárhelyet a (B) viszi, de az az ügyfélnek adott érték.** Helyben 30 nap. **A nyers auditot csak MI látjuk**, az ügyfél kurált, vizuális nézeteket kap. **Az olvasás nem naplózódik** — helyette jogosultság szabályoz. Munkajogi oldal: **csak figyelmeztetünk, sablont nem adunk** | `NYITOTT_KERDESEK.md`, keress: `G9 —` |
+| **G10** | *(ÚJ)* Árazás | Áfaváltozáskor **a bruttó marad**. **NINCS külön elviteli bruttó ár** — az elvitelen elveszett ~21% haszon bele van kalkulálva. Következmény: **minden árrés-riport teljesítési módonként bontva**. **Kiszerelésnek az ügyfél ad árat, a rendszer nem számol**; a kiszerelés a termék **gyermeke**. Ártörténet a törzsben is | `NYITOTT_KERDESEK.md`, keress: `G10 —` |
+| **G11** | *(ÚJ)* Általános tervezési elv | **„Ne próbáljuk megmondani, mit szeretne az ügyfél."** Ahol valós üzleti oka lehet eltérni a számított értéktől, ott a számított érték **egyszeri kitöltő segédlet, soha nem élő hivatkozás** — ugyanaz az elv, mint az áfánál (C3/a) és a FreeLimitnél | `NYITOTT_KERDESEK.md`, keress: `G11` |
+
 Ezen felül: **F) szakasz** hét tétellel (`NYITOTT_KERDESEK.md:647`-től), ami egyik
 eredeti doksiban sem szerepelt.
 
@@ -218,6 +234,25 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 ---
 
 ## 2. A KÖVETKEZŐ TÉTEL
+
+### 2.0 `[!]` A 3. munkamenetből MÉG NYITOTT tételek
+
+Ezek a 2026-08-23-i körben felmerültek, de **még nincs rájuk válasz**. Amíg
+nincs, a két végleges dokumentum (`siduri_spec_hu.md`, `siduri_superprompt_en.md`)
+ezeken a pontokon feltételes marad.
+
+| # | Nyitott kérdés | Kihez |
+|---|---------------|-------|
+| N1 | **Beszerzési ár:** bruttó felvitel + **kötelező beszerzési áfakulcs**, és **az árrés/food cost NETTÓ alapon** számoljon. Enélkül minden árrésszám 21–27%-kal hamis | felhasználó |
+| N2 | **DRS (G4) egésze** — a kutatás megvan, a döntések jóváhagyása hiányzik | felhasználó |
+| N3 | **Óraszinkron küszöbök (G8.2):** 30 mp figyelmeztetés / 5 perc blokkolás jó-e | felhasználó |
+| N4 | **Repók privátok maradnak-e** (G0.5) — ettől függ, hova kerülhet a gyártóspecifikus illesztő | felhasználó |
+| N5 | **Adóügyi eszköz mint egyedi hibapont (G7.3):** ajánlunk-e 4+ gépes helyre két eszközt, és megépítjük-e a nyomtatás átirányítását másik gép eszközére | felhasználó |
+| N6 | **Melyik gyűjtőre mehet a DRS visszaváltási díj** (G4.d, M16) — a TAM „tárgyi adómentes", ami nem azonos az „áfa hatályán kívülivel" | **gyártó / NAV** |
+| N7 | **Újrakiosztható-e az AJT gyűjtő** (G1.3) | **gyártó** |
+| N8 | **Elfogadja-e a firmware a nulla összegű tételt** (G2.3, M15) | **gyártó / éles teszt** |
+| N9 | **Ír-e az NTAK-specifikáció külön menükezelést elő** (G3) | **NTAK / MTÜ** |
+
 
 ### 2.1 A KÖVETKEZŐ MUNKA — a 2. ellenőrző kör után
 

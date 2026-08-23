@@ -102,7 +102,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Harminchat döntés lezárva** (öt az 1., harmincegy a 2. munkamenetben, mindkettő 2026-08-22).
+**Harmincnyolc döntés lezárva** (öt az 1., harminchárom a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -120,6 +120,8 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **F7/a** | *(ÚJ)* Jogosultsági szintek | **Az ügyfél maga is létrehozhat/módosíthat szinteket** (pl. „Pultfőnök"), nem csak egyedi kivételeket. Frissítéskor érkező ÚJ jogosultság a meglévő szinteken **alapból tiltott**, de feltűnő jelzéssel | `NYITOTT_KERDESEK.md`, keress: `F7/a` |
+| **F7/b** | *(ÚJ)* A Siduri admin fiók | **Sérthetetlen** (az ügyfél nem módosíthatja, nem csökkentheti, nem írja át a jelszavát) + **fix offline belépés** kell. Javaslat: **telephelyenkénti** hitelesítő adattal, látható audittal | `NYITOTT_KERDESEK.md`, keress: `F7/b` |
 | **B16.12** | *(ÚJ)* Egy admin felület vagy kettő | **EGY webes admin alkalmazás, KÉT helyről kiszolgálva** (felhő + a telephely saját szervere offline-ra). A felhő raktár/receptúra ugyanaz, mint a telephelyi. **Ez a §6 néma szétcsúszást a gyökerénél szünteti meg** | `NYITOTT_KERDESEK.md`, keress: `B16.12` |
 | **B16.10** | *(ÚJ)* Leltár | Az **egyetlen jogos** készlet-„felülírás" — de **korrekciós mozgásként**, hogy az eltérés kimutatható maradjon. **Fordulónapi elszámolás**, nem a rögzítés időpontjához | `NYITOTT_KERDESEK.md`, keress: `B16.10` |
 | **B16.11** | *(ÚJ)* Több telephely | **Alapmodell, nem franchise-funkció.** Minden kimutatás működjön egy üzletre, több kiválasztottra és a teljes csoportra | `NYITOTT_KERDESEK.md`, keress: `B16.11` |

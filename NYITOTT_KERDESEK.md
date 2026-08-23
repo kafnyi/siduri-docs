@@ -36,6 +36,11 @@
 > eredménye, a B12 jogi kérdése, a B1/c R2–R5 kitöltése.
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
 >
+> **ÚJ (tizenötödik kör):** **F7/a** — szerkeszthető jogosultsági szintek (a frissítéskor
+> érkező ÚJ jogosultságok alapból tiltottak, de feltűnő jelzéssel). **F7/b** — a Siduri
+> admin fiók sérthetetlen + fix offline belépés; javaslat: telephelyenkénti hitelesítő
+> adattal, hogy egy kiszivárgás ne érintsen minden ügyfelet.
+>
 > **ÚJ (tizennegyedik kör):** **Leltár** — az egyetlen jogos készlet-„felülírás", de
 > korrekciós mozgásként megvalósítva, fordulónapi elszámolással. **Több telephely
 > alapmodellként** (nem csak franchise). **A felhő raktár/receptúra = a telephelyi
@@ -2587,6 +2592,143 @@ Ez §5 „a felület ne kínáljon olyat, ami nem működik" osztálya, fordítv
 ne engedjen olyat, aminek adóügyi következménye van. Őr kell rá (§13.4), nem
 csak konvenció.
 
+### `[ELDÖNTVE]` F7/a — SZERKESZTHETŐ JOGOSULTSÁGI SZINTEK (2026-08-22)
+
+**A felhasználó döntése:** az egyedi, felhasználónkénti jogkörök **mellett** az
+ügyfél **maga is létrehozhat és módosíthat jogosultsági SZINTEKET** — ne csak az
+általunk előre megadottak létezzenek.
+
+**Indoklás a felhasználótól:** ha kell egy „Pultfőnök" szint, azt az ügyfél
+csinálja meg egyszer, ahelyett hogy **hat pultosnak külön-külön** kellene egyedi
+jogkört állítani.
+
+**Ez helyes**, és megszünteti azt a hibaosztályt, hogy hat, kézzel beállított
+jogkör közül **ötben lesz ugyanaz, a hatodikban véletlenül nem** — és senki nem
+veszi észre.
+
+#### `[!]` A frissítési csapda, amit ez teremt — ez a legfontosabb következmény
+
+**Kiadunk egy új verziót, ami bevezet egy ÚJ jogosultságot** (mert új funkció
+került a rendszerbe). **Mi legyen ez az új jogosultság az ügyfél SAJÁT,
+korábban létrehozott „Pultfőnök" szintjén?**
+
+- **Ha alapból ENGEDÉLYEZETT:** egy frissítés **csendben jogot ad** olyan
+  embereknek, akiknek az ügyfél sosem adta meg. (Például: a pultosok hirtelen
+  sztornózhatnak.) **Ez elfogadhatatlan.**
+- **Ha alapból TILTOTT** (a helyes választás): az új funkció **némán nem
+  működik** azoknak, akiknek működnie kellene, és a támogatás azt fogja hallani,
+  hogy „a frissítés után elromlott".
+
+**Döntés: TILTOTT alapból** — a biztonságos irány —, **DE ez önmagában nem elég**
+(§5: néma kudarc). **Kötelező mellé:**
+- a frissítés után az admin felület **feltűnően jelezze**: „a frissítés N új
+  jogosultságot vezetett be, egyik szint sem kapta meg — nézd át";
+- a lista legyen **egy kattintással elérhető és tömegesen kiosztható**;
+- **amíg át nem nézték, a jelzés ne tűnjön el.**
+
+**Ugyanez vonatkozik az ÁLTALUNK szállított alapszintekre:** ha az ügyfél
+módosított egy általunk adott szintet, egy frissítés **NEM írhatja felül némán**
+a módosítását. Vagy másolatként szerkeszti (a mi szintjeink sablonok), vagy a
+módosított szint „testreszabott" jelölést kap, és a frissítés **nem nyúl hozzá**,
+csak jelzi az eltérést.
+
+#### `[ ]` Amit a szerkeszthető szintek még megkövetelnek
+
+- **`[!]` Jogosultság-emelés önmagának.** Aki szerkesztheti a szinteket,
+  **bármit megadhat magának** — ez tervezési szinten privilégium-emelés.
+  Szabály kell rá: **nem adhatsz olyan jogot, amivel te magad nem
+  rendelkezel**, vagy a szint-szerkesztés joga szigorúan szűk körhöz kötött.
+  **Eldöntendő, melyik.**
+- **Feloldási sorrend** szint és egyedi kivétel között (ez az `F7` eredeti
+  nyitott kérdése) — szerkeszthető szintekkel **élesebb**: mi nyer, ha a szint
+  tilt, de az egyedi kivétel enged?
+- **Szint törlése**, amihez felhasználók vannak rendelve — mi történik velük?
+  (Néma jogvesztés tilos.)
+- **Több telephely / lánc (B16.2):** a szint **lánc-szinten** definiálódik és
+  öröklődik lefelé, vagy telephelyenként külön? **Zárolható-e?**
+  Ez ugyanaz a hierarchia-kérdés, mint az áraknál.
+
+### `[ELDÖNTVE]` F7/b — A SIDURI ADMIN FIÓK sérthetetlensége és az OFFLINE BELÉPÉS
+
+#### A követelmény, ahogy a felhasználó megfogalmazta (2026-08-22)
+
+1. **A Siduri admin felhasználó „szent és sérthetetlen":** az ügyfél
+   **nem módosíthatja**, **nem csökkentheti a jogkörét**, **nem változtathat
+   rajta jelszót.**
+2. **Kell egy FIX belépési lehetőség**, mert *„ha nincs internet vagy
+   szerverkapcsolat egy gépen, amit javítanunk kell, akkor is be kell tudni
+   lépni, mégha egy frissítés előtti jelszóval is."*
+
+**A felhasználó a biztonsági aggályt (lásd `gemini_cloud_spec_en.md` R4)
+megértette, és ennek ismeretében tartja fenn a követelményt.** A követelmény
+tehát adott; a kérdés már csak az, **hogyan valósítjuk meg a legkevesebb
+kockázattal.**
+
+#### `[JAVASLAT]` Ugyanez a képesség, TELEPHELYENKÉNTI hitelesítő adattal
+
+**A követelmény minden szava teljesíthető úgy is, hogy NE egyetlen közös titok
+legyen minden ügyfél gépén.** A különbség nem a funkcióban van, hanem a
+kompromittálódás hatósugarában:
+
+| | Globális, közös jelszó | **Telephelyenkénti hitelesítő adat** |
+|---|---|---|
+| Offline belépés | ✔ | ✔ |
+| Régi jelszóval is működik | ✔ | ✔ |
+| Nem kell hozzá internet | ✔ | ✔ |
+| **Egy kiszivárgás hatása** | **MINDEN ügyfél, minden gépe** | **egy telephely** |
+| Rotálható a többi érintése nélkül | ✘ | ✔ |
+
+**Konkrétan:** telepítéskor minden telephely **saját** szerviz-hitelesítő adatot
+kap. Online állapotban ez cserélhető, de **a régi addig érvényes marad, amíg az
+új visszaigazoltan meg nem érkezett** — így teljesül a felhasználó kikötése,
+hogy „mégha egy frissítés előtti jelszóval is" be lehessen lépni.
+
+**Még erősebb változat, ha később belefér — challenge–response:** a gép kiír egy
+kódot, a support a felhőből generál rá **időkorlátos** választ. Ekkor a gépen
+**semmilyen újrafelhasználható titok nem pihen.** Offline is működik (telefonon
+bediktálható). **Ennek a hátránya**, hogy a support oldalán kell hozzá elérhető
+generátor — ha az nem megy, nincs belépés. **Ezért javaslom a kettőt együtt:**
+challenge–response az elsődleges út, telephelyenkénti fix hitelesítő adat a
+végső tartalék.
+
+#### Kötelező kísérő intézkedések — ezek nélkül a fix belépés nyílt hátsó ajtó
+
+1. **Sebességkorlát és zárolás.** Fix hitelesítő adat egy **fizikailag
+   hozzáférhető** gépen: próbálgatás elleni védelem nélkül idő kérdése a betörés.
+2. **`[!]` TELJES, TÖRÖLHETETLEN AUDIT, ami az ÜGYFÉL SZÁMÁRA IS LÁTHATÓ.**
+   Ez a legfontosabb enyhítés, és nem csak technikai: **egy szerviz-belépés,
+   amit a tulajdonos utólag lát a naplóban, gyökeresen más dolog, mint egy
+   rejtett hátsó ajtó.** Rögzítendő: mikor, melyik gépen, ki, milyen jogcímen,
+   és **mit csinált**.
+3. **A belépés legyen látható a gépen is**, amíg tart (pl. állandó sáv:
+   „szerviz-hozzáférés aktív"). Ne lehessen észrevétlenül bent ülni.
+4. **Időkorlát:** a szerviz-munkamenet magától záruljon le.
+
+#### `[!]` Egy következmény, amit ki kell mondani — nem mérnöki, hanem szerződéses
+
+A „sérthetetlen, korlátozhatatlan jogkörű" szolgáltatói fiók azt jelenti, hogy
+**a Siduri Systems állandó, az ügyfél által nem korlátozható hozzáféréssel
+rendelkezik minden ügyfél teljes üzleti és személyes adatához.**
+
+**Ez tényként rögzítendő, nem elhallgatandó:**
+- **adatvédelmi szempontból** ez adatfeldolgozói (esetenként adatkezelői)
+  viszonyt keletkeztet, amit **a szerződésben és az adatkezelési tájékoztatóban
+  szerepeltetni kell** — kapcsolódik `B7`-hez és `B10/a`-hoz;
+- **`[?]` hogy ehhez pontosan mi szükséges jogilag, azt NEM tudom forrás nélkül
+  megmondani** (§13.5) — **a jogi ellenőrzési kör tétele**;
+- **üzletileg** ez egy nagyobb ügyfélnél (lánc, franchise) **kérdés lesz az
+  értékesítési tárgyaláson** — jobb felkészülten válaszolni rá, mint
+  meglepődni. A 2. pont (látható audit) itt a legjobb érv.
+
+#### `[!]` A sérthetetlenséget a KÓDBAN kell kikényszeríteni, nem a felületen
+
+Ha csak a felület nem kínálja fel a szerkesztést, akkor **egy importálás, egy
+API-hívás vagy egy közvetlen adatbázis-írás megkerüli.** A szabály:
+**a szolgáltatói fiók módosítására, jogkörcsökkentésére és törlésére irányuló
+kérés a szerveren utasítódjon el**, minden belépési ponton, **egy közös
+kikényszerítő helyen** (§3.5) — és a kísérlet **naplózódjon**, mert az önmagában
+is jelzés.
+
 ### `[ ]` F7 — A jogosultsági modell konkrét alakja
 A 10. pont „extrém granuláris, gomb- és végpontszintű" jogköröket ír. Ez önmagában
 **figyelmeztető jel**: elnevezési séma és **egy** kikényszerítő helper nélkül a
@@ -2628,6 +2770,8 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~F7/a~~ | `[ELDÖNTVE]` | **Szerkeszthető jogosultsági SZINTEK** — az ügyfél maga hozhat létre szintet (pl. „Pultfőnök"), nem csak egyedi kivételeket. **Frissítési csapda felvéve:** egy új verzió új jogosultságai a meglévő, testreszabott szinteken **alapból TILTOTTAK**, de a felület **feltűnően jelezze**, hogy N új jogosultság érkezett és át kell nézni — különben az új funkció némán nem működik. |
+| — | ~~F7/b~~ | `[ELDÖNTVE]` | **A Siduri admin fiók sérthetetlen** (nem módosítható, jogköre nem csökkenthető, jelszava nem írható át az ügyfél által), és **van fix offline belépési lehetőség** — a felhasználó a biztonsági aggály ismeretében tartja fenn. **Javaslat a megvalósításra:** ugyanez a képesség **telephelyenkénti** hitelesítő adattal (egy kiszivárgás egy telephelyet érint, nem mindet), challenge–response elsődleges úttal. Kötelező kísérők: sebességkorlát, **az ügyfél számára is látható, törölhetetlen audit**, látható jelzés a gépen, időkorlát. |
 | — | ~~B16.10~~ | `[ELDÖNTVE]` | **Leltár — az egyetlen jogos „felülírás", de mégis MOZGÁSKÉNT.** A megszámolt mennyiség és a rendszer szerinti eltérése **korrekciós mozgásként** könyvelődik, nem néma felülírásként — így az eltérés kimutatható marad, ami a leltár egész értelme. **Időzítési csapda:** az eltérést a **fordulónapi** készlethez kell mérni, nem a rögzítéséhez, különben a közben eladott mennyiséget hiányként könyveli és kitörli az időközbeni eladásokat. |
 | — | ~~B16.11~~ | `[ELDÖNTVE]` | **A több telephely nem franchise-funkció, hanem ALAPMODELL** — lehet olyan tulajdonos, akinek 3 különálló üzlete van. Minden kimutatásnak működnie kell egy üzletre, több kiválasztottra, és a teljes csoportra. |
 | — | ~~B16.12~~ | `[ELDÖNTVE]` | **A felhő raktár/receptúra = a telephelyi adminfelület**, csak máshol megjelenítve → **EGY webes admin alkalmazás, KÉT helyről kiszolgálva.** Ez a §6 néma szétcsúszást a gyökerénél szünteti meg, és érdemben csökkenti a fázisterv egyik legnagyobb tételét. |

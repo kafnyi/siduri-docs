@@ -1110,9 +1110,23 @@ aszinkronra váltani** (ez a `B1/b`-nél már lefektetett szabály, itt is él).
 | Túléli-e a tűz/áramszünet/víz esetet | **NEM** | **igen** | igen |
 | Szinkron replikáció késleltetése | elhanyagolható | **néhány ms — vállalható** | tíz-száz ms |
 
-**Javaslat: két (vagy három) EU-n belüli, egymáshoz közeli adatközpont.**
-Ez túléli az egy-telephelyes katasztrófát, és a szinkron replikáció is
-megfizethető marad. **GDPR miatt EU-n belül** — ez a `B7` tétel része.
+**`[ELDÖNTVE 2026-08-22]`** A felhasználó: **legalább két külön adatközpont**,
+de **első körben kizárólag magyarországi** adatközpontok jöhetnek szóba.
+
+**Ez jó választás, és két okból KEDVEZ a terveknek:**
+- **GDPR: rendben** — Magyarország EU-n belül van, tehát a `B7` adatlokalizációs
+  aggálya megoldva, külön intézkedés nélkül.
+- **`[!]` A két magyar adatközpont közti késleltetés kicsi** → **a szinkron
+  replikáció még kényelmesebben megfizethető**, mint amivel számoltam.
+  **Ez tovább ERŐSÍTI a három csomópontos, szinkron javaslatot** (`B17/b`).
+
+**`[ ]` Egy maradék kockázat, amit ki kell mondani, nem elhallgatni:** két
+azonos országban lévő adatközpont **ugyanazon az országos áramhálózaton,
+ugyanabban a joghatóságban és ugyanabban a régióban** van. Egy országos szintű
+esemény **mindkettőt érintheti.** Ez **vállalható** kockázat egy induló
+terméknél — de **később, nagyobb ügyfélkörnél felülvizsgálandó**, és
+**a jogi archívum** (lásd `B17/e`) esetében **már most megfontolandó** egy
+harmadik, országon kívüli (de EU-n belüli) példány.
 
 **`[!]` Kimondandó, mert könnyű elsiklani fölötte:** a „két fizikai szerver
 ugyanabban a szobában" **nem katasztrófavédelem** — egyetlen tűz, egyetlen
@@ -1182,10 +1196,42 @@ telephely 30 nap után purge-öl, és **a hosszú távú megőrzést a felhő te
 > **Ez a legpótolhatatlanabb adat, amink van** — és jogszabályi kötelezettség
 > áll rajta. **A legerősebb védelmet ez érdemli**, nem az operatív adatbázis.
 
-**`[ ]` Ebből következik egy külön eldöntendő tétel:** a **jogi archívum** és az
-**operatív adatbázis** **külön mentési rendszert** kapjon-e, eltérő megőrzéssel?
-**Javaslom: igen** — mert eltérő a céljuk (helyreállítás vs. megőrzés), eltérő a
-megőrzési idejük (napok-hetek vs. 8 év), és **eltérő a pótolhatóságuk.**
+#### `[RÉSZBEN ELDÖNTVE]` B17/e — külön archívum, DE ne cold storage
+
+**A felhasználó válasza (2026-08-22):** *„jó lenne egy külön archívum megoldás
+is, bár a felhős szervereket terveztem erre használni a gyorsabb
+visszakereshetőség okán, de látom az előnyét, viszont a hátrányát is, hogy a
+régi adatok visszanyerése akár jelentősen több idő lehet."*
+
+**Az aggály jogos — de a kettő nem zárja ki egymást.** Itt egy fogalmi
+összemosás van, amit érdemes szétszedni:
+
+| Amit szét kell választani | Ez a lényeg |
+|---|---|
+| **Hol tárolódik** (gyors online tár ⟷ lassú hideg tár) | **ez adja a visszakeresési sebességet** |
+| **Milyen mentési rendszer védi** (közös az operatívval ⟷ külön) | **ez adja a pótolhatatlanság elleni védelmet** |
+
+**A kettő FÜGGETLEN.** A javaslatom **nem** az volt, hogy tegyük hideg tárba —
+hanem hogy **külön MENTÉSI rendszere legyen.**
+
+**`[JAVASLAT]` A megoldás, ami mindkettőt hozza:**
+> A jogi archívum **maradjon ONLINE, gyorsan kereshetően** — a felhős
+> szervereken, ahogy a felhasználó tervezte. **A visszakeresés gyors marad.**
+>
+> **De legyen SAJÁT, az operatívtól elkülönített mentése:** más hozzáférési út,
+> más jogosultság, hosszabb megőrzés, módosíthatatlan példányok.
+>
+> **Így a gyors visszakeresés és a pótolhatatlanság elleni védelem NEM
+> egymás rovására megy.**
+
+**Amiért ez fontos:** a 8 éves archívum **az egyetlen adat, aminek nincs
+második példánya a felhőn kívül**. Ha ugyanaz a mentési rendszer és ugyanaz a
+jogosultság védi, mint az operatív adatokat, akkor **egy feltört fiók vagy egy
+elrontott migráció mindkettőt viszi egyszerre.**
+
+**`[ ]` Ami ebből eldöntendő:** a hosszú távú megőrzésű, módosíthatatlan
+mentés **hol legyen** — a két magyar adatközpont valamelyikében, vagy
+(a fenti országos kockázat miatt) **egy harmadik, EU-n belüli helyen?**
 
 #### `[ ]` Ami még nyitva marad
 
@@ -2832,10 +2878,14 @@ több, egymással nem rokon kategóriában** is lehetne (pl. „Üdítők" ÉS �
 ÉS „Nyári kínálat"), akkor **két azonos mélységű ág is adhatna eltérő
 adókulcsot** — és nincs sorrend köztük.
 
-**Javaslat:** legyen **egy kategóriafa** (adó-alapértékkel, egy útvonal), és
-**ha kell csoportosítás promócióhoz/navigációhoz, az legyen KÜLÖN „címke"
-fogalom — adó-jelentés nélkül.** Így mindkét igény megvan, ütközés nélkül.
-**`[ ]` Jóváhagyásra vár.**
+**`[ELDÖNTVE 2026-08-22]`** A felhasználó megerősítette: **egy termék CSAK EGY
+legalsó kategóriában szerepelhet, egyenesen — nem lehet több azonos rangú
+kategória eleme.** Tehát **szigorú fa, egyetlen útvonallal**, és az alulról
+felfelé öröklés **teljesen egyértelmű.**
+
+**Ha később mégis kell csoportosítás promócióhoz vagy navigációhoz**, az legyen
+**külön „címke" fogalom, adó-jelentés nélkül** — hogy ne bontsa meg ezt az
+egyértelműséget.
 
 **(2) A hiányzó értékek KÜLÖN-KÜLÖN öröklődnek.**
 Ha a legmélyebb alkategória **csak a helyben fogyasztásos** kulcsot adja meg, az

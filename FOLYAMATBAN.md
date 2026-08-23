@@ -32,6 +32,7 @@ lásd „Miért nem kódolunk még".
 | `gemini_cloud_spec_en.md` | A Gemini felhő-specifikációja — **bemeneti dokumentum**, a munkamenet ELŐTTI állapot | **Csak a fájl végén lévő ÖSSZEVETÉSSEL együtt használható** — egy pontja felülírva, egy biztonsági aggály |
 | `siduri_superprompt_en.md` | Ugyanaz megaprompt formában (angol, Geminihez) | **Részben ELAVULT** — inline `[SUPERSEDED]` / `[OPEN]` jelölésekkel |
 | `FOLYAMATBAN.md` | Ez a fájl — állapot és folytatás | Élő |
+| **`ELLENORZES_1_TELJESSEG_JOGI.md`** | **Az 1. ellenőrző kör jelentése** — jogi megfelelés forrásokkal + teljességi vizsgálat | Élő; **négy lelet DÖNTÉST igényel** |
 | **`MERESEK.md`** | **A mérendő tételek egységes nyilvántartása.** A felhasználó kiemelt utasítása: az első éles tesztnél MINDENT meg kell mérni | Élő — kötelezően frissítendő |
 | `UiUX/` (mappa) | UI/UX skill-készlet (7 skill, köztük WPF és Flutter stack-adatok) | Eszköz, a design-fázisban használandó — lásd 0.2 |
 
@@ -240,12 +241,18 @@ utána KÉT ELLENŐRZŐ KÖR**, és csak azután megyünk tovább.
 #### 2.1.b `[FOLYAMATBAN, a felhasználónál]`
 3. **TPM-ellenőrzés a meglévő J1900 bázison.** Addig mindkét ágra készülünk.
 
-#### 2.1.c `[ ]` ELSŐ ELLENŐRZŐ KÖR — teljességi és jogi
+#### 2.1.c `[KÉSZ — 2026-08-22]` ELSŐ ELLENŐRZŐ KÖR — teljességi és jogi
 A felhasználó kérése szó szerint: *„hogy biztos mindent lezártunk-e, minden jó-e,
 nem maradt-e ki ötlet, amit még jónak vagy beleillőnek gondolsz, és mindenhol
 megfelelünk-e a magyar jogszabályi előírásoknak."*
 
-**Amit ez a kör tartalmaz:**
+> **A jelentés elkészült: `ELLENORZES_1_TELJESSEG_JOGI.md`.**
+> **Négy lelet döntést igényel** (2028-as pénztárgép-kifutás; 72 órás offline
+> plafon; 8 éves megőrzés vs. 30 napos purge; az elviteles ÁFA nem „váltás").
+> **És egy jó hír:** az `A2` teherhordó premisszája **IGAZOLVA** — az adóügyi
+> eszköz maga sorszámozza a bizonylatot (8/2025. NGM rendelet).
+
+**Amit ez a kör tartalmazott:**
 - **Teljességi kritikus** (§11): mi maradt ki — nem futtatott metszet,
   ellenőrizetlen állítás, el nem olvasott forrás?
 - **Az összes `[ ]` és `[?]` tétel átvizsgálása**: van-e olyan, ami eldönthető,

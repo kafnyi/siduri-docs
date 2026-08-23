@@ -32,6 +32,7 @@ lásd „Miért nem kódolunk még".
 | `gemini_cloud_spec_en.md` | A Gemini felhő-specifikációja — **bemeneti dokumentum**, a munkamenet ELŐTTI állapot | **Csak a fájl végén lévő ÖSSZEVETÉSSEL együtt használható** — egy pontja felülírva, egy biztonsági aggály |
 | `siduri_superprompt_en.md` | Ugyanaz megaprompt formában (angol, Geminihez) | **Részben ELAVULT** — inline `[SUPERSEDED]` / `[OPEN]` jelölésekkel |
 | `FOLYAMATBAN.md` | Ez a fájl — állapot és folytatás | Élő |
+| **`ELLENORZES_2_ADVERZARIALIS.md`** | **A 2. ellenőrző kör** — szkeptikus átvizsgálás; a feladat a CÁFOLAT volt | Élő; **hat teendő, egy súlyos strukturális lelet** |
 | **`FISKALIS_UZEMMODOK.md`** | A három fiskális üzemmód + az e-pénztárgépes integráció utánajárása | Élő; **hat kérdés a NAV/gyártó felé** |
 | **`ELLENORZES_1_TELJESSEG_JOGI.md`** | **Az 1. ellenőrző kör jelentése** — jogi megfelelés forrásokkal + teljességi vizsgálat | Élő; **négy lelet DÖNTÉST igényel** |
 | **`MERESEK.md`** | **A mérendő tételek egységes nyilvántartása.** A felhasználó kiemelt utasítása: az első éles tesztnél MINDENT meg kell mérni | Élő — kötelezően frissítendő |
@@ -192,100 +193,39 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 
 ## 2. A KÖVETKEZŐ TÉTEL
 
-### 2.1 A KÖVETKEZŐ MUNKA — a felhasználó által kért sorrend
+### 2.1 A KÖVETKEZŐ MUNKA — a 2. ellenőrző kör után
 
-A felhasználó 2026-08-22-én ezt kérte: **először zárjuk le a maradék apróságokat,
-utána KÉT ELLENŐRZŐ KÖR**, és csak azután megyünk tovább.
+**Mindkét ellenőrző kör lezárult.** A 2. kör hat teendőt nevesített, és ezek
+**a fázisterv (E1) ELŐTT vagy VELE PÁRHUZAMOSAN** indítandók:
 
-#### 2.1.a0 `[!]` KÉT ÚJ HÉZAG, amit a legutóbbi kör tárt fel
+| # | Teendő | Miért most | Ki |
+|---|--------|-----------|-----|
+| **1** | **`[ ]` A pénz- és mennyiség-ábrázolás eldöntése (`F2`)** | Öt perc, és minden számítás rá épül. **A legolcsóbban eldönthető és legdrágábban javítható döntés.** | döntés, azonnal |
+| **2** | **`[ ]` Könyvelői megerősítés a bizonylat-számozásra** | **NÉGY döntés függ tőle** láncban. Egy mondat. | felhasználó |
+| **3** | **`[ ]` A három külső kapu elindítása** — MTÜ-validáció, NAV-kérdés (kell-e engedély a szoftvernek), gyártói protokoll (NDA) | **Ezek uralják a határidőt, nem a fejlesztés.** Egyik sincs elindítva. | felhasználó |
+| **4** | **`[ ]` Az RMS interfész-leírás és az e-nyugta séma elolvasása** | **A termékmodell nem tervezhető nélkülük.** Mindkettő nyilvános. | elvégezhető |
+| **5** | **`[ ]` Néhány napos ELŐMÉRÉS valós J1900-on** | A legdrágább feltevés (kombinált szerver+POS) cáfolata, **mielőtt ráépítünk mindent.** Nem kell hozzá a Siduri. | hardver kell |
+| **6** | **`[ ]` E1 — fázisterv, és az ELSŐ dolga: `MVP`/`v1`/`v2`/`vízió` címke MINDEN döntésre** | Enélkül a jelenlegi ~50 döntés **úgy néz ki, mintha mind MVP lenne.** | a fázisterv része |
 
-1. **`[ ]` Két gép, két külön üzleti nap offline.** Ha a szerver halott és két
-   pénztárgép egymástól függetlenül nyit üzleti napot **eltérő órával**, akkor
-   különböző üzleti nap alatt adnak ki bizonylatokat → visszatéréskor **két
-   egyszerre nyitott üzleti nap**, kettéhasadt napi zárás és adatszolgáltatás —
-   **és a bizonylatszámok már ki vannak nyomtatva, tehát nem javíthatók.**
-   Javasolt ellenszer: **a nyitás előtt a gép kötelezően kérdezze meg a tanúkat**;
-   ha bármelyik másik gép már nyitott üzleti napot, **azt vegye át.**
-   → `NYITOTT_KERDESEK.md`, keress: `ÚJ HÉZAG, amit ez a forgatókönyv feltár`
+#### `[!]` A 2. kör legsúlyosabb megállapítása — ezt a fázisterv nem kerülheti meg
 
-2. **`[!]` B16.4 — a legfontosabb most eldöntendő: BEÁLLÍTÁS vs. KÉSZLET.**
-   A felhő lehet autoritatív a **törzsadatra** (ár, láthatóság, receptúra) —
-   de a **készlet nem érték, hanem futó egyenleg**, amit a telephelyen percenként
-   csökkentenek az eladások. Ha a felhő „felülírja 40-re", miközben közben 3
-   fogyott, **az a 3 eltűnik, és az eredmény hihetőnek látszik.** Javasolt szabály:
-   a felhő küldhet **„vegyél fel 20 darabot"**-ot, de soha nem **„a készlet
-   mostantól 40"**-et. → keress: `B16.4`
+> **A terv MINŐSÉGE magas, de a MÉRETE nem illeszkedik a 2–3 fős csapathoz.**
+> Nagyságrendileg **15–30 ember-éves program** lett belőle, és
+> **mind a tizenhét tervezési kör BŐVÍTETTE a scope-ot, egyik sem szűkítette.**
+>
+> Minden egyes bővítés **önmagában védhető volt** — ezért nem tűnt fel.
+> **A fázisterv az a pont, ahol ez eldől.**
 
-3. **`[!]` B16.7 — a beállítás-paritás őre.** „A felhőn minden beállítás legyen,
-   ami a POS-on" — két felület, két repó, két nyelv, és **semmilyen fordító nem
-   köti össze őket.** §6 szerint garantáltan szétcsúszik: minden új POS-beállítás
-   némán hiányozni fog a felhőből, amíg egy ügyfél nem keresi. Javaslat: a
-   beállítások **EGY sémából** épüljenek mindkét felületen, **paritás-őrrel**.
-   Ez élesíti a B8-at (hol él az API-szerződés). → keress: `B16.7`
+#### `[!]` A második: nincs TERMÉKMODELL
 
-4. **`[ ]` B7 + lánc-szint EGYÜTT döntendő.** A franchise **új hierarchia-szintet**
-   vezet be a telephely fölé, és a lánc-szintű összesített lekérdezés igénye
-   érdemben szűkíti a multi-tenancy lehetőségeit. → keress: `B16.2`
+**Tizenhét kör után a `C1` változatlanul nyitva:** módosítók, feltétek, menük,
+„kiszerelés" (a spec hivatkozik rá, sehol nincs definiálva), többszintű
+receptúra, allergének, súly szerinti termékek + mérleg.
 
-#### 2.1.a `[ ]` Jóváhagyásra vár (nem blokkoló)
-1. **B13 — átvétel előtti begyűjtés a kliensektől.** A felhasználó ötlete,
-   **elfogadásra ajánlom** — ez a terv legkockázatosabb darabját zsugorítja
-   össze. Három módosítással: a begyűjtés az ELSŐ bizonylat előtt fusson; az
-   ablak kliensenként számított legyen, ne fix 5 perc; időkorlát + explicit
-   „hiányos" állapot. → `NYITOTT_KERDESEK.md`, keress: `B13`
-2. **B11.3/b — öndiagnosztikai létra.** A felhasználó felvetése alapján; az
-   internet-ellenőrzés külön, megcímkézett sorba kerül, és nem befolyásolja a
-   szerver-diagnózist. → keress: `ÖNDIAGNOSZTIKAI LÉTRA`
-3. **B11 — a tanú-séma teljes terve**, jóváhagyásra. → keress: `B11`
-4. **A4/c finomítása** — az árva tranzakciók elétárásának időzítése.
-   → keress: `A4/c`
-5. **`[ ]` Ha a vékonykliens fizetést is felvesz** (a SoftPOS jellemzően
-   Android-only), akkor **bizonylatot is kiállít**, tehát **saját számtartomány
-   kell neki is** — és a klónozás-veszély ott nagyobb, mert a telefonok
-   cserélődnek. Eldöntendő a fizetési szolgáltató kérdésével együtt.
-   → keress: `B15`
-
-#### 2.1.b `[FOLYAMATBAN, a felhasználónál]`
-3. **TPM-ellenőrzés a meglévő J1900 bázison.** Addig mindkét ágra készülünk.
-
-#### 2.1.c `[KÉSZ — 2026-08-22]` ELSŐ ELLENŐRZŐ KÖR — teljességi és jogi
-A felhasználó kérése szó szerint: *„hogy biztos mindent lezártunk-e, minden jó-e,
-nem maradt-e ki ötlet, amit még jónak vagy beleillőnek gondolsz, és mindenhol
-megfelelünk-e a magyar jogszabályi előírásoknak."*
-
-> **A jelentés elkészült: `ELLENORZES_1_TELJESSEG_JOGI.md`.**
-> **Négy lelet döntést igényel** (2028-as pénztárgép-kifutás; 72 órás offline
-> plafon; 8 éves megőrzés vs. 30 napos purge; az elviteles ÁFA nem „váltás").
-> **És egy jó hír:** az `A2` teherhordó premisszája **IGAZOLVA** — az adóügyi
-> eszköz maga sorszámozza a bizonylatot (8/2025. NGM rendelet).
-
-**Amit ez a kör tartalmazott:**
-- **Teljességi kritikus** (§11): mi maradt ki — nem futtatott metszet,
-  ellenőrizetlen állítás, el nem olvasott forrás?
-- **Az összes `[ ]` és `[?]` tétel átvizsgálása**: van-e olyan, ami eldönthető,
-  vagy amiről kiderült, hogy tárgytalan?
-- **Új ötletek**, amiket a terv megérdemel, de eddig nem merültek fel.
-- **`[!]` JOGI MEGFELELÉS — FORRÁSSAL.** §13.5: jogi állítás forrásmegjelölés
-  nélkül nem használható, és **nem csatornázható a felhasználó döntésébe**.
-  Jelenleg **öt igazolatlan jogi/hatósági premissza** áll a tervben (3. szakasz),
-  és mindegyiket **hatályos forrásból kell ellenőrizni**, nem emlékezetből.
-  Ehhez a körhöz **web-keresés kell** — ez nem írható meg a fejemből.
-
-#### 2.1.d `[ ]` MÁSODIK ELLENŐRZŐ KÖR — adverzariális
-A felhasználó kérése: *„egy szkeptikus ellenőrzés a teljes tervre, hogy hol
-csúszhat félre, mi nem jó, mi hiányos, illetve az első ellenőrzés pontjai, csak
-sokkal szkeptikusabban."*
-
-**Módszertan (§11):** adverzariális verifikáció — a feladat a **CÁFOLAT**, nem a
-megerősítés; bizonytalanságnál az alapértelmezés: **cáfolva**.
-**Perspektíva-diverz**: helyesség / biztonság / megfelelés / üzemeltethetőség /
-„valóban reprodukálható-e" lencsékkel, mert ezek mást fognak meg.
-
-**Külön célpont** (§11): **az ebben a munkamenetben hozott 24 döntés**, mert a
-leletek többsége mindig a friss munkában van, nem a régiben.
-
-#### 2.1.e `[ ]` Csak ezek UTÁN: E1 — a fázisterv
-Mind a 26 fejezet besorolása, a mérési fázissal mint önálló szakasszal.
+**Egy vendéglátó POS a módosítókon áll vagy bukik** — „hamburger hagyma nélkül,
+extra sajttal" —, és **erre nulla terv van**, miközben a failoverre ötven oldal.
+**És a termékmodell sem tervezhető meg a két külső séma (NTAK RMS, e-nyugta)
+elolvasása előtt** → lásd a 4. teendőt.
 
 ### 2.1.0 `[!]` Amit a fázisterv írásakor NEM szabad elfelejteni
 

@@ -36,12 +36,13 @@
 > eredménye, a B12 jogi kérdése, a B1/c R2–R5 kitöltése.
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
 >
-> **ÚJ (tizedik kör):** **B13** — átvétel előtti begyűjtés a kliensektől (a felhasználó
-> ötlete, elfogadásra ajánlom): ha az ELSŐ bizonylat előtt fut le, megszünteti a
-> sorszám-ütközést, ami az árva tranzakciók problémáját nehézzé tette.
-> **B11.3/b** — öndiagnosztikai létra: az alhálózat-/változásvizsgálat erős, az
-> internet-ping gyenge, ezért külön sorba kerül. ÚJ HIÁNY: a vékonykliensek nem
-> vezetnek archívumot, tehát a begyűjtés nem éri el őket.
+> **ÚJ (tizenegyedik kör):** **B14** — kétrétegű bizonylat-számozás (a felhasználó
+> ötlete): eszközönként elhatárolt saját tartomány + az adóügyi eszköz száma külön
+> tárolva. Ez **szerkezetileg lehetetlenné teszi az ütközést**, és mellékhatásként
+> **feloldja a B13 időzítési kényszerét** — a tartalék átvételkor azonnal kiszolgálhat.
+> Két módosítást igényel: a tartomány szélessége kevés (számítással), és az
+> eszközazonosító egyediségét őrizni kell (klónozás!). **B15** — a vékonykliensek is
+> vezetnek archívumot, de minimálisat. Az internet-ellenőrzés bent marad utolsó fokként.
 >
 > **A felhasználó két ELLENŐRZŐ KÖRT kért a jelenlegi tervekre** — lásd
 > `FOLYAMATBAN.md` 2.1.c és 2.1.d szakasz.
@@ -1213,6 +1214,162 @@ nevesítve van.
 minden tranzakción), F3 (ki az igazságforrás: a Siduri vagy az adóügyi eszköz —
 az archívum ehhez is bizonyítékot ad), A3 (megőrzési kötelezettség).
 
+### `[ELDÖNTVE — kétrétegű számozás]` B14 — BIZONYLAT-SZÁMOZÁS
+
+> **A felhasználó döntése és pontosítása (2026-08-22).** Ez a tétel egyik eredeti
+> doksiban sem szerepelt, és **a rendszer egyik legmeghatározóbb szerkezeti
+> döntése** — az adatmodellt, a szinkronizációt és a sztornót egyaránt érinti.
+
+#### B14.1 A két, egymástól FÜGGETLEN szám
+
+| | **SIDURI bizonylatszám** | **ADÓÜGYI ESZKÖZ száma** |
+|---|---|---|
+| Ki adja | **Mi** — a kiállító eszköz, saját, elhatárolt tartományból | **Az adóügyi nyomtató**, a saját szabályai szerint |
+| Alakja | eszközazonosító-előtag + folyószám (pl. a 2-es kassza: `002xxxxx`) | `A12345678/123/1234` |
+| Mikor keletkezik | **a bizonylat létrehozásakor**, azonnal, helyben | **csak a nyomtatás után**, válaszként |
+| Mire jó | **ez a mi elsődleges azonosítónk** mindenre | **a sztornóhoz KELL** — enélkül nem hivatkozható |
+| Mi van, ha nincs | nem fordulhat elő | **gyakran nincs** — lásd B14.4 |
+
+**Az adóügyi szám formátuma** (a felhasználó megadása szerint):
+`A` fix karakter (az AP-szám része) + `12345678` az AP-szám számjegyei (a
+nyomtató NAV-os azonosítója) + `/123` az adott nyomtató rendszerében **aktuálisan
+nyitott munkanap** + `/1234` a nyugta sorszáma **azon a nyomtatón, azon a napon**.
+
+#### B14.2 Miért NEM lehet az adóügyi szám a mi azonosítónk — három ok
+
+**A felhasználó indoka** („nem mi ellenőrizzük, lehet ütközés") **helyes, és
+alátámasztható konkrétan is:**
+
+1. **A munkanap-számláló 3 jegyű → 999-nél körbefordul.** Napi egy zárással ez
+   **kb. 2,7 év** üzem után **ugyanazt a karakterláncot** adhatja vissza
+   ugyanazon a nyomtatón. Ez nem elméleti: egy vendéglátóhely simán üzemel
+   ennél tovább. `[?]` **A körbefordulás pontos viselkedése gyártónként eltérhet
+   — ellenőrizendő a protokolldokumentációból (C10, E3).**
+2. **Nem mi vezéreljük.** A számot a gyártó eszköze adja, a saját belső
+   állapotából. Bármi, ami azt az állapotot befolyásolja (csere, szerviz,
+   memóriatörlés), a mi tudtunk nélkül történik.
+3. **`[!]` A legfontosabb ok — időzítési:** az adóügyi szám **csak a nyomtatás
+   UTÁN érkezik meg.** A bizonylat viszont **létezik előtte is** — létrejön,
+   tételei vannak, fizetés történt rá. **Ha nincs saját számunk, akkor a
+   nyomtatás pillanatáig a bizonylatnak NINCS AZONOSÍTÓJA** — és ha a nyomtatás
+   elbukik (papírelakadás, áramszünet, elveszett válasz), **soha nem is lesz.**
+   Épp az a „függő tranzakció" állapot válna kezelhetetlenné, amit a terv
+   máshol (F3) kifejezetten meg akar oldani.
+
+   **Vagyis a saját számozás nem kényelmi döntés: enélkül a hibakezelés maga
+   lehetetlen.**
+
+#### B14.3 `[ELFOGADVA]` Eszközönként elhatárolt saját tartomány — miért JÓ ötlet
+
+A felhasználó javaslata: minden kiállító eszköz **saját, egymást nem metsző
+számtartományból** dolgozik (2-es kassza: `002…`, 4-es kassza: `004…`).
+
+**Ez a legerősebb megoldás, és nem csak könnyítés — hibaosztályt szüntet meg:**
+
+1. **Az ütközés SZERKEZETILEG lehetetlen**, nem „protokollal megelőzött".
+   Nincs mit elrontani.
+2. **Nulla koordináció.** Az eszköz **örökké tud offline bizonylatot kiállítani**,
+   anélkül hogy bárkitől engedélyt kérne. A csökkentett mód így nem kivétel a
+   számozás szempontjából, hanem **ugyanaz, mint a normál üzem.**
+3. **`[!]` A B13 ÁTVÉTELI ELJÁRÁS EGYSZERŰBB ÉS GYORSABB LESZ TŐLE.**
+   Korábban azt írtam, hogy a begyűjtésnek **az első bizonylat kiadása ELŐTT**
+   kell lefutnia, különben sorszám-ütközés keletkezik. **Eszközönkénti
+   tartománnyal ez a kényszer MEGSZŰNIK**, mert a tartalék szerver **soha nem
+   ad ki bizonylatszámot** — azt mindig a kassza teszi.
+   **Következmény: a tartalék AZONNAL kiszolgálhat, és a begyűjtés
+   PÁRHUZAMOSAN futhat.** Az átvétel nem áll meg a begyűjtés miatt → rövidebb
+   kiesés. **A begyűjtés célja adat-teljesség marad, nem ütközés-megelőzés.**
+4. **Levesz egy forró, sorosított írási utat a szerverről** (a központi
+   számláló). A felhasználó megérzése, hogy ez könnyíti a terhelést, **helyes.**
+5. **Visszakereséskor azonnal látszik, melyik kassza állította ki.**
+
+#### B14.4 `[!]` HÁROM MÓDOSÍTÁS, amit a terv megkövetel
+
+**M1 — `[!]` A SZÁMTARTOMÁNY SZÉLESSÉGE KEVÉS. Ez számítás, nem vélemény.**
+
+A példa `002xxxxx` alakja **5 jegyű folyószámot** ad → **100 000 bizonylat**
+eszközönként.
+
+| Forgalom | Mennyi idő alatt fogy el a 100 000 |
+|----------|-------------------------------------|
+| 200 nyugta / nap | ~500 nyitvatartási nap ≈ **1,5–2 év** |
+| 500 nyugta / nap | **200 nyitvatartási nap — kevesebb, mint egy év** |
+| 800 nyugta / nap | ~125 nap ≈ **fél év** |
+
+**Egy forgalmas kassza tehát EGY ÉVEN BELÜL kifutna a tartományból.** Ez pontosan
+a §5 néma kudarca: évekig működik, aztán egy forgalmas helyen hirtelen elfogy, és
+akkor **nem lehet bizonylatot kiállítani** — a lehető legrosszabb pillanatban.
+
+**Megoldási lehetőségek** (eldöntendő, de a jelenlegi szélesség így nem maradhat):
+- **több számjegy** (8 jegyű folyószám → 100 millió, gyakorlatilag soha nem fogy);
+- vagy **évszám a szerkezetbe** (`002-2026-00001`), és évente újraindul —
+  ez a szokásosabb bizonylat-alak, és a visszakeresést is segíti;
+- **`[!]` A tartomány kimerülésére KÜSZÖB-RIASZTÁS kell** (pl. 90%-nál),
+  bármelyik megoldást választjuk. Némán soha ne fogyjon el.
+
+**M2 — `[!]` AZ ESZKÖZAZONOSÍTÓ EGYEDISÉGÉT ŐRIZNI KELL. A legvalószínűbb valós hiba.**
+
+Az egész séma azon áll, hogy **két eszköznek soha nincs azonos előtagja.**
+Amivel ez elromlik, a gyakorlatban:
+- **`[!]` LEMEZKÉP-KLÓNOZÁS.** Egy új kassza beüzemelésének a legkézenfekvőbb
+  módja, hogy lemásoljuk egy meglévő gép telepítését. **Ekkor két gép ugyanazzal
+  az előtaggal indul, mindkettő 1-től** — és **mindkettő valódi bizonylatokat
+  ad ki azonos számmal.** Ez a séma egyetlen katasztrofális hibamódja.
+- **Gépcsere hardverhiba után.** Örökli-e az új gép a `002` előtagot? Ha igen, a
+  régi gép fel nem töltött archívuma később duplikátumként jelenhet meg.
+
+**Kötelező ellenszerek:**
+- az előtag **logikai eszközazonossághoz** kötődjön, ne a hardverhez, és az
+  eszközregisztráció (B6) során **a szerver ossza ki**, ne a telepítő gépelje be;
+- **a szerver indításkor és minden csatlakozáskor ellenőrizze**, hogy nincs-e két
+  eszköz azonos előtaggal — és ha van, **álljon meg hangosan**, ne dolgozzon
+  tovább (§1.3: a padló nélküli ellenőrzés néma zöldet ad);
+- **gépcserénél az új gép örökölje az azonosságot ÉS az utolsó felhasznált
+  folyószámot**, vagy kapjon **teljesen új** azonosságot — a kettő között nincs
+  biztonságos harmadik út.
+
+**M3 — A tartományon BELÜL a számozás legyen hézagmentes, és a hézag legyen INDOKOLT.**
+
+Ha egy szám „elég", mert a bizonylat félbeszakadt, **ne tűnjön el némán.**
+Két szabály:
+- **a számot a lehető LEGKÉSŐBB oszd ki** — a bizonylat tényleges véglegesítésekor,
+  ne a kosár megnyitásakor;
+- ha mégis elveszett egy szám, **maradjon utána egy rekord az OKKAL** — ne
+  egyszerűen hiányozzon. `[?]` Hogy a hézagmentesség jogilag hogyan kötelező,
+  az a **jogi kör** tétele (lásd lent).
+
+#### B14.5 `[?]` JOGI KÉRDÉS, amit NEM tudok megválaszolni (§13.5)
+
+**A számviteli és adójogi előírások jellemzően folyamatos, kihagyás és ismétlés
+nélküli sorszámozást követelnek a bizonylatoktól.** Hogy ez **egyetlen, globális
+sorozatot** ír-e elő, vagy **több párhuzamos, előre elhatárolt tartomány is
+megfelel** (ami az általános gyakorlat), azt **forrás nélkül nem állítom.**
+
+**Enyhítő körülmény, ami valószínűleg megoldja:** a mi számunk **belső
+azonosító**, nem a jogi bizonylat sorszáma — azt az adóügyi eszköz adja.
+**De ez nem minden bizonylatra igaz:** ahol **a Siduri maga a kiállító**
+(pl. számla saját kiállítása, egyes belső bizonylatok), ott a szabály élesben él.
+
+**→ Az ELSŐ ELLENŐRZŐ KÖR (jogi) kiemelt tétele.** Ha kiderül, hogy egyetlen
+sorozat kell, ez a döntés megdől, és a hatása nagy.
+
+#### B14.6 Amit az adóügyi számmal tenni kell
+
+- **Tároljuk a bizonylat mellett**, teljes egészében, ahogy az eszköz visszaadta
+  (ne bontsuk szét visszaépíthetetlenül) — **a sztornóhoz kell.**
+- **`[!]` NULLÁZHATÓ mező.** **Nem minden Siduri-bizonylatnak van adóügyi száma:**
+  előnyugta, raktármozgás, készpénz ki-/befizetés, selejt, személyzeti fogyasztás
+  — ezek soha nem érintik az adóügyi eszközt. **Minden kód, ami feltételezi, hogy
+  létezik, el fog hasalni.** A séma és a felület is számoljon a hiányával.
+- **Ha a nyomtatás elbukott, a bizonylatnak NINCS adóügyi száma** — tehát
+  **fiskálisan nem is állították ki**, tehát **nem is sztornózható** a szokásos
+  úton. Ez **külön feloldási útvonal** (F3 függő tranzakció), nem sztornó.
+- **A saját számunk és az adóügyi szám párosítása legyen KÖTELEZŐEN naplózva**,
+  mert ez a kapocs a mi rendszerünk és a jogi bizonylat között — és az
+  ellenőrzésnél ez az, amit kérni fognak.
+
+---
+
 ### `[JAVASLAT — ELFOGADÁSRA AJÁNLOM]` B13 — ÁTVÉTEL ELŐTTI BEGYŰJTÉS a kliensektől
 
 > **A felhasználó ötlete (2026-08-22).** Amikor a tartalék átveszi a szolgálatot,
@@ -1231,7 +1388,7 @@ helyrehozni**, mert a papír már a vendégnél van.
 
 **A felhasználó ötlete pontosan ezt előzi meg — DE CSAK EGY FELTÉTELLEL:**
 
-> ### A begyűjtésnek az ELSŐ bizonylat kiadása ELŐTT kell lefutnia.
+> ### `[FELÜLÍRVA a B14 döntéssel — lásd alább]` A begyűjtésnek az ELSŐ bizonylat kiadása ELŐTT kell lefutnia.
 >
 > Ha a begyűjtés a takeover **része**, és a tartalék **csak utána** kezd
 > bizonylatot kiadni, akkor megtanulja a valódi legmagasabb sorszámot, és
@@ -1240,6 +1397,20 @@ helyrehozni**, mert a papír már a vendégnél van.
 > Ha a begyűjtés a kiszolgálás megkezdése UTÁN futna, az ötlet **nem javít,
 > hanem ront**: pontosan azokat az ütköző rekordokat importálná be, amiket a
 > tartalék időközben már kiosztott.
+
+> ### `[!]` FELÜLÍRVA — a B14 (eszközönkénti számtartomány) döntés eltörölte ezt a kényszert
+>
+> A fenti okfejtés **azt feltételezte, hogy a SZERVER osztja a bizonylatszámot.**
+> A B14 döntés szerint viszont **minden kiállító eszköz a saját, elhatárolt
+> tartományából számoz** — tehát **a tartalék szerver soha nem ad ki
+> bizonylatszámot**, és **ütközés szerkezetileg nem keletkezhet.**
+>
+> **Új szabály: a tartalék AZONNAL kiszolgálhat, a begyűjtés PÁRHUZAMOSAN fut.**
+> Az átvétel nem áll meg a begyűjtés miatt → **rövidebb kiesés.**
+>
+> **A begyűjtés célja megmarad, csak megváltozik:** nem ütközés-megelőzés, hanem
+> **adat-teljesség és ellenőrzés** (az átfedő szakasz összevetése). Ettől
+> **kevésbé időkritikus, de nem kevésbé fontos.**
 
 **Ezzel a nehéz probléma könnyű problémává válik:** ütközés nélkül az árva
 tranzakciók behozatala **közönséges, idempotens adatimport**, nem
@@ -1259,7 +1430,7 @@ Ezek mind valamelyik kliensen keletkeztek, tehát a kliens archívumában megvan
 |-------------|-------|-----------|
 | **Szerver-eredetű adat** — napi zárás összesítők, adóhatósági beküldés állapota, felhőszinkron vízjelek, ütemezett feladatok eredménye | A kliens sosem látta ezeket | Kicsi darab, de **nem nulla** — az egyeztetés nem tűnik el, csak összezsugorodik |
 | **Egy olyan kliens adata, ami az átvételkor szintén halott** (pl. közös áramkör esett ki) | Nem tudjuk lekérdezni **abban a pillanatban** | **Nem végleges veszteség**, ha a begyűjtés **megismételhető**, amikor az a gép visszatér — lásd lent |
-| **Vékonykliens (telefon, tablet) adata** | `[!]` **Ez ÚJ HIÁNY:** a jelenlegi terv szerint a helyi archívum a POS-okon van. Egy telefonról feladott, a fő szerver által nyugtázott, de nem replikált rendelés **sehol máshol nincs meg** | **Eldöntendő:** a vékonykliensek is vezessenek-e kis archívumot? |
+| ~~Vékonykliens (telefon, tablet) adata~~ | **`[ELDÖNTVE 2026-08-22]` A vékonykliensek IS vezetnek archívumot** — lásd B15 | Megoldva |
 
 #### Három módosítás, amit javaslok az ötlethez
 
@@ -1325,6 +1496,53 @@ Nem apró javítás: **a terv legkockázatosabb darabját zsugorítja össze.**
 Az egyeztetés nem tűnik el (a szerver-eredetű adat és az elérhetetlen gépek
 miatt), de **a nehéz része — az összefésülhetetlen sorszám-elágazás — megszűnik**,
 feltéve, hogy a begyűjtés az első bizonylat előtt fut le.
+
+---
+
+### `[ELDÖNTVE — igen, de minimális]` B15 — VÉKONYKLIENS-ARCHÍVUM
+
+**Döntés (2026-08-22):** a vékonykliensek (telefon, tablet) **is vezetnek helyi
+archívumot**, de **jóval kisebbet, mint a pénztárgépek** — a felhasználó
+megfogalmazásában: *„nem kell olyan combosat, mint a POS-oknak."*
+
+**Miért kellett egyáltalán:** a B13 begyűjtés **csak azt éri el, ami valamelyik
+eszköz archívumában van.** Egy telefonról feladott, a fő szerver által nyugtázott,
+de nem replikált rendelés enélkül **sehol máshol nem létezne** — se a tartalékon,
+se egy POS-on.
+
+#### Mi legyen benne, és mi NE
+
+| | Pénztárgép (POS) | **Vékonykliens** |
+|---|---|---|
+| Mit tárol | mindent, amit ez a gép kiállított | **csak amit EZ az eszköz küldött** (rendelés, ha fizetést vesz fel, akkor az is) |
+| Megőrzés | **20 forgalmas nap** | **`[JAVASLAT]` minden, ami még nincs nyugtázva + egy rövid átfedő farok** (pl. az aktuális üzleti nap, vagy 2–3 forgalmas nap) |
+| Tartalom | teljes bizonylat | **azonosító, időbélyeg, tételsorok, célasztal** — a visszajátszáshoz és az összevetéshez szükséges minimum |
+
+#### `[!]` Miért JAVASLOM a rövidebb megőrzést — adatvédelmi indok, nem takarékosság
+
+**A telefon a leggyakrabban elveszített és ellopott eszköz** az egész
+rendszerben. Egy pult mögé csavarozott pénztárgép ritkán tűnik el; **egy pincér
+telefonja hetente elhagyható.** Ugyanaz az elv, mint a B10/a-nál:
+**minél kevesebb adat van rajta, annál kisebb a kár.**
+
+**És a rövid megőrzés elég is a célra:** a helyreállítási ablak **percekben**
+mérhető, nem napokban — a telefon úgyis gyakran újracsatlakozik. Amit meg kell
+őriznie, az **a még nem nyugtázott adat** (az kortól függetlenül soha nem
+törölhető) **plusz egy rövid átfedés** a B13 ellenőrzéséhez. Ennél többet
+tárolni **kockázatot vinne fel egy zsebben hordott eszközre, haszon nélkül.**
+
+#### Amit ez maga után von
+
+- A vékonykliensek is **azonosítottak és regisztráltak** kell legyenek (B6),
+  hogy a begyűjtés hitelesíthető legyen.
+- **`[ ]` Ha a vékonykliens fizetést is felvesz** (a SoftPOS jellemzően
+  Android-only, tehát a kártyás fizetés valószínűleg ide kerül — B5), akkor
+  **bizonylatot is kiállít**, tehát **saját számtartomány kell neki is** (B14).
+  Ez több eszközt jelent tartománnyal, és a klónozás-veszély (B14 M2) itt
+  nagyobb, mert a telefonok cserélődnek. **Eldöntendő a B5 lezárásakor.**
+- Elveszett/ellopott eszköznél kell **távoli visszavonás** (a regisztráció
+  érvénytelenítése), különben egy elhagyott telefon örökre legitim kliens marad.
+  Ez a B6 kiterjesztése.
 
 ---
 
@@ -1396,9 +1614,34 @@ Az alábbi létra megtartja az erős részt és a helyére teszi a gyengét.
 | **2** | **Változott-e a hálózati identitásom** az utolsó sikeres szerver-kapcsolat óta? IP, alhálózati maszk, átjáró IP-je, **az átjáró MAC-címe**, wifinél az **SSID ÉS a BSSID** (a konkrét hozzáférési pont MAC-je) | **Ez a legerősebb egyetlen jel.** Ha az azonosságom megváltozott, **nálam történt valami** — másik hálózatra kerültem, más AP-hoz kapcsolódtam, más IP-t kaptam | nulla hálózati forgalom |
 | **3** | **Elérem-e a saját alapértelmezett átjárómat?** | A kapcsolatom és az IP-beállításom **működik** — tehát a hiba nem a saját kábelemnél/wifimnél van | egy csomag, helyi |
 | **4** | **Elérem-e a többi Siduri-eszközt?** (a tanú-séma) | **EZ adja meg a valódi választ:** én vagyok-e, vagy a szerver | kicsi, helyi |
-| **5** | Van-e internetem? | **Egyik kérdésre sem válaszol** — külön sorban, külön célra | külső függőség |
+| **5** | **Van-e internetem?** (utolsó fok, két külön jel: névfeloldás + HTTPS-elérés egy közismert publikus címre) | **A „szerver vagy én?" kérdésre NEM válaszol** — de kiegészítő információ, amikor minden más elhasalt, és külön célra (adóhatósági adatszolgáltatás) amúgy is kell | kicsi, nincs saját függőség |
 
-##### `[!]` Miért NEM szabad az internet-ellenőrzést a szerver-diagnózisba keverni
+##### `[ELDÖNTVE 2026-08-22]` Az internet-ellenőrzés BENT MARAD — utolsó fokként
+
+**A felhasználó pontosítása feloldotta a fő kifogásomat:** nem saját, általunk
+üzemeltetett végpontra gondolt, hanem egy **közismert publikus címre** (pl. Google),
+és **utolsó ellenőrzési pontnak**, amikor már minden más elhasalt.
+
+**Így elfogadom**, mert a két legsúlyosabb ellenvetésem elesik: nincs új
+üzemeltetési függőségünk, és nem az első, hanem az **utolsó** fok, tehát nem
+uralja a diagnózist. A megmaradó kifogások (gyenge korreláció, félrevezethet)
+azzal kezelhetők, hogy **külön, megcímkézett sorban jelenik meg**, és **soha nem
+befolyásolja a „szerver vagy én?" döntést.**
+
+**Három gyakorlati kikötés:**
+1. **Ne ICMP ping legyen.** Sok hálózaton tiltott, és egy tiltott ping
+   „nincs internet"-nek látszik. Helyette **egy kicsi HTTPS-kérés** egy
+   közismert, magas rendelkezésre állású címre.
+2. **Bontsuk KÉT jelre: névfeloldás és elérés.** „A DNS nem működik" és „nincs
+   útvonal" **két különböző hiba**, két különböző teendővel — és a
+   szétválasztásuk ingyen van, mert úgyis egymás után történik.
+3. **A „nincs internet" SOHA ne legyen hibaállapot.** Ez az offline-first
+   rendszer **normál üzeme** egy szolgáltatói kimaradás alatt, és van olyan
+   helyszín, ahol a kimenő forgalom szándékosan tiltott. Tájékoztató sor,
+   nem riasztás — a riasztás az adóhatósági határidőhöz tartozik (19. fejezet),
+   nem ehhez.
+
+##### Miért NEM szabad az internet-ellenőrzést a DIAGNÓZISBA keverni (az eredeti érvelés)
 
 1. **Mindkét irányban gyenge a korreláció.** Lehet internetem és mégsem érem el a
    szervert (rossz alhálózat, vendég-wifi, 4G-stick). És **lehet, hogy nincs
@@ -1409,9 +1652,8 @@ Az alábbi létra megtartja az erős részt és a helyére teszi a gyengét.
    Ha nem megy, **a szolgáltatót fogják hívni** — pontosan az a hibaosztály,
    ami miatt a személyzeti üzenetekből kivettük az „internet" szót (B12 alatti
    szakmai pontosítás).
-3. **Új üzemeltetési függőség.** Egy „erre a célra fenntartott szerver" azt
-   jelenti, hogy **nekünk kell üzemeltetni**, rendelkezésre állással — és ha az
-   a végpont áll le, **hibás diagnózist gyártunk.**
+3. ~~**Új üzemeltetési függőség.**~~ **`[TÁRGYTALAN]`** — a felhasználó
+   publikus címre gondolt, nem sajátra. Ez a kifogás elesett.
 4. **Az átjáró jobb próba nála**, és ingyen van: helyi, gyors, nem függ tőlünk.
 
 ##### Amit viszont MEGTARTUNK az internet-ellenőrzésből
@@ -1884,10 +2126,10 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **B13 — átvétel előtti begyűjtés** | `[ ]` **ELFOGADÁSRA AJÁNLOM** | A felhasználó ötlete. **A terv legkockázatosabb darabját zsugorítja össze**: ha a begyűjtés az ELSŐ bizonylat kiadása ELŐTT fut le, a sorszám-ütközés — ami az árva tranzakciók problémáját nehézzé tette — **nem keletkezik**. Három módosítással ajánlom. |
-| 1b | **B11.3/b — öndiagnosztikai létra** | `[ ]` **ELFOGADÁSRA AJÁNLOM** | A felhasználó felvetése alapján. Az **alhálózat-/változásvizsgálat erős**, az **internet-ping gyenge és félrevezethet** — ezért az utóbbi külön, megcímkézett sorba kerül, és nem befolyásolja a szerver-diagnózist. |
-| 1c | **Vékonykliens archívum** | `[ ]` **ÚJ HIÁNY, eldöntendő** | A B13 begyűjtés csak azt éri el, ami valamelyik gép archívumában van. A telefonok/tabletek jelenleg NEM vezetnek archívumot → egy telefonról feladott, nyugtázott de nem replikált rendelés sehol nincs meg. |
-| 1d | **B11 — tanú-séma** | `[ ]` **JÓVÁHAGYÁSRA VÁR** | A séma SOHA nem dönt, csak bizonyítékot gyűjt — ezért nem kell hozzá elosztott konszenzus. |
+| 1 | **B14 M1 — a számtartomány szélessége** | `[ ]` **DÖNTÉST IGÉNYEL — számítással alátámasztva** | A javasolt 5 jegyű folyószám (100 000 bizonylat) egy 500 nyugta/napos kasszán **kevesebb mint egy év alatt elfogy**. Vagy több számjegy, vagy évszám a szerkezetbe — plusz küszöb-riasztás. |
+| 2 | **B14 M2 — eszközazonosító egyedisége** | `[ ]` **DÖNTÉST IGÉNYEL** | A séma egyetlen katasztrofális hibamódja a **lemezkép-klónozás**: két gép azonos előtaggal, mindkettő valódi bizonylatokkal. Kell szerver-oldali duplikátum-őr és gépcsere-szabály. |
+| 3 | **B14.5 — jogi kérdés** | `[?]` **A JOGI KÖR KIEMELT TÉTELE** | Megfelel-e a több párhuzamos számtartomány a folyamatos sorszámozás követelményének? Forrás nélkül nem állítható. Ha egyetlen sorozat kell, a B14 megdől. |
+| 4 | **B11 — tanú-séma** | `[ ]` **JÓVÁHAGYÁSRA VÁR** | A séma SOHA nem dönt, csak bizonyítékot gyűjt — ezért nem kell hozzá elosztott konszenzus. |
 | 2 | **TPM-ellenőrzés** | `[FOLYAMATBAN]` — a felhasználó a napokban ellenőrzi | Addig **mindkét ágra készülünk**: a titkosítás konfigurációs képesség, és az admin felület kiírja, melyik ágon vagyunk. **Nem blokkolja a fázistervet.** |
 | 3 | **B12 jogi kérdése** | `[?]` **IGAZOLATLAN, jogi kör tétele** | Az érintőképernyős aláírás nem minősített elektronikus aláírás. Hogy a felelősségkorlátozáshoz elég-e, forrás nélkül nem állítható. |
 | 1b | **R1 lépcsőnként** | `[ ]` **NYITVA** — jóváhagyásra | A tanú-séma lépcsőnkénti alakja a B9/b tisztázása után megírva; a felhasználó jóváhagyására vár. |
@@ -1900,6 +2142,10 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~B14~~ | `[ELDÖNTVE]` | **Kétrétegű bizonylat-számozás.** (1) SIDURI szám: minden kiállító eszköz **saját, elhatárolt tartományból** számoz (2-es kassza: `002…`) → az ütközés **szerkezetileg lehetetlen**, nulla koordináció kell, és **a tartalék szerver átvételkor AZONNAL kiszolgálhat**. (2) ADÓÜGYI szám (`A12345678/123/1234`): **tároljuk a bizonylat mellett** (a sztornóhoz kell), de **nem lehet a mi azonosítónk** — nem mi vezéreljük, a 3 jegyű napszámláló ~2,7 év után körbefordulhat, és **csak a nyomtatás UTÁN érkezik**, tehát nélküle a bizonylatnak a nyomtatásig nem is lenne azonosítója. **Nullázható mező** — előnyugtának, raktármozgásnak, készpénzmozgásnak soha nincs. |
+| — | ~~B15~~ | `[ELDÖNTVE]` | **A vékonykliensek is vezetnek archívumot, de minimálisat**: csak amit ők küldtek, és **rövidebb megőrzéssel** (nyugtázatlan + rövid átfedő farok) — adatvédelmi okból, mert a telefon a leggyakrabban elveszített eszköz. |
+| — | ~~Internet-ellenőrzés~~ | `[ELDÖNTVE]` | **Bent marad, de UTOLSÓ fokként** és publikus címre (nem sajátra). Külön, megcímkézett sorban; **soha nem befolyásolja a „szerver vagy én?" döntést**. HTTPS, ne ICMP; két külön jel (névfeloldás + elérés); és a „nincs internet" **soha nem hibaállapot**. |
+| — | ~~B13~~ | `[ELFOGADVA, módosítva]` | Átvétel előtti begyűjtés a kliensektől. **A B14 miatt már nem kell az első bizonylat előtt lefutnia** — a tartalék azonnal kiszolgálhat, a begyűjtés párhuzamosan fut. Célja: **adat-teljesség és ellenőrzés**, nem ütközés-megelőzés. |
 | — | ~~B12~~ | `[ELDÖNTVE]` | **Kockázatvállalási nyilatkozat**: alkalmazásban elérhető űrlap, érintőképernyős aláírással, elmentve ÉS a fő felhőszerverre továbbítva, visszakereshetően, időbélyeggel, védve. Négy dolog, amit a terv hozzátesz: (1) a SZÖVEG VERZIÓJÁT is menteni kell, nem csak azt hogy aláírták; (2) KÉT időbélyeg, és a MÉRVADÓ a felhőé, mert a helyi óra az ügyfél gépéé; (3) offline útvonal, mert friss telepítésen gyakran nincs internet — és amíg a felhő nem igazolta vissza, ezt ki kell írni; (4) **konfiguráció-eltérés esetén ÚJ nyilatkozat kell**, különben egy már nem létező felállásról van aláírt papírunk. |
 | — | ~~B9 lépcső jellege~~ | `[ELDÖNTVE]` | **A gépszám-lépcső ÉRTÉKESÍTÉSI AJÁNLÁS, nem kikényszerített korlát.** Ha kellene tartalék de nincs hova tenni → dedikált szervergépet ajánlunk (az nem POS, így egyetlen Windows POS is elláthatja a tartalék szerepet). Ha az ügyfél a kockázat ismeretében elutasítja, elfogadjuk. Fordítva is: 2 POS-os hely kérésére megcsináljuk. **A szoftver semmilyen konfigurációt nem utasíthat el.** |
 | — | ~~B1/b pontosítás~~ | `[ELDÖNTVE]` | **A tartalék szerver SOHA nem dedikált gép — mindig egy Windows POS vastagkliens.** A fő szerver jellemzően szintén POS-on van, de aki megengedheti, annál lehet dedikált. Vékonykliens / KDS / rendeléskijelző egyik szerepet sem viheti. Négy következmény: a tartalék terhelése a legrosszabb pillanatban ugrik meg; a szerepet vivő gépet valaki kikapcsolhatja; a szerver Windows Service kell legyen, nem a pénztáros munkamenetében; és a frissítés sorrendje a `siduri-updater` kemény követelménye lett. |

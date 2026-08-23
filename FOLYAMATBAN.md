@@ -101,7 +101,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Huszonnégy döntés lezárva** (öt az 1., tizenkilenc a 2. munkamenetben, mindkettő 2026-08-22).
+**Huszonnyolc döntés lezárva** (öt az 1., huszonhárom a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -119,6 +119,9 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **B14** | *(ÚJ)* Bizonylat-számozás | **Kétrétegű.** (1) SIDURI szám: minden kiállító eszköz **saját, elhatárolt tartományból** számoz → az ütközés szerkezetileg lehetetlen, nulla koordináció, és a tartalék átvételkor azonnal kiszolgálhat. (2) ADÓÜGYI szám: tároljuk a sztornóhoz, de nem lehet a mi azonosítónk — és **nullázható**, mert nem minden bizonylatnak van | `NYITOTT_KERDESEK.md`, keress: `B14` |
+| **B15** | *(ÚJ)* Vékonykliens-archívum | **Igen, de minimális** — csak amit ő küldött, rövidebb megőrzéssel, adatvédelmi okból (a telefon a leggyakrabban elveszített eszköz) | `NYITOTT_KERDESEK.md`, keress: `B15` |
+| **B13** | *(ÚJ)* Átvétel előtti begyűjtés | **Elfogadva, módosítva.** A B14 miatt már nem kell az első bizonylat előtt lefutnia → a tartalék azonnal kiszolgál, a begyűjtés párhuzamosan fut. Célja adat-teljesség és ellenőrzés | `NYITOTT_KERDESEK.md`, keress: `B13` |
 | **B12** | *(ÚJ)* Kockázatvállalási nyilatkozat | **Alkalmazásban elérhető űrlap, érintőképernyős aláírással**, elmentve ÉS a fő felhőszerverre továbbítva, visszakereshetően, időbélyeggel, védve. A terv négy dolgot tesz hozzá: a szöveg verzióját is menteni kell; két időbélyeg, a mérvadó a felhőé; offline útvonal kell; és konfiguráció-változáskor ÚJ nyilatkozat | `NYITOTT_KERDESEK.md`, keress: `B12` |
 | **TPM** | *(ÚJ)* Van-e a bázison | **MINDKÉT ágra készülünk** — a titkosítás konfigurációs képesség, és az admin felület kiírja, melyik ágon vagyunk. Az ellenőrzés a felhasználónál folyamatban | `NYITOTT_KERDESEK.md`, keress: `MINDKÉT ÁGRA készülünk` |
 | **B9 jellege** | *(ÚJ)* Kikényszerített-e a méret-lépcső | **Nem — ÉRTÉKESÍTÉSI AJÁNLÁS.** Ha kellene tartalék de nincs hova tenni, dedikált szervergépet ajánlunk (az nem POS, így egyetlen Windows POS is elláthatja a tartalék szerepet). Ha az ügyfél a kockázat ismeretében elutasítja, elfogadjuk. **A szoftver semmilyen konfigurációt nem utasíthat el** | `NYITOTT_KERDESEK.md`, keress: `A lépcső AJÁNLÁS` |
@@ -175,6 +178,26 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 A felhasználó 2026-08-22-én ezt kérte: **először zárjuk le a maradék apróságokat,
 utána KÉT ELLENŐRZŐ KÖR**, és csak azután megyünk tovább.
 
+#### 2.1.a0 `[!]` KÉT DÖNTÉST IGÉNYLŐ TÉTEL a bizonylat-számozásban
+
+Mindkettő a felhasználó saját, elfogadott ötletének a **kitöltése**, nem
+megkérdőjelezése — de mindkettő **némán romlik el**, ha nem döntünk róla.
+
+1. **`[ ]` A számtartomány szélessége KEVÉS — ez számítás, nem vélemény.**
+   A példa (`002xxxxx`) 5 jegyű folyószámot ad = 100 000 bizonylat eszközönként.
+   Egy **500 nyugta/napos** kassza ezt **200 nyitvatartási nap alatt**, tehát
+   **kevesebb mint egy év alatt** elhasználja. Utána nem lehet bizonylatot
+   kiállítani — a lehető legrosszabb pillanatban. Megoldás: több számjegy
+   (8 jegy → 100 millió), vagy évszám a szerkezetbe (`002-2026-00001`).
+   **Plusz mindenképpen küszöb-riasztás** (pl. 90%-nál).
+2. **`[ ]` A lemezkép-klónozás a séma egyetlen katasztrofális hibamódja.**
+   Egy új kassza beüzemelésének legkézenfekvőbb módja a meglévő gép
+   lemásolása — ekkor **két gép ugyanazzal az előtaggal indul, mindkettő
+   1-től, és mindkettő valódi bizonylatokat ad ki azonos számmal.**
+   Ellenszer: az előtagot a **szerver ossza ki** regisztrációkor (ne a telepítő
+   gépelje be), és a szerver **álljon meg hangosan**, ha két eszközt lát azonos
+   előtaggal.
+
 #### 2.1.a `[ ]` Jóváhagyásra vár (nem blokkoló)
 1. **B13 — átvétel előtti begyűjtés a kliensektől.** A felhasználó ötlete,
    **elfogadásra ajánlom** — ez a terv legkockázatosabb darabját zsugorítja
@@ -187,9 +210,11 @@ utána KÉT ELLENŐRZŐ KÖR**, és csak azután megyünk tovább.
 3. **B11 — a tanú-séma teljes terve**, jóváhagyásra. → keress: `B11`
 4. **A4/c finomítása** — az árva tranzakciók elétárásának időzítése.
    → keress: `A4/c`
-5. **`[ ] ÚJ HIÁNY` — vezessenek-e a vékonykliensek is archívumot?** A begyűjtés
-   csak azt éri el, ami valamelyik gép archívumában van; a telefonok/tabletek
-   most nem vezetnek ilyet. → keress: `Vékonykliens (telefon, tablet) adata`
+5. **`[ ]` Ha a vékonykliens fizetést is felvesz** (a SoftPOS jellemzően
+   Android-only), akkor **bizonylatot is kiállít**, tehát **saját számtartomány
+   kell neki is** — és a klónozás-veszély ott nagyobb, mert a telefonok
+   cserélődnek. Eldöntendő a fizetési szolgáltató kérdésével együtt.
+   → keress: `B15`
 
 #### 2.1.b `[FOLYAMATBAN, a felhasználónál]`
 3. **TPM-ellenőrzés a meglévő J1900 bázison.** Addig mindkét ágra készülünk.

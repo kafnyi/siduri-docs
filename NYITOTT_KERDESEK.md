@@ -36,13 +36,15 @@
 > eredménye, a B12 jogi kérdése, a B1/c R2–R5 kitöltése.
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
 >
-> **ÚJ (tizenegyedik kör):** **B14** — kétrétegű bizonylat-számozás (a felhasználó
-> ötlete): eszközönként elhatárolt saját tartomány + az adóügyi eszköz száma külön
-> tárolva. Ez **szerkezetileg lehetetlenné teszi az ütközést**, és mellékhatásként
-> **feloldja a B13 időzítési kényszerét** — a tartalék átvételkor azonnal kiszolgálhat.
-> Két módosítást igényel: a tartomány szélessége kevés (számítással), és az
-> eszközazonosító egyediségét őrizni kell (klónozás!). **B15** — a vékonykliensek is
-> vezetnek archívumot, de minimálisat. Az internet-ellenőrzés bent marad utolsó fokként.
+> **ÚJ (tizenkettedik kör):** a bizonylatszám **végleges formátuma** rögzítve
+> (`xxxxxxyyyzzzzz` — üzleti nap + eszköz + napi folyószám); ez **mindkét korábbi
+> aggályomat megoldja** (kimerülés, rendezés). **HELYESBÍTÉS: az én érvem az adóügyi
+> szám ütközéséről HIBÁS volt** — a napszámláló 4 jegyű, nem 3; a saját számozás
+> viszont más okból továbbra is kötelező. **B14.7** — offline üzleti nap nyitása:
+> a javasolt „+1 nap" szabály minden zárvatartási napon hamisan riasztana, helyette
+> **monotonitás-védelem**. **ÚJ HÉZAG:** két gép offline, eltérő órával, két külön
+> üzleti napot nyit. **B16** — távoli konfiguráció a felhőből (új tétel).
+> A telefon az első verzióban nem fizettet és nem ad nyugtát.
 >
 > **A felhasználó két ELLENŐRZŐ KÖRT kért a jelenlegi tervekre** — lásd
 > `FOLYAMATBAN.md` 2.1.c és 2.1.d szakasz.
@@ -1230,34 +1232,47 @@ az archívum ehhez is bizonyítékot ad), A3 (megőrzési kötelezettség).
 | Mire jó | **ez a mi elsődleges azonosítónk** mindenre | **a sztornóhoz KELL** — enélkül nem hivatkozható |
 | Mi van, ha nincs | nem fordulhat elő | **gyakran nincs** — lásd B14.4 |
 
-**Az adóügyi szám formátuma** (a felhasználó megadása szerint):
-`A` fix karakter (az AP-szám része) + `12345678` az AP-szám számjegyei (a
-nyomtató NAV-os azonosítója) + `/123` az adott nyomtató rendszerében **aktuálisan
-nyitott munkanap** + `/1234` a nyugta sorszáma **azon a nyomtatón, azon a napon**.
+**Az adóügyi szám formátuma** (a felhasználó **javított** megadása, 2026-08-22):
+`Axxxxxxxxx/yyyy/zzzzz` — `A` fix karakter, `xxxxxxxxx` az **AP-szám** (a nyomtató
+NAV-os azonosítója), `yyyy` a **zárás száma / munkanap-azonosító**, `zzzzz` a
+**nyugta száma** az adott nyomtatón, az adott munkanapon.
 
-#### B14.2 Miért NEM lehet az adóügyi szám a mi azonosítónk — három ok
+---
 
-**A felhasználó indoka** („nem mi ellenőrizzük, lehet ütközés") **helyes, és
-alátámasztható konkrétan is:**
+#### `[!]` HELYESBÍTÉS — az ÉN korábbi érvem volt HIBÁS (§2.1)
 
-1. **A munkanap-számláló 3 jegyű → 999-nél körbefordul.** Napi egy zárással ez
-   **kb. 2,7 év** üzem után **ugyanazt a karakterláncot** adhatja vissza
-   ugyanazon a nyomtatón. Ez nem elméleti: egy vendéglátóhely simán üzemel
-   ennél tovább. `[?]` **A körbefordulás pontos viselkedése gyártónként eltérhet
-   — ellenőrizendő a protokolldokumentációból (C10, E3).**
-2. **Nem mi vezéreljük.** A számot a gyártó eszköze adja, a saját belső
-   állapotából. Bármi, ami azt az állapotot befolyásolja (csere, szerviz,
-   memóriatörlés), a mi tudtunk nélkül történik.
-3. **`[!]` A legfontosabb ok — időzítési:** az adóügyi szám **csak a nyomtatás
-   UTÁN érkezik meg.** A bizonylat viszont **létezik előtte is** — létrejön,
-   tételei vannak, fizetés történt rá. **Ha nincs saját számunk, akkor a
-   nyomtatás pillanatáig a bizonylatnak NINCS AZONOSÍTÓJA** — és ha a nyomtatás
-   elbukik (papírelakadás, áramszünet, elveszett válasz), **soha nem is lesz.**
-   Épp az a „függő tranzakció" állapot válna kezelhetetlenné, amit a terv
-   máshol (F3) kifejezetten meg akar oldani.
+**Egy előző körben azt írtam, hogy a munkanap-számláló 3 jegyű, tehát ~2,7 év
+után körbefordul és ütközést okozhat. EZ TÉVEDÉS VOLT.** A felhasználó
+utánanézett és pontosított: a számláló **4 jegyű**.
 
-   **Vagyis a saját számozás nem kényelmi döntés: enélkül a hibakezelés maga
-   lehetetlen.**
+**Számolva a helyes formátummal:** 4 jegy = 9999 zárás; napi egy zárással
+**~27 év** üzem. Napi 99 999 nyugta egy nyomtatón. **Gyakorlati ütközés nincs.**
+
+**Ez §2.1 tanpéldája: a saját indoklásom premisszáját ugyanúgy igazolni kellett
+volna, mint a leletet.** Egy megadott formátumot vettem készpénznek, számoltam
+belőle, és a számítás — bár aritmetikailag helyes volt — **rossz bemenetre
+épült**, tehát a következtetés hamis. A hiba nem a számolásban volt, hanem
+abban, hogy nem kérdeztem vissza a formátumra.
+
+**Mi dől meg, és mi NEM dől meg ettől:**
+
+| Érv arra, hogy ne az adóügyi szám legyen a mi azonosítónk | Állapot |
+|---|---|
+| ~~1. A napszámláló körbefordul → ütközés~~ | **MEGDŐLT.** Nincs gyakorlati ütközés. |
+| 2. Nem mi vezéreljük (csere, szerviz, memóriatörlés a tudtunk nélkül) | **Áll** — de önmagában gyenge érv |
+| **3. Az adóügyi szám CSAK A NYOMTATÁS UTÁN érkezik** | **ÁLL, és mindvégig ez volt a teherhordó érv** |
+
+**A 3. érv egymaga is elég, és nem függött a formátumtól:** a bizonylat **létezik
+a nyomtatás előtt is** — tételei vannak, fizetés történt rá. Saját azonosító
+nélkül a nyomtatás pillanatáig **nincs mivel hivatkozni rá**, és ha a nyomtatás
+elbukik, **soha nem is lesz.** Épp a „függő tranzakció" állapot válna
+kezelhetetlenné. **A saját számozás tehát továbbra is kötelező** — csak nem azért,
+amiért én először írtam.
+
+**Egy maradék, apró megjegyzés:** a formátum **nem végtelen** (a 9999. zárás után
+a viselkedés a gyártói protokoll kérdése). 27 év távlatában ez nem tervezési
+kockázat, de a protokolldokumentáció áttekintésekor **egy sor erejéig nézzük meg**,
+mi történik a határon — ne feltevés maradjon.
 
 #### B14.3 `[ELFOGADVA]` Eszközönként elhatárolt saját tartomány — miért JÓ ötlet
 
@@ -1283,60 +1298,197 @@ számtartományból** dolgozik (2-es kassza: `002…`, 4-es kassza: `004…`).
    számláló). A felhasználó megérzése, hogy ez könnyíti a terhelést, **helyes.**
 5. **Visszakereséskor azonnal látszik, melyik kassza állította ki.**
 
-#### B14.4 `[!]` HÁROM MÓDOSÍTÁS, amit a terv megkövetel
+#### B14.4 `[ELDÖNTVE]` A SIDURI bizonylatszám VÉGLEGES FORMÁTUMA
 
-**M1 — `[!]` A SZÁMTARTOMÁNY SZÉLESSÉGE KEVÉS. Ez számítás, nem vélemény.**
+**A felhasználó megadása (2026-08-22):** `xxxxxxyyyzzzzz`
 
-A példa `002xxxxx` alakja **5 jegyű folyószámot** ad → **100 000 bizonylat**
-eszközönként.
+| Rész | Jegyek | Jelentés |
+|------|--------|----------|
+| `xxxxxx` | 6 | **az ÜZLETI NAP dátuma** — **a szerver közli** |
+| `yyy` | 3 | **az eszköz sorszáma** (pl. 003) |
+| `zzzzz` | 5 | **a bizonylat sorszáma** azon az eszközön, azon az üzleti napon |
 
-| Forgalom | Mennyi idő alatt fogy el a 100 000 |
-|----------|-------------------------------------|
-| 200 nyugta / nap | ~500 nyitvatartási nap ≈ **1,5–2 év** |
-| 500 nyugta / nap | **200 nyitvatartási nap — kevesebb, mint egy év** |
-| 800 nyugta / nap | ~125 nap ≈ **fél év** |
+**Példa:** `26082200300347` — a 2026-08-22-i üzleti nap, 3-as eszköz, 347. bizonylat.
 
-**Egy forgalmas kassza tehát EGY ÉVEN BELÜL kifutna a tartományból.** Ez pontosan
-a §5 néma kudarca: évekig működik, aztán egy forgalmas helyen hirtelen elfogy, és
-akkor **nem lehet bizonylatot kiállítani** — a lehető legrosszabb pillanatban.
+##### `[!]` Ez a formátum MEGOLDJA az általam felvetett két problémát
 
-**Megoldási lehetőségek** (eldöntendő, de a jelenlegi szélesség így nem maradhat):
-- **több számjegy** (8 jegyű folyószám → 100 millió, gyakorlatilag soha nem fogy);
-- vagy **évszám a szerkezetbe** (`002-2026-00001`), és évente újraindul —
-  ez a szokásosabb bizonylat-alak, és a visszakeresést is segíti;
-- **`[!]` A tartomány kimerülésére KÜSZÖB-RIASZTÁS kell** (pl. 90%-nál),
-  bármelyik megoldást választjuk. Némán soha ne fogyjon el.
+**1. A kimerülés-aggály TÁRGYTALAN.** Korábban azt számoltam, hogy 5 jegyű
+folyószám (100 000) egy forgalmas kasszán **egy éven belül elfogyna.** Ez a
+formátum viszont **naponta és eszközönként újraindul** → 99 999 bizonylat / eszköz
+/ nap. **Ez soha nem fogy el.** A `[!]` M1 módosítási igényem **visszavonva.**
 
-**M2 — `[!]` AZ ESZKÖZAZONOSÍTÓ EGYEDISÉGÉT ŐRIZNI KELL. A legvalószínűbb valós hiba.**
+**2. A rendezés-aggály is TÁRGYTALAN.** Korábban jeleztem, hogy eszközönkénti
+tartománnyal a bizonylatok **nem rendeződnek időrendbe** szám szerint.
+A dátum-előtaggal **rendeződnek** — a szám szerinti sorrend egyben időrend is.
 
-Az egész séma azon áll, hogy **két eszköznek soha nincs azonos előtagja.**
-Amivel ez elromlik, a gyakorlatban:
-- **`[!]` LEMEZKÉP-KLÓNOZÁS.** Egy új kassza beüzemelésének a legkézenfekvőbb
-  módja, hogy lemásoljuk egy meglévő gép telepítését. **Ekkor két gép ugyanazzal
-  az előtaggal indul, mindkettő 1-től** — és **mindkettő valódi bizonylatokat
-  ad ki azonos számmal.** Ez a séma egyetlen katasztrofális hibamódja.
-- **Gépcsere hardverhiba után.** Örökli-e az új gép a `002` előtagot? Ha igen, a
-  régi gép fel nem töltött archívuma később duplikátumként jelenhet meg.
+##### `[!]` DE: az `xxxxxx` az ÜZLETI NAP, NEM a naptári nap
 
-**Kötelező ellenszerek:**
-- az előtag **logikai eszközazonossághoz** kötődjön, ne a hardverhez, és az
-  eszközregisztráció (B6) során **a szerver ossza ki**, ne a telepítő gépelje be;
-- **a szerver indításkor és minden csatlakozáskor ellenőrizze**, hogy nincs-e két
-  eszköz azonos előtaggal — és ha van, **álljon meg hangosan**, ne dolgozzon
-  tovább (§1.3: a padló nélküli ellenőrzés néma zöldet ad);
-- **gépcserénél az új gép örökölje az azonosságot ÉS az utolsó felhasznált
-  folyószámot**, vagy kapjon **teljesen új** azonosságot — a kettő között nincs
-  biztonságos harmadik út.
+**Ezt a specifikációban élesen ki kell mondani, különben némán elromlik.**
+Ha az üzleti nap 04:00-tól 04:00-ig tart, akkor egy **augusztus 23-án hajnali
+2:30-kor** kiállított nyugta **az augusztus 22-i üzleti naphoz tartozik**, tehát
+a száma `260822…`-vel kezdődik, nem `260823…`-mal.
 
-**M3 — A tartományon BELÜL a számozás legyen hézagmentes, és a hézag legyen INDOKOLT.**
+**Aki ezt `DateTime.Now.Date`-ként implementálja, annak minden éjszakai helyen
+csendben elcsúszik a számozás** — és csak a havi összesítőnél derül ki. Ez a §8
+hibaosztálya. **Az üzleti nap értékét EGY nevesített helper adja**, sehol máshol
+ne számolódjon.
 
-Ha egy szám „elég", mert a bizonylat félbeszakadt, **ne tűnjön el némán.**
-Két szabály:
-- **a számot a lehető LEGKÉSŐBB oszd ki** — a bizonylat tényleges véglegesítésekor,
-  ne a kosár megnyitásakor;
-- ha mégis elveszett egy szám, **maradjon utána egy rekord az OKKAL** — ne
-  egyszerűen hiányozzon. `[?]` Hogy a hézagmentesség jogilag hogyan kötelező,
-  az a **jogi kör** tétele (lásd lent).
+**Jó mellékhatás:** mivel a bizonylatszám magában hordozza az üzleti napot, és azt
+**a szerver közli**, ez **egyetlen igazságforrássá teszi az üzleti nap fogalmát** —
+ami közvetlenül enyhíti az `F4` alatt jelzett bajt (három párhuzamos
+„napzárás"-fogalom él a tervben).
+
+##### `[ ]` Két apró, olcsó megfontolás — döntsd el, nem sürgős
+
+- **Kétjegyű év.** `260822` 2099-ig működik. Nem gyakorlati kockázat, de a
+  **négyjegyű év két karakterbe kerül** (`2026082200300347`), és ez az a fajta
+  döntés, amit utólag már nem lehet olcsón megváltoztatni. **Ajánlom, de nem
+  erőltetem** — a te döntésed.
+- **Megjelenítés csoportosítva.** 14 jegyet az ember nem tud felolvasni telefonba.
+  **Tároljuk egyben, de MUTASSUK tagolva:** `260822-003-00347`. A tagolás legyen
+  **csak megjelenítés**, sose kerüljön a drótra vagy az adatbázisba (§8).
+
+##### `[ELDÖNTVE + MÓDOSÍTVA]` M2 — az eszközazonosító egyedisége és a KLÓNOZÁS
+
+**A felhasználó válasza:** normál regisztrációnál a **szerver adja ki** az
+eszközazonosítót; másolható ugyan, de akkor az **adatokkal együtt** másolódik,
+illetve egy friss gépnek **először szerver-szinkron kell**, addig nem enged tovább.
+
+**A „szerver adja ki" és a „szinkron nélkül nem enged tovább" HELYES és
+KÖTELEZŐ — de önmagában NEM elég.** Ez a maradék rés:
+
+> Klónozom a 003-as gépet. A klón **érvényes azonosítót ÉS érvényes hitelesítő
+> adatokat visz magával.** Mindkettő le tud szinkronizálni — mert mindkettő
+> **ugyanannak** a gépnek látszik. Aztán **mindkettő bizonylatot ad ki
+> `…003…` előtaggal, ugyanazon az üzleti napon, a saját helyi számlálójából**
+> → **duplikált bizonylatszám.**
+>
+> A „szinkron kell" szabály ezt **nem fogja meg**, mert a klón simán szinkronizál.
+> **A hiányzó darab: a szervernek meg kell tudnia KÜLÖNBÖZTETNI a klónt az
+> eredetitől.**
+
+**Ellenszer — és a jó hír, hogy MINDKÉT eleme MÁR A TERVBEN VAN:**
+
+1. **Hardveres ujjlenyomat.** A 19. fejezet **már tervez** hardveres
+   ujjlenyomatot a licenceléshez (alaplap/CPU/MAC). **Ugyanazt használjuk itt.**
+   Ha egy ismert eszközazonosító **más ujjlenyomatról** jelentkezik be, az vagy
+   **gépcsere** (engedélyhez kötött művelet), vagy **klón**.
+2. **Forgó hitelesítő adat.** Minden sikeres kapcsolódáskor a szerver **új
+   titkot ad**, a régi érvénytelen. Ha később valaki a **régi** titkot mutatja
+   be, **abból tudni, hogy két példány van** — ez a lopott-token felismerés
+   szokásos mintája.
+
+**A kemény szabály:** ha a szerver **ugyanazt az eszközazonosítót két különböző
+ujjlenyomatról** látja, **MINDKETTŐT letiltja a bizonylat-kiállításból**, amíg
+ember fel nem oldja. **Nem választ magától** — nem tudhatja, melyik az eredeti,
+és a rossz választás duplikált adóügyi bizonylatot okoz.
+
+**Pontosítás a „szinkron nélkül nem enged tovább" szabályhoz** — ez fontos, mert
+különben ellentmond az offline-first alapelvnek:
+
+| Eszköz állapota | Mit tehet szerver nélkül |
+|-----------------|--------------------------|
+| **Soha nem regisztrált** (friss vagy klónozott telepítés) | **SEMMIT** — nem adhat ki bizonylatot. Ez a helyes és szükséges kapu |
+| **Már sikeresen regisztrált** | **Mindent, amit a csökkentett mód enged** — offline is dolgozhat |
+
+##### `[ELFOGADVA]` M4 — a kliens visszakérheti a saját előzményeit a szervertől
+
+**A felhasználó ötlete:** a kliensek kérhessenek vissza adatot a szervertől a
+saját előzményükről, így **gépcsere után az új gép szinkronizál, és feltölti az
+adatbázisát a kiesett gép adataival.**
+
+**Jó, és pontosan a gépcsere-hézagot zárja be**, amit az M2-nél nyitva hagytam.
+**Három kikötéssel:**
+
+1. **`[!]` A visszatöltött archívum LEHET, HOGY HIÁNYOSABB, mint az eredeti volt.**
+   A szerver csak azt tudja visszaadni, amit **megkapott** — épp azok a
+   tranzakciók hiányozhatnak belőle, amiket a régi gép nem tudott felküldeni.
+   **Ezért a visszatöltött archívumot MEG KELL JELÖLNI** („szerverről
+   visszaállítva, dátum; nem feltétlenül tartalmazza azt, amit a szerver sosem
+   kapott meg"). §5: ne tegyünk úgy, mintha teljes lenne.
+2. **`[!]` Ez ADATKIADÁSI csatorna → biztonsági kapu kell rá.** Egy kliens
+   **kizárólag a SAJÁT** előzményét kérheti le, **csak sikeres regisztráció
+   után**, hitelesítetten, és **a lekérést naplózni kell** (audit).
+3. **A gépcsere legyen EXPLICIT, engedélyezett művelet** („ez a gép a 003-as
+   eszközt váltja fel"), ne automatikus felismerés. Különben egy idegen gép
+   pusztán azzal, hogy 003-nak vallja magát, **letöltheti a teljes előzményt.**
+
+#### `[RÉSZBEN ELFOGADVA — a szabály módosítást igényel]` B14.7 — ÜZLETI NAP NYITÁSA OFFLINE, óra-ellenőrzéssel
+
+**A felhasználó felvetése (2026-08-22):** ha a szerver nem elérhető, és úgy
+nyitnának üzleti napot az egyik gépen, akkor a kliens **az utolsó lezárt üzleti
+nap dátumához hozzáad 1 napot**, és összeveti a rendszerórával; ha nem egyezik,
+jelzi, hogy nincs szerverkapcsolat és **valószínűleg rossz az időbeállítás.**
+
+**A felvetés lényege HELYES, és fontos**, mert az üzleti nap dátuma **bekerül a
+bizonylatszámba** — tehát egy rossz óra **rossz számokat gyárt**, amiket utólag
+nem lehet átírni. A konkrét szabály viszont **módosítást igényel.**
+
+##### `[!]` A javasolt szabály hibája: minden zárvatartási napon FALSE ALARM
+
+Az „utolsó lezárt nap + 1 nap" szabály **azt feltételezi, hogy az üzleti napok
+folytonosak.** De egy hétfőn és kedden zárva tartó hely szerdán nyit:
+- utolsó lezárt nap = vasárnap, +1 nap = **hétfő**,
+- a rendszeróra viszont **szerdát** mond.
+
+**A szabály hibát jelezne — pedig minden rendben van.** És ez **nem ritka eset**:
+zárvatartási nap, szabadság, felújítás, szezonális működés mind ide tartozik.
+Egy ellenőrzés, ami rendszeresen ok nélkül riaszt, **egy hét alatt megtanulják
+figyelmen kívül hagyni** — onnantól nem véd semmit (§1.5: az ingadozó őr rosszabb
+a semminél).
+
+##### A helyes megfogalmazás: nem dátum-aritmetika, hanem MONOTONITÁS
+
+Az igazi védendő tulajdonság **nem az, hogy „+1 nap"**, hanem hogy
+**az üzleti nap értéke SOHA ne menjen visszafelé és soha ne ismétlődjön** —
+mert **abból keletkezik duplikált bizonylatszám.**
+
+**Javasolt szabály, három ággal — a két irány NEM egyformán veszélyes:**
+
+| Amit az óra mond | Megítélés | Teendő |
+|------------------|-----------|--------|
+| **≤ a gép által VALAHA használt legmagasabb üzleti nap** | **VESZÉLYES** — ebből duplikált bizonylatszám lesz | **KEMÉNY TILTÁS.** Ne lehessen üzleti napot nyitni. Ez az egyetlen ág, ahol megállunk |
+| **> az utolsó, de „ésszerű" távolságon belül** (pl. ≤ 30 nap) | **NORMÁL** — zárvatartás, szabadság, szezon | **Engedjük**, jelzés nélkül |
+| **> az utolsó, de irreálisan messze** (pl. > 30 nap, vagy múltbeli év) | **GYANÚS** — de lehet valós (szezonális hely télen zár) | **FIGYELMEZTETÉS + megerősítés**, ne tiltás |
+
+**Miért aszimmetrikus:** az órát **visszaállítani** duplikált bizonylatszámot
+csinál — ez adóügyi hiba, és **szándékos csalás eszköze is lehet.**
+Az órát **előreállítani** hézagot csinál — kellemetlen, de nem sorszám-ütközés.
+Ezért az egyik hard stop, a másik figyelmeztetés.
+
+**`[!]` A „valaha használt legmagasabb üzleti nap" a gépen TÁROLVA legyen**, ne
+az utolsó lezárt napból számoljuk. Így az óra visszaállítása **nem tudja
+becsapni** — pontosan ez a lényeg.
+
+##### Két olcsó, független ellenőrzési pont, ami MÁR RENDELKEZÉSRE ÁLL
+
+Ha a szerver nem elérhető, a gép nincs egyedül:
+
+1. **A többi Siduri-eszköz** — a **tanú-séma** (B11) újrahasznosítható erre.
+   Ha egy másik pénztárgép elérhető, meg lehet kérdezni tőle, ő milyen üzleti
+   napon áll. **Két gép egyeztetése sokkal erősebb, mint egy gép órája.**
+2. **Az adóügyi eszköz saját napszámlálója.** Az eszköz tudja, hányadik
+   munkanapon áll, **függetlenül a Windows órájától.** Ez egy teljesen
+   független referencia — és épp arra való.
+
+##### `[!]` ÚJ HÉZAG, amit ez a forgatókönyv feltár: két gép, két külön üzleti nap
+
+**Ez eddig sehol nem szerepelt.** Ha a szerver halott és **két pénztárgép
+egymástól függetlenül nyit üzleti napot**, és **az óráik eltérnek** (az egyik
+azt hiszi, 22-e van, a másik 23-a), akkor:
+
+- a két gép **különböző üzleti nap alatt** ad ki bizonylatokat,
+- visszatéréskor a szerver **két, egyszerre nyitott üzleti napot** lát,
+- a napi zárás, a forgalmi összesítő és az adóhatósági adatszolgáltatás
+  mind **kettéhasad** — és a bizonylatszámok már ki vannak nyomtatva, tehát
+  **nem javíthatók.**
+
+**Kell rá szabály.** Javaslat, döntésre:
+- **az offline nyitott üzleti nap kapjon „ideiglenes" jelölést**, és
+  visszatéréskor a szerver **egyeztesse össze** őket;
+- **a nyitás előtt a gép KÖTELEZŐEN kérdezze meg a tanúkat** (fenti 1. pont) —
+  ha bármelyik másik gép már nyitott üzleti napot, **azt vegye át**, ne nyisson
+  újat a saját órája alapján. **Ez a legolcsóbb és leghatásosabb ellenszer.**
 
 #### B14.5 `[?]` JOGI KÉRDÉS, amit NEM tudok megválaszolni (§13.5)
 
@@ -1535,14 +1687,67 @@ tárolni **kockázatot vinne fel egy zsebben hordott eszközre, haszon nélkül.
 
 - A vékonykliensek is **azonosítottak és regisztráltak** kell legyenek (B6),
   hogy a begyűjtés hitelesíthető legyen.
-- **`[ ]` Ha a vékonykliens fizetést is felvesz** (a SoftPOS jellemzően
-  Android-only, tehát a kártyás fizetés valószínűleg ide kerül — B5), akkor
-  **bizonylatot is kiállít**, tehát **saját számtartomány kell neki is** (B14).
-  Ez több eszközt jelent tartománnyal, és a klónozás-veszély (B14 M2) itt
-  nagyobb, mert a telefonok cserélődnek. **Eldöntendő a B5 lezárásakor.**
+- **`[ELDÖNTVE 2026-08-22]` Az ELSŐ verzióban a telefon NEM fizettet és NEM ad
+  nyugtát** — csak rendelést vesz fel és menedzsel. **Később bővítendő**, tehát
+  elő kell készíteni.
+  **Jó hír: az előkészítés majdnem ingyen van**, mert a B14 formátum eleve
+  eszközfüggetlen. **Egyetlen kikötés, ami MOST olcsó és később drága:**
+  az eszközszám-tér (`yyy`) legyen **KÖZÖS minden eszköztípusra** — ne külön
+  „POS-számok" és külön „telefon-számok". Ha most szétválasztjuk, a bővítéskor
+  migrálni kell; ha most közös, akkor a telefon egyszerűen kap egy számot.
 - Elveszett/ellopott eszköznél kell **távoli visszavonás** (a regisztráció
   érvénytelenítése), különben egy elhagyott telefon örökre legitim kliens marad.
   Ez a B6 kiterjesztése.
+
+---
+
+### `[ ]` B16 — TÁVOLI KONFIGURÁCIÓ A FELHŐBŐL (új tétel, 2026-08-22)
+
+**A felhasználó egy mellékmondatban új képességet nevezett meg**, ami egyik
+eredeti doksiban sem szerepelt így: *„a szerver esetén a központi felhővel való
+kommunikációhoz, amiből majd az online felületen látja az ügyfél a saját adatait
+és tud beállításokat végezni távolról."*
+
+A specifikáció 18. fejezete „felhő platformot tenant- és licenckezelésre" ír —
+**a helyszín TÁVOLI KONFIGURÁLÁSA ennél lényegesen többet jelent**, és külön
+tervezést igényel.
+
+#### Miért nem apró kiegészítés
+
+1. **`[!]` Ez KÉTIRÁNYÚVÁ teszi a felhő-kapcsolatot.** Eddig a felhő
+   **fogadó** oldal volt (adatszinkron, licenc-életjel, adatszolgáltatás
+   biztonsági másolata). Most **utasítást is küld lefelé.** Ez teljesen más
+   biztonsági és megbízhatósági osztály.
+2. **`[!]` Ütközés a helyi beállítással.** Az ügyfél a felhőben átír egy árat,
+   miközben a helyi menedzser ugyanazt a terméket a helyi felületen módosítja.
+   **Melyik nyer?** A rendszer szerver-autoritatív a LOKÁLIS állapotra — most
+   viszont egy MÁSODIK autoritás jelent meg. **Szabály kell rá**, különben ez a
+   §6 varrat-hibaosztálya: mindkét oldal „sikeresen" ír, és csendben szétcsúsznak.
+3. **`[!]` Offline sorbaállás.** Ha a helyszín offline, a felhőben elvégzett
+   beállítás **nem érkezik meg.** Az ügyfél viszont a felhőben azt látja, hogy
+   megtörtént. **Ez §5 néma kudarca**, csak a felhasználó felé fordítva:
+   a felület olyat mutat elvégzettként, ami nem történt meg.
+   → **Kell egy állapot: „a helyszín még nem vette át"**, láthatóan.
+4. **`[!]` Biztonsági célpont.** Egy távoli csatorna, ami **meg tudja változtatni
+   egy pénztárgép konfigurációját** (árak, ÁFA-hozzárendelés, jogosultságok),
+   a rendszer egyik legértékesebb támadási felülete. Kell hozzá: erős
+   hitelesítés, **jogosultsághoz kötés**, és **teljes audit** — ki, mikor, mit
+   írt át távolról (F5, F7).
+5. **Mit szabad egyáltalán távolról átírni?** Nem mindegy. Egy termék ára: igen.
+   Egy ÁFA-kulcs hozzárendelés: **veszélyes** (adóügyi következménye van, §13).
+   Egy adóügyi eszköz beállítása: **valószínűleg nem.** **Explicit, szűk
+   listát kell definiálni**, nem „mindent, ami a helyi admin felületen megy".
+
+#### `[ ]` Eldöntendő
+
+- Mely beállítások írhatók át távolról (szűk, nevesített lista)?
+- Ütközéskor mi nyer — a felhő, a helyi, vagy „az újabb"? És **hogyan látja
+  bárki, hogy volt ütközés?**
+- Offline helyszínnél a sorbaállított változtatás **meddig érvényes**, és mi
+  történik, ha közben helyben is módosult?
+
+**Kapcsolódik:** B7 (multi-tenancy), B6 (biztonság), F5 (támogathatóság),
+F7 (jogosultsági modell), 18. és 19. fejezet.
 
 ---
 
@@ -2126,8 +2331,8 @@ Rögzítendő a kód előtt:
 
 | # | Tétel | Státusz | Miért blokkoló |
 |---|-------|---------|----------------|
-| 1 | **B14 M1 — a számtartomány szélessége** | `[ ]` **DÖNTÉST IGÉNYEL — számítással alátámasztva** | A javasolt 5 jegyű folyószám (100 000 bizonylat) egy 500 nyugta/napos kasszán **kevesebb mint egy év alatt elfogy**. Vagy több számjegy, vagy évszám a szerkezetbe — plusz küszöb-riasztás. |
-| 2 | **B14 M2 — eszközazonosító egyedisége** | `[ ]` **DÖNTÉST IGÉNYEL** | A séma egyetlen katasztrofális hibamódja a **lemezkép-klónozás**: két gép azonos előtaggal, mindkettő valódi bizonylatokkal. Kell szerver-oldali duplikátum-őr és gépcsere-szabály. |
+| 1 | **B14.7 — két gép, két üzleti nap offline** | `[ ]` **ÚJ HÉZAG, döntést igényel** | Ha a szerver halott és két pénztárgép egymástól függetlenül nyit üzleti napot eltérő órával, **kettéhasad a napi zárás és az adatszolgáltatás** — és a bizonylatszámok már ki vannak nyomtatva. Javasolt ellenszer: nyitás előtt kötelezően kérdezze meg a tanúkat. |
+| 2 | **B16 — távoli konfiguráció a felhőből** | `[ ]` **ÚJ TÉTEL** | Kétirányúvá teszi a felhő-kapcsolatot. Eldöntendő: mit szabad távolról átírni, mi nyer ütközéskor, és hogyan látszik, hogy egy offline helyszín még nem vette át a változtatást. |
 | 3 | **B14.5 — jogi kérdés** | `[?]` **A JOGI KÖR KIEMELT TÉTELE** | Megfelel-e a több párhuzamos számtartomány a folyamatos sorszámozás követelményének? Forrás nélkül nem állítható. Ha egyetlen sorozat kell, a B14 megdől. |
 | 4 | **B11 — tanú-séma** | `[ ]` **JÓVÁHAGYÁSRA VÁR** | A séma SOHA nem dönt, csak bizonyítékot gyűjt — ezért nem kell hozzá elosztott konszenzus. |
 | 2 | **TPM-ellenőrzés** | `[FOLYAMATBAN]` — a felhasználó a napokban ellenőrzi | Addig **mindkét ágra készülünk**: a titkosítás konfigurációs képesség, és az admin felület kiírja, melyik ágon vagyunk. **Nem blokkolja a fázistervet.** |
@@ -2142,6 +2347,10 @@ Rögzítendő a kód előtt:
 | — | ~~B1/a~~ | `[ELDÖNTVE]` | A vészhelyzeti szerver / HA **BENNE MARAD az MVP-ben** (az ajánlással szemben, tudatosan). Következmény: min. 2 dedikált gép telepítésenként → E1-ben árazandó. |
 | — | ~~A4/b~~ | `[ELDÖNTVE]` | Billegés-védelem: **növekvő várakozás** minden visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól. A konkrét X/Y érték mérendő. |
 | — | ~~A4/c~~ | `[ELDÖNTVE]` | A szerepcsere **azonnal** megtörténik, ahogy stabil — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki, nem az időzítés. |
+| — | ~~B14.4~~ | `[ELDÖNTVE]` | **A SIDURI bizonylatszám formátuma: `xxxxxxyyyzzzzz`** — üzleti nap dátuma (a szervertől) + eszközszám + napi folyószám. Ez **megoldja mindkét korábbi aggályomat**: naponta újraindul, tehát soha nem fogy el; és a dátum-előtag miatt szám szerint időrendben áll. **Kikötés:** az `xxxxxx` az ÜZLETI NAP, nem a naptári nap — aki `DateTime.Now.Date`-ként írja meg, annak minden éjszakai helyen csendben elcsúszik a számozás. |
+| — | ~~B14 M2~~ | `[ELDÖNTVE, kiegészítve]` | A szerver adja ki az azonosítót és regisztráció nélkül nincs bizonylat — **helyes, de a klónt nem fogja meg**, mert a klón érvényes hitelesítéssel szinkronizál. **Hiányzó darab: hardveres ujjlenyomat (már tervben van a licencelésnél) + forgó hitelesítő adat.** Ha egy azonosító két ujjlenyomatról jelentkezik, **mindkettő tiltva**, amíg ember fel nem oldja. |
+| — | ~~B14 M4~~ | `[ELFOGADVA]` | **A kliens visszakérheti a saját előzményét a szervertől** → gépcsere után az új gép feltölti magát. Három kikötés: a visszatöltött archívum **hiányosabb lehet** (meg kell jelölni), adatkiadási csatorna (hitelesítés + audit), és a gépcsere **explicit, engedélyezett művelet** legyen. |
+| — | ~~Adóügyi szám~~ | `[HELYESBÍTVE]` | **Az ÉN érvem volt hibás:** a napszámláló 4 jegyű (~27 év), nem 3 (~2,7 év) — **gyakorlati ütközés nincs.** A saját számozás viszont **továbbra is kötelező**, mert a teherhordó érv más volt: az adóügyi szám csak a NYOMTATÁS UTÁN érkezik, tehát nélküle a bizonylatnak addig nincs azonosítója, és nyomtatási hiba esetén soha nem is lesz. |
 | — | ~~B14~~ | `[ELDÖNTVE]` | **Kétrétegű bizonylat-számozás.** (1) SIDURI szám: minden kiállító eszköz **saját, elhatárolt tartományból** számoz (2-es kassza: `002…`) → az ütközés **szerkezetileg lehetetlen**, nulla koordináció kell, és **a tartalék szerver átvételkor AZONNAL kiszolgálhat**. (2) ADÓÜGYI szám (`A12345678/123/1234`): **tároljuk a bizonylat mellett** (a sztornóhoz kell), de **nem lehet a mi azonosítónk** — nem mi vezéreljük, a 3 jegyű napszámláló ~2,7 év után körbefordulhat, és **csak a nyomtatás UTÁN érkezik**, tehát nélküle a bizonylatnak a nyomtatásig nem is lenne azonosítója. **Nullázható mező** — előnyugtának, raktármozgásnak, készpénzmozgásnak soha nincs. |
 | — | ~~B15~~ | `[ELDÖNTVE]` | **A vékonykliensek is vezetnek archívumot, de minimálisat**: csak amit ők küldtek, és **rövidebb megőrzéssel** (nyugtázatlan + rövid átfedő farok) — adatvédelmi okból, mert a telefon a leggyakrabban elveszített eszköz. |
 | — | ~~Internet-ellenőrzés~~ | `[ELDÖNTVE]` | **Bent marad, de UTOLSÓ fokként** és publikus címre (nem sajátra). Külön, megcímkézett sorban; **soha nem befolyásolja a „szerver vagy én?" döntést**. HTTPS, ne ICMP; két külön jel (névfeloldás + elérés); és a „nincs internet" **soha nem hibaállapot**. |

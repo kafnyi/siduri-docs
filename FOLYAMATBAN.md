@@ -101,7 +101,7 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ## 1. Mi KÉSZ
 
-**Huszonnyolc döntés lezárva** (öt az 1., huszonhárom a 2. munkamenetben, mindkettő 2026-08-22).
+**Harminckét döntés lezárva** (öt az 1., huszonhét a 2. munkamenetben, mindkettő 2026-08-22).
 **Mindegyik indoklással együtt** olvasandó — indoklás nélkül a döntések nem tapadnak
 meg, és a következő kör újratárgyalja őket.
 
@@ -119,6 +119,10 @@ meg, és a következő kör újratárgyalja őket.
 | **B1/c K1** | *(ÚJ)* Mikor megy csökkentett módba egy gép | **Önállóan, azonnal**, ha nem éri el a szervert — akkor is, ha a többi gép működik. Gépenkénti állapot, nem a helyé | `NYITOTT_KERDESEK.md`, keress: `K1 —` |
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
+| **B14.4** | *(ÚJ)* A bizonylatszám formátuma | **`xxxxxxyyyzzzzz`** = üzleti nap dátuma (a szervertől) + eszközszám + napi folyószám. Pl. `26082200300347`. **Naponta újraindul → soha nem fogy el**, és a dátum-előtag miatt szám szerint időrendben áll. **Kikötés: az `xxxxxx` az ÜZLETI NAP, nem a naptári nap** | `NYITOTT_KERDESEK.md`, keress: `B14.4` |
+| **B14 M2** | *(ÚJ)* Klónozás elleni védelem | A szerver adja ki az azonosítót és regisztráció nélkül nincs bizonylat — **de a klónt ez nem fogja meg.** Hiányzó darab: **hardveres ujjlenyomat + forgó hitelesítő adat**; két ujjlenyomat egy azonosítón → **mindkettő tiltva**, amíg ember fel nem oldja | `NYITOTT_KERDESEK.md`, keress: `M2 — az eszközazonosító` |
+| **B14 M4** | *(ÚJ)* Előzmény visszakérése | A kliens **lekérheti a saját előzményét** a szervertől → gépcsere után az új gép feltölti magát. Három kikötéssel (hiányos lehet, hitelesítés+audit, explicit gépcsere) | `NYITOTT_KERDESEK.md`, keress: `M4 —` |
+| **B15 hatóköre** | *(ÚJ)* Mit tud a telefon v1-ben | **Nem fizettet és nem ad nyugtát** — csak rendelést vesz fel és menedzsel. Később bővítendő; az előkészítés majdnem ingyen van, egyetlen kikötéssel: **az eszközszám-tér legyen KÖZÖS minden eszköztípusra** | `NYITOTT_KERDESEK.md`, keress: `B15` |
 | **B14** | *(ÚJ)* Bizonylat-számozás | **Kétrétegű.** (1) SIDURI szám: minden kiállító eszköz **saját, elhatárolt tartományból** számoz → az ütközés szerkezetileg lehetetlen, nulla koordináció, és a tartalék átvételkor azonnal kiszolgálhat. (2) ADÓÜGYI szám: tároljuk a sztornóhoz, de nem lehet a mi azonosítónk — és **nullázható**, mert nem minden bizonylatnak van | `NYITOTT_KERDESEK.md`, keress: `B14` |
 | **B15** | *(ÚJ)* Vékonykliens-archívum | **Igen, de minimális** — csak amit ő küldött, rövidebb megőrzéssel, adatvédelmi okból (a telefon a leggyakrabban elveszített eszköz) | `NYITOTT_KERDESEK.md`, keress: `B15` |
 | **B13** | *(ÚJ)* Átvétel előtti begyűjtés | **Elfogadva, módosítva.** A B14 miatt már nem kell az első bizonylat előtt lefutnia → a tartalék azonnal kiszolgál, a begyűjtés párhuzamosan fut. Célja adat-teljesség és ellenőrzés | `NYITOTT_KERDESEK.md`, keress: `B13` |
@@ -178,25 +182,24 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 A felhasználó 2026-08-22-én ezt kérte: **először zárjuk le a maradék apróságokat,
 utána KÉT ELLENŐRZŐ KÖR**, és csak azután megyünk tovább.
 
-#### 2.1.a0 `[!]` KÉT DÖNTÉST IGÉNYLŐ TÉTEL a bizonylat-számozásban
+#### 2.1.a0 `[!]` KÉT ÚJ HÉZAG, amit a legutóbbi kör tárt fel
 
-Mindkettő a felhasználó saját, elfogadott ötletének a **kitöltése**, nem
-megkérdőjelezése — de mindkettő **némán romlik el**, ha nem döntünk róla.
+1. **`[ ]` Két gép, két külön üzleti nap offline.** Ha a szerver halott és két
+   pénztárgép egymástól függetlenül nyit üzleti napot **eltérő órával**, akkor
+   különböző üzleti nap alatt adnak ki bizonylatokat → visszatéréskor **két
+   egyszerre nyitott üzleti nap**, kettéhasadt napi zárás és adatszolgáltatás —
+   **és a bizonylatszámok már ki vannak nyomtatva, tehát nem javíthatók.**
+   Javasolt ellenszer: **a nyitás előtt a gép kötelezően kérdezze meg a tanúkat**;
+   ha bármelyik másik gép már nyitott üzleti napot, **azt vegye át.**
+   → `NYITOTT_KERDESEK.md`, keress: `ÚJ HÉZAG, amit ez a forgatókönyv feltár`
 
-1. **`[ ]` A számtartomány szélessége KEVÉS — ez számítás, nem vélemény.**
-   A példa (`002xxxxx`) 5 jegyű folyószámot ad = 100 000 bizonylat eszközönként.
-   Egy **500 nyugta/napos** kassza ezt **200 nyitvatartási nap alatt**, tehát
-   **kevesebb mint egy év alatt** elhasználja. Utána nem lehet bizonylatot
-   kiállítani — a lehető legrosszabb pillanatban. Megoldás: több számjegy
-   (8 jegy → 100 millió), vagy évszám a szerkezetbe (`002-2026-00001`).
-   **Plusz mindenképpen küszöb-riasztás** (pl. 90%-nál).
-2. **`[ ]` A lemezkép-klónozás a séma egyetlen katasztrofális hibamódja.**
-   Egy új kassza beüzemelésének legkézenfekvőbb módja a meglévő gép
-   lemásolása — ekkor **két gép ugyanazzal az előtaggal indul, mindkettő
-   1-től, és mindkettő valódi bizonylatokat ad ki azonos számmal.**
-   Ellenszer: az előtagot a **szerver ossza ki** regisztrációkor (ne a telepítő
-   gépelje be), és a szerver **álljon meg hangosan**, ha két eszközt lát azonos
-   előtaggal.
+2. **`[ ]` B16 — távoli konfiguráció a felhőből.** A felhasználó egy
+   mellékmondatban új képességet nevezett meg (az ügyfél a webes felületen
+   **beállításokat végez távolról**). Ez **kétirányúvá teszi a felhő-kapcsolatot**,
+   és négy dolgot vet fel: mit szabad egyáltalán távolról átírni (egy ÁFA-kulcs
+   átírása adóügyi következményű!); mi nyer, ha helyben is módosult; hogyan
+   látszik, hogy egy **offline** helyszín még nem vette át; és hogy ez a rendszer
+   egyik legértékesebb támadási felülete. → keress: `B16`
 
 #### 2.1.a `[ ]` Jóváhagyásra vár (nem blokkoló)
 1. **B13 — átvétel előtti begyűjtés a kliensektől.** A felhasználó ötlete,

@@ -4709,19 +4709,58 @@ Ez minden ilyen funkció bukási módja. **Öt kötelező korlát:**
 | L1.3.d | **Háttér-önteszt.** A rendszer tovább próbálkozik; amint az integráció visszatér, **felajánlja vagy automatikusan visszakapcsolja.** A tipikus ok (hálózatkiesés, kábel) **megjavul, és senkinek nem jut eszébe visszakapcsolni.** |
 | L1.3.e | **A napzárás jelezze**, hogy a nap egy része integráció nélkül ment, és **mennyi forgalmat érintett.** |
 
-#### L1.4 — A mentőút legyen automatikus felajánlás, ne rejtett beállítás
+#### L1.4 — `[FELÜLÍRVA]` A kikapcsolást SOHA nem ajánljuk fel — a pultosnak pláne nem
 
-**Ez a funkció kulcsa.** A pénztáros nem fog menüt keresgélni csúcsban.
+**Az eredeti javaslatom (N sikertelen próbálkozás után a rendszer kérdezzen rá,
+átvált-e kézi módra) ELVETVE. A felhasználó ellenérve erősebb, és a saját
+javaslatom mondott ellent önmagának.**
 
-> N egymást követő sikertelen próbálkozás után a rendszer **magától kérdezzen rá**:
-> „A bankkártya-terminál nem elérhető. Átvált kézi módra?" — a jogosultság
-> ellenőrzésével és az indok bekérésével.
+**Miért volt rossz:**
 
-Így a beállításból **mentőút** lesz, pont akkor, amikor kell.
+| # | Indok |
+|---|-------|
+| L1.4.a | **A megkerülés felajánlása a megkerülés megtanítása.** Ha maga a pénztárgép kérdezi meg, hogy „kikapcsoljam az adóügyi eszközt?", akkor normalizáltuk. Aki egyszer megtanulja, hogy a hibaüzenetből egy gombbal ki lehet lépni, az legközelebb már akkor is ezt nyomja, ha a terminál csak lassú. **Pont az L1.3 bukási módot (az ideiglenes állandósul) építettem volna be szándékosan.** |
+| L1.4.b | **A pultos nem az a szint, aki ezt eldönti.** Egy integráció kikapcsolása egyeztetési és — a fiskálisnál — felelősségi következményekkel jár. Felkínálni a pultnál akkor is rossz, ha a jogosultság amúgy blokkolja. |
+| L1.4.c | **A felfedezhetőség nem valós probléma.** Nem napi művelet: az üzletvezető egyszer megtalálja a gombot, betanításkor vagy az első incidensnél, és megjegyzi. |
 
-**Egységes nyelvezet:** ez a „csökkentett működés" fogalom **második oka**
-(az első a szerver elérhetetlensége). A személyzet **egy mintát tanuljon meg**,
-két alfajjal — ne két külön világot.
+#### L1.4/v2 — Amit HELYETTE csinálunk
+
+| # | Megoldás |
+|---|----------|
+| L1.4.1 | **Dedikált gomb a beállítások között.** Egy hely, nem felugró ajánlat. |
+| L1.4.2 | **A hibaüzenet iránymutat, de nem kínál kart.** Nem elég annyi, hogy „a terminál nem elérhető" — mondja meg, mi a teendő: **„A bankkártya-terminál nem elérhető. Szóljon az üzletvezetőnek."** Így a pultos tudja, mit tegyen, anélkül hogy nála lenne a kapcsoló. |
+| L1.4.3 | **A hiba a JOGOSULTHOZ jusson el, ne a pulthoz** — az ismétlődő sikertelenség az üzletvezetői/felhős riasztási felületen jelenjen meg, ne felugró ablakként a kasszán. |
+
+#### L1.4/v3 — A jelzés (hogy ne felejtsék el visszakapcsolni)
+
+| # | Szabály |
+|---|---------|
+| L1.4.4 | **Tartós, elrejthetetlen sáv** az érintett gépen, amíg aktív. Nem ikon, nem eltüntethető értesítés. |
+| L1.4.5 | **A sáv mondja meg a TEENDŐT is, ne csak az állapotot:** „Adóügyi integráció ideiglenesen kikapcsolva — a nyugtát a különálló pénztárgépen adja ki." Enélkül a jelzés nem segít a pultosnak, csak nyugtalanítja. |
+| L1.4.6 | **A sáv írja ki, mióta van kikapcsolva és mikor jár le automatikusan.** |
+| L1.4.7 | **Az üzletvezetői és a felhős áttekintőben minden telephely és minden gép kikapcsolt integrációja egy helyen látszik.** |
+| L1.4.8 | **Napzáráskor kötelező nyugtázás**, ha a nap alatt bármelyik integráció ki volt kapcsolva. Ez a legerősebb felejtés-elleni eszköz, és **nem a pultost terheli.** |
+
+#### L1.4/v4 — Az önteszt megmarad, de nem szól a pultnak
+
+A háttér-önteszt (L1.3.d) marad, csak a viselkedése változik: **nem ajánl semmit
+a kasszán.**
+
+- Ha az integráció visszatér, a **sáv szövege változik**: „az integráció újra elérhető".
+- **Automatikus visszakapcsolás csak akkor**, ha az önteszt **tartósan** (javaslat: 10 percen át folyamatosan) sikeres. Enélkül egy szakadozó terminálnál a rendszer oda-vissza kapcsolgatna, és minden visszakapcsoláskor újra elakadna a fizetés.
+- **A lejárat (L1.3.a) marad a valódi biztonsági háló**; a sáv és a napzárási nyugtázás csak emlékeztető.
+
+#### L1.4/v5 — `[NYITOTT]` Gépenkénti vagy telephelyi a kikapcsolás?
+
+Ez a megbeszélésen nem került elő, és nem mindegy:
+
+- A **bankkártya-terminál és az adóügyi eszköz gépenkénti** — ha az egyik kassza terminálja halott, a többié működik. **Telephely-szintű kikapcsolás feleslegesen rontaná le a jó gépeket is.**
+- Vannak viszont **telephelyi** integrációk is (pl. egy központi konyhai nyomtató).
+
+**Javaslat:** a kikapcsolás hatóköre **kövesse az integráció természetes hatókörét**
+— gépenkénti integrációnál gépenként, telephelyinél telephely-szinten. Az
+integráció-nyilvántartás (L1.6) tárolja, melyik melyik.
+**Jóváhagyásra vár.**
 
 #### L1.5 — `[KI KELL MONDANI]` Az adóügyi integráció kikapcsolása visszaélési eszköz is
 

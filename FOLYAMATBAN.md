@@ -283,7 +283,7 @@ rendelés 24 órás korlátja, nyitvatartási naptár, változó ENUM-készletek
 | # | Tétel |
 |---|-------|
 | **L0** | **HELYESBÍTÉS + SÚLYOSBÍTÁS:** a gyártói szolgáltatás **nem localhost-korlátos** — portra figyel és nem nézi, honnan jött a kérés. Ezzel a nyomtatás-átirányítás **ingyen van** (nem kell semmit kinyitni), **de a kockázat már most fennáll**: a hálózaton bárki hitelesítés nélkül adóügyi parancsot küldhet. **Új, kötelező telepítési előfeltétel: a vendég-wifi és az üzemi hálózat szétválasztása** |
-| **L1** | **Integrációk ideiglenes kikapcsolása — új funkció.** Kétszintű jog: bekapcsolni csak mi, ideiglenesen kikapcsolni az általunk **integrációnként** felhatalmazott szerep. **Az NTAK és az audit napló soha nem kapcsolható ki** (nincs hozzájuk kézi tartalék). Öt kötelező korlát a „minden ideiglenes megkerülés állandósul" ellen: **kötelező lejárat**, kötelező indok, tartós jelzés minden gépen, **háttér-önteszt automatikus visszakapcsolással**, és napzárási jelentés. **A mentőút automatikus felajánlás legyen, ne rejtett beállítás.** A fiskális integrációra szigorúbb szabályok, mert **ez a visszaélés kara** |
+| **L1** | **Integrációk ideiglenes kikapcsolása — új funkció.** Kétszintű jog: bekapcsolni csak mi, ideiglenesen kikapcsolni az általunk **integrációnként** felhatalmazott szerep. **Az NTAK és az audit napló soha nem kapcsolható ki** (nincs hozzájuk kézi tartalék). Öt kötelező korlát a „minden ideiglenes megkerülés állandósul" ellen: **kötelező lejárat**, kötelező indok, tartós jelzés minden gépen, **háttér-önteszt automatikus visszakapcsolással**, és napzárási jelentés. **A kikapcsolást SOHA nem ajánljuk fel** (a korábbi javaslatom elvetve: a megkerülés felajánlása a megkerülés megtanítása) — dedikált gomb a beállításokban, a hibaüzenet iránymutat („szóljon az üzletvezetőnek") de nem kínál kart, a hiba a jogosulthoz jut el, és tartós, elrejthetetlen sáv jelzi az állapotot **a teendővel együtt**, plusz kötelező nyugtázás napzáráskor. A fiskális integrációra szigorúbb szabályok, mert **ez a visszaélés kara** |
 
 ### 2.0.1 `[!]` A 3. munkamenetből MÉG NYITOTT tételek
 
@@ -308,6 +308,7 @@ ezeken a pontokon feltételes marad.
 | **N14** | **K1.2:** zárvatartás alatt (kikapcsolt telephelyi szerver) **a felhő küldje** a napi zárásokat? | **felhasználó** |
 | **N15** | **L0:** van-e a gyártói szolgáltatásnak bármilyen **hitelesítési, IP-korlátozási vagy figyelési-cím** beállítása? (a nem-localhost figyelés kérdése tárgytalan — már most bárhonnan fogad) | **gyártó** |
 | **N16** | **K3.2:** elfogadja-e az NTAK a múltbeli (utolsó tevékenység szerinti) zárási időbélyeget, ha a szerver 24 óránál tovább volt halott? | **NTAK / MTÜ** |
+| **N17** | **L1.4/v5:** a kikapcsolás hatóköre gépenkénti vagy telephelyi legyen? (javaslat: kövesse az integráció természetes hatókörét) | **felhasználó** |
 | **N11** | **H3 következménye:** a 15 perces NTAK-küldés miatt a kimenő NTAK-sor tartós, felügyelt sor kell legyen, és a feldolgozási nyugtákat is le kell kérdezni (24 órán belül). Új munkatétel a fázistervben | tervezés |
 
 

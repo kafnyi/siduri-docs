@@ -4628,3 +4628,125 @@ tehát beállítható másik gépen futó gyártói szolgáltatás.
 | K5.c | **A bizonylatnak tárolnia kell, MELYIK adóügyi eszköz nyomtatta.** Új mező. A SIDURI szám a **kiállító** gépé marad (B14), az adóügyi szám viszont a **nyomtató** eszközé — a két réteg itt szándékosan szétválik, és utólag tudni kell, miért. |
 | K5.d | **Az átirányítás beállítása és minden átirányított nyomtatás auditnaplózott esemény** (biztonsági ág). |
 | K5.e | **A felhasználónak látszania kell**, hogy a bizonylat máshol nyomtatódik — különben a pult mellett várja a papírt, ami a másik gépnél jön ki. |
+
+---
+
+## L) Integrációk ideiglenes kikapcsolása + a fiskális szolgáltatás hálózati kitettsége
+
+### `[HELYESBÍTÉS + SÚLYOSBÍTÁS]` L0 — A gyártói szolgáltatás nem localhost-korlátos
+
+**A K5.b állításom hibás volt.** A pontosítás: a gyártói szolgáltatás **portra
+figyel, és NEM vizsgálja, hogy a kérés localhostról vagy kívülről érkezett-e.**
+
+**Ez nem enyhíti a kockázatot, hanem súlyosbítja — és átértékel két dolgot:**
+
+| # | Következmény |
+|---|--------------|
+| L0.1 | **A nyomtatás-átirányítás (K5) technikailag ingyen van** — nem kell semmit „kinyitni", mert már nyitva van. A funkció bevezetése **nem hoz új biztonsági kockázatot.** |
+| L0.2 | **De a kockázat MÁR MOST fennáll, tőlünk függetlenül:** a telephelyi hálózaton **bárki, bármilyen eszközről adóügyi parancsot küldhet** a pénztárgépre — hitelesítés nélkül. Nyithat bizonylatot, tételt vehet fel, sztornózhat. |
+| L0.3 | **Ha a vendég-wifi és az üzemi hálózat nincs szétválasztva, ezt egy vendég is megteheti a telefonjáról.** |
+
+**Ebből konkrét, kötelező telepítési követelmény lesz:**
+
+> **A vendég-wifi és az üzemi hálózat fizikai vagy VLAN-szintű szétválasztása
+> TELEPÍTÉSI ELŐFELTÉTEL, nem ajánlás.** A telepítési ellenőrzőlistán kötelező
+> tétel, és ha az ügyfél nem teljesíti, az a kockázatvállalási nyilatkozat (B12)
+> tárgya.
+
+**Amit még tehetünk:** a saját szerverünk és klienseink oldalán tűzfalszabály,
+ami az adóügyi szolgáltatás portját csak az általunk ismert gépekre engedi.
+Ez nem oldja meg a gyökeret (a szolgáltatás továbbra sem hitelesít), de szűkíti.
+
+⚠️ **Kérdés a gyártó felé:** van-e a szolgáltatásnak bármilyen hitelesítési,
+IP-korlátozási vagy figyelési-cím beállítása. **Ez nem a mi hibánk, de a mi
+ügyfelünk kockázata**, és jeleznünk kell felé.
+
+### `[ÚJ FUNKCIÓ — ELFOGADVA]` L1 — Integrációk ideiglenes kikapcsolása
+
+**A probléma, amit megold:** egy integrált periféria kiesése **az egész eladási
+folyamatot megbénítja**, holott létezik kézi tartalék.
+
+- Nincs internet a gépen → a bankkártyás fizetés nem megy át a terminálra, **de van kézzel üthető terminál.**
+- Kábelszakadás / elromlott adóügyi nyomtató → **minden nyugta megszakad**, holott van egy önálló pénztárgép, amit tudnának ütni.
+
+Ma ezekben az esetekben a rendszer **feleslegesen áll meg** — a hiba nem az
+eladásban van, hanem egy tartozékban, amit meg lehetne kerülni.
+
+#### L1.1 — Kétszintű jogosultság
+
+| Szint | Ki | Mit |
+|-------|-----|-----|
+| **1. Integráció bekapcsolása** | **KIZÁRÓLAG Siduri** (üzemeltető / forgalmazó) | Egy integráció létezik-e egyáltalán ezen a telephelyen |
+| **2. Ideiglenes kikapcsolás joga** | **Siduri adja meg**, integrációnként külön | Az így felhatalmazott szerep (pl. üzletvezető) ideiglenesen kikapcsolhatja |
+
+**Fontos: a 2. szint integrációnként külön adható, nem egy közös kapcsoló.**
+A bankkártya-terminál kikapcsolásának joga alacsony kockázat.
+**Az adóügyi eszközé nem** — lásd L1.5.
+
+#### L1.2 — A kikapcsolás jelentése integrációnként MÁS
+
+| Integráció | Mit jelent a kikapcsolás | Mi vész el |
+|------------|--------------------------|------------|
+| **Bankkártya-terminál** | A „Bankkártya" fizetési mód **kézi módra vált**: a pénztáros a különálló terminálon intéz, a rendszerben csak nyugtáz | **A terminál engedélyezési adatai** (jóváhagyási kód, maszkolt kártyaszám, terminálazonosító). A napzárási egyeztetés a terminál saját jelentésével **kézivé válik.** A bizonylatot **meg kell jelölni: „kézi kártyás fizetés"** |
+| **Adóügyi eszköz** | **A jogi bizonylatot egy általunk nem vezérelt eszköz adja ki.** A rendszer rögzíti az eladást, de az adóügyi szám mezője üres marad (B14 szerint nullázható), és amit mi nyomtatunk, azt **„NEM ADÓÜGYI BIZONYLAT"** jelöléssel | **Kettős munka:** a személyzetnek MINDKÉT rendszerbe be kell ütnie. Az összegek egyezését **nem tudjuk ellenőrizni** |
+| **Nem fiskális nyomtató / KDS** | Átirányítás másik nyomtatóra, vagy kihagyás | A konyhai jegy — szóban kell pótolni |
+| **NTAK** | **SOHA nem kapcsolható ki** | — |
+| **Audit napló** | **SOHA nem kapcsolható ki** | — |
+
+**Az NTAK azért nem kapcsolható ki, mert nincs hozzá kézi tartalék**: az
+adatszolgáltatás sorba áll és offline is elviseli a kiesést. A kikapcsolása
+nem áthidalás lenne, hanem egyszerűen elmaradt adatszolgáltatás.
+
+#### L1.3 — A funkció legfőbb veszélye: minden „ideiglenes" megkerülés állandósul
+
+Ez minden ilyen funkció bukási módja. **Öt kötelező korlát:**
+
+| # | Korlát |
+|---|--------|
+| L1.3.a | **Kötelező lejárat.** A kikapcsolás **magától visszakapcsol** — javaslat: legkésőbb a következő napzáráskor, de legfeljebb 24 óra. Nincs „amíg valaki vissza nem kapcsolja". |
+| L1.3.b | **Kötelező indok** (okkód + szabad szöveg), auditnaplózva a **biztonsági ágon**. |
+| L1.3.c | **Állandó, feltűnő jelzés MINDEN gépen**, amíg aktív. Nem kis ikon — tartós sáv. |
+| L1.3.d | **Háttér-önteszt.** A rendszer tovább próbálkozik; amint az integráció visszatér, **felajánlja vagy automatikusan visszakapcsolja.** A tipikus ok (hálózatkiesés, kábel) **megjavul, és senkinek nem jut eszébe visszakapcsolni.** |
+| L1.3.e | **A napzárás jelezze**, hogy a nap egy része integráció nélkül ment, és **mennyi forgalmat érintett.** |
+
+#### L1.4 — A mentőút legyen automatikus felajánlás, ne rejtett beállítás
+
+**Ez a funkció kulcsa.** A pénztáros nem fog menüt keresgélni csúcsban.
+
+> N egymást követő sikertelen próbálkozás után a rendszer **magától kérdezzen rá**:
+> „A bankkártya-terminál nem elérhető. Átvált kézi módra?" — a jogosultság
+> ellenőrzésével és az indok bekérésével.
+
+Így a beállításból **mentőút** lesz, pont akkor, amikor kell.
+
+**Egységes nyelvezet:** ez a „csökkentett működés" fogalom **második oka**
+(az első a szerver elérhetetlensége). A személyzet **egy mintát tanuljon meg**,
+két alfajjal — ne két külön világot.
+
+#### L1.5 — `[KI KELL MONDANI]` Az adóügyi integráció kikapcsolása visszaélési eszköz is
+
+**A fiskális integráció kikapcsolása pontosan az a kar, amivel egy műszakot
+nyugtaadás nélkül le lehet vezetni.** A rendszer ugyan rögzítené az eladásokat
+(és törölni nem lehet), de a jogi bizonylat elmaradna.
+
+**Ezért az adóügyi integrációra szigorúbb szabályok:**
+
+| # | Szabály |
+|---|---------|
+| L1.5.a | A kikapcsolás joga **alapból NEM delegálható** az ügyfélnek — telephelyenként, kifejezetten mi engedélyezzük. |
+| L1.5.b | **Azonnali értesítés a felhőbe**, nem napzáráskor. Tudnunk kell, ha egy telephely fiskális integráció nélkül üzemel. |
+| L1.5.c | **Külön riport:** mennyi forgalom keletkezett, amíg a fiskális integráció ki volt kapcsolva. |
+| L1.5.d | **Felelősségi kérdés is:** ha könnyű gombot adunk a fiskális eszköz megkerülésére, és az ügyfél visszaél vele, nem akarunk mi lenni a lehetővé tevő. A delegálás legyen **a kockázatvállalási nyilatkozathoz (B12) kötve.** |
+
+*Megjegyzés: maga a helyzet jogszerű — egy különálló pénztárgépen kiadott nyugta
+érvényes nyugta. A kockázat nem jogi, hanem visszaélési.*
+
+#### L1.6 — Integráció-nyilvántartás
+
+Ebből következően kell egy **integráció-nyilvántartás**, ami minden integrációra
+rögzíti: a nevét, hogy bekapcsolható-e ezen a telephelyen, **kikapcsolható-e
+ideiglenesen**, ki által, **mi a tartalék viselkedés**, mi vész el a
+kikapcsolással, és mennyi a maximális időtartam.
+
+**Ez nem konfigurációs apróság, hanem terméktulajdonság-katalógus** — és ugyanez
+a nyilvántartás szolgálja majd a fizetős csomagokat / licencszinteket is.

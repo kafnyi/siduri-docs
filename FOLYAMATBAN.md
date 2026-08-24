@@ -278,6 +278,13 @@ rendelés 24 órás korlátja, nyitvatartási naptár, változó ENUM-készletek
 | **K4** | **Nyitvatartási minta bekerül** — ebből tudjuk, mikor kell „nincs nyitva" jelzést küldeni, és mikor kellett volna nyitva lenniük (ami nem ugyanaz, és nem automatizálható) |
 | **K5** | **Nyomtatás átirányítása megvalósítható** (IP:port alapú kommunikáció), csak Siduri rendszergazda állíthatja. Öt kiegészítés: **telephelyen belülre keményen korlátozva** (más telephely eszköze más NTAK-regisztrációs szám), a LAN-ra nyitott gyártói szolgáltatás **biztonsági kitettség** (és lehet, hogy nem is támogatott — kérdés a gyártó felé), a bizonylat tárolja **melyik eszköz nyomtatta**, auditnapló, és a felhasználó lássa |
 
+### 2.0.4 `[+]` Integráció-kikapcsolás és a fiskális szolgáltatás hálózati kitettsége (L szakasz)
+
+| # | Tétel |
+|---|-------|
+| **L0** | **HELYESBÍTÉS + SÚLYOSBÍTÁS:** a gyártói szolgáltatás **nem localhost-korlátos** — portra figyel és nem nézi, honnan jött a kérés. Ezzel a nyomtatás-átirányítás **ingyen van** (nem kell semmit kinyitni), **de a kockázat már most fennáll**: a hálózaton bárki hitelesítés nélkül adóügyi parancsot küldhet. **Új, kötelező telepítési előfeltétel: a vendég-wifi és az üzemi hálózat szétválasztása** |
+| **L1** | **Integrációk ideiglenes kikapcsolása — új funkció.** Kétszintű jog: bekapcsolni csak mi, ideiglenesen kikapcsolni az általunk **integrációnként** felhatalmazott szerep. **Az NTAK és az audit napló soha nem kapcsolható ki** (nincs hozzájuk kézi tartalék). Öt kötelező korlát a „minden ideiglenes megkerülés állandósul" ellen: **kötelező lejárat**, kötelező indok, tartós jelzés minden gépen, **háttér-önteszt automatikus visszakapcsolással**, és napzárási jelentés. **A mentőút automatikus felajánlás legyen, ne rejtett beállítás.** A fiskális integrációra szigorúbb szabályok, mert **ez a visszaélés kara** |
+
 ### 2.0.1 `[!]` A 3. munkamenetből MÉG NYITOTT tételek
 
 Ezek a 2026-08-23-i körben felmerültek, de **még nincs rájuk válasz**. Amíg
@@ -299,7 +306,7 @@ ezeken a pontokon feltételes marad.
 | **N12** | **J6:** elfogadja-e az NTAK, ha egy tárgynapra a napi zárás UTÁN még jön rendelésösszesítő (a munkanap-határon átnyúló nyitott asztal miatt)? 0-24-es helyen mindennapos | **NTAK / MTÜ** |
 | **N13** | **J7:** NTAK-köteles-e a személyzeti fogyasztás és a selejt? Ettől függ, hogy rájuk is vonatkozik-e a 24 órás korlát | **NTAK / MTÜ** |
 | **N14** | **K1.2:** zárvatartás alatt (kikapcsolt telephelyi szerver) **a felhő küldje** a napi zárásokat? | **felhasználó** |
-| **N15** | **K5.b:** támogatja-e a gyártói szolgáltatás a nem-localhost figyelést, és milyen hálózati korlátozással? | **gyártó** |
+| **N15** | **L0:** van-e a gyártói szolgáltatásnak bármilyen **hitelesítési, IP-korlátozási vagy figyelési-cím** beállítása? (a nem-localhost figyelés kérdése tárgytalan — már most bárhonnan fogad) | **gyártó** |
 | **N16** | **K3.2:** elfogadja-e az NTAK a múltbeli (utolsó tevékenység szerinti) zárási időbélyeget, ha a szerver 24 óránál tovább volt halott? | **NTAK / MTÜ** |
 | **N11** | **H3 következménye:** a 15 perces NTAK-küldés miatt a kimenő NTAK-sor tartós, felügyelt sor kell legyen, és a feldolgozási nyugtákat is le kell kérdezni (24 órán belül). Új munkatétel a fázistervben | tervezés |
 

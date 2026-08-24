@@ -3699,7 +3699,7 @@ Rögzítendő a kód előtt:
 | — | ~~C3/a HELYESBÍTÉS~~ | `[ELDÖNTVE — a felhasználónak volt igaza]` | Az adókulcs-„megegyezik" **MÁSOLAT legyen, ne hivatkozás** — az én jelölő-javaslatom hibás volt. Indok: egy hivatkozás a helyben fogyasztásos kulcs csökkentésekor **az elvitelest is némán lecsökkentené**, ami adóhiány. A két hibairány ára nem egyenlő: túl magas kulcs pénzügyi hátrány, túl alacsony **jogsértés** — a mechanizmus a kisebb kár felé dőljön. |
 | — | ~~F4/K1~~ | `[ELFOGADVA]` | A bizonylatszám-számláló kulcsa **(eszköz, dátum)**, nem (eszköz, Munkanap). Egy dátumra nyíló második Munkanap folytatja a számozást; a Munkanap külön mező. **Mellékhaszon: ettől lett az összefésülés mechanikusan megoldható.** |
 | — | ~~Fiskális üzemmódok~~ | `[ELDÖNTVE]` | **Három üzemmód:** (1) belső rendszer adóügyi eszköz nélkül, (2) online pénztárgép, (3) e-pénztárgép. Részletek: **`FISKALIS_UZEMMODOK.md`**. Az 1. módban `[!]` a nyomtatott papírt **„NEM ADÓÜGYI BIZONYLAT"** jelöléssel kell ellátni, különben nyugtának néz ki. |
-| — | ~~F4~~ | `[ELDÖNTVE]` | **Mind a négy nap-fogalom definiálva.** MUNKANAP = a HELYÉ, max 25 óra (23:30-nál figyelmeztetés, 25 óránál kényszerleállás), nem naptári nap, egy dátumra több is nyitható. MŰSZAK = az ESZKÖZÉ, az adóügyi munkanap. NTAK tárgynap = naptári nap. |
+| — | ~~F4~~ | `[ELDÖNTVE]` | **Mind a négy nap-fogalom definiálva.** MUNKANAP = a HELYÉ, max 25 óra (23:30-nál figyelmeztetés, 25 óránál kényszerleállás), nem naptári nap, egy dátumra több is nyitható. MŰSZAK = az ESZKÖZÉ, az adóügyi munkanap. ~~NTAK tárgynap = naptári nap.~~ **[H1 HELYESBÍTÉS: TÉVEDÉS — az NTAK tárgynap a NYITÁS dátumából származik, tehát a MUNKANAP-pal esik egybe.]** **[H2: a 25 órás felső határ ÜTKÖZIK az NTAK 24 órás kemény validációjával — döntést igényel.]** |
 | — | ~~C3/a~~ | `[ELDÖNTVE]` | **Termékenként két adókulcs** (helyben / elvitel), megjelölhető az azonosság, és **termék nem hozható létre hiányos adóadattal**. Az adó megadása az ügyfél felelőssége. **Kikötés:** az „azonos" JELÖLŐKÉNT tárolandó, ne másolt értékként, különben a helyben fogyasztásos kulcs átírásakor az elviteles csendben a régin marad. |
 | — | ~~C3/b~~ | `[ELDÖNTVE]` | **NTAK-kategória feltételesen kötelező:** nincs NTAK-kulcs → nem kell és nem is figyelmeztetünk; van kulcs → kötelező vagy erős figyelmeztetés. **Kritikus pillanat:** amikor egy hely utólag illeszt be kulcsot, minden meglévő terméke kategória nélkül áll. |
 | — | ~~C2/a~~ | `[ELDÖNTVE]` | **A bizonylat az ELADÁSKORI árat, adókulcsot ÉS NEVET tárolja**, nem hivatkozást — különben egy áremelés vagy átnevezés visszamenőleg átírja a régi riportokat. |
@@ -3752,7 +3752,7 @@ a spec állítása vagy emlékezetből írt feltevés:
 | **A2** | AEE-s gépnél a jogi bizonylatot maga az adóügyi eszköz állítja ki és sorszámozza → a szerver kiesése nem akadálya a nyugtaadásnak | A degradált mód egésze (A2) |
 | **A3** | A számviteli megőrzési idő (8 év?) | A 30 napos purge és a „tisztán lokális" topológia egyszerre |
 | **C10** | „Teljesen új negatív fiskális nyugta" sztornóra | A teljes sztornó-folyamat (13.) |
-| **C11** | 24 órás NTAK adatszolgáltatási limit, 18 órás riasztás | A 19. pont SLA-figyelmeztetése |
+| ~~**C11**~~ | ~~24 órás NTAK adatszolgáltatási limit, 18 órás riasztás~~ | **[H3: IGAZOLVA, HOGY HAMIS.** A rendelésösszesítő **15 percenként** megy (paraméterezhetően), a napi zárás legalább 24 óránként. A 19. pont SLA-figyelmeztetése újraírandó.**]** |
 | **C12** | Az e-nyugta iránnyal most nem kell foglalkozni | A bizonylat-modell alakja |
 
 ---
@@ -4066,3 +4066,240 @@ Ez ugyanaz az elv, mint az áfa **másolás-nem-hivatkozás** döntésénél (C3
 
 **Ahol az ügyfélnek valós üzleti oka lehet eltérni a számított értéktől, ott a
 számított érték legyen EGYSZERI KITÖLTŐ SEGÉDLET, soha ne élő hivatkozás.**
+
+---
+
+## H) NTAK RMS interfész — elsődleges forrásból igazolva (2026-08-23)
+
+Forrás: **NTAK Vendéglátás szakrendszer, RMS Interfész leírás v1.06 (MTÜ, 2024.06.10)**,
+`https://info.ntak.hu/media/uploads/docs/RMS_Interfesz_leiras_v106.pdf`.
+Ez a hivatalos műszaki specifikáció, nem másodlagos összefoglaló.
+
+### `[HELYESBÍTÉS — a korábbi F4 döntésünk HIBÁS volt]` H1 — Az NTAK tárgynap NEM naptári nap
+
+Az F4-ben azt rögzítettük, hogy **„NTAK tárgynap = naptári nap"**. **Ez tévedés.**
+A specifikáció szó szerint:
+
+> „A tárgynap az aktuálisan nyitott nap nyitásának dátumával megegyező dátum érték."
+> „Naptári napon átnyúló tárgynap esetén **a nyitás időpontjából származtatott nap**."
+
+**Vagyis az NTAK tárgynap a MI MUNKANAP-fogalmunkkal esik egybe, nem a naptári nappal.**
+Egy hétfő 06:00 → kedd 03:00 üzleti nap **egyetlen tárgynap: hétfő.**
+
+**Ez jó hír** — nem kell két fogalmat egymásra képezni —, **de két korábbi
+következtetést érvénytelenít**:
+- az F4 „NTAK tárgynap = naptári nap" sora **törlendő**;
+- a 2. ellenőrző körben tett „a munkanap-összevonás az NTAK tartalmát nem érinti,
+  csak a küldés kiváltóját" megállapítás **újraértékelendő** — a tartalmat is érinti,
+  mert a tárgynap maga az üzleti naptól függ.
+
+### `[ÜTKÖZÉS — DÖNTÉST IGÉNYEL]` H2 — A 25 órás MUNKANAP-ot az NTAK ELUTASÍTJA
+
+A napi zárás üzenet validációja szó szerint:
+
+> `zarasIdopontja – nyitasIdopontja <= 24 óra` — **Szinkron**, hibakulcs: **Conflict**
+
+Ez **szinkron validáció**, tehát az üzenet **azonnal visszautasításra kerül**, nem
+utólag jelződik. A szöveges indoklás: „legalább 24 óránként szükséges a napi zárás
+elvégzése […] ezáltal az adott tárgynap nyitvatartására vonatkozó nyitás és zárás
+időpontok között nem telhet el több, mint 24 óra."
+
+**A mi MUNKANAP-unk felső határa 25 óra** (23:30-nál figyelmeztetés, 25 óránál
+kényszerleállás). **Egy 24 óránál hosszabb munkanap NTAK-adatszolgáltatása
+elutasításra kerülne.**
+
+**Két megoldási irány, mindkettőnek ára van:**
+
+| Opció | Mit jelent | Ár |
+|-------|-----------|-----|
+| **(a) A MUNKANAP felső határa 24 óra alá** — javaslat: **figyelmeztetés 22 órakor, kényszerleállás 23 óra 30 percnél** | A két fogalom pontosan egybeesik, nincs külön logika | 1,5 óra „tartalék" elveszik — de a gyakorlatban egyetlen hely sem tart nyitva 23 órát egyhuzamban |
+| **(b) 25 óra marad, de 24 óránál közbenső NTAK-zárást küldünk** | A spec engedi: „Lehetséges egy tárgynapra több normál […] napizárás üzenet beküldése, így kezelhető a napközi zárás funkciója is" (az időszakok nem lehetnek átfedők) | Külön, ritkán futó kódág — pont az a fajta, ami élesben először hibázik |
+
+**Javaslatom: (a).** Egyszerűbb, nincs ritkán futó ág, és a tartalék nem hiányzik.
+
+⚠️ **A nyári időszámítás miatt az időtartamot ABSZOLÚT (UTC) alapon kell számolni,
+soha nem faliórán.** Az őszi óraátállítás éjszakáján egy 06:00 → 06:00 „napnak"
+faliórán 24 óra, valójában **25**. A specifikáció RFC 3339 időbélyeggel dolgozik
+(eltolással), tehát abszolút pillanatokat hasonlít. **Ez a leggyakoribb módja
+annak, hogy évente egyszer elutasítást kapjunk.**
+
+### `[HELYESBÍTÉS — a C11 premissza HAMIS]` H3 — Az adatküldés 15 PERCES, nem napi
+
+A §13.5 igazolatlan premisszái között szerepelt: *„24 órás NTAK adatszolgáltatási
+limit, 18 órás riasztás"*. **A specifikáció ezt cáfolja:**
+
+> „A gyártóknak fel kell készíteniük a szoftvereiket arra, hogy az adatküldési
+> gyakoriság **paraméterezhető** legyen. Az aktuálisan meghatározott adatküldési
+> gyakoriság: **15 perc**."
+
+**Két külön üzenettípus, két külön ütem:**
+
+| Üzenet | Mikor |
+|--------|-------|
+| **Rendelésösszesítő** (forgalmi adat) | **15 percenként**, az előző küldés óta rögzített rendelések. **Az érték paraméterezhető kell legyen** — nem éghet a kódba. |
+| **Napi zárás** | az üzleti nap zárásakor, **de legalább 24 óránként** |
+
+**Ez érdemben megváltoztatja az offline/degradált tervet.** Eddig úgy számoltunk,
+hogy van egy napunk a beküldésre. Valójában **egy hosszabb internetkimaradás alatt
+15 percenként keletkezik egy elmaradt küldés**, amit sorba kell állítani és a
+visszatéréskor **sorrendben, átfedés nélkül** pótolni. A kimenő NTAK-sor tehát
+ugyanolyan elsőrangú, tartós, felügyelt sor kell legyen, mint a bizonylat-outbox.
+
+**Járulékos kötelezettség:** minden beküldésre szinkron válaszban érkezik egy
+feldolgozási azonosító, és **a feldolgozás eredményét le KELL kérdezni** —
+a specifikáció szerint a beküldéstől számított **24 órán belül**, legkésőbb
+**1 hónapon belül**, mert utána már nem elérhető. Ez egy **második, visszamenőleges
+folyamat**, ami eddig a tervben egyáltalán nem szerepelt: a beküldés nem elég,
+a nyugtázást is be kell gyűjteni és eltárolni.
+
+### `[MEGERŐSÍTVE — a G3 döntés helyes, most már forrással]` H4 — Menükezelés az NTAK-ban
+
+**Van** csomag-kategória, de **csak főkategórián belül**:
+
+| Főkategória | Csomag-alkategória |
+|---|---|
+| Étel | `ETELCSOMAG` — ételcsomag |
+| Étel | `FOETEL_KORETTEL` — főétel körettel |
+| Helyben készített alkoholmentes ital | `ITALCSOMAG` |
+| Nem helyben készített alkoholmentes ital | `ITALCSOMAG` |
+| Alkoholos ital | `ITALCSOMAG` |
+
+**Nincs vegyes (étel + ital) csomagkategória.** Egy klasszikus menü
+(hamburger + krumpli + kóla) tehát **nem sorolható be egyetlen kategóriába** →
+**kötelezően szét kell bontani a komponenseire.**
+
+**A G3 döntés (a menü a nyugtán szétrobban) így két, egymástól független okból is
+kényszer:** a fiskális gyűjtő-korlát miatt (vegyes áfakulcs), és az NTAK
+kategóriakészlete miatt.
+
+**Amit ez hozzátesz:** *tisztán ételből álló* menü **elvileg** mehetne egyetlen
+`ETELCSOMAG` tételként. **Nem élünk vele** — egységesen bontunk, mert (1) a
+készletlevonás komponensenkénti receptet igényel, (2) a riportokban látni akarjuk
+mi fogy, (3) egyetlen kódág jobb, mint kettő.
+
+### `[MEGERŐSÍTVE]` H5 — Az NTAK ÁFA-értékkészlete pontosan egyezik a gyűjtő-betűkkel
+
+`afaKategoria` értékkészlet: **`A_5`, `B_18`, `C_27`, `D_AJT`, `E_0`**.
+
+Ez **betűről betűre** ugyanaz, mint a pénztárgép gyűjtőkiosztásának adójelei
+(A00 / B00 / C00 / D00 / E00). **Két, egymástól független forrás igazolja a
+G1.1 döntést:** a rendszer adókulcs-készlete kötött, öt érték, semmi más.
+
+*Egy különbség a szóhasználatban:* a gyűjtőnél az „E" **TAM**, az NTAK-nál
+**`E_0`**. Ugyanaz a rekesz, más elnevezés — a DRS visszaváltási díj (G4)
+NTAK-oldalon ide, `E_0`-ra kerülne.
+
+### `[ÚJ KÖVETELMÉNYEK]` H6 — Amit a specifikáció még előír, és a tervben nem szerepelt
+
+| # | Követelmény | Következmény |
+|---|-------------|--------------|
+| H6.1 | **Mennyiségi egység** értékkészlet: `DARAB`, `LITER`, `KILOGRAMM`, `EGYSEG`, `ADAG`. Szó szerint: *„egy 0,33 literes dobozos üdítő esetén a LITER használandó, nem a DARAB"* | **Minden terméknek kell NTAK mennyiségi egysége**, és palackos/dobozos italnál ez **térfogat**. Ez közvetlenül a kiszerelés-modellhez (G10.5) kapcsolódik: **a kiszerelésnek ismernie kell a térfogatát**, nem elég a neve. |
+| H6.2 | `tetelOsszesito` **egész szám**, = tételszám × bruttó egységár, **kereskedői kerekítéssel**, és **a tételösszesítők összegének ki kell adnia a rendelés végösszegét** | **Kemény korlát a menü-szétosztásra (G3.4):** a kerekített komponens-összegeknek **pontosan** ki kell adniuk a menü árát. A „maradék a legnagyobb komponensre" szabály ezt teljesíti — de mostantól nem elegánsság, hanem **előírás**. |
+| H6.3 | `bruttoEgysegar` **double** (tört is lehet), `tetelOsszesito` **int** | **A menü-szétosztás így tisztán megoldható:** tört egységár + egész sorösszeg. Nem kell trükközni. |
+| H6.4 | `megnevezes` **max 255 karakter**, kötelező, nem üres | Terméknév-hossz validáció a törzsben. |
+| H6.5 | **`rendelesVege – rendelesKezdete <= 24 óra`**, szinkron, Conflict | **Egy rendelés (asztal) nem lehet 24 óránál tovább nyitva.** A tervben eddig nem volt felső korlát a nyitott asztalra. Kell figyelmeztetés és kezelés. |
+| H6.6 | A `tetelszam`, `tetelOsszesito` és `rendelesVegosszege` **v1.05 óta lehet negatív** | A sztornó és a göngyölegvisszavétel NTAK-oldalon kezelhető. |
+| H6.7 | **Az ENUM-értékkészletek a jövőben változhatnak**, a szoftvert fel kell készíteni rá | **Az NTAK kategóriák, mennyiségi egységek és áfakulcsok NEM éghetnek a kódba** — konfigurációból, frissíthetően kell jönniük, és a frissítés nem járhat kliens-újratelepítéssel. |
+| H6.8 | Önálló NTAK tételkategóriák: `EGYEB/SZERVIZDIJ`, `EGYEB/BORRAVALO`, `EGYEB/KISZALLITASI_DIJ`, `EGYEB/KEDVEZMENY`, `EGYEB/KORNYEZETBARAT_CSOMAGOLAS`, `EGYEB/MUANYAG_CSOMAGOLAS`, `EGYEB/NEM_VENDEGLATAS` | **A kedvezmény, a borravaló és a szervizdíj az NTAK-ban ÖNÁLLÓ TÉTEL, nem a végösszeg módosítója.** Ez egybevág a gyűjtő-lelettel (G1.2), ahol a szervizdíjnak saját gyűjtői vannak. **A csomagolási kategóriák a DRS/csomagolási díjak valószínű helye.** |
+| H6.9 | A napi zárás tartalmaz **`osszesBorravalo`** mezőt | A borravalót nap szinten is összesítenünk kell. |
+| H6.10 | Zárva tartott napra **is kell** napi zárást küldeni (`ADOTT_NAPON_ZARVA`), és forgalom nélküli napra is (`FORGALOM_NELKULI_NAP`) | **A rendszernek tudnia kell, mikor van zárva a hely** → nyitvatartási naptár kell, és **a zárva töltött napokról is megy üzenet**. Ez eddig nem szerepelt a tervben. |
+
+---
+
+## I) A 2026-08-23-i kör második fele — válaszok és egy önhelyesbítés
+
+### `[ELDÖNTVE]` I1 — Prior Cash: haladunk, de a véglegesítés a kapcsolatra vár
+
+| # | Döntés |
+|---|--------|
+| I1.1 | **A repók MINDIG privátok maradnak.** Ezzel a G0.5 nyitott kockázat lezárva: a gyártóspecifikus illesztő maradhat a fő repóban, elkülönített modulban. |
+| I1.2 | A kapott dokumentum **fejlesztési irányként** használható, hogy a munka ne álljon. **A dokumentációba továbbra sem kerülhet pontos vagy felismerhető leirat belőle** (G0.1–G0.3 változatlanul él). |
+| I1.3 | **A partneri kapcsolatfelvétel, egyeztetés és megállapodás tervben van.** Kapuszabály: **a fiskális réteg VÉGLEGESÍTÉSE előtt be kell várni a kapcsolatot** — addig haladunk, de nem zárjuk le. |
+| I1.4 | *Az ügyfél jelzése szerint a kapott dokumentum régi lehet* → a jelenlegi leletek (nulla összegű tétel, DRS-gyűjtő) **egy elavult verzióra épülhetnek**, és az egyeztetésen újra kell kérdezni őket. |
+
+### `[ELDÖNTVE]` I2 — Adóügyi eszköz: gépenként, 4 géptől legalább kettő
+
+| # | Döntés |
+|---|--------|
+| I2.1 | **Értékesítési ajánlás: gépenként adóügyi eszköz / pénztárgép.** Üzletileg is ez az irány. |
+| I2.2 | **4 géptől kezdve KIEMELTEN, erősen ajánlunk legalább kettőt.** |
+| I2.3 | Ez ugyanaz a logika, mint a tartalék szervernél (B9): **ajánlás, nem kikényszerítés**; ha az ügyfél a kockázat ismeretében elutasítja, elfogadjuk, és a kockázatvállalási nyilatkozat (B12) rögzíti. |
+| I2.4 | *Nyitva maradt:* megépítjük-e a **nyomtatás átirányítását másik gép eszközére** (G7.3). Ha gépenként van eszköz, ez ritkább eset — de a „4 gép / 2 eszköz" felállásban pont ez a kérdés. |
+
+### `[ELDÖNTVE]` I3 — Beszerzési ár
+
+**Bruttó felvitel + KÖTELEZŐ beszerzési áfakulcs; az árrés és a food cost NETTÓ
+alapon számol.** Mindkét érték tárolva, a felületen mindkettő látszik.
+
+Indok: a beszerzés áfája levonható, tehát nem költség. Bruttó alapú árrés
+**21–27%-kal hamis** számot adna — és az a rendszer legfontosabb üzleti riportja.
+
+### `[ELDÖNTVE — módosítva]` I4 — DRS: alapban terhelve, kikapcsolható
+
+**A G4.c döntés MÓDOSUL.** Az eredeti terv a jogszabályi lehetőséget tette
+alapértelmezéssé (helyben fogyasztásnál nem terheljük). **A gyakorlat mást mutat:**
+
+> Van olyan eset — és **ez a gyakoribb** —, hogy helyben fogyasztásnál is kiadják
+> az üveget, de **nem veszik vissza**, vagy egyáltalán nem kezelik a visszaváltást.
+
+| # | Döntés |
+|---|--------|
+| I4.1 | **Alapértelmezés: a visszaváltási díj TERHELVE van**, teljesítési módtól függetlenül. |
+| I4.2 | **Beállítási opció (üzletenként):** „helyben fogyasztásnál ne terhelődjön a vendégre". Kikapcsolva alapból. |
+| I4.3 | A jogi háttér (G4.1–G4.2) változatlan: a mentesség **lehetőség**, nem kötelezettség — akkor él, ha a csomagolás a vendéglátóhelyen marad. Aki nem veszi vissza, annak terhelnie kell. |
+| I4.4 | **A beállítás állapotát a bizonylat mellett rögzíteni kell** — utólag tudni kell, milyen szabály szerint készült. |
+| I4.5 | **Ez megint a G11 elv esete:** nem mi döntjük el, mi az üzletmenete — a biztonságosabb (terhelt) irány az alapértelmezés, és aki tudatosan másképp működik, átállítja. |
+
+### `[ÖNHELYESBÍTÉS — a javaslatom rossz ALAKÚ volt, nem csak szigorú]` I5 — Óraszinkron küszöbök
+
+Az eredeti javaslat (**30 mp figyelmeztetés / 5 perc a napnyitás blokkolása**)
+jogos kifogást kapott. Átgondolva **nem a küszöb volt a hiba, hanem a szerkezet**:
+a blokkolást tettem elsődleges eszközzé, holott **a drift helyes válasza a
+JAVÍTÁS, nem a leállítás.**
+
+#### I5.1 — Miért számít egyáltalán az óra
+
+| Ok | Mekkora eltérésnél fáj |
+|----|------------------------|
+| **NTAK szinkron validáció:** `nyitasIdopontja <= sysDate`, `zarasIdopontja <= sysDate`, hibakulcs **Future** → **ha a mi óránk ELŐRE jár az NTAK szerveréhez képest, az üzenet elutasításra kerül** | ismeretlen tűrés; előre járó óránál akár percek |
+| **A bizonylat időbélyege jogi elem** — ellenőrzésnél láthatóan rossz idő probléma | perc szinten kozmetikai, óra szinten valós |
+| **Üzleti nap besorolása** — rossz napra kerül a tranzakció | órák |
+| **Sorrendezés** | **soha** — azt monoton számláló adja (G8.4), nem a falióra |
+
+#### I5.2 — A valódi veszély ezen a hardveren, amit az eredeti javaslat NEM kezelt
+
+**A J1900-as gépek 10+ évesek. A CMOS-elemük halott vagy haldoklik.**
+Ez nem „30 másodperc elcsúszás" — ez **„a gép szerint 2014 van"**, minden
+áramszünet után. Ez a bázison **be fog következni**, nem hipotézis.
+
+A rendszernek ezt kell túlélnie, nem a másodperces driftet. **Ez fontosabb, mint
+az egész küszöbkérdés**, és az eredeti javaslatból hiányzott.
+
+#### I5.3 — Az átdolgozott terv
+
+**Először javítunk, csak utána panaszkodunk, és blokkolni szinte soha nem kell.**
+
+**Időforrás-sorrend a telephelyen:**
+1. **NTP**, ha van internet
+2. **az adóügyi eszköz órája** — az AEE a saját mobilhálózatán szinkronizál, tehát
+   **internet nélkül is ez a legmegbízhatóbb óra a helyszínen**
+3. a telephelyi szerver, a kliensek felé (G8.1 változatlan)
+
+| Eltérés | Válasz |
+|---------|--------|
+| **< 2 perc** | **Csendben javítjuk.** Nincs üzenet. |
+| **2–15 perc** | Javítjuk, ha van forrás. Ha nincs: **nem blokkoló** figyelmeztetés a napnyitó képernyőn + auditbejegyzés. |
+| **> 15 perc** | **Feltűnő, nyugtázandó** figyelmeztetés — de **továbbra sem blokkol**. |
+| **> 2 óra, vagy eltérő DÁTUM** | **Az EGYETLEN blokkoló eset** — itt már az üzleti nap besorolása és a bizonylat dátuma is hibás lenne, ami valós jogi hiba. **És itt is kell egy egygombos kiút: „óra beállítása az adóügyi eszközről".** |
+
+**Amit ezzel megnyerünk:** reggel 6-kor senki nem áll meg egy 5 perces eltérés
+miatt, viszont a „2014 van" eset — ami tényleg megtörténik — nem megy át csendben.
+
+*(A G8.2 sora ezzel felülírva.)*
+
+### `[TISZTÁZVA — nem a mi feladatunk MOST]` I6 — A DRS gyűjtője és a nulla összegű tétel
+
+| # | Állapot |
+|---|---------|
+| I6.1 | **A DRS gyűjtőjének kiválasztása KÉSŐBBI kérdés** — a tényleges beüzemelés része (a DRS-termék felvitele és az áfájának kiválasztása). Előtte a gyártóval egyeztetni kell: **elképzelhető, hogy náluk ez már megoldott**, és a kapott dokumentum régi. |
+| I6.2 | **A nulla összegű tétel: a gyártóra vár.** Az ügyfél tudomása szerint **hiába szerepel a protokollban, a készülék nem fogadja el.** → Az M15 mérés marad, de a **munkafeltevés mostantól: NEM fogadja el.** A G2.3 („ár nélküli módosító = szövegsor") **így is helyes marad**, sőt megerősítést nyer: a szövegsoros út **nem is küld tételt**, tehát a nulla összeg kérdése fel sem merül. |

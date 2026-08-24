@@ -10,7 +10,7 @@
 > **A horgony frissítése a MUNKA RÉSZE, nem utómunka** (§10). Elavult horgony = §2.4
 > döntési premissza-hiba: a következő kört egy nem létező hátralék hajszolására küldi.
 
-**Utolsó frissítés:** 2026-08-23 (3. munkamenet — módosítók, menü, DRS, pénz, audit napló, nyomtatás)
+**Utolsó frissítés:** 2026-08-23 (3. munkamenet — módosítók, menü, DRS, pénz, audit napló, nyomtatás, **NTAK RMS specifikáció elsődleges forrásból**)
 **Fázis:** tervezés. **KÓDOLÁS MÉG NEM KEZDŐDÖTT EL, és nem is szabad elkezdeni** —
 lásd „Miért nem kódolunk még".
 
@@ -150,7 +150,7 @@ meg, és a következő kör újratárgyalja őket.
 | **A4/b** | *(ÚJ)* Billegés-védelem | **Növekvő várakozás** minden automatikus visszaállás után + **leállási határ**, ami után az automatika kikapcsol és hangosan szól | `NYITOTT_KERDESEK.md`, keress: `A4/b` |
 | **A4/c** | *(ÚJ)* Mikor cseréljen szerepet | **Azonnal, ahogy stabil** — nincs csendes ablakra halasztás. A csúcsidő-terhelést a billegés-védelem zárja ki | `NYITOTT_KERDESEK.md`, keress: `A4/c` |
 | **Fiskális módok** | *(ÚJ)* Hány üzemmód van | **Három:** belső rendszer / online pénztárgép / e-pénztárgép. Az 1. módban a papírt **„NEM ADÓÜGYI BIZONYLAT"** jelöléssel kell ellátni | `FISKALIS_UZEMMODOK.md` |
-| **F4** | *(ÚJ)* A nap-fogalmak | **MUNKANAP** = a hely egészéé, max 25 óra (23:30 figyelmeztetés, 25 óra kényszerleállás), nem naptári nap. **MŰSZAK** = eszközönkénti, az adóügyi munkanap. **NTAK tárgynap** = naptári nap | `NYITOTT_KERDESEK.md`, keress: `F4 — A NAP-FOGALMAK` |
+| **F4** | *(ÚJ)* A nap-fogalmak | **MUNKANAP** = a hely egészéé, max 25 óra (23:30 figyelmeztetés, 25 óra kényszerleállás), nem naptári nap. **MŰSZAK** = eszközönkénti, az adóügyi munkanap. ~~**NTAK tárgynap** = naptári nap~~ → **[H1: TÉVEDÉS volt, a tárgynap a NYITÁS dátumából származik]**; **[H2: a 25 órás határ ÜTKÖZIK az NTAK 24 órás kemény validációjával]** | `NYITOTT_KERDESEK.md`, keress: `H1 —` |
 | **C3/a,b** | *(ÚJ)* ÁFA és NTAK a terméken | **Két adókulcs kötelezően kitöltve**, az azonosság **jelölőként** tárolva. Az NTAK-kategória **feltételesen** kötelező (van-e kulcs) | `NYITOTT_KERDESEK.md`, keress: `C3/a` |
 | **C2/a,b** | *(ÚJ)* Ár-történet és termék-életciklus | A bizonylat az **eladáskori** árat, adót ÉS nevet tárolja. Három állapot: aktív / inaktív / **soft delete** — de egyik sem rejti el a **történetből** | `NYITOTT_KERDESEK.md`, keress: `C2/a` |
 | **A3** | *(ÚJ)* Purge és megőrzés | **A felhő a jogi archívum** (8 év). A „tisztán lokális" topológia így önmagában nem elegendő | `NYITOTT_KERDESEK.md`, keress: `A3 — purge` |
@@ -379,7 +379,7 @@ verifikált tudás; mindegyik a spec állítása vagy emlékezetből írt feltev
 | **A2** | AEE-s gépnél a jogi bizonylatot maga az adóügyi eszköz állítja ki és sorszámozza | **A már meghozott A2 döntés egésze** |
 | **A3** | A számviteli megőrzési idő (8 év?) | A 30 napos purge és a „tisztán lokális" topológia egyszerre |
 | **C10** | „Teljesen új negatív fiskális nyugta" sztornóra | A teljes sztornó-folyamat (13. fejezet) |
-| **C11** | 24 órás NTAK limit, 18 órás riasztás | A 19. pont SLA-figyelmeztetése |
+| ~~**C11**~~ | ~~24 órás NTAK limit~~ → **IGAZOLVA HAMIS: 15 PERC** (H3) | A 19. pont SLA-figyelmeztetése újraírandó |
 | **C12** | Az e-nyugta iránnyal most nem kell foglalkozni | A bizonylat-modell alakja |
 
 Az **A2** külön figyelmet érdemel: ez az egyetlen olyan tétel, ahol **már meghozott

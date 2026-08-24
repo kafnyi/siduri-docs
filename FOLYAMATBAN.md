@@ -255,6 +255,19 @@ A további új követelmények (mennyiségi egység, kerekítési kényszer, a n
 rendelés 24 órás korlátja, nyitvatartási naptár, változó ENUM-készletek):
 `NYITOTT_KERDESEK.md`, **H) szakasz**.
 
+### 2.0.2 `[+]` NTAK — második olvasat (J szakasz)
+
+| # | Lelet |
+|---|-------|
+| **J1** | **Az NTAK-nak VAN hivatalos degradált-mód útvonala:** `osszesitett` + `osszesitettIndoklasa`, „csak szolgáltatáskiesés esetén, pl. áramszünet vagy rendszerkiesés", max 1 üzleti nap összevonva. **Nem kell saját megoldást kitalálni az A2 kiesésre.** Új követelmény: a degradált módnak **okkódot** kell rögzítenie. |
+| **J2** | A `helybenFogyasztott` **rendelés-szintű** bool, „vegyes esetben helyben fogyasztást kell jelölni" — a mi tételszintű modellünk finomabb, a leképezés: bármely helyben fogyasztott tétel → igaz |
+| **J3** | **A mennyiségi egység NEM validált** — a „0,33 l → LITER" csak útmutatás. A `DARAB` átmegy. **Két külön mező van:** `mennyisegiEgyseg` + `mennyiseg` (a kiszerelés, pl. 0,33) és külön `tetelszam` (a rendelt darabszám) → **két új NTAK-mező a terméktörzsben** |
+| **J4** | **Az NTAK-kategorizálás az ÜGYFÉL feladata** — mi a környezetet adjuk. De a kemény kapu marad, mert a hiányzó kategória beküldés-elutasítást okoz, ami üzemeltetésileg a mi problémánk |
+| **J5** | **MUNKANAP: 23:00 enyhe / 23:30 erős figyelmeztetés / 23:45 kényszerzárás.** Két fontosabb kiegészítés: **tilos előre állítani az órát nyitott nap közben** (különben a rögzített időtartam felfújódik és elutasítást okoz), és **kell tervezett napzárási időpont**, mert különben a kényszerzárás naponta 15 perccel korábbra vándorol és egy hónap alatt körbeér a csúcsidőbe |
+| **J7** | A nyitott rendelés 24 órás korlátja csak a **beküldött** rendelésekre vonatkozik; személyzeti asztal és selejt kivétel — **feltéve, hogy tényleg nem NTAK-kötelesek (ellenőrizendő)** |
+| **J8** | **HELYESBÍTÉS:** a zárva tartott nap bejelentése **a MI szoftverünk kötelezettsége**, nem az ügyfélé az NTAK portálon. Szó szerint: „Napi zárási üzenetet akkor is küldenie kell minden RMS szoftvernek, ha az adott tárgynapon zárva tartott a vendéglátó üzlet." → **kell nyitvatartási minta + rákérdezés** |
+| **J9** | **Egész forint mindenütt** — az adóügyi eszköz törtet nem kezel, az NTAK igazítható. Technikailag is jobb: az egész egységár mennyiséggel pontosan szorzódik, tört egységárnál 3 db menü három sora nem adná ki a 3× menüárat |
+
 ### 2.0.1 `[!]` A 3. munkamenetből MÉG NYITOTT tételek
 
 Ezek a 2026-08-23-i körben felmerültek, de **még nincs rájuk válasz**. Amíg
@@ -272,7 +285,9 @@ ezeken a pontokon feltételes marad.
 | N7 | **Újrakiosztható-e az AJT gyűjtő** (G1.3) | **gyártó** |
 | N8 | **Nulla összegű tétel** — a munkafeltevés mostantól: **NEM fogadja el** (I6.2). A G2.3 szövegsoros megoldás ettől függetlenül helyes, sőt megerősítést nyer | **gyártó** |
 | ~~N9~~ | ~~NTAK menükezelés~~ -> **MEGVÁLASZOLVA (H4):** van ETELCSOMAG/ITALCSOMAG, de csak főkategórián belül -> vegyes menüt kötelező szétbontani. A G3 döntés helyes | — |
-| **N10** | **H2 ütközés:** a MUNKANAP felső határa 24 óra alá menjen-e (javaslat: 22 óra figyelmeztetés, 23 óra 30 perc leállás), vagy maradjon 25 óra közbenső NTAK-zárással | **felhasználó** |
+| ~~N10~~ | ~~MUNKANAP felső határa~~ -> **ELDÖNTVE (J5):** 23:00 enyhe / 23:30 erős / 23:45 kényszerzárás, plusz tervezett napzárási időpont | — |
+| **N12** | **J6:** elfogadja-e az NTAK, ha egy tárgynapra a napi zárás UTÁN még jön rendelésösszesítő (a munkanap-határon átnyúló nyitott asztal miatt)? 0-24-es helyen mindennapos | **NTAK / MTÜ** |
+| **N13** | **J7:** NTAK-köteles-e a személyzeti fogyasztás és a selejt? Ettől függ, hogy rájuk is vonatkozik-e a 24 órás korlát | **NTAK / MTÜ** |
 | **N11** | **H3 következménye:** a 15 perces NTAK-küldés miatt a kimenő NTAK-sor tartós, felügyelt sor kell legyen, és a feldolgozási nyugtákat is le kell kérdezni (24 órán belül). Új munkatétel a fázistervben | tervezés |
 
 

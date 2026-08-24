@@ -4303,3 +4303,187 @@ miatt, viszont a „2014 van" eset — ami tényleg megtörténik — nem megy �
 |---|---------|
 | I6.1 | **A DRS gyűjtőjének kiválasztása KÉSŐBBI kérdés** — a tényleges beüzemelés része (a DRS-termék felvitele és az áfájának kiválasztása). Előtte a gyártóval egyeztetni kell: **elképzelhető, hogy náluk ez már megoldott**, és a kapott dokumentum régi. |
 | I6.2 | **A nulla összegű tétel: a gyártóra vár.** Az ügyfél tudomása szerint **hiába szerepel a protokollban, a készülék nem fogadja el.** → Az M15 mérés marad, de a **munkafeltevés mostantól: NEM fogadja el.** A G2.3 („ár nélküli módosító = szövegsor") **így is helyes marad**, sőt megerősítést nyer: a szövegsoros út **nem is küld tételt**, tehát a nulla összeg kérdése fel sem merül. |
+
+---
+
+## J) NTAK — második olvasat és a 2026-08-23-i kör harmadik fele
+
+### `[NAGY LELET]` J1 — Az NTAK-nak VAN hivatalos degradált-mód útvonala
+
+`rendelesOsszesitok.osszesitett` (bool) + `osszesitettIndoklasa`. A specifikáció
+megjegyzése szó szerint:
+
+> „Annak jelölésére szolgál, ha adott rendelésösszesítő egy hosszabb időszak
+> (**max 1 üzleti nap**) értékesítéseit összevontan tartalmazza.
+> **Csak szolgáltatáskiesés esetén használható, pl áramszünet, vagy rendszerkiesés.**
+> Normál adatszolgáltatás esetén hamis értékkel kell küldeni."
+
+**Ez pontosan a mi degradált / gyorseladás módunk esete (A2).** Az NTAK tehát
+nem hogy engedi, hanem **nevesített mezőt ad rá**. Következmények:
+
+| # | Következmény |
+|---|--------------|
+| J1.1 | **Nem kell saját megoldást kitalálni** a kiesés alatti forgalom pótlására — az összevont beküldés a hivatalos út. |
+| J1.2 | **Az összevonás felső határa 1 üzleti nap** → egy 1 napnál hosszabb kiesés nem oldható meg egyetlen összevont üzenettel; napokra kell bontani. |
+| J1.3 | **Kell indoklás szöveg** (`osszesitettIndoklasa`) → a degradált módnak **okkódot kell rögzítenie** (áramszünet / szerverkiesés / hálózatkiesés), hogy ez automatikusan kitölthető legyen. Ez új követelmény a degradált mód felé. |
+| J1.4 | Normál üzemben a mező kötelezően **hamis** — nem lehet „biztos ami biztos" alapon mindig igazra állítani. |
+
+### `[ELTÉRÉS A MODELLÜNKTŐL]` J2 — A „helyben fogyasztott" NTAK-ban RENDELÉS-szintű
+
+`helybenFogyasztott` **bool, a rendelésösszesítőn**, nem tételenként.
+Megjegyzés: **„Vegyes esetben helyben fogyasztást kell jelölni."**
+
+A mi modellünk **finomabb**: a teljesítési mód tételenként értelmezett (ettől függ
+az áfakulcs és a DRS terhelése). Ez nem ütközés, csak leképezés:
+
+> **Szabály:** a rendelés `helybenFogyasztott` értéke **igaz**, ha a rendelésben
+> **legalább egy** helyben fogyasztott tétel van. Csak a teljesen elviteles
+> rendelés kap hamisat.
+
+Az áfakulcs tételenként megy (`afaKategoria` tételszintű mező), tehát a vegyes
+rendelés áfája helyesen jelenik meg attól, hogy a jelölő rendelésszintű.
+
+### `[HELYESBÍTÉS — a felhasználónak igaza van]` J3 — A mennyiségi egység NEM validált
+
+A `mennyisegiEgyseg` mezőnél a „0,33 literes dobozos üdítőnél LITER használandó,
+nem DARAB" **Megjegyzés (útmutatás), nem validáció.** A mező validációi kizárólag:
+`NotNull` és `Enum`. **A `DARAB` tehát átmegy** — az interfész nem utasítja el.
+
+Vagyis: **technikailag elfogadott, de a specifikáció útmutatásával ellentétes.**
+A felhasználó emléke („elfogadták a darabot is") **helyes**.
+
+**Amit ez tervezésileg jelent — és ez a lényegesebb rész:** két külön mező van,
+amit eddig egynek kezeltünk:
+
+| Mező | Jelentés | Példa: 2 db 0,33 l-es dobozos üdítő |
+|------|----------|--------------------------------------|
+| `mennyisegiEgyseg` | a termék mértékegysége | `LITER` |
+| `mennyiseg` | **a termék saját kiszerelése** (>0, <>0) | `0.33` |
+| `tetelszam` | **hány darabot rendeltek** | `2` |
+
+**A terméktörzsben tehát KÉT új NTAK-mező kell:** mennyiségi egység **és**
+kiszerelési mennyiség. Ez pontosan illeszkedik a G10.5 kiszerelés-modellhez —
+a kiszerelés hordozza a térfogatot.
+
+**Döntés:** a rendszer **támogatja mindkettőt**, az ajánlott (specifikáció szerinti)
+értéket **felkínálja**, de **az ügyfél dönt** — G11 elv.
+
+### `[ELDÖNTVE]` J4 — Az NTAK-kategorizálás az ÜGYFÉL feladata
+
+**A termékek és menütételek NTAK fő-/alkategóriájának pontos beállítása az ügyfélé.**
+Mi a környezetet és a lehetőséget teremtjük meg hozzá.
+
+**Két kikötés, ami ettől függetlenül a MI felelősségünk:**
+
+| # | Kikötés |
+|---|---------|
+| J4.1 | **Kemény kapu marad** (C3/b): NTAK-kategória nélkül a termék nem menthető, ha a hely NTAK-köteles. Nem azért, mert mi akarjuk megmondani a kategóriát, hanem mert **a hiányzó kategóriával a beküldés elutasításra kerül**, és az üzemeltetésileg a MI problémánk lesz. |
+| J4.2 | **A menükomponensek is kapnak saját NTAK-kategóriát** — a G3 szétbontás miatt minden komponens önálló tétel, tehát önálló kategóriát igényel. |
+
+### `[ELDÖNTVE]` J5 — A MUNKANAP hossza
+
+| Küszöb | Viselkedés |
+|--------|-----------|
+| **23:00** | **Enyhe** figyelmeztetés |
+| **23:30** | **Erős** figyelmeztetés |
+| **23:45** | **Kíméletlen kényszerzárás** — nem mehet tovább |
+
+Az abszolút (UTC) alapú számolás (H2) változatlanul él.
+
+**Két kiegészítés, ami a küszöbnél fontosabb:**
+
+| # | Kiegészítés |
+|---|-------------|
+| J5.1 | **TILOS előre állítani az órát nyitott üzleti nap közben.** A `nyitasIdopontja` és a `zarasIdopontja` is a mi óránkról jön, tehát az abszolút elcsúszás kiesik a különbségből — **kivéve, ha menet közben javítunk**. Az I5 szerinti csendes, 15 percig terjedő előre-korrekció **felfújná a rögzített időtartamot** és elutasítást okozna. **Az óra-korrekció a napnyitáskor történik, nyitott nap közben soha** (visszafelé állítás sem, mert az meg a sorrendet keverné). |
+| J5.2 | **Kell TERVEZETT napzárási időpont** (üzletenként állítható, pl. 05:00). Enélkül egy 0–24-es helynél a kényszerzárás **naponta 15 perccel korábbra vándorol** — négy nap alatt egy órát, egy hónap alatt körbeér, és **előbb-utóbb szombat este 22:00-kor, csúcsban fog lecsapni.** A tervezett zárással a határ mindig ugyanabban a csendes órában van, és a kényszerzárás soha nem lép működésbe. **Ez a valódi megoldás a 0–24-es helyre, nem a küszöb nagysága.** |
+
+**Miért 23:45 és nem 23:55 — a „kieső idő" félreértése:**
+a zárás után **azonnal nyílik az új nap**, tehát nem esik ki 15 perc üzemidő.
+Kiesés = a zárási művelet hossza, ami mindkét küszöbnél ugyanannyi. A különbség
+éves szinten: 0–24-es helyen kb. **369 vs. 366 napciklus**, azaz **3 extra zárás
+évente**. A biztonság tehát gyakorlatilag ingyen van, egy elutasított NTAK-beküldés
+visszamenőleges javítása viszont nem.
+
+### `[NYITOTT — 0–24-es helyeknél MINDENNAPOS]` J6 — Mi történik a nyitott asztallal a munkanap-határon?
+
+Egy 0–24-es helyen a kényszerzárás pillanatában **ülnek vendégek nyitott
+asztaloknál**. A rendelést nem lehet lezárni (nem kértek számlát), és nem lehet
+kettévágni (a vendég egy számlát kap).
+
+**Javaslat:** a rendelés **átlép a határon**, és ahhoz a tárgynaphoz tartozik,
+**amelyikben elkezdődött** — összhangban azzal, hogy a tárgynap a nyitás
+dátumából származik (H1). Az `rendelesVege − rendelesKezdete <= 24 óra` korlát
+(H6.5) továbbra is köti.
+
+⚠️ **Amit ellenőrizni kell:** elfogadja-e az NTAK, ha egy tárgynapra már beérkezett
+a napi zárás, és **utána** még jön arra a tárgynapra rendelésösszesítő. A
+specifikációban erre nem találtam kifejezett tiltást, de **nem is találtam
+engedélyt**. → megkérdezendő, mert 0–24-es helyen ez nem élhelyzet, hanem
+mindennapos.
+
+### `[ELDÖNTVE]` J7 — A nyitott rendelés 24 órás korlátja csak a beküldöttekre vonatkozik
+
+**Vendégasztal:** valóban nem lehet 24 óránál tovább nyitva.
+**Személyzeti asztal / selejt:** lehet, mert **nem kerül NTAK-beküldésre.**
+
+⚠️ **Feltétel, amit igazolni kell:** hogy a személyzeti fogyasztás és a selejt
+tényleg nem NTAK-köteles. Az NTAK ismer `EGYEB / NEM_VENDEGLATAS` tételkategóriát,
+a rendelésbesorolás értékkészlete viszont csak `NORMAL / SZTORNO / HELYESBITO` —
+**„nem forgalmi" rendelés-besorolás nincs.** Ha kiderül, hogy a személyzeti
+fogyasztást is jelenteni kell, a 24 órás korlát rájuk is vonatkozik.
+→ **megkérdezendő.**
+
+**Ettől függetlenül kell egy belső korlát**: egy hetek óta nyitott személyzeti
+asztal üzemeltetési hiba. Javaslat: figyelmeztetés a napnyitáskor minden olyan
+nem-vendég rendelésre, ami régebbi az előző munkanapnál.
+
+### `[HELYESBÍTÉS — ez NEM az ügyfél feladata]` J8 — A zárva tartott nap bejelentése a MI szoftverünk kötelezettsége
+
+A felhasználó álláspontja az volt, hogy a nyitvatartást az ügyfél állítja be az
+NTAK oldalán, ehhez nekünk nincs közünk. **A specifikáció ezt egyértelműen
+cáfolja** — szó szerint:
+
+> „**Napi zárási üzenetet akkor is küldenie kell minden RMS szoftvernek**, ha az
+> adott tárgynapon zárva tartott a vendéglátó üzlet. Ekkor **adott napon zárva**
+> besorolású napi zárás üzenetet kell küldeni, mely esetben a nyitás és zárás adat
+> megadására nincs szükség […] Abban az esetben is kell napi zárás üzenetet
+> küldeni, ha a nyitvatartás során nem került beküldésre rendelésösszesítő.
+> Ekkor a napi zárás üzenetben meg kell jelölni, hogy **forgalom nélküli napot**
+> zárt a vendéglátó üzlet."
+
+Ez **az RMS szoftverre** kimondott kötelezettség, nem az NTAK portálra.
+**„A napi zárás üzeneteket minden tárgynapra vonatkozóan be kell küldeni."**
+
+**Ebből következően tudnunk kell, mikor van zárva** — máskülönben nem tudjuk
+megkülönböztetni a „zárva volt" és a „elfelejtettek napot nyitni" esetet, pedig
+az egyik `ADOTT_NAPON_ZARVA`, a másik hiba.
+
+**Javaslat (a legkisebb súrlódású megoldás):**
+
+1. **Nyitvatartási minta** (heti séma + kivételnapok/ünnepek) — egyszer beállítva magától megy.
+2. **Rákérdezés**, ha egy tárgynapra nem nyílt nap és nincs is rá szabály: a következő napnyitáskor egy kérdés — „tegnap zárva voltatok?" — és a válasz alapján megy a `ADOTT_NAPON_ZARVA` vagy `FORGALOM_NELKULI_NAP`.
+
+*Ha az NTAK portál kínál kézi utat a zárva tartott napok bejelentésére, az
+elméletben kiváltja — de azt az ügyfélnek minden egyes zárva töltött napra
+kézzel meg kellene tennie. Ezt senki nem fogja megbízhatóan csinálni,
+és a hiányzó napi zárás a MI szoftverünkre nézve mulasztás.*
+
+### `[ELDÖNTVE — a felhasználó döntése felülírja a korábbit]` J9 — Egész forint mindenütt
+
+A H6.3 lelet az volt, hogy a `bruttoEgysegar` tört is lehet, tehát a menü-szétosztás
+tört egységárral megoldható. **A döntés ezzel szemben:**
+
+> **Az adóügyi eszköz forintban törtet nem kezel, csak egész számot. Az NTAK
+> viszont igazítható hozzá, amíg az összeg stimmel. Ezért az EGÉSZ FORINT
+> a meghatározó, és legyen egységes mindenütt.**
+
+**Ez helyes, és nem csak egységesség kérdése — technikailag is jobb:**
+az egész egységár **mennyiséggel pontosan szorzódik**. Tört egységár + egész
+sorösszeg esetén 3 db menünél soronként kerekítenénk, és a három sor összege
+**nem feltétlenül adná ki a 3× menüárat** — pont azt a szabályt sértenénk meg,
+amit a H6.2 kötelezővé tesz.
+
+**Menü-szétosztás véglegesítve:** a komponensek **egész forintos egységárat**
+kapnak, a listaárak arányában, a kerekítési maradék a legnagyobb komponensre.
+Az egységárak összege pontosan a menü ára → tetszőleges mennyiséggel felszorozva
+is pontos marad.

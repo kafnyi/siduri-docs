@@ -4487,3 +4487,144 @@ amit a H6.2 kötelezővé tesz.
 kapnak, a listaárak arányában, a kerekítési maradék a legnagyobb komponensre.
 Az egységárak összege pontosan a menü ára → tetszőleges mennyiséggel felszorozva
 is pontos marad.
+
+---
+
+## K) Automatikus napzárás, zárva tartott nap, nyomtatás-átirányítás (2026-08-23)
+
+### `[VESZÉLY — VISSZAFORDÍTHATATLAN]` K1 — A „nem volt nyitva" jelzést TILOS 23:55-kor küldeni
+
+**A javaslat az volt:** ha egy napon nem nyílt munkanap, **23:55-kor** menjen az
+NTAK-nak egy `ADOTT_NAPON_ZARVA` jelzés.
+
+**Ezt nem szabad megtenni.** A specifikáció validációja szó szerint:
+
+> „Azon tárgynapra, melyre **már van beküldve ADOTT_NAPON_ZARVA** napi zárás,
+> azon tárgynapokra **nem lehet további napi zárás üzeneteket beküldeni**."
+> *(Aszinkron, UniqueConstraint)*
+
+**Ha 23:55-kor elküldjük, és a hely 23:58-kor mégis kinyit, azt a tárgynapot
+VÉGLEGESEN lezártuk.** A valós forgalmuk napi zárása többé nem küldhető be arra a
+napra. Ez nem visszavonható és nem javítható — a hiba a mi szoftverünk
+kezdeményezéséből származna.
+
+**Ez nem elméleti eset:** a 23:55 pont az az időpont, amikor egy szórakozóhely
+vagy egy éjszakai büfé kinyit.
+
+#### K1.1 — A helyes megoldás: VISSZAMENŐLEG küldünk, nem előre
+
+**Nincs időnyomás.** A napi zárást „legalább 24 óránként" kell beküldeni, tehát egy
+zárva töltött tárgynap jelzése **másnap is bőven időben van.**
+
+| # | Szabály |
+|---|---------|
+| K1.a | A `ADOTT_NAPON_ZARVA` / `FORGALOM_NELKULI_NAP` üzenet **csak akkor mehet ki, ha a tárgynap már biztosan lezárult** — vagyis nem nyílhat rá munkanap többé. |
+| K1.b | **Napi feladat** (javaslat: a tárgynap vége után, pl. 01:00-kor) végigveszi a lezáratlan tárgynapokat, és a **nyitvatartási minta** alapján megküldi a helyes besorolást. |
+| K1.c | **Ha a nyitvatartási minta szerint nyitva kellett volna lenniük, de nem nyílt nap:** ez nem automatikusan `ADOTT_NAPON_ZARVA`, hanem **kérdés** — a következő napnyitáskor: „tegnap zárva voltatok, vagy elfelejtettek napot nyitni?" Az automatikus küldés csak akkor mehet, ha a **minta** mondja, hogy zárva. |
+| K1.d | **Utólagos pótlás kötelező:** szerverindításkor minden hiányzó tárgynap-zárást pótolni kell (nyaralás, hosszabb zárvatartás). |
+
+#### K1.2 — `[NYITOTT JAVASLAT]` Ki küldi a zárva tartott nap jelzését?
+
+**Probléma:** egy két hétre bezáró hely **kikapcsolja a szervert is.** Akkor viszont
+semmi nem tud üzenetet küldeni, és a napi zárások két héten át elmaradnak.
+
+**Javaslat: ilyenkor a FELHŐ küldi.** A nyitvatartási minta amúgy is a webes
+felületen áll be, tehát a felhő ismeri. Tulajdonosi szabály:
+
+- **A telephelyi szerver a tulajdonos, amíg online van.**
+- **A felhő csak akkor lép be**, ha a minta szerint zárva van a hely **és** a szerver
+  X órája nem jelentkezett.
+- A duplikáció nem katasztrófa: a spec `UniqueConstraint`-je aszinkron hibával
+  visszadobja az ismétlést.
+
+**Jóváhagyásra vár.**
+
+### `[ÜTKÖZÉS — a javaslat ellentmond a J5.1-nek]` K2 — Óraszinkron a figyelmeztetéseknél
+
+**A javaslat:** a szinkron menjen a napnyitás előtt **és a figyelmeztetéseknél is**
+(23:00, 23:30), a biztonság kedvéért.
+
+**A szándék jó, de a 23:00 és a 23:30 NYITOTT munkanap közben van** — és tegnap
+pont azt rögzítettük (J5.1), hogy **nyitott nap közben tilos az órát előre
+állítani**, mert az felfújja a rögzített `zaras − nyitas` időtartamot és
+NTAK-elutasítást okoz. A javasolt kiegészítés a saját védelmünket ütné ki.
+
+**Feloldás — a szinkron nem azonos a beállítással:**
+
+| Mikor | Mit csinálunk |
+|-------|---------------|
+| **Napnyitás előtt** | **ELLENŐRZÉS + BEÁLLÍTÁS** (I5 szerint) |
+| **23:00 és 23:30 figyelmeztetéskor** | **CSAK ELLENŐRZÉS, beállítás SOHA.** Ha eltérést találunk, azt **kiírjuk** és a hátralévő idő számításába **a konzervatívabb irányban** beépítjük. |
+
+**És a valódi megerősítés, ami a szinkronnál is jobb:**
+
+> **A munkanap hosszát monoton órán mérjük** (a szerver felfelé számláló,
+> visszaállíthatatlan óráján), **nem a faliórán.** A faliórás időbélyegek az
+> NTAK-üzenetbe mennek; a **vágási döntést** a kettő közül a **konzervatívabb**
+> (nagyobb eltelt idő) alapján hozzuk.
+
+Így az óra elcsúszása a vágást egyáltalán nem tudja félrevinni. *(A szerver
+újraindulása a monoton órát nullázza — ilyenkor visszaesünk a faliórára,
+és ezt jelezni kell.)*
+
+### `[ELDÖNTVE — a javaslat elfogadva, kiegészítésekkel]` K3 — Automatikus napzárás
+
+**Az ügyfél által állítható automatikus napzárás.** Menete: **először az eszközök
+MŰSZAK-ját zárja, utána a MUNKANAP-ot**, közben tájékoztatja a felhasználókat
+(„automatikus napzárás folyamatban, kis türelmet").
+
+**Kötelező szünet a zárás és a következő nyitás között** — a javaslat 10 perc.
+Ha a zárás 04:00, nem nyitható nap 04:10-ig → **a munkanap így legfeljebb 23:50**,
+bőven a 24 órás NTAK-korlát alatt. **A szünet maga a biztonsági tartalék** —
+elegáns, mert nem külön mechanizmus.
+
+**Kézi zárás közben:** külön engedélyezhető, és ha megtörtént, az automatikának
+nincs dolga.
+
+#### K3.1 — Kiegészítések, amik nélkül élesben elhasal
+
+| # | Kiegészítés | Miért |
+|---|-------------|-------|
+| K3.a | **Előfázis (javaslat: 5 perccel a zárás előtt):** új rendelés nyitása és új fizetés indítása letiltva, a folyamatban lévők befejezhetők. A zárás csak ezután indul. | 04:00-kor egy 0–24-es helyen valaki **fizetés közben van**. A napot nem lehet kirántani alóla. |
+| K3.b | **A MUNKANAP zárása NEM függhet attól, hogy minden eszköz műszakja lezárult.** Az elérhetetlen eszközöket megjelöljük, és a **következő bekapcsolásukkor** zárjuk. | Egy éjszakára kikapcsolt POS 04:00-kor nem érhető el. Ha ez blokkolna, az automatika soha nem futna le. |
+| K3.c | **A nyitott VENDÉGASZTALOKAT az automatika nem zárja le.** Átlépnek a határon (J6). | A vendég egy számlát kap, nem kettőt. |
+| K3.d | **Konfiguráció-validáció:** ha a beállított nyitás–zárás párosból 24 óránál hosszabb munkanap jöhet ki, azt a **mentéskor** kell megfogni, nem a 23:45-ös vészfékre bízni. A felület **írja ki a számított maximumot**: „napzárás 04:00, újranyitás 04:10 → a munkanap legfeljebb 23:50". | Rejtett számítás ne legyen. |
+| K3.e | **A szünet legyen állítható, minimum 5 perc, alapértelmezés 10.** | A 10 perc a 24 órás korláthoz aránytalanul sok — 5 perc is 23:55-öt ad. Egy szűkös 0–24-es helynek adjunk mozgásteret, de a padló maradjon, mert a záró művelet (eszközök + NTAK napizárás) valós időt vesz. |
+| K3.f | **A 23:45-ös kényszerzárás megmarad vészféknek**, akkor is, ha az automatika be van kapcsolva. | Az automatika elmaradhat (szerver állt, eszköz akadt). |
+
+#### K3.2 — `[MARADÉK KOCKÁZAT]` Ha a szerver a munkanapon belül halt meg és 24 óra után tér vissza
+
+Ekkor a munkanap **már túllépte a 24 órát**, mielőtt bármit tehettünk volna. Erre
+**nincs szabályos NTAK-út** — a napi zárás elutasításra kerülne.
+
+**Javasolt kezelés:** a zárás időbélyege legyen **az utolsó rögzített tevékenység
+időpontja** a kiesés előtt (ez múltbeli időpont, amit a spec `<= sysDate`
+validációja megenged), a kiesés utáni forgalom pedig a **következő tárgynapra**
+kerül. Ez őszinte és védhető.
+
+⚠️ **Ellenőrizendő,** hogy az NTAK ezt elfogadja-e. Ha nem, ez a helyzet emberi
+és/vagy hatósági rendezést igényel — **ki kell mondani, hogy nem minden esetet
+tudunk automatikusan megoldani.**
+
+### `[ELDÖNTVE]` K4 — Nyitvatartási minta
+
+**Bekerül**, a webes felületen állítható. Kettős haszna van: ebből tudjuk, mikor
+kell automatikusan „nincs nyitva" jelzést küldeni (K1), és ebből tudjuk, **mikor
+kellett volna nyitva lenniük, de nem nyílt nap** — ami nem ugyanaz, és nem
+automatizálható (K1.c).
+
+### `[ELDÖNTVE — kiegészítésekkel]` K5 — Nyomtatás átirányítása másik gép adóügyi eszközére
+
+**Megvalósítható**, mert az adóügyi eszközzel a kommunikáció **IP:port alapú**,
+tehát beállítható másik gépen futó gyártói szolgáltatás.
+**Csak Siduri rendszergazda állíthatja**, mert problémaforrás.
+
+**Öt kiegészítés, ami nélkül ez kockázatot hoz be:**
+
+| # | Kiegészítés |
+|---|-------------|
+| K5.a | **Telephelyen belülre KEMÉNYEN korlátozva**, szerveroldalon kikényszerítve — nem admin-fegyelemre bízva. Másik telephely eszközére nyomtatni **más NTAK-regisztrációs számot és esetleg más adóalanyt** jelentene: súlyos szabálysértés. |
+| K5.b | **A gyártói szolgáltatás alapból `localhost`-ra figyel.** LAN-ra kinyitni **biztonsági kitettség**: onnantól bármi a hálózaton adóügyi bizonylatot nyomtathat. Legalább hálózati korlátozás kell — és **lehet, hogy a gyártó nem is támogatja a nem-localhost figyelést.** → **kérdés a Prior Cash felé.** |
+| K5.c | **A bizonylatnak tárolnia kell, MELYIK adóügyi eszköz nyomtatta.** Új mező. A SIDURI szám a **kiállító** gépé marad (B14), az adóügyi szám viszont a **nyomtató** eszközé — a két réteg itt szándékosan szétválik, és utólag tudni kell, miért. |
+| K5.d | **Az átirányítás beállítása és minden átirányított nyomtatás auditnaplózott esemény** (biztonsági ág). |
+| K5.e | **A felhasználónak látszania kell**, hogy a bizonylat máshol nyomtatódik — különben a pult mellett várja a papírt, ami a másik gépnél jön ki. |

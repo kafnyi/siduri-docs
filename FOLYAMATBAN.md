@@ -268,6 +268,16 @@ rendelés 24 órás korlátja, nyitvatartási naptár, változó ENUM-készletek
 | **J8** | **HELYESBÍTÉS:** a zárva tartott nap bejelentése **a MI szoftverünk kötelezettsége**, nem az ügyfélé az NTAK portálon. Szó szerint: „Napi zárási üzenetet akkor is küldenie kell minden RMS szoftvernek, ha az adott tárgynapon zárva tartott a vendéglátó üzlet." → **kell nyitvatartási minta + rákérdezés** |
 | **J9** | **Egész forint mindenütt** — az adóügyi eszköz törtet nem kezel, az NTAK igazítható. Technikailag is jobb: az egész egységár mennyiséggel pontosan szorzódik, tört egységárnál 3 db menü három sora nem adná ki a 3× menüárat |
 
+### 2.0.3 `[+]` Automatikus napzárás, zárva tartott nap, nyomtatás-átirányítás (K szakasz)
+
+| # | Tétel |
+|---|-------|
+| **K1** | **VESZÉLY elhárítva:** a „nem volt nyitva" jelzést TILOS 23:55-kor előre elküldeni. A spec szerint egy `ADOTT_NAPON_ZARVA` napi zárás után **arra a tárgynapra több napi zárás nem küldhető** — ha a hely 23:58-kor mégis kinyit, a valós forgalmuk napi zárása **véglegesen beküldhetetlen**. Helyette: **visszamenőleg**, a tárgynap biztos lezárulta után (pl. 01:00-kor), a nyitvatartási minta alapján. Nyitott javaslat: zárvatartás alatt (kikapcsolt szerver) **a felhő küldje** |
+| **K2** | **A figyelmeztetéskori óraszinkron ütközött a J5.1-gyel.** Feloldás: napnyitás előtt **ellenőrzés + beállítás**, a 23:00/23:30 figyelmeztetéskor **csak ellenőrzés, beállítás soha**. Ennél is erősebb: **a munkanap hosszát monoton órán mérjük**, és a vágást a konzervatívabb érték dönti el |
+| **K3** | **Automatikus napzárás elfogadva:** műszakok, majd munkanap, felhasználói tájékoztatással, kötelező szünettel a következő nyitásig (**a szünet MAGA a biztonsági tartalék**: 04:00 zárás + 10 perc → max 23:50 munkanap). Hat kiegészítés: előfázis, az elérhetetlen eszköz nem blokkolhat, a vendégasztalt nem zárjuk, konfiguráció-validáció a mentéskor, a szünet állítható (min. 5, alap 10), és a **23:45-ös vészfék megmarad** |
+| **K4** | **Nyitvatartási minta bekerül** — ebből tudjuk, mikor kell „nincs nyitva" jelzést küldeni, és mikor kellett volna nyitva lenniük (ami nem ugyanaz, és nem automatizálható) |
+| **K5** | **Nyomtatás átirányítása megvalósítható** (IP:port alapú kommunikáció), csak Siduri rendszergazda állíthatja. Öt kiegészítés: **telephelyen belülre keményen korlátozva** (más telephely eszköze más NTAK-regisztrációs szám), a LAN-ra nyitott gyártói szolgáltatás **biztonsági kitettség** (és lehet, hogy nem is támogatott — kérdés a gyártó felé), a bizonylat tárolja **melyik eszköz nyomtatta**, auditnapló, és a felhasználó lássa |
+
 ### 2.0.1 `[!]` A 3. munkamenetből MÉG NYITOTT tételek
 
 Ezek a 2026-08-23-i körben felmerültek, de **még nincs rájuk válasz**. Amíg
@@ -280,7 +290,7 @@ ezeken a pontokon feltételes marad.
 | ~~N2~~ | ~~DRS~~ -> **ELDÖNTVE (I4):** alapban TERHELVE, üzletenként kikapcsolható helyben fogyasztásra | — |
 | ~~N3~~ | ~~Óraszinkron küszöbök~~ -> **ÁTDOLGOZVA (I5):** először javítunk (NTP, majd az adóügyi eszköz órája); blokkolás csak 2 óránál nagyobb eltérésnél vagy dátumeltérésnél. A valódi veszély a halott CMOS-elem, nem a másodperces drift | — |
 | ~~N4~~ | ~~Repók~~ -> **ELDÖNTVE (I1.1):** MINDIG privátok maradnak | — |
-| N5 | **RÉSZBEN eldöntve (I2):** gépenként adóügyi eszköz az ajánlás, 4 géptől kiemelten legalább kettő. **Nyitva maradt:** megépítjük-e a nyomtatás átirányítását másik gép eszközére | felhasználó |
+| ~~N5~~ | ~~Nyomtatás-átirányítás~~ -> **ELDÖNTVE (K5):** megépítjük, IP:port alapon, csak Siduri rendszergazda állíthatja, telephelyen belülre korlátozva. Eredetileg: **RÉSZBEN eldöntve (I2):** gépenként adóügyi eszköz az ajánlás, 4 géptől kiemelten legalább kettő. **Nyitva maradt:** megépítjük-e a nyomtatás átirányítását másik gép eszközére | felhasználó |
 | ~~N6~~ | ~~DRS gyűjtője~~ -> **ELHALASZTVA (I6.1):** a beüzemelés része; előtte gyártói egyeztetés, mert lehet, hogy náluk már megoldott | később |
 | N7 | **Újrakiosztható-e az AJT gyűjtő** (G1.3) | **gyártó** |
 | N8 | **Nulla összegű tétel** — a munkafeltevés mostantól: **NEM fogadja el** (I6.2). A G2.3 szövegsoros megoldás ettől függetlenül helyes, sőt megerősítést nyer | **gyártó** |
@@ -288,6 +298,9 @@ ezeken a pontokon feltételes marad.
 | ~~N10~~ | ~~MUNKANAP felső határa~~ -> **ELDÖNTVE (J5):** 23:00 enyhe / 23:30 erős / 23:45 kényszerzárás, plusz tervezett napzárási időpont | — |
 | **N12** | **J6:** elfogadja-e az NTAK, ha egy tárgynapra a napi zárás UTÁN még jön rendelésösszesítő (a munkanap-határon átnyúló nyitott asztal miatt)? 0-24-es helyen mindennapos | **NTAK / MTÜ** |
 | **N13** | **J7:** NTAK-köteles-e a személyzeti fogyasztás és a selejt? Ettől függ, hogy rájuk is vonatkozik-e a 24 órás korlát | **NTAK / MTÜ** |
+| **N14** | **K1.2:** zárvatartás alatt (kikapcsolt telephelyi szerver) **a felhő küldje** a napi zárásokat? | **felhasználó** |
+| **N15** | **K5.b:** támogatja-e a gyártói szolgáltatás a nem-localhost figyelést, és milyen hálózati korlátozással? | **gyártó** |
+| **N16** | **K3.2:** elfogadja-e az NTAK a múltbeli (utolsó tevékenység szerinti) zárási időbélyeget, ha a szerver 24 óránál tovább volt halott? | **NTAK / MTÜ** |
 | **N11** | **H3 következménye:** a 15 perces NTAK-küldés miatt a kimenő NTAK-sor tartós, felügyelt sor kell legyen, és a feldolgozási nyugtákat is le kell kérdezni (24 órán belül). Új munkatétel a fázistervben | tervezés |
 
 

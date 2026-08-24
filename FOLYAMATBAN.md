@@ -235,7 +235,27 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 
 ## 2. A KÖVETKEZŐ TÉTEL
 
-### 2.0 `[!]` A 3. munkamenetből MÉG NYITOTT tételek
+### 2.0 `[!!]` NTAK RMS SPECIFIKÁCIÓ — két korábbi döntés MEGDŐLT
+
+Az `RMS Interfész leírás v1.06` (az MTÜ hivatalos műszaki specifikációja)
+átolvasása után **két rögzített tételünk hibásnak bizonyult**, és egyik sem apróság.
+
+| # | Ami megdőlt | Mi az igazság | Mit érint |
+|---|-------------|---------------|-----------|
+| **H1** | „NTAK tárgynap = naptári nap" (F4) | **A tárgynap a NYITÁS dátumából származik** → gyakorlatilag a mi MUNKANAP-unk | F4, és a 2. ellenőrző kör „a nap-összevonás az NTAK tartalmát nem érinti" megállapítása |
+| **H3** | „24 órás NTAK adatszolgáltatási limit" (C11 premissza) | **A rendelésösszesítő 15 PERCENKÉNT megy**, paraméterezhetően; a napi zárás legalább 24 óránként | a teljes offline/degradált NTAK-terv és a 19. pont SLA-figyelmeztetése |
+
+És egy **ütközés, ami döntést igényel**:
+
+| # | Ütközés | Javaslat |
+|---|---------|----------|
+| **H2** | A MUNKANAP felső határa **25 óra**; az NTAK napi zárás validációja `zaras − nyitas <= 24 óra`, **szinkron, Conflict** → egy 24 óránál hosszabb nap adatszolgáltatása **elutasításra kerül** | **A felső határ 24 óra alá:** figyelmeztetés 22 órakor, kényszerleállás 23 óra 30 percnél. Az időtartam **abszolút (UTC) alapon** számolva, mert az őszi óraátállítás éjszakáján a falióra egy órát hazudik |
+
+A további új követelmények (mennyiségi egység, kerekítési kényszer, a nyitott
+rendelés 24 órás korlátja, nyitvatartási naptár, változó ENUM-készletek):
+`NYITOTT_KERDESEK.md`, **H) szakasz**.
+
+### 2.0.1 `[!]` A 3. munkamenetből MÉG NYITOTT tételek
 
 Ezek a 2026-08-23-i körben felmerültek, de **még nincs rájuk válasz**. Amíg
 nincs, a két végleges dokumentum (`siduri_spec_hu.md`, `siduri_superprompt_en.md`)
@@ -243,15 +263,17 @@ ezeken a pontokon feltételes marad.
 
 | # | Nyitott kérdés | Kihez |
 |---|---------------|-------|
-| N1 | **Beszerzési ár:** bruttó felvitel + **kötelező beszerzési áfakulcs**, és **az árrés/food cost NETTÓ alapon** számoljon. Enélkül minden árrésszám 21–27%-kal hamis | felhasználó |
-| N2 | **DRS (G4) egésze** — a kutatás megvan, a döntések jóváhagyása hiányzik | felhasználó |
-| N3 | **Óraszinkron küszöbök (G8.2):** 30 mp figyelmeztetés / 5 perc blokkolás jó-e | felhasználó |
-| N4 | **Repók privátok maradnak-e** (G0.5) — ettől függ, hova kerülhet a gyártóspecifikus illesztő | felhasználó |
-| N5 | **Adóügyi eszköz mint egyedi hibapont (G7.3):** ajánlunk-e 4+ gépes helyre két eszközt, és megépítjük-e a nyomtatás átirányítását másik gép eszközére | felhasználó |
-| N6 | **Melyik gyűjtőre mehet a DRS visszaváltási díj** (G4.d, M16) — a TAM „tárgyi adómentes", ami nem azonos az „áfa hatályán kívülivel" | **gyártó / NAV** |
+| ~~N1~~ | ~~Beszerzési ár~~ -> **ELDÖNTVE (I3):** bruttó felvitel + kötelező beszerzési áfakulcs, az árrés és a food cost NETTÓ alapon | — |
+| ~~N2~~ | ~~DRS~~ -> **ELDÖNTVE (I4):** alapban TERHELVE, üzletenként kikapcsolható helyben fogyasztásra | — |
+| ~~N3~~ | ~~Óraszinkron küszöbök~~ -> **ÁTDOLGOZVA (I5):** először javítunk (NTP, majd az adóügyi eszköz órája); blokkolás csak 2 óránál nagyobb eltérésnél vagy dátumeltérésnél. A valódi veszély a halott CMOS-elem, nem a másodperces drift | — |
+| ~~N4~~ | ~~Repók~~ -> **ELDÖNTVE (I1.1):** MINDIG privátok maradnak | — |
+| N5 | **RÉSZBEN eldöntve (I2):** gépenként adóügyi eszköz az ajánlás, 4 géptől kiemelten legalább kettő. **Nyitva maradt:** megépítjük-e a nyomtatás átirányítását másik gép eszközére | felhasználó |
+| ~~N6~~ | ~~DRS gyűjtője~~ -> **ELHALASZTVA (I6.1):** a beüzemelés része; előtte gyártói egyeztetés, mert lehet, hogy náluk már megoldott | később |
 | N7 | **Újrakiosztható-e az AJT gyűjtő** (G1.3) | **gyártó** |
-| N8 | **Elfogadja-e a firmware a nulla összegű tételt** (G2.3, M15) | **gyártó / éles teszt** |
-| N9 | **Ír-e az NTAK-specifikáció külön menükezelést elő** (G3) | **NTAK / MTÜ** |
+| N8 | **Nulla összegű tétel** — a munkafeltevés mostantól: **NEM fogadja el** (I6.2). A G2.3 szövegsoros megoldás ettől függetlenül helyes, sőt megerősítést nyer | **gyártó** |
+| ~~N9~~ | ~~NTAK menükezelés~~ -> **MEGVÁLASZOLVA (H4):** van ETELCSOMAG/ITALCSOMAG, de csak főkategórián belül -> vegyes menüt kötelező szétbontani. A G3 döntés helyes | — |
+| **N10** | **H2 ütközés:** a MUNKANAP felső határa 24 óra alá menjen-e (javaslat: 22 óra figyelmeztetés, 23 óra 30 perc leállás), vagy maradjon 25 óra közbenső NTAK-zárással | **felhasználó** |
+| **N11** | **H3 következménye:** a 15 perces NTAK-küldés miatt a kimenő NTAK-sor tartós, felügyelt sor kell legyen, és a feldolgozási nyugtákat is le kell kérdezni (24 órán belül). Új munkatétel a fázistervben | tervezés |
 
 
 ### 2.1 A KÖVETKEZŐ MUNKA — a 2. ellenőrző kör után

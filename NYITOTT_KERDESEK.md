@@ -4789,3 +4789,87 @@ kikapcsolással, és mennyi a maximális időtartam.
 
 **Ez nem konfigurációs apróság, hanem terméktulajdonság-katalógus** — és ugyanez
 a nyilvántartás szolgálja majd a fizetős csomagokat / licencszinteket is.
+
+### `[ELDÖNTVE]` L2 — A kikapcsolás hatóköre, lejárata és a két integrációosztály
+
+#### L2.1 — Hatókör: gépenkénti
+
+**A kikapcsolás az integráció természetes hatókörét követi**, és a bankkártya-
+terminálnál és az adóügyi eszköznél ez **gépenkénti**. Ha az egyik kassza
+terminálja halott, a többi zavartalanul dolgozik tovább.
+
+#### L2.2 — `[FELÜLÍRJA az L1.3.a-t]` A lejárat 1 ÓRA, nem napzárás / 24 óra
+
+**A korábbi javaslat (legkésőbb a következő napzáráskor, max 24 óra) ELVETVE.
+Az 1 óra jobb**, három okból:
+
+| # | Indok |
+|---|-------|
+| L2.2.a | **Egy óra alatt nem tud normává válni.** A 24 óra igen — egy egész műszak ráfér. |
+| L2.2.b | **Az ismételt kikapcsolás MAGA a jelzés.** Ha valaki egymás után ötször kapcsolja ki, az nem áthidalás, hanem tartós hiba — és ez mérhető, számolható esemény. |
+| L2.2.c | **Természetes eszkalációs létrát ad** (L2.3) anélkül, hogy külön ki kellene találni. |
+
+#### L2.3 — Eszkalációs létra
+
+| Szint | Ki | Meddig | Mi történik |
+|-------|-----|--------|-------------|
+| **1. Ideiglenes** | Az üzletvezető (ha Siduri delegálta) | **1 óra**, ismételhető | Indok kötelező, audit, tartós sáv |
+| **2. Ismétlődés** | — | **N ismétlés után** (javaslat: 3) | **Automatikus értesítés felénk.** Ez már nem áthidalás, hanem valós hiba |
+| **3. Tartós** | **KIZÁRÓLAG Siduri** | lejárat nélkül | Dokumentáltan, és a fiskális integrációnál a kockázatvállalási nyilatkozathoz (B12) kötve |
+
+#### L2.4 — `[KÖTELEZŐ KIEGÉSZÍTÉS]` A lejáratkor ELŐBB tesztelünk, csak utána kapcsolunk vissza
+
+Ha a lejárat vakon visszakapcsol, akkor **óránként egyszer valaki egy sikertelen
+fizetést vagy egy megszakadt nyugtát eszik meg** — egy esti műszakban hatszor.
+Fiskális integrációnál ez elfogadhatatlan.
+
+**Ezért a lejárat menete:**
+
+1. **Önteszt lefut** (a folyamatban lévő tranzakciók befejezése után, soha nem közben).
+2. **Sikeres** → **csendben visszakapcsol**, a sáv eltűnik, kész.
+3. **Sikertelen** → az integráció **visszakapcsolt állapotba kerül** (ahogy a döntés szól), **de a sáv azonnal „DÖNTÉST IGÉNYEL" állapotba vált**, és az üzletvezető értesítést kap. Így **senki nem kap váratlan hibát** — előbb látják, mint hogy beleszaladnának.
+
+Ezzel az 1 órás ütem a fiskális integrációnál is használható marad, a súrlódás
+(újra kell kapcsolni) pedig megmarad — pont az tartja vissza az állandósulást.
+
+#### L2.5 — A lejárat túléli az újraindulást
+
+Az állapot és a lejárat **szerveroldalon, eszközönként tárolódik.** Egy POS
+újraindulása nem kapcsolhatja vissza csendben az integrációt egy törött eszközre —
+és fordítva, nem is hosszabbíthatja meg magától a kikapcsolást.
+
+#### L2.6 — `[ÚJ SZABÁLY — tisztább, mint az eddigi felsorolás]` KÉT integrációosztály
+
+A nyomtatókra tett észrevételből — *„az alapból az ő eszköze, lehet át akarja
+rakni, vagy állítani, abba nem akarok beleszólni"* — egy általános
+elhatárolás esik ki, ami eddig hiányzott:
+
+> **A választóvonal nem az, hogy melyik integrációról van szó, hanem hogy
+> hordoz-e JOGI vagy PÉNZÜGYI következményt.**
+
+| | **A) Védett integrációk** | **B) Ügyfél-eszközök** |
+|---|---|---|
+| Mik | adóügyi eszköz, bankkártya-terminál, NTAK | nyomtatók, KDS, rendeléskijelző |
+| Következmény | jogi / pénzügyi | tisztán működési |
+| **Bekapcsolás** | **csak Siduri** | **az üzletvezető** |
+| **Kikapcsolás** | delegált jog, **1 órás lejárattal** | **szabadon, lejárat nélkül** |
+| **Beállítás** (cím, hozzárendelés, áthelyezés) | Siduri | **az üzletvezető** |
+| Eszkaláció, felhős értesítés | igen | **nem** |
+| Audit | biztonsági ág | működési ág |
+
+**Miért indokolt, hogy a (B) osztály ne kapja meg a gépezetet:**
+egy kikapcsolva felejtett konyhai nyomtató **két percen belül kiderül** — a
+szakács szól, hogy nem jön a jegy. **Önjavító hiba**, nincs szüksége lejáratra,
+eszkalációra és felhős riasztásra. Egy kikapcsolva felejtett adóügyi eszköz
+viszont **napokig észrevétlen maradhat**, mert a pénz közben folyik.
+
+**Az integráció-nyilvántartás (L1.6) tárolja, melyik integráció melyik
+osztályba tartozik** — és ez ugyanaz a mező, ami a fizetős csomagokat is
+ki fogja szolgálni.
+
+#### L2.7 — Napzárási nyugtázás óránkénti ütemnél
+
+Egy esti műszakban akár 5–6 kikapcsolási ciklus is lehet ugyanarra az eszközre.
+**A napzárási nyugtázás összevontan jelenjen meg** — egy tétel eszközönként és
+integrációnként, a ciklusok számával és az összesített idővel —, **ne hat külön
+nyugtázandó bejegyzés.** Csak a **védett (A) osztályra** vonatkozik.

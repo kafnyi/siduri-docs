@@ -547,7 +547,7 @@ CMOS-elem** — „a gép szerint 2014 van", minden áramszünet után.
 
 ## 10. Fiskális működés
 
-### 10.1 A három üzemmód `ALAP`
+### 10.1 A három üzemmód `ALAP` — ESZKÖZ-szintű, nem telephely-szintű
 
 | # | Üzemmód | Mit ad ki | Megjegyzés |
 |---|---------|-----------|------------|

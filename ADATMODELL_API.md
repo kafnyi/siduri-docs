@@ -408,146 +408,77 @@ forditas
 > **nem jelenti azt, hogy a nyugta angol lehet.** Az adóügyi bizonylat nyelve
 > kötött.
 
-## 9. `[!!] ÚJ, FONTOS` — az „eCassa" megjegyzés
+## 9. `[TÉVES RIASZTÁS — de két valós lelettel]` Az „eCassa" megjegyzés
 
-Az ügyfél megjegyzésében szerepel, hogy a vonalkód-olvasó **„az eCassa rendszer
-miatt"** van a gépeken.
+**A felvetésem alaptalan volt.** Az „eCassa" itt az **e-pénztárgép** szinonimájaként
+szerepelt, nem márkanévként. **Az első ügyfélnél Prior Cash Fiscat eszközök
+vannak: `iPalm` és `Neon+` pénztárgépek, plusz adóügyi nyomtatók.**
 
-> **Az eCassa egy magyar online pénztárgép-márka. Ha az első ügyfélnek eCassa
-> adóügyi eszköze van, akkor a teljes fiskális integrációs előkészületünk
-> ROSSZ GYÁRTÓRA irányult.**
+> **A Fiscat / Prior Cash felkészülésünk tehát HELYES**, a K1 kapu a jó gyártó
+> felé mutat, és a kapott gyűjtőkiosztás erre az eszközcsaládra vonatkozik.
 
-Eddig a **Fiscat / Prior Cash** illesztő-protokollra készültünk — az a
-dokumentum, amit kaptunk, és amiért a partnerkapcsolatot építjük (K1).
+*(A szakasz nem törölve, hanem helyesbítve — a téves riasztás is a történet része.)*
 
-**Ez közvetlenül érinti:**
+**A válaszban viszont két olyan tény szerepelt, ami VALÓDI tervezési
+következménnyel jár.**
 
-| # | Mit |
-|---|-----|
-| a | **K1 kapu** — lehet, hogy más gyártóval kell kapcsolatba lépni, vagy MINDKETTŐVEL |
-| b | **F1 kilépési feltétele** — „valódi bizonylat valódi eszközön": **melyik eszközön?** |
-| c | **A gyűjtőkiosztás** (§10.3) — a kapott 8 rekeszes kiosztás **eszközspecifikus lehet** |
-| d | **A nulla összegű tétel és a DRS-gyűjtő kérdései** — más gyártónál más a válasz |
+### 9.1 `[ÚJ]` Kétféle adóügyi eszköz ugyanazon a telephelyen
 
-**AZONNALI TEENDŐ — ez a D7 döntési pont legfontosabb kérdése:**
+**Pénztárgép** (`iPalm`, `Neon+`) **és adóügyi nyomtató** — és a kettő **nem
+ugyanúgy viselkedik**:
 
-> **Pontosan milyen adóügyi eszköz van az első ügyfélnél? Gyártó, típus,
-> és melyik cég szervizeli?**
+| | **Adóügyi nyomtató** | **Pénztárgép** |
+|---|---|---|
+| Saját kezelőfelület | nincs | **van** (billentyűzet, kijelző) |
+| Önállóan üzemeltethető | nem | **IGEN** |
+| A POS vezérli | mindig | általában |
 
-*Lehetséges, hogy a Prior Cash több márkát is forgalmaz és az illesztő közös —
-de erre **feltevést építeni tilos**, mert az egész F1 fázis erre az egy eszközre
-épül.*
+> ⚠️ **Ebből következik egy kockázat, ami eddig sehol nem szerepelt: a
+> pénztárgépen VALAKI ÜTHET SIDURIN KÍVÜL.**
+>
+> Ha a személyzet közvetlenül a pénztárgépen ad ki egy nyugtát, az **adóügyi
+> bizonylat létrejön, de a Siduriban nincs róla nyom.** A készlet nem fogy, az
+> NTAK-ba nem megy be, a riport hazudik — és **nem hibából, hanem mert az eszköz
+> ezt fizikailag megengedi.**
 
----
+**Ellenszer — és ez olcsó, mert a protokoll amúgy is kell:**
 
-# II. RÉSZ — API-SZERZŐDÉS
+| # | Megoldás |
+|---|----------|
+| a | **Napnyitáskor és napzáráskor kiolvassuk az eszköz saját számlálóit** (forgalom, bizonylatszám), és **összevetjük a sajátunkkal** |
+| b | **Eltérés esetén hangos jelzés** — nem csendes elnyelés *(A2 elv)*, és auditbejegyzés a biztonsági ágon |
+| c | **Ez nem vád, hanem tény:** az eltérésnek lehet ártatlan oka (próbanyomtatás, szerviz). A rendszer **jelez, nem következtet** |
+| d | Az adóügyi nyomtatónál ez a kockázat **nem áll fenn** — ott nincs mit ütni |
 
-## 1. `[DÖNTÉS]` Stílus: REST + JSON, mellette WebSocket
+**Ez egyben ingyen adja a vakzárás (§9.2) egyik hiányzó darabját is:** ha a nap
+végén a gép saját számlálója és a miénk eltér, az önmagában jelzés.
 
-| Réteg | Mi | Miért |
-|-------|-----|-------|
-| **Parancs és lekérdezés** | **REST + JSON HTTPS-en** | Három különböző kliens (C# WPF, Flutter, böngésző). **Univerzális, hibakereshető**, és a mi forgalmi nagyságrendünkön (percenként néhány száz kérés, nem másodpercenként ezrek) a JSON-feldolgozás költsége nem szűk keresztmetszet |
-| **Kitolás (push)** | **WebSocket** | Rendelésállapot, KDS, rendeléskijelző, asztalfrissítés, **csökkentett-mód jelzés**. Lekérdezgetéssel ez a J1900-at feleslegesen terhelné |
+### 9.2 `[ÚJ — SCOPE-VÁLTOZÁS]` Az e-pénztárgép nem `v2`, hanem tervezett ügyféligény
 
-**Miért nem gRPC:** a böngészős admin `grpc-web` réteget igényelne, a Flutter web
-esetet bonyolítja, és a nyerhető sávszélesség itt nem szűkös. **A hibakereshetőség
-többet ér, mint a bájtok.** *(Ha később egy útvonalon mégis szűkös lesz, az
-pontszerű döntés, nem az egész szerződés.)*
+Az ügyfél **apránként át akar állni e-pénztárgépre.**
 
-## 2. `[DÖNTÉS]` Hol él a szerződés
+**Két következménye van, és a második a fontosabb:**
 
-**Az `siduri-backend-server` repóban, dedikált útvonalon, OpenAPI-ként**, és
-**verziózott artefaktumként publikálva**, amit a többi repó fogyaszt.
+| # | Következmény |
+|---|--------------|
+| a | **A 3. fiskális üzemmód** (e-pénztárgép, 8/2025. (III. 31.) NGM) **nem „későbbi irány", hanem ismert, tervezett igény.** A `v2` címke marad, de **a szerkezetnek az első naptól bírnia kell** |
+| b | ⚠️ **„Apránként" = VEGYES ESZKÖZPARK.** Ugyanazon a telephelyen, **ugyanabban az időben** lesz online pénztárgép (AEE) **és** e-pénztárgép |
 
-| Alternatíva | Miért nem |
-|-------------|-----------|
-| `siduri-docs` | **Kód soha nem kerül oda** — ez repószabály |
-| Külön 6. repó | Ceremónia egy szerződésért, ami egyetlen gazdához tartozik |
+> **A fiskális üzemmód tehát ESZKÖZ-szintű tulajdonság, nem telephely-szintű.**
+>
+> A specifikáció eddig a három üzemmódot **telephely-szintű** fogalomként
+> kezelte *(§10.1)*. **Ez hibás** — javítandó.
 
-**Szabály:** a szerződés gazdája a backend, **de a változtatás a kliens-oldali
-gazdák jóváhagyásával megy.** Egy szerződés, egy gazda, több érdekelt.
+**Amit ez konkrétan megkövetel:**
 
-## 3. `[DÖNTÉS]` Verziózás és visszafelé kompatibilitás
+| # | Követelmény |
+|---|-------------|
+| 9.2.1 | Az **eszköz** hordozza a fiskális üzemmódját, nem a telephely |
+| 9.2.2 | **A bizonylat rögzíti, MELYIK üzemmódban keletkezett** — mert az „adóügyi szám" mező **más jelentésű** módonként: AEE-nél `Axxxxxxxxx/yyyy/zzzzz` papíron, e-pénztárgépnél **e-nyugta a Nyugtatárban**. A nullázható mező *(I14)* ezt szerkezetileg bírja, de a **jelentést tárolni kell** |
+| 9.2.3 | **A fiskális adapter réteg üzemmódonként külön megvalósítás**, közös felület mögött — nem egyetlen elágazásokkal teli osztály |
+| 9.2.4 | Az **átállás eszközönként történik**, nem telephelyenként — a beállítás és a migráció is így nézzen ki |
+| 9.2.5 | **A napi zárás és a riportok vegyes eszközparkot is helyesen kell összesítsenek** |
 
-* **Fő verzió az útvonalban:** `/v1/…`
-* **Kisebb változás csak ADDITÍV** — új opcionális mező igen; mező eltávolítása vagy jelentésváltozása **soha**.
+**Ez jó hír abban az értelemben, hogy MOST derül ki**, amikor az adaptert még
+meg sem írtuk. Ha az F3 után derülne ki, az adapter-réteg átírása lenne.
 
-> **KEMÉNY KÖVETELMÉNY: egy még nem frissített POS-nak TOVÁBB KELL TUDNIA
-> ELADNI.**
-
-Ez nem elvi elegancia, hanem a saját üzemeltetési szabályunkból következik:
-**a szerepet vivő gépek nem frissülhetnek egyszerre** *(§5.2)*, tehát **a
-telephelyen mindig lesz vegyes verziójú állapot.** A szervernek **az előző fő
-verziót is ki kell szolgálnia** a kiadási ablak alatt.
-
-## 4. `[DÖNTÉS]` Hitelesítés — két réteg
-
-| Réteg | Ki | Hogyan |
-|-------|-----|--------|
-| **Eszköz** | a gép | **hardveres ujjlenyomat + forgó hitelesítő adat**. Regisztráció nélkül nincs bizonylat *(§8.2)* |
-| **Felhasználó** | az ember | A kérésben utazó felhasználói azonosság (PIN/RFID belépés után) |
-
-**Miért két réteg:** a **bizonylat az eszközhöz** kötődik (számozási tartomány,
-adóügyi eszköz), a **felelősség az emberhez** (audit). A kettő nem ugyanaz, és
-összemosni azt jelentené, hogy egy műszakváltás után nem tudjuk, ki mit tett.
-
-**Két ujjlenyomat egy eszközazonosítón → MINDKETTŐ tiltva**, amíg ember fel nem
-oldja *(§8.2)*.
-
-## 5. `[DÖNTÉS]` A cím SOHA nem ég a kliensbe
-
-A felhő (`api.siduri.mythsystem.com`) és a Hermes címe **konfigurációból jön,
-távolról frissíthetően**; a beépített alapértelmezés **csak visszaesés**.
-*(§0.3.3 — közvetlenül a mostani domainköltözés tanulsága.)*
-
-A **telephelyi** szervert a kliens **mDNS-sel** találja meg *(§5.3)*.
-
-## 6. `[DÖNTÉS]` Idempotencia — nem opció
-
-> **Minden módosító hívás idempotencia-kulcsot hordoz, és a kulcs a kliens által
-> kiosztott `uuid` v7.**
-
-**Miért kötelező:** az outbox **visszajátszik**. Degradált módból visszatérve
-ugyanaz az esemény **többször is megérkezhet** — hálózati újrapróbálkozásból,
-kettős szinkronból, vagy azért, mert a kliens nem kapta meg a nyugtázást.
-
-**Idempotencia nélkül a degradált mód duplikált bizonylatokat gyárt** — pontosan
-azt a kárt, ami ellen az egész árva-tranzakció kezelés épült.
-
-**Szabály:** a szerver az ismert kulcsra **ugyanazt a választ adja vissza**, nem
-hibát és nem új rekordot.
-
-## 7. Az outbox-visszajátszás szerződése
-
-A visszajátszó végpont **köteg**et fogad, és minden elem hordozza:
-
-| Mező | Miért |
-|------|-------|
-| `id` (uuid v7) | idempotencia-kulcs |
-| `sorszam` (epoch, számláló) | **az eredeti sorrend**, nem az érkezési |
-| `eszkoz_ido` | az eredeti keletkezés ideje |
-| `tartalom_hash` | sértetlenség-ellenőrzés |
-
-**A szerver a sorrendet a `sorszam` szerint dolgozza fel, nem az érkezés
-szerint** — különben a visszajátszás összekeverné a történetet.
-
-## 8. Hibakezelés
-
-| # | Szabály |
-|---|---------|
-| a | **Néma kudarc nincs** *(I29)*. Minden hiba **gépi kóddal** és **embernek szóló szöveggel** tér vissza |
-| b | A hibakód **stabil és katalogizált** — a felület fordítja, nem a szerver szövegét mutatja |
-| c | **Elkülönítve: „nem sikerült" vs. „nem tudom, sikerült-e".** A második a veszélyes eset (nyomtatás, kártyás fizetés), és **soha nem kezelhető úgy, mint az első** |
-| d | A **validációs hibák mezőszinten** térnek vissza, hogy a felület oda tudja tenni, ahol keletkeztek |
-
-## 9. `[SZABÁLY]` Amit az API SOHA nem tesz
-
-| # | Tilalom |
-|---|---------|
-| 1 | **Nem küld lebegőpontos számot pénzként.** JSON-ban is egész szám, nem `1500.0` |
-| 2 | **Nem ad vissza árat a termékről a bizonylathoz** — a bizonylat a saját másolatát hordozza |
-| 3 | **Nem enged áfakulcsot az öt engedélyezetten kívül** *(I6)* |
-| 4 | **Nem enged menüt egyetlen tételként** *(I8)* |
-| 5 | **Nem enged törlést auditrekordon** *(I24–I25)* |
-| 6 | **Nem fogad el bizonylatot regisztrálatlan eszköztől** |
-| 7 | **Nem ad vissza más telephely adatát** — sorszintű szűréssel kikényszerítve |

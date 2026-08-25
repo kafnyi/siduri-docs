@@ -383,7 +383,7 @@ Ez konkretizálja a K1 és K3 kaput, és részben az F1-et is:
 
 | # | Kérdés | Mit befolyásol |
 |---|--------|----------------|
-| 1 | **Milyen adóügyi eszközük van? Gyártó, típus, kora, ki szervizeli?** ⚠️ **A LEGSÜRGŐSEBB.** Az ügyfél „eCassa rendszert" említett — ha valóban eCassa eszközük van, akkor **a Fiscat/Prior Cash felé tett előkészületünk rossz gyártóra irányult**, és a K1 kapu, az F1 kilépési feltétele, a gyűjtőkiosztás és a nyitott gyártói kérdések mind más eszközre vonatkoznak | K1, F1 — **ezen a készüléken kell mérni és fejleszteni** |
+| ~~1~~ | ~~Milyen adóügyi eszközük van?~~ -> **MEGVÁLASZOLVA: Prior Cash Fiscat `iPalm` és `Neon+` pénztárgépek + adóügyi nyomtatók.** A K1 kapu a jó gyártó felé mutat. **Két új lelet:** a pénztárgépen lehet Siduri nélkül is ütni (egyeztetés kell), és az ügyfél apránként e-pénztárgépre áll át, tehát **a fiskális üzemmód ESZKÖZ-szintű, nem telephely-szintű** | rendezve |
 | 2 | **Hány gép, milyen szerepben?** Pénztár, pincér-eszköz, konyha, iroda | A topológia és a HA-méretosztály |
 | 3 | **Milyen hardveren futnak most?** J1900, vagy más | K3 — ha nem J1900, a mérési alap változik |
 | 4 | **Milyen rendszert váltanak le?** | Adatmigráció, NTAK-átállás |

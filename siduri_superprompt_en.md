@@ -549,7 +549,7 @@ battery** — "the machine thinks it is 2014", after every power cut.
 
 # 10. Fiscal operation
 
-## 10.1 Three operating modes `BASE`
+## 10.1 Three operating modes `BASE` — PER DEVICE, not per site
 
 | # | Mode | Output | Note |
 |---|------|--------|------|

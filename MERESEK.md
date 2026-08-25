@@ -68,6 +68,13 @@ várakozási idő. **4 GB RAM mellett is**, mert a bázis egy része ennyi.
 telepítési modell.
 
 ### `[ ]` M12 — **A LEGKRITIKUSABB MÉRÉS: a tartalék POS átveszi a szolgálatot**
+> **`[PONTOSÍTVA 2026-08-23]` A tartalék egy 3. GENERÁCIÓS i3 / 8 GB**, nem J1900
+> — mert a J1900-asok tiszta kliensek maradnak. Ez **lényegesen valószínűbbé
+> teszi a sikert**, de a mérés **marad kritikus**, mert a HA-terv ezen áll.
+>
+> ⚠️ **És ez a mérés dönti el, kell-e MÁSODIK i5.** Ha az i3 csúcsban egyszerre
+> pénztárgép ÉS szerver nem bírja, akkor a második i5 nem kényelem, hanem
+> követelmény. **Az M12 előtt ne vegyen az ügyfél semmit.**
 
 **Miért ez a legfontosabb tétel az egész listán.** A tartalék szerver **mindig egy
 dolgozó Windows POS** (2026-08-22-i tisztázás) — nem dedikált gép. Amikor átveszi

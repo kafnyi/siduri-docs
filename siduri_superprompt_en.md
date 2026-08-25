@@ -158,8 +158,12 @@ POS will ship, so the migration cost would never be recovered.
 
 | Role | Machine | Consequence |
 |------|---------|-------------|
-| **Local server** | **5th-gen i5 / 8 GB / 128 GB SSD** | **The server-side J1900 constraint is GONE** |
-| **POS clients** | **i3**, plus **3× J1900** *(from a closed shop)* | **Client-side constraints REMAIN** |
+| **Main server** | **5th-gen i5 / 8 GB / 128 GB SSD** — *also a working POS* | Headroom, **not the design target** |
+| ⭐ **DESIGN TARGET** | **3rd-gen i3 / 8 GB** | **Optimise for this, measure on this** — as client AND as server, because **there is no second i5, so the BACKUP SERVER will be an i3** |
+| **Supported floor** | **3× J1900** *(from a closed shop; a spare exists)* | **Must work**, may be slower, features may be off. **Pure clients** |
+
+⚠️ **Every machine is a touchscreen POS at 1024×768** — there is no office PC on
+site. This also affects the **web admin**: part of its use will be on a touchscreen.
 
 Consequences split accordingly:
 

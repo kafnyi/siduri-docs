@@ -77,11 +77,16 @@ része **egy POS-on kifejezetten káros**, mert más a használati mód.
 | 5 | **KDS** | konyhai kijelző | **2 méterről, gőzben, kézmosás után** |
 | 6 | **Rendeléskijelző** | TV | **5 méterről, vendég olvassa** |
 | 7 | **Másodkijelző** | vendégoldali | Passzív, vendég olvassa |
-| 8 | **Webes admin** | böngésző | **Ülve, gondolkodva** — itt a webes UX-szabályok ÉRVÉNYESEK |
+| 8 | **Webes admin** | böngésző — ⚠️ **részben a PULTI ÉRINTŐKÉPERNYŐN** | **Kettős használat:** gyors dolgok érintőn a pultnál, valódi adminisztráció laptopról. Lásd `HARDVER_MINIMUM.md` §9.10 |
 
-> **A 8. felület más világ.** Ott a felfedezhetőség, a sűrűség és a
+> **A 8. felület MÁS, de nem teljesen.** Ott a felfedezhetőség, a sűrűség és a
 > billentyűzet-hatékonyság számít — **ne vigyük át rá a kassza szabályait**,
 > és fordítva se.
+>
+> ⚠️ **DE: az első ügyfélnél NINCS irodai gép.** Minden gép egy 1024×768-as
+> érintőképernyős POS. **Tehát az admint részben érintőn fogják használni** —
+> ezért **hover-függő művelet ott sem lehet**, és a táblázatsorok
+> érintésbarát magasságúak. Részletek: `HARDVER_MINIMUM.md` §9.10.
 
 ---
 
@@ -153,8 +158,15 @@ az ujj nem tud „túlmenni" rajta.
 
 ## 7. Elrendezés-költségvetés — **1024×768 a TERVEZÉSI CÉL**
 
-> **Az első ügyfél legkisebb gépe 1024×768. Ez a tervezési ALAP** — de a felület
-> **nagyobb felbontáson is olvasható és szép** kell maradjon, nem csak „elfér".
+> **`[MEGERŐSÍTVE]` Az első ügyfélnél MINDEN gép 1024×768-as érintőképernyős
+> POS** — a J1900-ak, az i3-ak és az i5 is. **Tehát nem a legkisebb eset, hanem
+> az EGYETLEN eset.** A felület viszont **nagyobb felbontáson is olvasható és
+> szép** kell maradjon, mert más ügyfeleknél az lesz.
+
+> **`[ÜTEMEZÉSI KÖVETKEZMÉNY]` A „széles" töréspont (≥1600) az első élesítéshez
+> NEM kell** — ott egyetlen ilyen gép sincs. **Az elv viszont az első naptól
+> beépül** (7.1: több tartalom, nem nagyobb), mert utólag beletenni drága;
+> a tényleges megvalósítás **halasztható az élesítés utánra.**
 
 ⚠️ **Korábban azt írtam, hogy „ami 1024-en működik, az felette is működni fog".
 Ez pontatlan volt.** Elférni elfér — **de egy 1024-re tervezett elrendezés

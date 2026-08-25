@@ -275,12 +275,91 @@ A `K3/a` kapu eddig **„2 db J1900 + 1 adóügyi eszköz beszerzése"** volt.
 ⚠️ **Az ügyfél gépein fejleszteni és mérni NEM lehet** — az egy élő étterem.
 **Saját teszthardver továbbra is kell**, csak most már tudjuk, pontosan milyen.
 
-### 9.6 Nyitott — az ügyfélnél megkérdezendő
+### 9.6 `[LEZÁRVA]` A teljes kép
 
-| # | Kérdés | Miért |
-|---|--------|-------|
-| **H1** | **Pontosan hányadik generációs az i3, és mennyi RAM van bennük?** | A kliens-költségvetéshez |
-| **H2** | ⚠️ **Az 1024×768-as kijelző MELYIK gépé?** Ha csak a régi J1900-asoké, akkor **a jelenlegi i3-as kliensek nagyobb felbontásúak** — és a tervezési alap felülvizsgálandó | UIUX §7 |
-| **H3** | **Van-e második i5, vagy melyik gép lesz a tartalék szerver?** | 9.3 |
-| **H4** | **Van-e tartalék gép a 3 J1900-hoz?** | 9.1 |
-| **H5** | **A J1900-asok érintőképernyős POS gépek, vagy sima számítógépek?** | Ha nem érintős, kliensnek sem jók a pultban |
+| Kérdés | Válasz |
+|--------|--------|
+| Az i3 generációja és RAM-ja | **3. generáció, 8 GB** |
+| Az 1024×768 melyik gépé | ⚠️ **MINDEGYIKÉ** — az i3-ak kijelzője is ugyanakkora |
+| Van-e második i5 | **Nincs** *(az ügyfél meggyőzése folyamatban)* |
+| Van-e tartalék a J1900-hoz | ✅ **Van** |
+| Milyen gépek ezek | ⚠️ **MIND érintőképernyős POS** — a J1900-ak, az i3-ak **és az i5 is** |
+
+### 9.7 `[DÖNTÉS]` Három szint, nem egy — a TERVEZÉSI CÉL az i3
+
+**Az utasítás: „legyen a rendszer az i3-ra tervezve."** Ezt így bontom ki:
+
+| Szint | Gép | Mit jelent |
+|-------|-----|-----------|
+| **TERVEZÉSI CÉL** | **3. gen. i3 / 8 GB** | **Erre optimalizálunk, és az elfogadási kritériumokat EZEN mérjük.** Kliensként ÉS szerverként |
+| **TÁMOGATOTT ALSÓ HATÁR** | **J1900** | **Működnie kell**, lehet lassabb, és **funkciók kikapcsolva** (termékkép). Nem itt mérünk sikert |
+| **FŐ SZERVER (adott)** | **5. gen. i5 / 8 GB / 128 GB** | **Fejtér, nem cél.** Nem tervezünk „lefelé" hozzá |
+
+> **Miért az i3 a cél és nem az i5:** mert **nincs második i5, tehát a TARTALÉK
+> SZERVER egy i3 lesz.** Átvétel után a telephelyet **egy i3 hajtja** — ha csak
+> az i5-re terveznénk, a failover utáni állapot mérhetetlen lenne.
+>
+> **A szerverkód alsó határa tehát az i3, nem az i5.**
+
+### 9.8 `[MEGNYUGTATÓ]` A „lefokozás" aggály feloldva
+
+**A 9.3-ban riasztottam, hogy i5-ről J1900-ra átvenni lefokozás.**
+**Ez így már nem áll fenn**, mert:
+
+> **A tartalék szerver egy i3 legyen, nem J1900.** i5 → i3 **mérsékelt lépcső,
+> nem szakadék** — és az i3 8 GB-tal önmagában is elfogadható szerver.
+
+**Konkrét ajánlás:** **a tartalék szerepet az egyik i3-as POS vigye.** A
+J1900-asok maradjanak tiszta kliensek.
+
+### 9.9 `[ŐSZINTE VÁLASZ]` Kell-e a második i5?
+
+**Nem kritikus, és ezt meg is mondom, mert nem a mi dolgunk fölösleges vasat
+eladni.**
+
+| | |
+|---|---|
+| **i5 fő + i3 tartalék** | ✅ **Működőképes felállás.** Az i3 8 GB-tal elbírja a szerverszerepet, és a failover utáni visszaesés mérsékelt |
+| **Második i5** | ✅ Jobb — de **kényelem, nem szükséglet** |
+
+**Amiért mégis érdemes lehet — de ez ELTÉRŐ érv:** nem a teljesítmény, hanem az,
+hogy **a tartalék gép egyben dolgozó pénztárgép is** *(§5.2)*. Ha az i3 tartalék
+csúcsban átvesz, akkor **ugyanaz a gép egyszerre pénztárgép ÉS szerver** — ez
+pontosan az **M12** mérés tárgya. **Ha az M12 az i3-on megbukik, akkor a második
+i5 nem luxus, hanem követelmény.**
+
+> **Vagyis: a válasz a mérésen múlik, nem az érzésen. Az M12 előtt ne vegyen
+> semmit.**
+
+### 9.10 `[ÚJ LELET]` MINDEN gép érintőképernyős POS — a webes adminnak is
+
+⚠️ **Ez egy korábbi állításomat cáfolja.** A UI/UX tervben azt írtam:
+
+> *„A webes admin más világ — ülve, gondolkodva, ott a webes UX-szabályok
+> érvényesek."*
+
+**Ez részben téves ebben a telepítésben**, mert **nincs irodai gép.** Minden gép
+egy 1024×768-as érintőképernyős POS a pultban.
+
+**Tehát az admint valószínűleg így fogják használni:**
+
+| Hol | Mire | Milyen gyakran |
+|-----|------|----------------|
+| **A pulti POS érintőképernyőjén** | gyors dolgok: ár, „elfogyott", egy termék felvitele | **naponta** |
+| **Saját laptopról / otthonról** | valódi adminisztráció: receptúra, leltár, riportok | ritkábban |
+
+**Ebből következő követelmény:**
+
+> **A webes admin legyen HASZNÁLHATÓ 1024×768-as érintőképernyőn — de
+> OPTIMALIZÁLVA asztali gépre.**
+
+| # | Szabály |
+|---|---------|
+| a | ⚠️ **Semmi olyan művelet, ami CSAK hover-rel érhető el** — a táblázatsorok „lebegő" akciógombjai a leggyakoribb hiba |
+| b | **A táblázatsorok érintésbarát magasságúak** (min. 44 px), akkor is, ha egérrel is használják |
+| c | **A fő táblázatok elférnek 1024 px szélességben** vízszintes görgetés nélkül — vagy **kártyás nézetre váltanak** szűk módban |
+| d | **Nem kell teljes POS-szintű célfelület-méret** (64 px) — az admin nem a sebességről szól. **De a 24 px-es webes minimum kevés érintőn** |
+| e | **A hosszú űrlapok (termékfelvitel) érintésre is kitölthetők** — a numerikus mezőknél képernyő-billentyűzet |
+
+*(Ez befolyásolja az adatrács-könyvtár választását is: **érintésbarát legyen**,
+ne csak egérre tervezett.)*

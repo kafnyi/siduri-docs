@@ -157,8 +157,12 @@ nem is lesz Linuxos POS, tehát a váltás költsége nem térülne meg.
 
 | Szerep | Gép | Következmény |
 |--------|-----|--------------|
-| **Lokális szerver** | **5. gen. i5 / 8 GB / 128 GB SSD** | **A szerver-oldali J1900-kényszer MEGSZŰNT** |
-| **POS kliensek** | **i3**, plusz **3 db J1900** *(régi üzletből)* | **A kliens-oldali korlátok MEGMARADNAK** |
+| **Fő szerver** | **5. gen. i5 / 8 GB / 128 GB SSD** — *egyben dolgozó POS* | Fejtér, **nem tervezési cél** |
+| ⭐ **TERVEZÉSI CÉL** | **3. gen. i3 / 8 GB** | **Erre optimalizálunk, ezen mérünk.** Kliensként ÉS szerverként — mert **nincs második i5, tehát a TARTALÉK SZERVER egy i3 lesz** |
+| **Támogatott alsó határ** | **3 db J1900** *(régi üzletből, van tartalék)* | **Működnie kell**, lehet lassabb, funkciók kikapcsolva. **Tiszta kliensek** |
+
+⚠️ **MINDEN gép érintőképernyős POS, MINDEGYIK 1024×768** — nincs irodai gép a
+telephelyen. Ez a **webes admint is érinti**: részben érintőn fogják használni.
 
 **Ebből következik a szétválasztás:**
 

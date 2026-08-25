@@ -153,9 +153,74 @@ az ujj nem tud „túlmenni" rajta.
 
 ## 7. Elrendezés-költségvetés — **1024×768 a TERVEZÉSI CÉL**
 
-> **Az első ügyfél legkisebb gépe 1024×768.** Ez tehát **nem a legrosszabb eset,
-> amit még elviselünk, hanem a tervezési alap.** Ami 1024×768-on működik, az
-> 1366×768-on és felette is működni fog; fordítva nem.
+> **Az első ügyfél legkisebb gépe 1024×768. Ez a tervezési ALAP** — de a felület
+> **nagyobb felbontáson is olvasható és szép** kell maradjon, nem csak „elfér".
+
+⚠️ **Korábban azt írtam, hogy „ami 1024-en működik, az felette is működni fog".
+Ez pontatlan volt.** Elférni elfér — **de egy 1024-re tervezett elrendezés
+1920×1080-on széthúzva ritkás és igénytelen.** A skálázódás önálló tervezési
+feladat, nem következmény.
+
+### 7.1 A skálázódás alapszabálya
+
+> **Nagyobb felbontáson TÖBB tartalom fér ki, nem NAGYOBB tartalom.**
+
+| Ami **NEM** nő a felbontással | Ami **nő** |
+|-------------------------------|------------|
+| Betűméret | **Termékrács oszlopszáma** |
+| Gombmagasság | **Látható kosársorok száma** |
+| Térközök | **Egyszerre látható panelek száma** |
+| A kosárpanel szélessége *(felső korlát!)* | **A termékrács szélessége** |
+
+**Miért:** a gomb fizikai mérete azért 64–80 px, mert **egy ujj mérete nem
+változik a felbontással.** A betű azért 18 px, mert **egy szem sem.** Ha ezek
+nőnének, a nagyobb kijelző **nem adna semmit** — csak nagyobb lenne ugyanaz.
+
+### 7.2 `[TECHNIKAI]` Logikai egység, nem fizikai képpont
+
+**A WPF DPI-független (1 DIP = 1/96 hüvelyk), és ezt ki kell használni.**
+
+| # | Szabály |
+|---|---------|
+| a | **Minden méret DIP-ben**, soha nem fizikai képpontban |
+| b | **Per-monitor DPI-tudatosság bekapcsolva** a manifestben |
+| c | **Ezzel a 64 DIP-es gomb fizikailag ugyanakkora** 96 és 144 DPI-n is — a célfelület-probléma magától megoldódik |
+| d | **A valódi változó tehát nem a DPI, hanem a LOGIKAI szélesség** — abból lesz a töréspont |
+
+*(Egy 1920×1080-as 15"-os kijelző 150%-os skálázással logikailag 1280×720 —
+tehát a nyers felbontásra tervezni önmagában hibás.)*
+
+### 7.3 Töréspontok — logikai szélességben
+
+| Töréspont | Logikai szélesség | Termékrács | Kosársorok *(768-on)* | Extra |
+|-----------|-------------------|------------|----------------------|-------|
+| **Szűk** | **< 1152** *(1024×768)* | **4 oszlop** | ~7 | — |
+| **Alap** | 1152–1599 *(1280, 1366)* | **5 oszlop** | 7–9 | — |
+| **Széles** | **≥ 1600** *(1920)* | **6 oszlop** | 12+ | **állandó oldalpanel** |
+
+| # | Szabály |
+|---|---------|
+| e | **Töréspontok, nem folyamatos nyújtás.** A folyékony rács fél oszlopokat és csúnya maradékot szül |
+| f | ⚠️ **A kosárpanelnek FELSŐ korlátja van (~520 DIP).** Egy 900 px széles kosár nem jobb, csak üres — a maradék szélesség a termékrácsé |
+| g | **A vízszintes és a függőleges töréspont FÜGGETLEN.** 1024×768 = 4:3, 1920×1080 = 16:9 — **a magasság nem nő arányosan a szélességgel** |
+
+### 7.4 Amit a széles módban NYERÜNK — és ez a lényeg
+
+**A plusz hely valódi haszna nem a nagyobb gomb, hanem a KEVESEBB FELUGRÓ:**
+
+| Szűk módban felugró | Széles módban állandóan látszik |
+|---------------------|--------------------------------|
+| Módosító-választó | **beépített oldalpanel** |
+| Asztaltérkép | **a rendelés mellett, egyszerre** |
+| Fizetési mód | **beépített sáv** |
+
+> **Ez összhangban van a U4 elvvel** *(az állapot legyen ambiens, ne felugró)*.
+> **Nagyobb kijelzőn kevesebb felugró = gyorsabb munka**, nem csak szebb kép.
+
+**De: a fizetés gomb és az összeg pozíciója töréspontok között sem mozdul
+arányosan** — mindig a jobb alsó sarokban marad *(7.f)*.
+
+
 
 **Ez szűkösebb, mint elsőre látszik.** Levonva az állapotsávot (48 px) marad
 **720 px magasság** — abba kell férnie a kosárnak, az összegnek és a fizetés
@@ -427,7 +492,8 @@ adatmodell-változás legyen belőle.
 | # | Kritérium |
 |---|-----------|
 | 1 | **Minden kritikus folyamat a 4. szakasz érintés-költségvetésén belül** |
-| 2 | **Minden gombfelirat kifér NÉMET szöveggel**, 1366×768-on és 1024×768-on |
+| 2 | **Minden gombfelirat kifér NÉMET szöveggel** — **1024×768-on tesztelve**, mert az a legszűkebb együttállás |
+| 2b | **Mindhárom töréspont ellenőrizve** (1024, 1366, 1920): a szűk **elfér**, a széles **nem ritkás** |
 | 3 | **Minden célfelület ≥ az 5. szakasz minimuma**, térközzel |
 | 4 | **Kontraszt ≥ 4.5:1** minden szövegre |
 | 5 | **Minden információ elérhető szín nélkül is** |

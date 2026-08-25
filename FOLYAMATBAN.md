@@ -186,6 +186,26 @@ nem előre, feltevésre.
 nyilvánvalóan több terméké lehet. **Nem absztrahálunk előre — csak nem építünk
 beléjük Siduri-specifikus feltételezéseket.**
 
+### 0.3.2/b `[ÚJ]` A házi stack — és mit igazol
+
+| | **Garm** | **Hermes** | **Siduri** |
+|---|---|---|---|
+| Backend | **Java Spring Boot** | Node.js | **Java Spring Boot** |
+| Adatbázis | **PostgreSQL** | **PostgreSQL** | **PostgreSQL** |
+| Windows kliens | Dart | **WPF** | **WPF** |
+| Mobil | **Dart** | **Dart** | **Dart** |
+
+> **A Siduri öt technológiai választásából NÉGY már illeszkedik a házba.**
+> Csak a **webes admin** új felület — és a JS/TS ökoszisztéma **már bent van**
+> (a Hermes web- és szerverrétege Node.js).
+
+**Két elvi következtetés:**
+
+| # | Megállapítás |
+|---|--------------|
+| a | **A ház nem „egy nyelv mindenre" elven működik, hanem FELÜLETENKÉNT VÁLASZT** — Windows desktopon Garm=Dart, Hermes=WPF; backendben Garm=Java, Hermes=Node. **A webes admin harmadik felület, harmadik igényekkel** |
+| b | ⭐ **A közös dizájn NEM igényel közös keretrendszert.** A tervezési tokenek **csak értékek** — egy közös token-fájlból a Flutter ÉS a Vue is táplálkozik. Ugyanígy az **OpenAPI-ból generált kliens Dartra és TypeScriptre is elkészül.** **Ez a Myth System szintű egység valódi hordozója** |
+
 ### 0.3.3 `[ELDÖNTVE]` A Siduri EGYBŐL a Myth System alá épül
 
 **A Garm és a Hermes élő rendszerek, és napokon belül átkerülnek a Myth System

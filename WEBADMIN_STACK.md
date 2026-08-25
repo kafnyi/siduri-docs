@@ -217,12 +217,136 @@ Kiváló TypeScript és stabilitás, **de a legnagyobb futásidejű költség** 
 
 ---
 
-## 10. Nyitott
+## 10. `[MEGVÁLASZOLVA]` A Myth System házi stackje — és mit igazol
 
-**A csapat tapasztalati szintje kifejezetten NEM szempont** — a felhasználó
-utasítása szerint a kérdés az, mi a legjobb választás.
+**A Garm és a Hermes tényleges felépítése:**
+
+| | **Garm** | **Hermes** | **Siduri (tervezett)** |
+|---|---|---|---|
+| Backend | **Java Spring Boot** | **Node.js** | **Java Spring Boot** |
+| Adatbázis | **PostgreSQL** | **PostgreSQL** | **PostgreSQL** |
+| Windows kliens | **Dart** *(Flutter desktop)* | **WPF** | **WPF** |
+| Mobil | **Dart** | **Dart** | **Dart** *(Flutter)* |
+| Web | — | **Node.js**, minimális *(videós)* |  ← **ez a kérdés** |
+
+### 10.1 `[MEGERŐSÍTÉS]` A Siduri öt választásából NÉGY már illeszkedik
+
+**Ez jó hír, és eddig nem tudtuk:**
+
+| Választás | Házi illeszkedés |
+|-----------|------------------|
+| **Java Spring Boot** backend | ✅ **Ugyanaz, mint a Garm** |
+| **PostgreSQL** | ✅ **Mindkettőnél ez van** |
+| **WPF** Windows kliens | ✅ **Ugyanaz, mint a Hermes** |
+| **Flutter / Dart** vékonykliens | ✅ **Mindkettőnél ez van** |
+| Webes admin | ← **az egyetlen új felület** |
+
+> **Vagyis nem egy idegen stacket építünk a ház mellé — a Siduri négy rétege
+> már most illeszkedik.** Ez utólagos igazolása a korábbi döntéseknek.
+
+### 10.2 `[ÚJ JELÖLT]` Flutter Web — most már komolyan felmerül
+
+**A Dart erősen jelen van a házban**, és a Siduriban **már úgyis lesz Flutter**
+*(PDA, KDS, rendeléskijelző)*. **Ez a legerősebb szervezeti érv, ami eddig
+elkerülte a figyelmemet.**
+
+| ✅ Mellette | ⛔ Ellene |
+|---|---|
+| **Nulla új nyelv** — a ház mély Dart-tudással bír | ⚠️ **CanvasKit: vászonra rajzol.** Nincs natív szövegkijelölés, gyenge akadálymentesség, nincs böngészős keresés az oldalon |
+| **Egy nyelv az egész Siduri frontendre** a POS-on kívül | ⚠️ **Nehéz első betöltés** — a futtatókörnyezet + a köteg **egy 3. gen. i3-on érezhető** |
+| **Közös widgetek, közös i18n, közös generált API-kliens** a PDA-val és a KDS-sel | ⚠️ **NAGY TÁBLÁKON GYENGE** — pont az, amiből az admin áll |
+| Web + telepíthető alkalmazás **egy kódbázisból** | ⚠️ **Nagy memórialábnyom** azon a gépen, ahol a szerver is fut |
+| A Garm bizonyítja, hogy Dart desktopon is megy | ⚠️ Nincs PrimeVue-szintű kész adatrács |
+
+### 10.3 A két érv, ami eldönti
+
+**Az 1. — a Flutter Web pont ott gyenge, ahol az admin nehéz.**
+
+> Az admin **táblákból, űrlapokból és grafikonokból** áll. Ez a **legrosszabb
+> eset** vászonra rajzoló megjelenítőnek, és **a legjobb eset** DOM-alapúnak.
+> Egy 500 tételes terméktörzs görgetése egy 3. gen. i3-on **pontosan az a
+> terhelés, amit a CanvasKit rosszul visel.**
+
+**Ellenérv, amit meg kell vizsgálni:** *„az admint csak alkalmanként használják,
+számít ez?"* — **De igen, mert nem így van.** Az ügyfélnél **naponta, a pulti
+érintőn** fogják nyitogatni gyors dolgokra *(§9.10)*, és **néha a szervergépen.**
+
+**A 2. — a közös dizájnrendszer NEM igényel közös keretrendszert.**
+
+> **A tervezési tokenek csak értékek.** Egy közös token-fájlból *(petrol, arany,
+> méretek, sugarak)* **a Flutter ÉS a Vue is táplálkozhat.** Ugyanígy: **az
+> OpenAPI-ból generált kliens Dartra ÉS TypeScriptre is elkészül.**
+>
+> **Tehát az egységes megjelenés és a közös szerződés megvan közös nyelv
+> nélkül is** — a Flutter Web valódi többlete ezzel jóval kisebb, mint elsőre látszik.
+
+### 10.4 `[ÉRV, AMI A JS-T OLCSÓBBÁ TESZI]` A JS/TS nem új a házban
+
+**A Hermes web- és szerverrétege Node.js.** Tehát:
+
+> **A JS/TS ökoszisztéma már bent van a házban.** Nem új nyelvet hozunk be,
+> csak egy keretrendszert egy olyan ökoszisztémán belül, ami már fut.
+
+**Ez érdemben gyengíti az „ötödik nyelv" ellenérvet** — ami a Flutter Web
+legerősebb támasza volt.
+
+### 10.5 `[ELVI MEGÁLLAPÍTÁS]` A ház már most elfogad felület-szerinti sokféleséget
+
+**Nézzük meg, mit csinál a Myth System valójában:**
+
+* Windows desktopon **Garm = Dart, Hermes = WPF** — **két különböző út, ugyanabban a házban**
+* Backendben **Garm = Java, Hermes = Node** — **szintén kettő**
+
+> **A ház tehát nem „egy nyelv mindenre" elven működik, hanem
+> FELÜLETENKÉNT VÁLASZT.** A webes admin egy **harmadik felület, harmadik
+> igényekkel** — egy webnatív keretrendszer választása **illeszkedik a ház
+> meglévő filozófiájába**, nem sérti azt.
+
+---
+
+## 11. `[VÉGLEGES]` A javaslat marad: Vue 3 + TypeScript + Vite
+
+**A Flutter Web komoly jelölt lett, és tisztességesen mérlegeltem — de veszít**,
+két okból:
+
+| # | Ok |
+|---|-----|
+| 1 | **Pont ott gyenge, ahol az admin nehéz** (nagy táblák), **pont azon a hardveren**, amink van *(3. gen. i3, néha a szervergép)* |
+| 2 | **A szervezeti előnye nagyrészt megszerezhető nélküle is** — közös tokenek, közös OpenAPI-kliens *(10.3)* |
+
+**És amit ezért feladunk, azt ki kell mondani:**
+
+> ⚠️ **A Siduriban két frontend nyelv lesz: Dart** *(PDA, KDS, kijelzők)* **és
+> TypeScript** *(webes admin)*, a WPF mellett. **Ez valós költség** — két
+> komponenskészlet, két fordítási lánc.
+>
+> **Azért vállalható, mert két KÜLÖNBÖZŐ felületről van szó** — érintős POS-eszköz
+> és adatsűrű asztali admin —, **amiknek amúgy sem lenne közös komponenskészletük.**
+
+**Az eldöntő mondat:**
+
+> **Egy rossz eszközválasztás teljesítményproblémáját nem lehet szorgalommal
+> megjavítani. Egy második nyelvet viszont el lehet viselni.**
+
+### 11.1 Ha valami mégis a Flutter Web felé billentené
+
+**Egy feltétel van, ami újranyitná a kérdést:**
+
+Ha az admin **mégsem** lenne táblanehéz — pl. ha a valódi adminisztráció
+teljesen átkerülne egy külön eszközre, és a webfelület **csak néhány gyors
+művelet** maradna *(ár, „elfogyott", egy termék)* — **akkor a Flutter Web
+egyértelműen nyerne**, mert a nehéz része esne ki.
+
+**Ezt érdemes az első ügyfélnél megfigyelni**, és **v2-ben újraértékelni.**
+
+---
+
+## 12. Nyitott
+
+**A csapat tapasztalati szintje kifejezetten NEM szempont** — a kérdés az, mi a
+legjobb választás.
 
 | # | Ami még nyitott |
 |---|-----------------|
-| **W1** | **A Garm és a Hermes admin felülete milyen technológián van?** Nem a tudás miatt, hanem mert **közös komponenskészlet és egységes megjelenés** a Myth System alatt valós érték. Ha az egyik már Vue, az megerősíti a javaslatot; ha React, azt mérlegelni kell |
-| **W2** | **Az adatrács végleges kiválasztása** — a PrimeVue DataTable a javaslat, de az érintésbarát sormagasság és a mi tokenjeink **kipróbálandók**, mielőtt véglegesítjük |
+| **W1** | **Az adatrács végleges kiválasztása** — a PrimeVue DataTable a javaslat, de az **érintésbarát sormagasság** és a mi tokenjeink **kipróbálandók**, mielőtt véglegesítjük |
+| **W2** | **Közös token-fájl formátuma** a Flutter és a Vue felé *(10.3)* — ez a Myth System szintű dizájn-egység valódi hordozója, nem a keretrendszer |

@@ -303,6 +303,33 @@ Részletes értékelés tételenként: `NYITOTT_KERDESEK.md`, **M) szakasz**.
 A `siduri_spec_hu.md` és a `siduri_superprompt_en.md` frissítve; az invariánslista
 30-ról **41 pontra** bővült.
 
+### 2.0.6 `[+]` Felhasználói korrekciók + a külső felülvizsgálat 2. köre (N szakasz)
+
+**Három korrekció az 1. kör tételeihez:**
+
+| # | Korrekció |
+|---|-----------|
+| **N0.1** | **Allergének: CSAK lehetőség.** Nincs kötelező kitöltés, nincs kapu, **nincs figyelmeztetés a kihagyásra** — opcionális kiegészítő funkció, amit kevesen fognak használni. Egyetlen biztonsági kikötés marad: **vagy teljes a lista, vagy nincs** (részleges lista veszélyesebb az üresnél, mert teljesnek hiszik) |
+| **N0.2** | **Kilépett dolgozó: soft delete, a napló és a korábbi adat érintetlen** — a visszaellenőrizhetőség jegyében. Jogilag is rendben: a jogi kötelezettséghez és jogi igények védelméhez szükséges adatkezelésre a törlési jog nem terjed ki |
+| **N0.3** | **18+: piktogram a tételsoron, felugró ablak SEMMIKÉPP.** Az ügyfél állítja, kéri-e, és **ő adja meg, mely termékek 18+** — az energiaital példája mutatja, hogy ez változik, és ha mi szállítanánk a listát, minden jogszabály-változásnál mi lennénk a hibásak |
+
+**A 2. kör 9 tétele — mind elfogadva, egy tárgyi tévedéssel:**
+
+| # | Tétel | Megjegyzés |
+|---|-------|-----------|
+| **N1** | **Vakzárás** — jogosultsághoz kötve | ⚠️ **Az adóügyi eszköz X-jelentése kiütné** — azt is jogosultsághoz kell kötni, különben látszatvédelem. És **a rögzítés után sem szabad visszamutatni az eltérést** |
+| **N2** | **Sztornó/törlési anomália riport** a BI-ban, valós idejű riasztás nélkül | A mérőszám **állapot és idő szerint minősítendő**: a 10 másodperc múlva törölt tétel elgépelés; a jel a **konyhára már elküldött tétel törlése fizetés előtt** |
+| **N3** | **Kasszafiók-állapotfigyelés** | `v2`. ⚠️ **Ha nincs szenzor, ne legyen bekapcsolható** — a csendben soha meg nem szólaló biztonsági funkció rosszabb a semminél |
+| **N4** | **Fogások késleltetett küldése** — **a kör legfontosabb tétele** | Valódi hiány: nálunk csak **nézet** volt fogásonként, **küldési mechanizmus nem.** A KDS lássa a visszatartott fogásokat is |
+| **N5** | **Mérleg és tára** | A mérleg szerepelt, a **tára és a folyamat nem** |
+| **N6** | **Időszakos árazás determinizmusa** | **Egy általunk nyitva hagyott kétértelműség:** az ár a **sor létrehozásának** időbélyegéhez rögzül. Határeset, amit a javaslat kihagy: a **mennyiségnövelés új sort hoz létre** |
+| **N7** | **Előleg és asztalfoglalás** | Eddig egyáltalán nem szerepelt. ⚠️ Nyitott: **milyen áfakulcson adózik az előleg** vegyes adómértékű jövőbeni fogyasztásnál |
+| **N8** | **Kiszállítás mint harmadik teljesítési mód** | ⚠️ **TÁRGYI TÉVEDÉS a javaslatban:** „automatikusan 27%-kal rögzíti". Nálunk **kulcsot nem égetünk a kódba** — a kiszállítás az **elviteli áfamezőt** használja, bármi is legyen benne |
+| **N9** | **Offline vészmentés (pendrive)** | `v2`. ⚠️ **A javaslat átugorja a lényeget: milyen KULCCSAL titkosítunk?** Ha a kulcs a tönkrement gépen van, a mentés használhatatlan. És **az ellenőrizetlen mentés nem mentés** |
+
+Részletes értékelés: `NYITOTT_KERDESEK.md`, **N) szakasz**.
+A két végleges dokumentum frissítve; az invariánslista **41-ről 49 pontra** bővült.
+
 ### 2.0.1 `[!]` A 3. munkamenetből MÉG NYITOTT tételek
 
 Ezek a 2026-08-23-i körben felmerültek, de **még nincs rájuk válasz**. Amíg
@@ -330,6 +357,8 @@ ezeken a pontokon feltételes marad.
 | **N18** | **M2.d:** milyen NTAK-besorolást kap a többcélú utalvány ELADÁSA? | **NTAK / MTÜ** |
 | **N19** | **M10.e:** a szétbontott számla az NTAK-ban egy rendelésösszesítő több fizetési móddal, vagy több rendelésösszesítő? | **NTAK / MTÜ** |
 | **N20** | **M9.d:** a borravaló adózása (borravaló vs. felszolgálási díj, készpénz vs. kártya) | **könyvelő / adótanácsadó** |
+| **N21** | **N7.d:** milyen áfakulcson adózik az előleg vegyes adómértékű jövőbeni fogyasztásnál? | **könyvelő** |
+| **N22** | **N7.c:** az előleg tényleg kimarad az NTAK-ból? | **NTAK / MTÜ** |
 | **N11** | **H3 következménye:** a 15 perces NTAK-küldés miatt a kimenő NTAK-sor tartós, felügyelt sor kell legyen, és a feldolgozási nyugtákat is le kell kérdezni (24 órán belül). Új munkatétel a fázistervben | tervezés |
 
 

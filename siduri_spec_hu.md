@@ -440,6 +440,23 @@ MUNKANAP-on belül több MŰSZAK lehet, gépenként és felhasználónként.
 * Készpénz ki- és befizetés, kassza fölözése **bizonylattal**.
 * Műszakátadás **változatlan kasszaállással** (fölözés nélkül) is lehetséges.
 * **Kassza-eltérés naplózása nyitáskor** (hiány / többlet regisztrálása).
+#### Vakzárás (blind close) `v1`
+
+**Jogosultsághoz kötött.** Akire vonatkozik, az **nem látja a
+műszakinformációkat** (bevétel, eladási statisztika, várt kasszatartalom).
+Záráskor a címletkalkulátoron **beírja a ténylegesen megszámolt készpénzt**, és a
+gép **csak a rögzítés után** naplózza az eltérést, a biztonsági auditágba, ahol
+kizárólag a vezetőség látja.
+
+**Indok:** ha a pultos záráskor látja az elvárt összeget, a többletet **eltehetiI
+úgy, hogy a gép nem mutat eltérést.**
+
+| # | Kikötés |
+|---|---------|
+| a | ⚠️ **AZ ADÓÜGYI ESZKÖZ X-JELENTÉSE KIÜTI A VAKZÁRÁST.** A pénztárgép maga is kinyomtatja a napi forgalmat — ha a pultos ezt lefuttathatja, **kiszámolja az elvárt kasszatartalmat.** Az X-jelentés futtatását **is jogosultsághoz kell kötni**; ha az adott készülék ezt nem engedi, **ki kell mondani az ügyfélnek, hogy a védelem részleges** |
+| b | **A rögzítés UTÁN sem szabad visszamutatni az eltérést.** Egy „eltérés: +5 000" visszajelzésből a pultos **megtanulta a várt számot a következő alkalomra.** A visszajelzés csak annyi lehet: „rögzítve" |
+| c | **Alapból kikapcsolva, felhasználónként bekapcsolható** — lassítja a zárást és bizalmatlanságot jelez, tehát üzleti döntés |
+
 * **Beépített címletkalkulátor** a műszakzáráshoz: szorzós számláló
   (20 000 × 4, 10 000 × 3, …) a készpénz összesítéséhez. `v1`
   **A címletbontás mentődjön el a műszakzárás rekordjában**, ne csak a végösszeg —
@@ -890,37 +907,71 @@ Három állapot: **aktív / inaktív / soft delete**.
 **Miért:** a beszerzés áfája levonható, tehát nem költség. Bruttó alapú árrés
 **21–27%-kal hamis** számot adna — és ez a rendszer legfontosabb üzleti riportja.
 
-### 12.8 Allergének `MVP`
+### 12.8 Allergének `v1` — opcionális kiegészítő funkció
 
-**Jogszabályi kötelezettség** (1169/2011/EU): a vendéglátóhelynek tájékoztatást
-kell adnia a 14 uniós allergénről, és a hatóság ezt ellenőrzi.
-
-> **Az allergén az ALAPANYAGHOZ tartozik, nem a termékhez.** Ha a 14 kódot a
-> termékre tennénk, **minden receptúra-változás csendben érvénytelenítené** a
-> listát — és az elavult allergénlista veszélyesebb, mint a hiányzó.
+**Kizárólag lehetőséget adunk. Nem kötelező, nincs kapu, és a kihagyásra
+SEMMILYEN figyelmeztetés nem jár.** Ez egy kiegészítő funkció, amit kevesen
+fognak használni, és így is kezeljük.
 
 | # | Szabály |
 |---|---------|
-| a | **Az allergént az alapanyaghoz rendeljük.** A termék allergénlistája a **receptúrából származtatott** és **ÉLŐ** — receptmódosításkor magától frissül |
-| b | **A módosítók is beleszámítanak** (extra sajt → tej). A származtatás végigveszi őket |
-| c | **Kézi felülírás lehetséges**, de **feltűnő jelzéssel** — keresztszennyeződés és készen vásárolt termék miatt kell |
-| d | **POS-on „Allergén infó" gomb** → azonnali lista; kérésre az **előnyugtára is** nyomtatható |
-| e | **Az adatok pontossága az ügyfél felelőssége** — mi a képességet adjuk |
+| a | **Az allergén az ALAPANYAGHOZ tartozik.** A termék listája a **receptúrából származtatott** és **élő** — receptmódosításkor magától frissül. A módosítók is beleszámítanak (extra sajt → tej) |
+| b | **Kézi felülírás lehetséges** — keresztszennyeződés és készen vásárolt termék miatt kell |
+| c | **POS-on „Allergén infó" gomb**, kérésre az előnyugtára is nyomtatható |
+| d | **Nincs kötelező kitöltés, nincs mentési kapu, nincs emlékeztető** |
 
-> **Ez az EGYETLEN hely, ahol az A3/A4 elv nem érvényes, és a fordítottja igaz:
-> itt ÉLŐ származtatás kell, nem másolat.** Az indok az A5 elv — a hibairányok
-> itt sem egyenértékűek, de fordítva: **egy elmaradt allergénjelzés
-> életveszélyes**, egy fölösleges csak kellemetlen.
+> **Egyetlen biztonsági kikötés, ami nem kényszer és nem kerül semmibe: vagy
+> teljes a lista, vagy nincs.** Az „Allergén infó" gomb **csak ott jelenjen meg,
+> ahol van adat**, és **részleges lista soha ne látszódjon teljesként** — egy
+> félig kitöltött lista veszélyesebb az üresnél, mert teljesnek hiszik.
 
-### 12.9 Korhatáros (18+) termékek `v1`
+*A tájékoztatási kötelezettség (1169/2011/EU) az ügyfélé, és attól nem szűnik
+meg, hogy a funkciónkat nem használja. Ezért ezt **nem szabad megfelelési
+eszközként értékesíteni** — csak kényelmi funkcióként.*
 
-Beállítható **18+ jelző**, **kategóriaszinten öröklődve, terméken felülírva**.
+### 12.9 Korhatáros (18+) termékek `v1` — emlékeztető piktogram
+
+**Felugró ablak SEMMIKÉPP.** A jelzés egy **emlékeztető piktogram a felütött
+tételek listájában**, a tételsoron — POS-on és vékonykliensen egyaránt.
 
 | # | Szabály |
 |---|---------|
-| a | **Rendelésenként EGYSZER figyelmeztet**, az első korhatáros tételnél — **nem tételenként.** Ami minden sörnél felugrik, azt elkattintják: **zaj lesz belőle, nem védelem** |
-| b | **Telephelyenként konfigurálható, üzemmódfüggő alapértékkel:** gyorseladás/pult módban alapból **be** (ott a vendég a pultnál áll), asztalkiszolgálásban alapból **ki** (ott a pincér az asztalnál már látta a vendéget) |
-| c | **Auditnaplózott** — de tisztázandó, hogy **ez nem hárít át jogi felelősséget a pultosra.** Egy naplózott gombnyomás **belső, munkáltatói bizonyíték** arról, hogy a folyamat működött; nem több |
+| a | **Az ügyfél állítja, kéri-e egyáltalán** a piktogramot |
+| b | **Az ügyfél adja meg, mely termékek 18+**, nem mi. A nyilvántartás az ő dolga: az energiaital sokáig nem volt korhoz kötve, most már az — és ez később is változhat. Ha mi szállítanánk a listát, minden jogszabály-változásnál mi lennénk a hibásak egy elavult alapértelmezésért (A3 elv) |
+| c | A jelző **kategóriaszinten öröklődhet**, terméken felülírva |
+| d | **Nem hárít át jogi felelősséget a pultosra.** Emlékeztető, nem bizonyíték |
+
+> **Miért jobb a felugró ablaknál:** a piktogram **ambiens és tartós** — ott van,
+> amíg a rendelés nyitva, nem szakítja meg a munkát, és **nem lehet
+> elkattintani.** A felugró ablak pont azért értéktelen, mert elkattintható —
+> és el is fogják.
+
+### 12.10 Időszakos árazás és az ár rögzülése `ALAP`
+
+> **Az ár a TÉTEL KOSÁRBA TÉTELÉNEK időbélyegéhez van kötve. Soha nem az asztal
+> nyitási idejéhez és soha nem a fizetés idejéhez.**
+
+Így a 17:50-kor felütött sör akciós, a 18:05-ös teljes áras — **ugyanazon a
+nyugtán**, és ez így helyes.
+
+| # | Szabály |
+|---|---------|
+| a | **Általánosítva a happy houron túl:** az ár a **sor létrehozásakor rögzül, és soha nem értékelődik újra.** Egy menet közbeni általános árváltozás sem írja át visszamenőleg a már felütött sorokat — ugyanaz az elv, mint az áfánál (A4: másolás, nem hivatkozás) |
+| b | ⚠️ **Határeset: meglévő sor MENNYISÉGÉNEK növelése.** Egy soron nem lehet kétféle ár. **A mennyiségnövelés ÚJ SORT hoz létre az aktuális áron** (vagy rákérdez) — enélkül a modell ábrázolhatatlan állapotba kerül |
+| c | Az időszakos kedvezmény az NTAK-ban **önálló tétel** (`EGYEB / KEDVEZMENY`), tehát a nyugtán is megkülönböztethető |
+
+### 12.11 Kiszállítás mint harmadik teljesítési mód `v1`
+
+A teljesítési mód **három** értéket vehet fel: **helyben fogyasztás / elvitel /
+kiszállítás.**
+
+| # | Szabály |
+|---|---------|
+| a | **A kiszállítás az ELVITELI áfamezőt használja** — bármi is legyen benne. **Kulcsot nem égetünk a kódba**, az áfa besorolása az ügyfél felelőssége (§12.2, A3 elv). *(Az 5%-os kulcs az étkezőhelyi vendéglátáshoz, azaz a helyben fogyasztáshoz kötődik; a kiszállítás nem az — de ezt az ügyfél állítja be, nem mi kényszerítjük.)* |
+| b | **A kiszállítási díj önálló sor**, `EGYEB / KISZALLITASI_DIJ` NTAK-kategóriával |
+| c | **`helybenFogyasztott = false`** az NTAK felé |
+| d | **DRS: a csomagolás biztosan a vendéggel távozik** → a visszaváltási díj terhelendő (§14.3 alapértelmezése ezt fedi) |
+| e | A külső kiszállító platformokról érkező rendelések **automatikusan kiszállítás módba** kerülnek |
 
 ---
 
@@ -1250,6 +1301,16 @@ utalvány-irányelv átültetése):
 | d | **Minden rész ÖNÁLLÓ bizonylat, saját SIDURI számmal** — a napi folyószámos séma ezt kezeli (§8.1) |
 | e | `[IGAZOLANDÓ]` Az NTAK-ban egy szétbontott számla **egy** rendelésösszesítő több fizetési móddal, vagy **több** rendelésösszesítő? A bizonylatonkénti bontás a valószínűbb |
 
+### 16.10 Előleg és asztalfoglalás `v1`
+
+| # | Elem |
+|---|------|
+| a | **Az előleg átvétele ELŐLEGSZÁMLÁT igényel** — a megfizetés napján adófizetési kötelezettség keletkezik |
+| b | **„Előleg beszámítása" FIZETÉSI MÓD** a fizetési felületen, legfeljebb a végösszeg erejéig. A maradékot normál módon fizetik, majd **VÉGSZÁMLA** készül |
+| c | `[IGAZOLANDÓ]` **Az előleg nem megy az NTAK-ba** (nincs konkrét fogyasztás); a fogyasztás napján a teljes összeg jelentendő, és az előleg fizetési mód |
+| d | ⚠️ `[KÉRDÉS a könyvelőnek]` **Milyen áfakulcson adózik az előleg**, ha vegyes adómértékű jövőbeni fogyasztásra veszik fel (5%-os étel + 27%-os ital)? Meg kell osztani, vagy a feleknek meg kell határozniuk. **Ugyanaz a probléma, mint a vegyes menünél** (§13.4) |
+| e | **Fel nem használt előleg** (nem jelennek meg) — önálló számviteli esemény. `v2` |
+
 ---
 
 ## 17. Készlet, receptúra, beszerzés
@@ -1309,6 +1370,11 @@ rendeléskorlát (§11.4) rájuk is vonatkozik.
 * **Az ügyfél maga is létrehozhat és módosíthat SZINTEKET** (pl. „Pultfőnök"), nem csak egyedi kivételeket kap.
 * **Frissítéskor érkező ÚJ jogosultság a meglévő szinteken alapból TILTOTT**, de **feltűnő jelzéssel** — hogy tudjanak róla dönteni (A2 + A5 elv).
 * Asztalonkénti jogosultságkezelés.
+* **Kilépett dolgozó: soft delete.** A felhasználó nem jelenik meg a listákban és
+  nem tud belépni, **de a napló és minden korábbi adat érintetlen marad** — pont
+  a későbbi visszaellenőrizhetőség jegyében. A név feloldható marad.
+  *(Ez jogilag is rendben van: a jogi kötelezettség teljesítéséhez és jogi
+  igények védelméhez szükséges adatkezelésre a törlési jog nem terjed ki.)*
 
 ### 18.2 A Siduri admin fiók `ALAP`
 
@@ -1530,7 +1596,21 @@ a nyilvántartás szolgálja ki a **fizetős csomagokat és licencszinteket** (�
 * NAV-engedélyes adóügyi pénztárgépek integrációja gyártói szoftveren keresztül.
 * Hagyományos bankkártya-terminálok (a SoftPOS mellett) — **ugyanaz az elv: integrálunk, nem írunk sajátot.**
 * Széleskörű **hőnyomtató (ESC/POS)** támogatás.
-* Vonalkódolvasó, RFID/NFC olvasó, mérleg.
+* Vonalkódolvasó, RFID/NFC olvasó.
+* **Mérleg és tára** `v1`: **`súlyra mért` kapcsoló a terméktörzsben**; felütéskor
+  a gép a mérlegről veszi az adatot. **„Tára" gomb** az edény/csomagolás súlyának
+  levonására. **A mérleg hitelesített kell legyen** (mérésügyi követelmény, ha a
+  mérés határozza meg a fogyasztói árat) — **az ügyfél kötelezettsége**, mi
+  jelezzük. **(B) osztályú ügyféleszköz** (§19.1). **Ha nem válaszol, kézi
+  bevitelre esünk vissza — soha nem blokkolunk** (§17.6).
+* **Kasszafiók-állapotfigyelés** `v2`: ahol a hardver mikrokapcsolója támogatja,
+  az üzletvezető engedélyezheti. ⚠️ **A szenzor gyakran nincs vagy nincs bekötve
+  — a funkciónak magától fel kell ismernie, hogy érkezik-e jel, és ha soha nem,
+  akkor NE legyen bekapcsolható.** Egy csendben soha meg nem szólaló biztonsági
+  funkció **rosszabb a semminél**, mert hamis biztonságérzetet ad (A2 elv).
+  A küszöb **konfigurálható, 2–3 perces alapértékkel** (60 másodperc kevés:
+  csúcson a fiók jogosan marad nyitva vendégek között), a jelzés **elsősorban
+  vizuális** — hangos helyen a hangjelzés értéktelen.
 
 ### 19.9 Külső API `v2`
 
@@ -1548,6 +1628,20 @@ a nyilvántartás szolgálja ki a **fizetős csomagokat és licencszinteket** (�
 * **Az ár nélküli módosító szövegsor a termék alatt**, nem tétel.
 * **A menü fejléc-szövegsorként jelenik meg, alatta a komponensek** (§13.4).
 * **A fiskális nyugta magyar** — jogszabályi kötöttség (§25).
+
+### 20.1 Fogások késleltetett küldése `MVP`
+
+Ha a vendég egyszerre rendel levest, főételt és desszertet, és mindhárom
+egyszerre megy a konyhára, **a főétel kihűl, mire a leves elfogy.**
+
+| # | Szabály |
+|---|---------|
+| a | **Fogás-címke a tételsoron** (1., 2., 3. fogás vagy előétel/főétel/desszert) |
+| b | **Küldéskor csak az aktuális fogás megy** a KDS-re/nyomtatóra |
+| c | **„Következő fogás indítása" gomb** — POS-on **és** vékonykliensen |
+| d | **A KDS lássa a VISSZATARTOTT fogásokat is**, elkülönítve („jön, de még ne kezdd") — különben a konyha nem tud előre tervezni |
+| e | **Opcionális automatikus indítás:** a következő fogás magától elindul N perccel azután, hogy az előzőt késznek jelölték. **Alapból kikapcsolva** |
+| f | **Nem kivétel a §13.1 nyomtatási szabálya alól:** a fogás-állapot a **továbbítást** kapuzza, nem a módosító-szabályt. Ha egy fogás elmegy, **minden módosítója vele megy** |
 
 ---
 
@@ -1767,6 +1861,29 @@ okoz, csúcsidőben, feleslegesen.
 | b | **Nem elég a nevet átírni.** Ki kell terjednie a **telefonszámra, e-mailre, címre, hűségkártya-számra**, és — a legkockázatosabb — a **szabad szöveges megjegyzésekre.** Oda írja a személyzet, hogy „a piros autós fickó", ami önmagában újraazonosít |
 | c | **A BIZONYLATOKAT nem érintheti.** A számla nevet és címet hordoz, és **8 évig kötelezően megőrzendő** — **a törlési jog nem írja felül a jogszabályi megőrzési kötelezettséget.** A törlés a **CRM-profilra** vonatkozik, nem a számviteli bizonylatra |
 
+### 24.8 Offline vészmentés (pendrive) `v2`
+
+**A forgatókönyv:** több napig internet nélkül működő telephelyen (fesztivál,
+rossz lefedettség, hosszabb szolgáltatáskiesés) a felhőmentés áll. Ha ekkor
+fizikailag tönkremegy a fő szerver SSD-je, **a köztes napok adata elvész.**
+
+> **A célcsoport szűkebb, mint elsőre látszik: ha VAN tartalék szerver, az
+> SSD-hiba már fedve van** (replika). A pendrive pontosan ott számít, ahol
+> **nincs tartalék szerver ÉS napokig nincs internet** — vagyis az egygépes,
+> kisméretű telepítéseknél. **Érdekes következmény: a legolcsóbb szintnek van rá
+> a legnagyobb szüksége.**
+
+**Menete:** ha a gépben van egy dedikált pendrive (azonosító kulcsfájllal),
+a rendszer napzáráskor **titkosított adatbázis-dumpot** ír rá.
+
+| # | Kikötés |
+|---|---------|
+| a | ⚠️ **MILYEN KULCCSAL titkosítunk?** Ha a kulcs azon a gépen van, ami tönkrement, **a mentés használhatatlan.** A kulcsnak **nálunk kell lennie** (felhőben letétbe helyezve) vagy a telephely licenc-hitelesítőjéből származtathatónak. **Ez a funkció lényege** |
+| b | ⚠️ **A gépben hagyott pendrive maga is fizikai kockázat** — a teljes adatbázis, őrizetlenül, egy közönség előtt álló gépben (§24.1). **Ezért a titkosítás nem opció, hanem a funkció feltétele** |
+| c | ⚠️ **Az ellenőrizetlen mentés nem mentés.** Az olcsó pendrive-ok csendben hibáznak: **vissza kell olvasni, ellenőrzőösszeget képezni, és az eredményt jelenteni** — különben hamis biztonságérzetet adunk (A2 elv) |
+| d | **Napzárás + állítható időköz** — egy 4 napos fesztiválon a napi egy mentés akár egy teljes napot veszíthet. `[MÉRENDŐ]` a dump ideje J1900-on |
+| e | **A visszatöltési utat is tesztelni kell**, nem csak a mentést. A nem tesztelt visszaállítás mítosz |
+
 ---
 
 ## 25. Nyelvek és lokalizáció
@@ -1806,6 +1923,15 @@ fejlesztési nem.
 * **Elviteles arány költsége** — mennyibe kerül a tulajdonosnak a takeaway (§12.3).
 * **DRS a forgalmi számokból KIVÉVE** — átfutó tétel, nem árbevétel (§14.4/e).
 * **Integráció nélkül keletkezett forgalom** — külön riport (§19.5/c).
+* **Sztornó- és törlési anomália riport** `v1`: dedikált mutató a felhős BI-ban,
+  **utólagos elemzésre — valós idejű riasztás NINCS**, mert az téves
+  gyanúsítgatást szülne.
+
+  | # | A mérőszám helyes definíciója |
+  |---|------------------------------|
+  | a | **Nem a nyers törlésszám a jel, hanem az ARÁNY** — a saját forgalmához és az **összehasonlítható műszakot dolgozó társakhoz** viszonyítva. Egy pénteki csúcsműszak abszolút értékben mindig több törlést hoz |
+  | b | ⚠️ **Állapot és idő szerint minősítve.** A felütés után 10 másodperccel törölt tétel **elgépelés**. A visszaélés mintája szűkebb: **a konyhára MÁR ELKÜLDÖTT tétel törlése, FIZETÉS ELŐTT.** Mindent egy kalap alá véve a mutató használhatatlan |
+  | c | **Kombinált nézet:** magas törlési arány **ÉS** sok „nem fizetett" lezárás **ÉS** sok küszöb feletti kedvezmény **ugyanattól a személytől** — ez a jel. Egy közös „figyelemfelhívó" nézet többet ér három külön grafikonnál |
 * **Asztaltörténet és felhasználó-történet** — kurált, vizuális nézetek a működési auditágból (§18.4).
 * Franchise/lánc szinten: egy üzletre, több kiválasztottra, a teljes csoportra (§22.3).
 
@@ -1980,3 +2106,11 @@ Gyors összefoglaló. Ezek megsértése **hiba, nem kompromisszum.**
 | I39 | A replikációs slot WAL-felhalmozódása lemez alapon korlátozott, és a korlát elérése hangos |
 | I40 | A szerepet vivő gépen az automatikus Windows-újraindítás tiltott, és ezt ellenőrizzük |
 | I41 | A GDPR-törlés a CRM-profilt érinti; a számviteli bizonylatot soha |
+| I42 | Az ár a sor létrehozásakor rögzül, és soha nem értékelődik újra; a mennyiségnövelés új sort hoz létre |
+| I43 | A kiszállítás az elviteli áfamezőt használja; áfakulcsot soha nem égetünk a kódba |
+| I44 | Vakzárásnál a rögzítés után sem mutatjuk vissza az eltérést |
+| I45 | Az allergénfunkció opcionális, de részleges lista soha nem látszódhat teljesként |
+| I46 | A 18+ jelzés piktogram a tételsoron, soha nem felugró ablak |
+| I47 | Kilépett dolgozó soft delete; a napló és a korábbi adat érintetlen marad |
+| I48 | Offline vészmentésnél a titkosító kulcs soha nem csak a mentett gépen él, és a mentést vissza kell olvasni |
+| I49 | Egy biztonsági funkció, ami csendben nem működik (hiányzó szenzor, ellenőrizetlen mentés), tiltott — hamis biztonságérzetet ad |

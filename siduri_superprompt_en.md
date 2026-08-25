@@ -442,6 +442,23 @@ machine and per user.
 * Cash in/out and skimming **with a document**.
 * Shift handover **with unchanged drawer balance** (no skimming) is allowed.
 * **Drawer discrepancy logged at open** (shortage / surplus registered).
+### Blind close `v1`
+
+**Permission-gated.** A user it applies to **cannot see shift information**
+(turnover, sales statistics, expected drawer contents). At close they enter the
+**actually counted cash** on the denomination calculator, and the system logs the
+discrepancy **only after entry**, into the security audit stream, visible to
+management only.
+
+**Rationale:** if the cashier sees the expected amount at close, they can **pocket
+the surplus without the system showing any discrepancy.**
+
+| # | Constraint |
+|---|-----------|
+| a | ⚠️ **THE FISCAL DEVICE'S X-REPORT DEFEATS BLIND CLOSE.** The cash register itself prints the day's turnover — if the cashier can run it, they **compute the expected drawer contents.** Running the X-report **must also be permission-gated**; if the device does not allow that, **the customer must be told the protection is partial** |
+| b | **The discrepancy must not be shown back even AFTER entry.** A "discrepancy: +5 000" message teaches the cashier the expected number for next time. The only feedback allowed is "recorded" |
+| c | **Off by default, enabled per user** — it slows the close and signals distrust, so it is a business decision |
+
 * **Built-in denomination calculator** for shift close: a multiplying counter
   (20 000 × 4, 10 000 × 3, …) for totalling cash. `v1`
   **Store the denomination breakdown in the shift-close record**, not just the
@@ -882,38 +899,70 @@ Three states: **active / inactive / soft-deleted**.
 **Why:** purchase VAT is deductible, therefore not a cost. Gross-based margin
 would be **21–27% wrong** — and margin is the system's most important business report.
 
-## 12.8 Allergens `MVP`
+## 12.8 Allergens `v1` — optional supplementary feature
 
-**A statutory obligation** (EU 1169/2011): the venue must inform guests about the
-14 EU allergens, and this is actively inspected.
-
-> **An allergen belongs to the INGREDIENT, not to the product.** Putting 14 codes
-> on the product would mean **every recipe change silently invalidates** the list
-> — and a stale allergen list is more dangerous than a missing one.
+**We provide the capability only. It is NOT mandatory, there is no gate, and
+omission triggers NO warning whatsoever.** This is a supplementary feature that
+few will use, and it is treated as such.
 
 | # | Rule |
 |---|------|
-| a | **Allergens are assigned to ingredients.** A product's allergen list is **derived from the recipe** and is **LIVE** — it updates itself when the recipe changes |
-| b | **Modifiers count too** (extra cheese → milk). Derivation walks them |
-| c | **Manual override is possible**, but with a **prominent marker** — needed for cross-contamination and bought-in prepared items |
-| d | **An "Allergen info" button on the POS** → instant list; printable on the proforma on request |
-| e | **Accuracy is the customer's responsibility** — we provide the capability |
+| a | **An allergen belongs to the INGREDIENT.** A product's list is **derived from the recipe** and is **live** — it updates itself when the recipe changes. Modifiers count too (extra cheese → milk) |
+| b | **Manual override is possible** — needed for cross-contamination and bought-in prepared items |
+| c | **An "Allergen info" button on the POS**, printable on the proforma on request |
+| d | **No mandatory entry, no save gate, no reminder** |
 
-> **This is the ONE place where principles A3/A4 do NOT apply and the inverse
-> holds: here a LIVE derivation is required, not a copy.** The reason is
-> principle A5 — the error directions are unequal here too, but the other way
-> round: **a missed allergen warning can kill someone**, a superfluous one is
-> merely inconvenient.
+> **One safety constraint that is neither coercion nor cost: either the list is
+> complete or there is none.** The "Allergen info" button appears **only where
+> data exists**, and **a partial list must never be shown as if complete** — a
+> half-filled list is more dangerous than an empty one, because it is believed.
 
-## 12.9 Age-restricted (18+) products `v1`
+*The information obligation (EU 1169/2011) rests with the customer and does not
+disappear because they do not use our feature. Therefore this must **not be sold
+as a compliance tool** — only as a convenience feature.*
 
-A configurable **18+ flag**, **inherited at category level, overridable per product**.
+## 12.9 Age-restricted (18+) products `v1` — reminder pictogram
+
+**Never a pop-up.** The indication is a **reminder pictogram in the entered-items
+list**, on the line — on both POS and thin client.
 
 | # | Rule |
 |---|------|
-| a | **Warns ONCE PER ORDER**, on the first age-restricted line — **not per line.** A prompt that fires on every beer gets clicked through: **it becomes noise, not protection** |
-| b | **Configurable per site, with a mode-dependent default:** ON by default in quick-sale/bar mode (the guest is at the counter), **OFF by default in table service** (the waiter already saw the guest at the table) |
-| c | **Audited** — but be clear that **this does not transfer legal liability to the cashier.** A logged click is **internal employer evidence** that the process ran; nothing more |
+| a | **The customer decides whether they want the pictogram at all** |
+| b | **The customer decides which products are 18+, not us.** Maintaining that list is their job: energy drinks were long unrestricted and now are restricted, and this may change again. If we shipped the list, every legislative change would make us to blame for a stale default (principle A3) |
+| c | The flag **may inherit at category level**, overridable per product |
+| d | **It does not transfer legal liability to the cashier.** A reminder, not evidence |
+
+> **Why this beats a pop-up:** the pictogram is **ambient and persistent** — it
+> stays while the order is open, does not interrupt work, and **cannot be
+> clicked away.** A pop-up is worthless precisely because it can be dismissed —
+> and it will be.
+
+## 12.10 Time-based pricing and price fixing `BASE`
+
+> **The price is bound to the timestamp of ADDING THE LINE TO THE BASKET. Never
+> to the table-open time, and never to the payment time.**
+
+So a beer entered at 17:50 is at the happy-hour price and one at 18:05 is at full
+price — **on the same receipt**, and that is correct.
+
+| # | Rule |
+|---|------|
+| a | **Generalised beyond happy hour:** the price **fixes when the line is created and is never re-evaluated.** A general price change mid-service does not retroactively rewrite already-entered lines — the same principle as VAT (A4: copy, not reference) |
+| b | ⚠️ **Edge case: increasing the QUANTITY of an existing line.** One line cannot carry two prices. **Increasing quantity creates a NEW line at the current price** (or asks) — otherwise the model enters an unrepresentable state |
+| c | The time-based discount is a **standalone NTAK line item** (`EGYEB / KEDVEZMENY`), so it is distinguishable on the receipt |
+
+## 12.11 Delivery as a third fulfilment mode `v1`
+
+The fulfilment mode takes **three** values: **on-premises / takeaway / delivery.**
+
+| # | Rule |
+|---|------|
+| a | **Delivery uses the TAKEAWAY VAT field** — whatever it contains. **We never hard-code a rate**; VAT classification is the customer's responsibility (§12.2, principle A3). *(The 5% rate attaches to on-premises catering, which delivery is not — but the customer sets that, we do not force it.)* |
+| b | **The delivery fee is its own line**, with NTAK category `EGYEB / KISZALLITASI_DIJ` |
+| c | **`helybenFogyasztott = false`** toward NTAK |
+| d | **DRS: the packaging definitely leaves with the guest** → the deposit is charged (covered by the default in §14.3) |
+| e | Orders arriving from external delivery platforms **enter delivery mode automatically** |
 
 ---
 
@@ -1242,6 +1291,16 @@ implementing the EU voucher directive):
 | d | **Each part is its OWN document with its own SIDURI number** — the daily-sequence scheme handles this (§8.1) |
 | e | `[UNVERIFIED]` In NTAK, is a split bill **one** order summary with several payment methods, or **several** order summaries? Per-document splitting is more likely |
 
+## 16.10 Deposits and table reservations `v1`
+
+| # | Item |
+|---|------|
+| a | **Taking a deposit requires an ADVANCE INVOICE** — a tax point arises on the day of payment |
+| b | **"Apply deposit" is a PAYMENT METHOD** on the payment surface, up to the grand total. The remainder is paid normally, then a **FINAL INVOICE** is issued |
+| c | `[UNVERIFIED]` **The deposit does not go to NTAK** (no actual consumption); on the day of consumption the full amount is reported and the deposit is a payment method |
+| d | ⚠️ `[QUESTION for the accountant]` **At what VAT rate is the deposit taxed** when it is taken against future mixed-rate consumption (5% food + 27% drinks)? It must be apportioned, or the parties must specify. **The same problem as the mixed menu** (§13.4) |
+| e | **Unclaimed deposits** (they never show up) — a separate accounting event. `v2` |
+
 ---
 
 # 17. Stock, recipes, purchasing
@@ -1301,6 +1360,12 @@ is only `NORMAL / SZTORNO / HELYESBITO`. If they turn out to be reportable, the
 * **The customer can create and modify permission LEVELS** (e.g. "Head Bartender"), not just per-user exceptions.
 * **A NEW permission arriving with an update is DENIED by default on existing levels**, but with a **prominent notification** so they can decide (principles A2 + A5).
 * Per-table permission handling.
+* **Departing employee: soft delete.** The user disappears from lists and cannot
+  log in, **but the audit log and all prior data remain untouched** — precisely
+  for later verifiability. The name stays resolvable.
+  *(This is also legally sound: the right to erasure does not extend to
+  processing necessary for compliance with a legal obligation or for the
+  establishment and defence of legal claims.)*
 
 ## 18.2 The Siduri admin account `BASE`
 
@@ -1522,7 +1587,22 @@ the same registry drives **paid tiers and licence levels** (§2.1).
 * NAV-approved fiscal cash registers via vendor software.
 * Conventional card terminals (alongside SoftPOS) — **same principle: integrate, never write our own.**
 * Broad **thermal printer (ESC/POS)** support.
-* Barcode scanner, RFID/NFC reader, scale.
+* Barcode scanner, RFID/NFC reader.
+* **Scale and tare** `v1`: a **`sold by weight` flag in the product master**; on
+  entry the system reads the scale. A **"Tare" button** deducts the container's
+  weight. **The scale must be a verified (metrologically approved) instrument**
+  where the measurement determines the consumer price — **the customer's
+  obligation**, which we flag. **A class (B) customer device** (§19.1).
+  **If it does not respond, fall back to manual entry — never block** (§17.6).
+* **Cash drawer state monitoring** `v2`: where the hardware microswitch supports
+  it, the site manager may enable it. ⚠️ **The sensor is often absent or not
+  wired — the feature must detect for itself whether any signal arrives, and if
+  none ever does, it must NOT be enableable.** A security feature that silently
+  never fires is **worse than nothing**, because it creates false confidence
+  (principle A2). The threshold is **configurable with a 2–3 minute default**
+  (60 seconds is too short: during a rush the drawer legitimately stays open
+  between customers), and the alert is **primarily visual** — audio is worthless
+  in a loud venue.
 
 ## 19.9 External API `v2`
 
@@ -1540,6 +1620,20 @@ the same registry drives **paid tiers and licence levels** (§2.1).
 * **Unpriced modifiers are text lines under the product**, not line items.
 * **A menu appears as a header text line with its components beneath** (§13.4).
 * **The fiscal receipt is in Hungarian** — a statutory constraint (§25).
+
+## 20.1 Course firing `MVP`
+
+If the guest orders soup, a main and a dessert together and all three go to the
+kitchen at once, **the main goes cold before the soup is finished.**
+
+| # | Rule |
+|---|------|
+| a | **A course label on the line** (course 1, 2, 3, or starter/main/dessert) |
+| b | **On send, only the current course goes** to the KDS/printer |
+| c | **A "fire next course" action** — on both POS and thin client |
+| d | **The KDS must also see HELD courses**, distinctly ("coming, but do not start") — otherwise the kitchen cannot plan ahead |
+| e | **Optional auto-fire:** the next course fires N minutes after the previous was marked ready. **Off by default** |
+| f | **Not an exception to the §13.1 printing rule:** course state gates **dispatch**, not the modifier rule. When a course is fired, **all its modifiers go with it** |
 
 ---
 
@@ -1758,6 +1852,29 @@ decision**, at peak, for no reason at all.
 | b | **Renaming is not enough.** It must cover **phone number, email, address, loyalty card number**, and — the riskiest — **free-text notes.** That is where staff write "the guy with the red car", which re-identifies on its own |
 | c | **It must NOT touch DOCUMENTS.** An invoice carries name and address and is **retained for 8 years by law** — **the right to erasure does not override a statutory retention obligation.** Erasure applies to the **CRM profile**, not to accounting documents |
 
+## 24.8 Offline emergency backup (USB stick) `v2`
+
+**Scenario:** at a site running for days without internet (festival, poor
+coverage, extended outage) cloud backup is stalled. If the main server's SSD then
+fails physically, **the intervening days' data is lost.**
+
+> **The target group is narrower than it first appears: if a BACKUP SERVER
+> exists, SSD failure is already covered** (replica). The USB stick matters
+> exactly where there is **no backup server AND no internet for days** — i.e.
+> single-machine, small installations. **An interesting consequence: the cheapest
+> tier needs it most.**
+
+**Mechanism:** when a dedicated USB stick is present (identified by a key file),
+the system writes an **encrypted database dump** to it at day close.
+
+| # | Constraint |
+|---|-----------|
+| a | ⚠️ **ENCRYPTED WITH WHAT KEY?** If the key lives on the machine that died, **the backup is useless.** The key must be **held by us** (escrowed in the cloud) or derivable from the site's licence credential. **This is the crux of the feature** |
+| b | ⚠️ **A USB stick left in the machine is itself a physical risk** — the entire database, unattended, in a public-facing machine (§24.1). **Encryption is therefore not optional but a precondition** |
+| c | ⚠️ **An unverified backup is not a backup.** Cheap USB sticks fail silently: **read back, checksum, and report the result** — otherwise we create false confidence (principle A2) |
+| d | **Day close + a configurable interval** — one dump per day can lose a full day at a 4-day festival. `[MEASURE]` the dump duration on J1900 |
+| e | **The restore path must be tested too**, not just the dump. An untested restore is a myth |
+
 ---
 
 # 25. Languages and localisation
@@ -1797,6 +1914,15 @@ not development cost.
 * **Cost of the takeaway share** — what takeaway costs the owner (§12.3).
 * **DRS EXCLUDED from turnover figures** — a pass-through item, not revenue (§14.4/e).
 * **Turnover generated while an integration was disabled** — a dedicated report (§19.5/c).
+* **Void and deletion anomaly report** `v1`: a dedicated metric in the cloud BI,
+  for **retrospective analysis — there is NO real-time alerting**, which would
+  produce false accusations.
+
+  | # | The correct metric definition |
+  |---|------------------------------|
+  | a | **The signal is the RATIO, not the raw count** — relative to the person's own volume and to **peers working comparable shifts**. A Friday peak shift always produces more voids in absolute terms |
+  | b | ⚠️ **Qualified by state and time.** A line voided 10 seconds after entry is a **typo**. The abuse pattern is narrower: **voiding a line ALREADY SENT to the kitchen, BEFORE payment.** Lumping all voids together makes the metric useless |
+  | c | **Combined view:** a high void ratio **AND** many "unpaid" closes **AND** many above-threshold discounts **from the same person** — that is the signal. One combined "attention" view beats three separate charts |
 * **Table history and user history** — curated visual views from the operational audit stream (§18.4).
 * Franchise/chain level: one site, several selected, whole group (§22.3).
 
@@ -1970,3 +2096,11 @@ For quick machine reference. Violating any of these is a defect, not a trade-off
 | I39 | Replication-slot WAL retention is disk-capped, and reaching the cap is loud |
 | I40 | Automatic Windows restarts are disabled on role-carrying machines, and this is verified |
 | I41 | GDPR erasure touches the CRM profile; never an accounting document |
+| I42 | A price fixes when the line is created and is never re-evaluated; increasing quantity creates a new line |
+| I43 | Delivery uses the takeaway VAT field; a VAT rate is never hard-coded |
+| I44 | Under blind close, the discrepancy is never shown back, not even after entry |
+| I45 | The allergen feature is optional, but a partial list must never appear complete |
+| I46 | The 18+ indication is a pictogram on the line, never a pop-up |
+| I47 | A departing employee is soft-deleted; the audit log and prior data stay untouched |
+| I48 | In offline emergency backup the encryption key never lives only on the backed-up machine, and the dump is read back and verified |
+| I49 | A security feature that silently does not work (missing sensor, unverified backup) is forbidden — it creates false confidence |

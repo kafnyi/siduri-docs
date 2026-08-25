@@ -69,7 +69,12 @@ jelent, ami itt épp a rossz irány.*
 
 ## 4. `[ÚJRAÉRTÉKELVE]` Két dolog megváltozott a korábbi javaslat óta
 
-### 4.1 Új információ: az admint az i3-as ÉRINTŐN is használják
+### 4.1 ~~Új információ: az admint az i3-as ÉRINTŐN is használják~~ `[MEGDŐLT — lásd §13]`
+
+> ⚠️ **Ez a szakasz téves feltevésen alapul, és a §13 megdönti.** Az admint
+> túlnyomórészt **saját laptopról, a felhőből** használják; a pulti gépen csak
+> a helyi beállításokat. Az alábbi okfejtés **csak az offline tartalék esetére**
+> marad érvényes. Meghagyva, mert a tévedés maga is információ.
 
 **Az első ügyfélnél nincs irodai gép** — minden gép 1024×768-as érintőképernyős
 POS *(HARDVER_MINIMUM §9.10)*.
@@ -267,9 +272,13 @@ elkerülte a figyelmemet.**
 > Egy 500 tételes terméktörzs görgetése egy 3. gen. i3-on **pontosan az a
 > terhelés, amit a CanvasKit rosszul visel.**
 
-**Ellenérv, amit meg kell vizsgálni:** *„az admint csak alkalmanként használják,
+~~**Ellenérv, amit meg kell vizsgálni:** *„az admint csak alkalmanként használják,
 számít ez?"* — **De igen, mert nem így van.** Az ügyfélnél **naponta, a pulti
-érintőn** fogják nyitogatni gyors dolgokra *(§9.10)*, és **néha a szervergépen.**
+érintőn** fogják nyitogatni gyors dolgokra *(§9.10)*, és **néha a szervergépen.**~~
+
+> ⚠️ **Ez az ellenérv-cáfolat HAMIS volt — lásd §13.1.** Az admint laptopról,
+> a felhőből használják. **Az 1. érv ezzel nagyrészt elesik**; a döntést a
+> §13.2 öt böngésző-natív tulajdonsága viszi tovább. **A 2. érv változatlanul áll.**
 
 **A 2. — a közös dizájnrendszer NEM igényel közös keretrendszert.**
 
@@ -328,7 +337,7 @@ két okból:
 > **Egy rossz eszközválasztás teljesítményproblémáját nem lehet szorgalommal
 > megjavítani. Egy második nyelvet viszont el lehet viselni.**
 
-### 11.1 Ha valami mégis a Flutter Web felé billentené
+### 11.1 ~~Ha valami mégis a Flutter Web felé billentené~~ `[VISSZAVONVA — §13.3]`
 
 **Egy feltétel van, ami újranyitná a kérdést:**
 
@@ -350,3 +359,108 @@ legjobb választás.
 |---|-----------------|
 | **W1** | **Az adatrács végleges kiválasztása** — a PrimeVue DataTable a javaslat, de az **érintésbarát sormagasság** és a mi tokenjeink **kipróbálandók**, mielőtt véglegesítjük |
 | **W2** | **Közös token-fájl formátuma** a Flutter és a Vue felé *(10.3)* — ez a Myth System szintű dizájn-egység valódi hordozója, nem a keretrendszer |
+
+---
+
+## 13. `[ÖNHELYESBÍTÉS — AZ ÉRVEM MEGDŐLT]` Az admint laptopról, a felhőből használják
+
+**Új információ a felhasználótól (2026-08-25):**
+
+> „A legtöbben valószínűleg egy saját laptopról fogják a webes felületen
+> használni az admin oldalt, amit meg a felhő lát majd el. A kliensen használat
+> ritka lesz, ott inkább csak a helyi beállításokat fogják nyomkodni."
+
+### 13.1 Mit dönt ez meg — pontosan
+
+**A §4.1 és a §10.3 első érvének a magja hamis volt.**
+
+A §10.3-ban a Flutter Webet elsősorban azzal buktattam meg, hogy a CanvasKit
+vászonra rajzol, és ez **pont a mi gyenge vasunkon, pont a táblanehéz admin
+képernyőkön** fáj. Amikor felmerült az ellenérv, hogy „az admint úgyis csak
+ritkán nyitják meg", azt **azzal ütöttem el, hogy naponta megnyitják a pulti
+érintőképernyőn.**
+
+**Ez nem így van.** Az admin elsődleges helye a **saját laptop**, és a
+kiszolgálója a **felhő**. A pulti gépen a rendszeres használat a **helyi
+beállítások**, ami nem táblanehéz.
+
+**Ezt nem szépítem: nem gyengült az érvem, hanem megszűnt.** A „gyenge vas +
+nagy tábla" együttállás, amire épült, az esetek túlnyomó részében nem áll fenn.
+
+### 13.2 Újrafuttatva a döntés, a helyes tényekkel
+
+Ami ezzel a **Flutter Web javára** változott:
+
+| # | Változás |
+|---|----------|
+| a | **A teljesítményérv nagyrészt elesik.** Egy laptop nem egy 3. generációs i3-as pultgép; a CanvasKit ott elbírja a táblát |
+| b | **A helyi felület kicsi lett** — a beállítások néhány űrlap, nem adatrács. A CanvasKit gyenge oldala itt alig érintett |
+
+Ami viszont **ugyanezzel a lépéssel a Vue javára erősödött** — és ezt korábban
+alulsúlyoztam:
+
+| # | Tulajdonság | Miért számít MOST jobban |
+|---|-------------|--------------------------|
+| 1 | **Szövegkijelölés és másolás** | Az admin átkerült egy **irodai** felületre. A tulajdonos és a **könyvelő** ki fogja jelölni a számokat, és **be fogja illeszteni Excelbe.** A CanvasKit vászonra rajzol: a kijelölés ott legjobb esetben is utánzat |
+| 2 | **Ctrl+F, a böngésző saját keresése** | Egy 400 soros terméklistában ez az első reflex. Vásznon **nem működik** — nem lassan, hanem sehogy |
+| 3 | **Nyomtatás és PDF** | Kimutatást nyomtatnak. A vászon-alapú oldal nyomtatása rossz, és nem javítható ki |
+| 4 | **Jelszókezelő, könyvjelző, új lap, vissza gomb** | Saját laptopon a felhasználó **a böngészőjét használja**, nem a mi alkalmazásunkat. A jelszókezelő vászon-beviteli mezőt nem tölt ki. Két lapon összehasonlítani két kimutatást természetes igény |
+| 5 | **Első betöltés mérete** | A felhőből, **interneten** érkezik, nem LAN-ról. A CanvasKit futásideje másfél–két megabájt az alkalmazás előtt; egy Vite-os csomag ennek töredéke |
+
+### 13.3 `[VÁLTOZATLAN KÖVETKEZTETÉS, ÚJ INDOKLÁSSAL]`
+
+**A javaslat marad a Vue 3 + TypeScript + Vite — de nem azért, amiért eddig.**
+
+> **Az admin nem „egy kezelőpanel a mi vasunkon" lett, hanem egy irodai
+> webalkalmazás valaki más laptopján.** Az irodai webalkalmazásnál pedig a
+> böngésző natív viselkedése — kijelölés, másolás, keresés, nyomtatás,
+> könyvjelző, jelszókezelő — **nem részletkérdés, hanem maga a termék.**
+
+**Ez a korábbinál erősebb indoklás**, mert nem egy mérésre váró
+teljesítménysejtésen áll, hanem öt olyan tulajdonságon, ami a Flutter Webben
+**szerkezetileg** hiányzik, nem hangolással.
+
+**A §11.1-ben rögzített újranyitási feltételt ezzel visszavonom.** Az ott
+megnevezett eset — „ha az admin mégsem lenne táblanehéz, a Flutter Web
+egyértelműen nyerne" — **részben bekövetkezett**, és **mégsem billenti át**,
+mert a döntés súlypontja közben átkerült a teljesítményről a böngésző-natív
+viselkedésre. Ha ezt akkor tudom, a §11.1-et eleve nem így fogalmazom meg.
+
+### 13.4 `[TERVEZÉSI KÖVETKEZMÉNY]` A funkciók megoszlása a két kiszolgálás között
+
+A §22.2 („egy admin alkalmazás, két helyről kiszolgálva") **áll**, de a
+laptop-elsőség után **meg kell húzni benne egy vonalat**, amit eddig nem
+húztunk meg:
+
+| Funkciócsoport | Hol él | Miért |
+|----------------|--------|-------|
+| **Törzsadat, receptúra, kimutatás, jogosultság** | **Ugyanaz a kód, két helyről kiszolgálva** — normál esetben a felhőből, offline a telephelyi szerverről | Ezek **mindkét helyen léteznek**, tehát fennáll a néma szétcsúszás veszélye. Ez ellen csak a közös kód véd |
+| **Helyi beállítás** — eszközszerep, nyomtató-átirányítás, adóügyi eszköz párosítása, integráció ideiglenes tiltása | **Kizárólag a telephelyi szerverről** | Ezeknek a felhőben **nincs párja**, tehát nincs mitől szétcsúszniuk. És **működniük kell akkor is, amikor nincs internet** — épp ilyenkor van rájuk szükség |
+
+**Következmény az M14 mérésre:** a telephelyi szerver **nem a napi
+adminisztrációt szolgálja ki**, hanem a helyi beállításokat és az offline
+tartalékot. **Az M14 terhelési feltevését ennek megfelelően lejjebb kell
+venni** — de a mérést nem törölni, mert az offline eset továbbra is valós.
+
+### 13.5 `[ÚJ KOCKÁZAT]` A felhő üzemeltetési kritikussá vált
+
+Eddig a felhő szerepe **licenc, archívum, statisztika, NTAK-tartalék** volt —
+vagyis a napi kereskedés **nem függött tőle**.
+
+**A laptop-elsőségű adminnal a felhő bekerül a napi munkába:** az árat, a
+menüt, az új terméket ott viszik fel. **Ha a felhő áll, a törzsadat-karbantartás
+áll.** Az eladás nem — az továbbra is telephelyi —, de a kettő nem ugyanaz.
+
+**Ez nem érv a döntés ellen**, hanem egy **rendelkezésre állási követelmény**,
+amit ki kell mondani, mielőtt ígéretet teszünk rá.
+
+---
+
+## 14. Nyitott — bővítve
+
+| # | Ami még nyitott |
+|---|-----------------|
+| **W1** | Az adatrács végleges kiválasztása — PrimeVue DataTable, érintésbarát sormagassággal, a mi tokenjeinkkel, **kipróbálás után** |
+| **W2** | A közös token-fájl formátuma a Flutter és a Vue felé |
+| **W3** | **`[ÚJ]` Törzsadat-szerkesztés offline telephely mellett.** A tulajdonos otthon, laptopról árat ír át a felhőben, miközben az étterem internete áll. **Melyik az igazság forrása, és mi történik ütközésnél?** Ez a laptop-elsőségből következik, és **el kell dönteni, mielőtt a szinkron megépül** |
+| **W4** | **`[ÚJ]` A felhő rendelkezésre állási vállalása** a törzsadat-karbantartásra *(13.5)* |

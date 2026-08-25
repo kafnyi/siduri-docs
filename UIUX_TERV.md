@@ -151,56 +151,121 @@ az ujj nem tud „túlmenni" rajta.
 
 ---
 
-## 7. Elrendezés-költségvetés (1366×768)
+## 7. Elrendezés-költségvetés — **1024×768 a TERVEZÉSI CÉL**
 
-**POS értékesítési képernyő:**
+> **Az első ügyfél legkisebb gépe 1024×768.** Ez tehát **nem a legrosszabb eset,
+> amit még elviselünk, hanem a tervezési alap.** Ami 1024×768-on működik, az
+> 1366×768-on és felette is működni fog; fordítva nem.
+
+**Ez szűkösebb, mint elsőre látszik.** Levonva az állapotsávot (48 px) marad
+**720 px magasság** — abba kell férnie a kosárnak, az összegnek és a fizetés
+gombnak.
 
 ```
-┌────────────────────────────────────────────────────────┐
-│ ÁLLAPOTSÁV — 48 px, csak ha VAN mit mondani            │ ← 0 vagy 48
-├──────────────────────────┬─────────────────────────────┤
-│                          │  KOSÁR                      │
-│  TERMÉKRÁCS              │  (görgethető, virtualizált) │
-│  kedvencek + kategóriák  │                             │
-│  ~60% szélesség          │  ~40% szélesség             │
-│                          ├─────────────────────────────┤
-│                          │  ÖSSZEG — nagy, fix          │
-│                          ├─────────────────────────────┤
-│                          │  FIZETÉS — teljes szélesség  │
-└──────────────────────────┴─────────────────────────────┘
+1024 × 768
+┌──────────────────────────────────────────────────┐
+│ ÁLLAPOTSÁV — 48 px, csak ha VAN mit mondani      │ 0 v. 48
+├───────────────────────────┬──────────────────────┤
+│                           │ KOSÁR                │
+│ TERMÉKRÁCS                │ virtualizált lista   │
+│ 600 px (~59%)             │ 424 px (~41%)        │ 720
+│                           │ ~7 tétel látszik     │
+│ 4 oszlop × 140 px gomb    ├──────────────────────┤
+│ vagy 3 × 190 px           │ ÖSSZEG — 88 px       │
+│                           ├──────────────────────┤
+│                           │ FIZETÉS — 96 px      │
+└───────────────────────────┴──────────────────────┘
 ```
+
+| # | Számított korlát |
+|---|------------------|
+| a | **Termékrács: 4 oszlop × 140 px** (12 px térközzel) **vagy 3 × 190 px.** Ötnél több oszlop 1024-en már 64 px alá viszi a gombot → **tilos** |
+| b | **A kosárból ~7 tétel látszik** 64 px-es sorokkal. Egy 12 tételes asztalnál görgetni kell → **a görgetés ténye legyen látható**, ne meglepetés |
+| c | **Az összeg (88 px) és a fizetés (96 px) FIX** — összesen 184 px a jobb oldal aljából. Ezt semmi nem eheti meg |
+| d | **Kedvencek: az első sor mindig kedvencek**, kategóriaváltás nélkül elérhetően *(4. szakasz)* |
 
 | # | Szabály |
 |---|---------|
-| a | **A kosár és az összeg SOHA nem tolódik el** attól, hogy megjelenik az állapotsáv — a sáv helyet foglal, nem takar |
-| b | **Az összeg és a fizetés gomb fix helyen van.** Az izommemória a legértékesebb, amit egy pénztáros felépít — **elmozdítani bűn** |
-| c | **A termékrács oldala görgethető, a kosáré görgethető — de a kettő soha nem egyszerre mozog** |
-| d | **Nincs vízszintes görgetés sehol** |
+| e | **A kosár és az összeg SOHA nem tolódik el** attól, hogy megjelenik az állapotsáv — a sáv **helyet foglal, nem takar** |
+| f | **Az összeg és a fizetés gomb fix helyen van.** Az izommemória a legértékesebb, amit egy pénztáros felépít — **elmozdítani bűn** |
+| g | **A két oldal külön görgethető, de soha nem egyszerre** |
+| h | **Nincs vízszintes görgetés sehol** |
+| i | ⚠️ **A német szöveg + 1024 px a legszűkebb együttállás** — a gombfelirat-teszt (K3) **1024×768-on, németül** futtatandó, nem 1366-on magyarul |
 
----
+## 8. Szín — a Siduri paletta a logóból
 
-## 8. Szín — szerepek, nem paletta
+A logó megvan, tehát a paletta **nem nyitott kérdés többé.** Kimintáztam:
 
-> **Konkrét márkapalettát MOST nem határozunk meg.** A Myth System arculata még
-> nincs meg, és a paletta arculati döntés, nem UX-döntés. Amit most rögzítünk:
-> **a szerepek és a korlátok** — a paletta ezekbe fog beleülni.
+| Szerep a logóban | Érték | Kontraszt fehéren |
+|------------------|-------|-------------------|
+| **Mélykék / petróleum** — ruha, körvonal, felirat | **`#003544`** | **13,2 : 1** ✅ |
+| **Arany / okker** — szegély, ékszer, mintázat | **`#B08442`** | **3,4 : 1** ⚠️ |
+| Sötét olíva — amfora | `#303024` | *(dekoratív, UI-ban nem használjuk)* |
+| Háttér | `#FFFFFF` / `#F8F8F8` | |
 
-| Szerep | Mire | Kikötés |
-|--------|------|---------|
-| **Semleges alap** | háttér, felületek | **Világos alapértelmezés** — lásd 8.1 |
-| **Elsődleges akció** | fizetés, megerősítés | Egy szín, egy jelentés |
-| **Veszély** | sztornó, törlés, visszafordíthatatlan | **Csak itt.** Ha máshol is használjuk, elveszti az erejét |
-| **Figyelem** | csökkentett működés, lejáró állapot | Elkülönül a veszélytől |
-| **Siker** | lezárt fizetés, sikeres nyomtatás | Rövid életű |
-| **Letiltott** | | **Nem csak halványabb** — lásd 8.2 |
+### 8.1 `[FONTOS]` Az arany szép, de NEM lehet akciószín
+
+**Ezt ki kell mondanom, mielőtt beleépülne.**
+
+| Mérés | Eredmény |
+|-------|----------|
+| `#B08442` fehéren | **3,37 : 1** → **megbukik a 4.5:1-en** |
+| `#B08442` petrolon | **3,91 : 1** → **megbukik** |
+
+> **Az arany a logóban tökéletes — de a POS-on nem lehet gombfelirat, nem lehet
+> szöveg fehéren, és nem lehet elsődleges akciószín.** Nem stílusdöntés:
+> **egy 1024×768-as érintőkijelzőn, oldalról nézve, zsíros ujjlenyomatokkal
+> egyszerűen nem olvasható.**
+
+**Megoldás — két aranyváltozat, szerep szerint szétválasztva:**
+
+| Token | Érték | Kontraszt | Mire |
+|-------|-------|-----------|------|
+| `arany.marka` | **`#B08442`** | 3,4:1 | **Csak dekoráció**: logó, elválasztó, keret, nagy fejlécszám. **Szöveg SOHA** |
+| `arany.szoveg` | **`#8A6A2E`** | **5,0 : 1** ✅ | Aranyszínű **szöveg** fehéren, ha kell |
+| `arany.vilagos` | **`#D4A24A`** | **5,7 : 1** petrolon ✅ | **Sötét háttéren** — sáv, sötét mód, kiemelés |
+
+### 8.2 Szemantikus szerepek
+
+| Szerep | Érték | Kontraszt | Megjegyzés |
+|--------|-------|-----------|------------|
+| **Elsődleges akció** (fizetés) | **`#003544`** petrol | 13,2:1 | **A márka fő színe = a fő akció.** Nem az arany |
+| **Alap felület** | `#FFFFFF` | — | |
+| **Másodlagos felület** | `#F4F6F7` | — | halvány, petrol felé hajló szürke |
+| **Szöveg** | `#003544` | 13,2:1 | ugyanaz, mint az elsődleges — egységes |
+| **Halvány szöveg** | `#4A6B77` | 4,6:1 | épphogy megfelel; ennél halványabb nincs |
+| **Veszély** (sztornó, törlés) | **`#B3261E`** | 6,5:1 | ⚠️ **A logóban NINCS piros — be kell hozni** |
+| **Siker** | **`#1B6E3C`** | 6,3:1 | ⚠️ **Zöld sincs a logóban** |
+| **Figyelem** (csökkentett mód) | **`#8A5A00`** borostyán | 5,9:1 | Elkülönül a veszélytől ÉS az aranytól |
+
+> ⚠️ **A veszély, siker és figyelem színt be KELLETT hoznom, mert a logóban
+> nincs.** Egy logó két színnel megél; **egy POS nem** — ott a piros és a zöld
+> jelentést hordoz, és **a jelentéshordozó szín nem lehet márkaszín.**
+>
+> **A borostyán tudatosan távol áll az aranytól** — különben a „figyelem"
+> összekeveredne a dekorációval, és pont akkor nem tűnne fel, amikor kell.
+
+### 8.3 A logó jellege a felületen
+
+A logó **vékony vonalas, klasszikus, sok apró mintázattal.** Ebből három dolog
+következik a UI-ra:
+
+| # | Következmény |
+|---|--------------|
+| a | **A vékony vonal a márkajegy** → a felületen **1–2 px-es keretek**, nem vastag határok, nem tömör kitöltések mindenütt |
+| b | ⚠️ **A finom mintázat NEM vihető át a felületre.** Bay Trail iGPU-n a textúra drága *(K1)*, és 1024×768-on olvashatatlan zaj. **A mintázat a bejelentkező képernyőn és a nyomtatott fejlécen él, a kasszafelületen nem** |
+| c | **Bőséges fehér tér** — a logó is így épül fel. **Ez ütközik a képernyő szűkösségével**, tehát: fehér tér a bejelentkezésen és az adminban, **sűrűség a kasszán** |
+
+### 8.4 Szabályok
 
 | # | Szabály |
 |---|---------|
 | 8.a | **Kontraszt minimum 4.5:1** normál szövegre, 3:1 nagy szövegre *(WCAG AA)* |
-| 8.b | ⚠️ **Színnel önmagában SOHA nem közlünk információt** — mindig van ikon vagy szöveg is. A készlet `color-not-only` szabálya, és nálunk **kritikus**: egy vörös-zöld tévesztő pénztáros nem láthatja rosszul a csökkentett módot |
+| 8.b | ⚠️ **Színnel önmagában SOHA nem közlünk információt** — mindig ikon vagy szöveg is. Kritikus: egy vörös-zöld tévesztő pénztáros nem láthatja rosszul a csökkentett módot |
 | 8.c | **Nyers hexa érték komponensben tilos** — csak szemantikus token |
+| 8.d | **`arany.marka` szövegre soha** |
 
-### 8.1 `[DÖNTÉS]` Világos vagy sötét?
+### 8.5 `[DÖNTÉS]` Világos vagy sötét?
 
 **Világos az alapértelmezés, sötét választható — ESZKÖZÖNKÉNT, nem telephelyenként.**
 
@@ -211,7 +276,7 @@ fiskális üzemmódnál *(§9.2)*: **ami eszközfüggő, azt eszközre kell köt
 *(A skill-készlet „Financial Dashboard → sötét alapértelmezés" ajánlása
 képernyőre tapadó elemzői munkára szól, nem pultra állított kasszára.)*
 
-### 8.2 `[SZABÁLY]` A letiltott gomb nem elég, ha csak halványabb
+### 8.6 `[SZABÁLY]` A letiltott gomb nem elég, ha csak halványabb
 
 A készlet szerint „csökkentett átlátszóság + más kurzor". **Kurzor nincs.**
 Ezért: a letiltott gomb **más kitöltést, csökkentett kontrasztot ÉS hiányzó
@@ -266,6 +331,35 @@ EGY mintát kell megtanulnia.**
 | e | **A nyomott állapot azonnali** (< 50 ms), különben a pénztáros kétszer nyom |
 
 ---
+
+## 10.1 `[ELDÖNTVE]` Fizikai billentyűzet — van, ahol van
+
+**Az első ügyfélnél vegyes: némelyik gépnél van fizikai billentyűzet, némelyiknél
+nincs.** Ez nem opció, hanem kényszer.
+
+> **A teljes eladási folyamatnak működnie kell billentyűzet NÉLKÜL is, és
+> billentyűzettel is — de a billentyűzet SOHA nem előfeltétel.**
+
+| # | Szabály |
+|---|---------|
+| a | **Minden funkció elérhető érintéssel.** Gyorsbillentyű nélkül is teljes a rendszer |
+| b | **Ahol van billentyűzet, ott gyorsítson** — de a gyorsbillentyű **soha nem az egyetlen út** valamihez |
+| c | ⚠️ **A billentyűzet-támogatás akkor is KÖTELEZŐ, ha nincs billentyűzet** — mert **a vonalkód-olvasó billentyűzetként viselkedik** *(K6)*. A fókuszkezelésnek működnie kell akkor is, ha ember sosem gépel |
+| d | **A gyorsbillentyűk NEM jelennek meg a felületen** azokon a gépeken, ahol nincs billentyűzet — különben hazudik a felület |
+| e | **Numerikus billentyűzet a képernyőn MINDIG van**, akkor is, ha fizikai is van. A pénztáros nem néz le |
+
+## 10.2 `[ELŐKÉSZÍTVE, DE NEM ÉPÜL MEG]` Termékkép
+
+**Kép most nem kell — de a szerkezetnek bírnia kell**, hogy később ne
+adatmodell-változás legyen belőle.
+
+| # | Előkészítés |
+|---|-------------|
+| a | **`kep_azonosito` mező a terméken és a kiszerelésen**, üresen. **Most nem használjuk** |
+| b | **A képek a felhőben tárolódnak**, a telephely gyorsítótáraz. ⚠️ **A 64 GB-os SSD-be nem fér bele korlátlan kép** *(§24.2)* — a gyorsítótár méretkorlátos |
+| c | ⚠️ **A termékgomb elrendezése NE változzon meg attól, hogy kap képet.** A gomb már most fenntartja a helyet — különben a bekapcsolás **átrendezi a rácsot, és megöli az izommemóriát** *(7.f)* |
+| d | **A képes rács külön mérés** *(K1, M3)*: 4×5 = 20 kép egy Bay Trail iGPU-n **nem triviális.** Bekapcsolás előtt mérni kell |
+| e | **A képes mód eszközönként kapcsolható**, mint a sötét mód *(8.5)* — a pult lehet képes, a bár szöveges |
 
 ## 11. Komponens-döntések
 
@@ -349,7 +443,8 @@ EGY mintát kell megtanulnia.**
 
 | # | Kérdés |
 |---|--------|
-| **D1** | **Márkapaletta és arculat** — a Myth System arculata még nincs meg. A `brand` skill erre való, de **külön kör**, és a termék működhet ideiglenes, semleges palettával |
-| **D2** | **Termékgombokon legyen-e kép?** Teljesítmény vs. betanulási idő. **Az első ügyfélnél megkérdezendő** — étteremben ritkán kell, gyorsétteremben gyakran |
-| **D3** | **Van-e fizikai billentyűzet a pultnál**, vagy csak érintés + vonalkód-olvasó? Befolyásolja a gyorsbillentyűket |
-| **D4** | **Az érintőkijelzők tényleges felbontása** az első ügyfélnél — a 7. szakasz elrendezés-költségvetése ettől függ |
+| ~~D1~~ | ~~Márkapaletta~~ → **MEGVAN, a logóból kimintázva (8. szakasz).** Petrol `#003544` + arany `#B08442`, plusz a **behozott** veszély/siker/figyelem szín. A Myth System **cégarculata** külön kérdés marad |
+| ~~D2~~ | ~~Termékkép?~~ → **MOST NEM, de előkészítve (10.2).** Mező üresen, hely fenntartva, felhős tárolás, méréshez kötött bekapcsolás |
+| ~~D3~~ | ~~Fizikai billentyűzet?~~ → **VEGYES (10.1).** Van, ahol van. A rendszer billentyűzet nélkül is teljes, de a billentyűzet-támogatás a vonalkód-olvasó miatt kötelező |
+| ~~D4~~ | ~~Felbontás?~~ → **1024×768 a legkisebb gépen → EZ A TERVEZÉSI CÉL (7. szakasz)**, nem a tűrt legrosszabb eset |
+| **D5** | **A Myth System CÉGARCULATA** — a Siduri terméképe megvan; a cég szintű arculat (Garm, Hermes, Siduri együtt) külön kör, a `brand` skillel |

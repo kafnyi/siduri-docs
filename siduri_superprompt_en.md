@@ -154,8 +154,23 @@ POS will ship, so the migration cost would never be recovered.
 
 ## 4.2 Target hardware `BASE`
 
-**Installed base is Intel J1900 (Bay Trail), 64 GB SSD.** The base is **MIXED**:
-the same machine type runs **as server AND as POS client**.
+**`[UPDATED 2026-08-23]` The actual fleet is MIXED, and the server is NOT a J1900:**
+
+| Role | Machine | Consequence |
+|------|---------|-------------|
+| **Local server** | **5th-gen i5 / 8 GB / 128 GB SSD** | **The server-side J1900 constraint is GONE** |
+| **POS clients** | **i3**, plus **3× J1900** *(from a closed shop)* | **Client-side constraints REMAIN** |
+
+Consequences split accordingly:
+
+* **Server side:** GraalVM native image moves from **mandatory to a decision** (settle it after M1 and M10); PostgreSQL memory limits relax; the 128 GB SSD gives the WAL risk room.
+* **Client side, everything stands:** tight WPF budget, no glass effects, no layout animation, virtualised lists — **because J1900 clients will exist.**
+
+⚠️ **New rule: the backup server must not be materially weaker than the main one.**
+Taking over from an i5 onto a J1900 is a **downgrade** — the site would be
+noticeably slower, precisely at peak. If it happens anyway, **the customer must
+know in advance**, because after failover they will not see an error, they will
+see slowness, and they will blame the software.
 
 Consequences:
 

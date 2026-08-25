@@ -153,8 +153,25 @@ nem is lesz Linuxos POS, tehát a váltás költsége nem térülne meg.
 
 ### 4.2 Célhardver `ALAP`
 
-**A meglévő bázis Intel J1900 (Bay Trail), 64 GB SSD.** A bázis **vegyes**:
-ugyanaz a géptípus fut **szerverként és POS kliensként is**.
+**`[FRISSÍTVE 2026-08-23]` A tényleges vaspark VEGYES, és a szerver NEM J1900:**
+
+| Szerep | Gép | Következmény |
+|--------|-----|--------------|
+| **Lokális szerver** | **5. gen. i5 / 8 GB / 128 GB SSD** | **A szerver-oldali J1900-kényszer MEGSZŰNT** |
+| **POS kliensek** | **i3**, plusz **3 db J1900** *(régi üzletből)* | **A kliens-oldali korlátok MEGMARADNAK** |
+
+**Ebből következik a szétválasztás:**
+
+* **Szerver-oldalon** a GraalVM natív image **kötelezőből döntéssé vált** (M1 és M10 után eldöntendő), a PostgreSQL memórialimitek lazulnak, és a 128 GB SSD a WAL-kockázatnak levegőt ad.
+* **Kliens-oldalon minden korlát marad:** szoros WPF-költségvetés, semmi üveghatás, semmi elrendezés-animáció, virtualizált listák — **mert J1900-as kliens is lesz.**
+
+**A J1900 tehát nem tűnt el, csak a helyére került: kliens igen, szerver nem.**
+
+⚠️ **Új szabály: a tartalék szerver ne legyen érdemben gyengébb a főnél.**
+i5-ről J1900-ra átvenni **lefokozás** — a telephely érezhetően lassulna, pont
+csúcsban. Ha mégis így alakul, **az ügyfélnek előre tudnia kell**, mert a
+failover után nem hibát fog látni, hanem lassulást, és azt a szoftverre fogja.
+Részletek: `HARDVER_MINIMUM.md`.
 
 Ebből következik:
 

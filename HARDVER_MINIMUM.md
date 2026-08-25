@@ -186,18 +186,101 @@ kötve.** A „lean by design" tervezési elv, nem hardverbaleset.
 
 ---
 
-## 9. Amit tudnom kell a döntéshez
+## 9. `[MEGVÁLASZOLVA]` A tényleges felállás — és egy helyesbítés
 
-> ### ⚠️ **Kié a J1900-as bázis?**
+**Az ügyfél tényleges vasparkja:**
 
-Ez a kérdés dönt, és eddig nem tisztáztuk. A specifikáció annyit mond, hogy
-**„meglévő telepített bázis"** *(§4.2)* — **de azt nem, hogy kié.**
+| Szerep | Gép |
+|--------|-----|
+| **Jelenlegi kliensek** | **i3** *(a jelenlegi rendszer ezen fut)* |
+| **Valószínű lokális szerver** | ⭐ **5. generációs i5, 8 GB RAM, 128 GB SSD** |
+| **Tartalék gépek** | **3 db J1900** — egy megszűnt üzletből, **szeretné felhasználni** |
 
-| Ha… | Akkor |
-|-----|-------|
-| **Az ELSŐ ÜGYFÉLNEK vannak J1900-asai** | A minimum emelése **azt jelenti, hogy vasat kell vennie** — ez üzleti tárgyalás, nem technikai döntés. **És a J1900 marad a tervezési cél, amíg náluk fut** |
-| **A bázis a te korábbi ügyfélkörödé / szervizes tapasztalatodból jön** | Akkor **szabadon választhatunk minimumot**, és a fenti javaslat áll |
-| **A bázis általános piaci feltevés volt** | ⚠️ Akkor **egy olyan korlát ellen terveztünk fél tucat kompromisszumot, ami lehet, hogy nem is létezik** — és ezt **most kell kideríteni, az F1 előtt**, nem utána |
+### ⚠️ 9.1 HELYESBÍTÉS: nem mondtam, hogy a J1900-asok nem használhatók
 
-**A D7 felmérésben** *(FAZISTERV §7.5)* **ott van a 3. kérdés: „milyen hardveren
-futnak most?"** — **ez a válasz dönti el ezt is.**
+**A megfogalmazásom félreérthető volt, és rossz következtetést okozott.**
+Amit írtam, az az volt, hogy **a J1900 a TERVEZÉSI CÉLKÉNT** költséges — nem az,
+hogy a gépek használhatatlanok.
+
+> **A három J1900 KLIENSKÉNT használható. Szervernek nem kell — mert van jobb.**
+
+| Szerep | J1900 alkalmas? |
+|--------|-----------------|
+| **POS kliens** | ✅ **Igen** — a felület amúgy is a szűkös géphez tervezett *(UIUX K1)*. `[MÉRENDŐ]` M3 |
+| **Fő szerver** | ❌ Felesleges — **van i5** |
+| **Tartalék szerver** | ⚠️ **Lehet, de átgondolandó** — lásd 9.3 |
+| **Termékkép megjelenítése** | ⚠️ Mérés után *(M3)* |
+
+**Egy őszinte üzemeltetési megjegyzés:** három, megszűnt üzletből maradt gép
+**öreg, és el fog romlani.** Nem érv ellenük — **de a pótalkatrész kérdését most
+kell feltenni, nem az első meghibásodáskor.** Ha nincs tartalék gép, egy elromlott
+kassza **azonnali kiesés.**
+
+### 9.2 Amit ez a TERVBEN megváltoztat
+
+> **A szerver-oldali J1900-kényszer MEGSZŰNT. Ez a projekt egyik legnagyobb
+> könnyítése eddig.**
+
+| # | Tétel | Változás |
+|---|-------|----------|
+| a | **GraalVM natív image** | **Kötelezőből DÖNTÉSSÉ vált.** 5. gen. i5 + 8 GB mellett a sima JVM kényelmesen elfér. **A gyors indulás továbbra is érv mellette** — döntsük el **M1 és M10 után** |
+| b | **PostgreSQL memórialimitek** | **Jelentősen lazulnak** |
+| c | **A webes admin statikus kiszolgálása** | **A DÖNTÉS NEM VÁLTOZIK** — továbbra is ez a helyes. De **már nem élet-halál kérdés**, hanem jó mérnöki gyakorlat |
+| d | **64 GB SSD korlát** | **128 GB** — a WAL-kockázat *(M19)* nagyságrenddel kap levegőt |
+| e | **M14** *(a szerver webes admint is kiszolgál)* | Kockázata **jelentősen csökken** |
+| f | **A kliens-oldali korlátok** | ⚠️ **MEGMARADNAK, ha J1900-as kliens is lesz.** Nincs üveghatás, nincs elrendezés-animáció, virtualizált listák — **ezek maradnak** |
+
+### 9.3 `[ÚJ KÉRDÉS]` Mi legyen a tartalék szerver?
+
+**Ez most jött elő, és nem triviális.** A szabályunk szerint **a tartalék szerver
+mindig egy Windows POS vastagkliens** *(§5.2)*. De:
+
+| Ha a tartalék… | Következmény |
+|----------------|--------------|
+| **i3 kliens** | ✅ Elfogadható — átvételkor mérsékelt visszaesés |
+| **J1900 kliens** | ⚠️ **Az átvétel LEFOKOZÁS.** i5-ről J1900-ra váltva a telephely **érezhetően lassabb** lesz — pont csúcsban, mert a failover jellemzően akkor kell |
+| **Egy második i5** | ✅ A legjobb, ha van |
+
+> **Új szabály következik ebből:** **a tartalék szerver ne legyen érdemben
+> gyengébb a főnél.** Ha mégis az, azt **az ügyfélnek tudnia kell előre** — mert
+> a failover után nem hibát fog látni, hanem lassulást, és **azt a szoftverre
+> fogja.**
+
+**A kockázatvállalási nyilatkozat** *(§24.4)* **természetes helye ennek.**
+
+### 9.4 `[MÓDOSUL]` Az M1 mérés szerepe
+
+Az M1 *(kombinált szerver + pénztárgép EGY J1900-on)* eddig **„a legszűkösebb
+eset, és ez az ALAPÉRTELMEZÉS"** volt.
+
+**Ez az első ügyfélre már nem áll** — ott i5 a szerver.
+
+**De az M1 NEM törlendő**, csak átminősül:
+
+> **Az M1 mostantól nem az alapértelmezés, hanem az INGYENES EGYGÉPES SZINT
+> padlója** *(§2.1)* — és pont az a szint vonzza a legrosszabb vasat *(6.2)*.
+
+### 9.5 `[ÜTEMEZÉSI NYERESÉG]` A K3 kapu szűkül
+
+A `K3/a` kapu eddig **„2 db J1900 + 1 adóügyi eszköz beszerzése"** volt.
+
+**Most pontosabban tudjuk, mit kell venni:**
+
+| # | Mire |
+|---|------|
+| a | **Egy i5-osztályú gép** — a szerver-oldal fejlesztéséhez és méréséhez |
+| b | **Egy J1900** — **a leggyengébb kliens** ellenőrzésére, mert az ügyfélnél is lesz ilyen |
+| c | **Egy Fiscat eszköz** — `iPalm` vagy `Neon+`, **amilyen az ügyfélnél van** |
+
+⚠️ **Az ügyfél gépein fejleszteni és mérni NEM lehet** — az egy élő étterem.
+**Saját teszthardver továbbra is kell**, csak most már tudjuk, pontosan milyen.
+
+### 9.6 Nyitott — az ügyfélnél megkérdezendő
+
+| # | Kérdés | Miért |
+|---|--------|-------|
+| **H1** | **Pontosan hányadik generációs az i3, és mennyi RAM van bennük?** | A kliens-költségvetéshez |
+| **H2** | ⚠️ **Az 1024×768-as kijelző MELYIK gépé?** Ha csak a régi J1900-asoké, akkor **a jelenlegi i3-as kliensek nagyobb felbontásúak** — és a tervezési alap felülvizsgálandó | UIUX §7 |
+| **H3** | **Van-e második i5, vagy melyik gép lesz a tartalék szerver?** | 9.3 |
+| **H4** | **Van-e tartalék gép a 3 J1900-hoz?** | 9.1 |
+| **H5** | **A J1900-asok érintőképernyős POS gépek, vagy sima számítógépek?** | Ha nem érintős, kliensnek sem jók a pultban |

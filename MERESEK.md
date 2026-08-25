@@ -49,6 +49,10 @@ használatban levő POS"* — nagyon kevés hely vesz külön szervergépet. Vag
 kombinált szerep nem kivétel, hanem a tipikus telepítés.
 
 ### `[ ]` M1 — Kombinált szerver + pénztárgép EGY J1900-on
+> **`[ÁTMINŐSÍTVE 2026-08-23]` Ez már NEM az alapértelmezés.** Az első ügyfélnél
+> **5. gen. i5 a szerver**, tehát ez az eset ott nem áll fenn.
+> **Az M1 mostantól az INGYENES EGYGÉPES SZINT padlója** — és pont az a szint
+> vonzza a leggyengébb vasat. **Marad, de más okból.**
 Egyszerre fut ugyanazon a gépen:
 - PostgreSQL,
 - a Java szerver (GraalVM native image),

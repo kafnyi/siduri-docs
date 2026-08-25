@@ -36,7 +36,7 @@ ott az **valós függőség**, nem kapacitáshiány.
 
 | Lépcső | Mi | Mikor |
 |--------|-----|------|
-| **K3/a** | **2 db J1900** + 1 adóügyi eszköz | Az F1 fázishoz — ez a legkorábbi valós blokkoló |
+| **K3/a** | **Egy i5-osztályú gép** (szerver-oldal) + **egy J1900** (a leggyengébb kliens ellenőrzésére) + **egy Fiscat eszköz** (`iPalm` vagy `Neon+`, amilyen az ügyfélnél van). ⚠️ **Az ügyfél gépein fejleszteni és mérni NEM lehet** -- az egy élő étterem | Az F1 fázishoz -- ez a legkorábbi valós blokkoló |
 | **K3/b** | **Teljes referencia-telepítés**: 3 Windows POS + 2 tablet + 4 telefon + KDS + rendeléskijelző | Az M12-höz, az F6 fázis előtt |
 
 > **A K3/a beszerzése az egyetlen dolog, ami MA elindítható, kevés pénzbe kerül,

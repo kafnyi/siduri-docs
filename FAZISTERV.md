@@ -1,6 +1,6 @@
 # Siduri — Fázisterv (E1)
 
-**Utolsó frissítés:** 2026-08-23
+**Utolsó frissítés:** 2026-08-23 (első ügyfél megvan: étterem, teljes funkcionalitással)
 **Előfeltétel:** a teljes specifikáció lezárva (`siduri_spec_hu.md`), 49 invariáns rögzítve.
 
 ---
@@ -56,7 +56,8 @@ A fázisok sorrendje **nem a funkciók fontossága szerint** áll, hanem aszerin
 | **R3** | **A tartalék POS nem bírja az átvételt csúcson** (M12) | A teljes HA-terv | **F4 vége** (M13, az M12 olcsó előjátéka) |
 | **R4** | **Nincs gyártói partnerkapcsolat** | A fiskális réteg lezárása | K1, folyamatos |
 | **R5** | **A tanúsítás tovább tart, mint hittük** | Az élesítés | K2, folyamatos |
-| **R6** | **Nincs névre szóló első ügyfél** | **Az MVP-definíció maga egy fogadás** | Lásd §7 |
+| ~~R6~~ | ~~Nincs névre szóló első ügyfél~~ | — | **MEGOLDVA: az első ügyfél egy étterem (§7)** |
+| **R7** | **Az első ügyfél MINDENT használ** → nincs fokozatos szállítás, az F2–F8 mind kötelező, és **a pilot egy élő étterem** | Az élesítés csúszik, a tanulási ciklus hosszú | **Ismert, §7.2** |
 
 > **A vezérelv: ami meg tudja ölni a tervet, azt a legolcsóbb pillanatban kell
 > kideríteni.** Egy hamis P1-et a 3. héten megtudni kellemetlen; a 6. hónapban
@@ -253,6 +254,7 @@ sikeres** — a tartalék POS csúcsterhelés alatt átveszi a szolgálatot.
 | F8.3 | **Frissítési sorrend** kikényszerítve (a szerepet vivő gépek nem frissülnek egyszerre) |
 | F8.4 | **Pilot telephely**, felügyelt üzem |
 | F8.5 | **AZ ELSŐ ÉLES TESZTEN MINDENT MÉRÜNK** — a teljes `MERESEK.md` |
+| **F8.6** | **ÁTÁLLÁSI TERV** — adatmigráció, csendes időpont, visszaállási terv, **NTAK-váltás kettős jelentés nélkül**, felügyelt üzem. Részletek: **§7.4** |
 
 ---
 
@@ -314,27 +316,83 @@ K1 gyártó ──────────────────────�
 
 ---
 
-## 7. A terv legnagyobb kockázata — és nem technikai
+## 7. Az első ügyfél — ami eldőlt, és ami ettől nehezebb lett
 
-> **Nincs névre szóló első fizető ügyfél.**
+> **Az első ügyfél egy ÉTTEREM, aki gyakorlatilag MINDEN tervezett megoldást
+> használni fog.**
 
-Ez azt jelenti, hogy **az MVP-definíció egy fogadás**, nem megrendelés. A jelenlegi
-munkafeltevés (kis bár / büfé, 1–2 pénztár) **feszül** azzal, amit közben
-eldöntöttünk: a HA az MVP-ben van, a felhő teljes menedzsment-platform, a
-vendéglátás asztalkezeléssel jön — **ezek együtt már nem egy kis büfé igényei.**
+### 7.1 Amit ez megold
 
-**Javaslat:** **tervezőpartner keresése az F1 alatt**, nem az F8 előtt.
-Egy valódi hely, aki hajlandó korán használni, és cserébe beleszól. Két dolgot ad,
-amit semmi más nem:
+A korábbi legnagyobb kockázat — *„nincs névre szóló első fizető ügyfél, tehát az
+MVP-definíció egy fogadás"* — **megszűnt.** A hatókör mostantól **tény**, nem
+feltevés. A **D6 döntési pont tárgytalan.**
 
-1. **Az MVP hatókörét ténnyé teszi**, feltevés helyett.
-2. **A pilot (F8.4) és a mérési helyszín (K3/b) ugyanaz a hely lehet** — a
-   referencia-telepítés így nem külön költség.
+### 7.2 Amit ez elront — és ezt ki kell mondani
 
-**Ha nincs ilyen partner az F2 végéig, azt kockázatként kell kezelni és kimondani**,
-nem elhallgatni.
+**Megszűnt a fokozatos szállítás lehetősége.**
 
----
+Eddig volt egy olcsó út: az egygépes, asztalkezelés nélküli szint önmagában
+szállítható termék, amivel korán élesbe lehet menni és tanulni. **Egy étterem
+ezzel nem tud mit kezdeni.** Ott az első éles nap az, amikor **egyszerre** kell
+működnie az asztalkezelésnek, a fogásoknak, a módosítóknak, a menüknek, a
+KDS-nek, a készletnek, a receptúrának, a több gépnek, a fiskális rétegnek, az
+NTAK-nak és a felhős adminnak.
+
+**Négy konkrét következmény:**
+
+| # | Következmény |
+|---|--------------|
+| 7.2.a | **Az F2–F8 mind kötelező** az első élesítés előtt. Semmi nem halasztható |
+| 7.2.b | **A HA nem opció, hanem kötelező.** Egy éttermi telepítés jellemzően 4+ gép → a saját méretosztály-szabályunk szerint a **tartalék szerver kötelező ajánlás** (§5.1) |
+| 7.2.c | **A tanulási ciklus hosszabb lett.** Az első visszajelzés nem az F2 után jön, hanem az F8-ban |
+| 7.2.d | **A pilot egy ÉLŐ étterem** — ott nem lehet kísérletezni szerviz közben |
+
+### 7.3 A fázisok sorrendje ettől NEM változik — de a jelentése igen
+
+**Fontos, hogy ezt ne értsük félre:** attól, hogy mindent szállítani kell,
+**a kockázat-kioltó sorrend nem lesz értéktelen — sőt.**
+
+> **Az „szállítható" és a „megépítendő" nem ugyanaz.** Az F1 továbbra is a
+> legkockázatosabb premisszát oltja ki 3 hét alatt 6 hónap helyett; az M13 kapu
+> továbbra is megmenti a HA-terv újraépítését. **Csak a „kimehetünk vele élesbe"
+> pont csúszik a végére.**
+
+**Egy változás viszont van:** az **F4 (vendéglátás)** és az **F5 (készlet)**
+korábban „párhuzamos, ha jut rá kapacitás" volt. **Most mindkettő kritikus úton
+van**, és az F5.7 (webes admin) is, mert az étterem a receptúrát és a készletet
+az első naptól használni fogja.
+
+### 7.4 `[ÚJ, KÖTELEZŐ FÁZISELEM]` F8.6 — Átállási terv
+
+**Egy működő éttermet nem lehet péntek este átkapcsolni egy új
+kasszarendszerre.** Ez nem fejlesztési, hanem üzemeltetési feladat, és **eddig
+egyáltalán nem szerepelt a tervben.**
+
+| # | Elem | Miért |
+|---|------|-------|
+| 7.4.a | **Adatmigráció** a jelenlegi rendszerből: terméktörzs, árak, kategóriák, receptúra, készlet-nyitóérték | A terméktörzs kézi felvitele egy étteremben napok |
+| 7.4.b | **Az átállás időpontja: csendes időszak** — hétfő reggel, vagy zárás utáni nap. **Soha nem forgalmas nap** | — |
+| 7.4.c | **Visszaállási terv:** ha az első nap nem megy, mihez nyúlnak? **A régi rendszernek elérhetőnek kell maradnia**, amíg az új nem bizonyított | Enélkül az első hiba üzletbezárás |
+| 7.4.d | ⚠️ **NTAK-átállás: a régi és az új szoftver EGYSZERRE nem jelenthet ugyanarról a forgalomról.** A váltás pillanatát pontosan meg kell határozni, és az NTAK-oldali szoftverregisztrációt hozzá kell igazítani | **Kettős adatszolgáltatás keletkezne** |
+| 7.4.e | **Fiskális eszköz:** melyik eszközük van, és a gyártói szoftver telepíthető-e rá — **ezt az F1 előtt tudnunk kell**, mert ez határozza meg, milyen készüléken mérünk | A K1/K3 kaput konkretizálja |
+| 7.4.f | **Felügyelt üzem:** az első napokban fizikai jelenlét a helyszínen | — |
+
+### 7.5 Amit az ügyféltől MOST meg kell kérdezni
+
+Ez konkretizálja a K1 és K3 kaput, és részben az F1-et is:
+
+| # | Kérdés | Mit befolyásol |
+|---|--------|----------------|
+| 1 | **Milyen adóügyi eszközük van?** Gyártó, típus, kora | K1 — ezen a készüléken kell mérni és fejleszteni |
+| 2 | **Hány gép, milyen szerepben?** Pénztár, pincér-eszköz, konyha, iroda | A topológia és a HA-méretosztály |
+| 3 | **Milyen hardveren futnak most?** J1900, vagy más | K3 — ha nem J1900, a mérési alap változik |
+| 4 | **Milyen rendszert váltanak le?** | Adatmigráció, NTAK-átállás |
+| 5 | **Van-e már NTAK-adatszolgáltatásuk, milyen szoftverrel?** | 7.4.d — a kettős jelentés elkerülése |
+| 6 | **Használnak-e receptúrát és készletet ma?** | Van-e migrálható adat, vagy nulláról indul |
+| 7 | **Hány terméket kell felvinni?** | Az adatmigráció mérete |
+| 8 | **Vendég-wifi és üzemi hálózat szét van választva?** | Kötelező telepítési előfeltétel (§10.6) |
+| 9 | **Mikor van a legcsendesebb időszakuk?** | Az átállás időzítése |
+
 
 ## 8. Döntési pontok — hol állunk meg és tervezünk újra
 
@@ -345,7 +403,8 @@ nem elhallgatni.
 | **D3** | **F4 vége** | **M13 eredménye:** van-e értelme az M12-nek? Ha nincs, **a HA-terv újragondolása az F6 MEGÉPÍTÉSE ELŐTT** |
 | **D4** | **K2 válasza megjön** | A tanúsítás lead time-ja alapján **a terv naptárrá válik**, és eldől, kell-e átcsoportosítani |
 | **D5** | **K1 válasza megjön** | Ha nincs partnerkapcsolat, eldöntendő: várunk, vagy más gyártóval is felvesszük a kapcsolatot |
-| **D6** | **F2 vége** | Van-e tervezőpartner? Ha nincs, az MVP-hatókör felülvizsgálata |
+| ~~D6~~ | — | ~~Van-e tervezőpartner?~~ **TÁRGYTALAN — az első ügyfél megvan (§7)** |
+| **D7** | **F1 ELŐTT** | **Az ügyfél tényleges felállása** (§7.5): milyen adóügyi eszköz, hány gép, milyen hardver, mit váltanak le. **Ez konkretizálja a K1 és K3 kaput** |
 
 ---
 

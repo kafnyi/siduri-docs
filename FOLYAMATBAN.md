@@ -473,10 +473,31 @@ tanúsítás és a gyártói kapcsolat. **Ezért a csapatlétszám növelése ne
 arányosan a projektet** — a K1–K3 kapukat ma kell elindítani, nem akkor, amikor
 odaérünk.
 
-**A terv legnagyobb kockázata nem technikai:** nincs névre szóló első fizető
-ügyfél, tehát **az MVP-definíció egy fogadás.** A javaslat: tervezőpartner
-keresése már az F1 alatt — az teszi ténnyé a hatókört, és ugyanaz a hely lehet a
-pilot és a mérési helyszín is.
+**AZ ELSŐ ÜGYFÉL MEGVAN: egy ÉTTEREM, aki gyakorlatilag minden tervezett
+megoldást használni fog.** Ezzel a korábbi legnagyobb kockázat (nincs névre
+szóló ügyfél, az MVP-definíció fogadás) **megszűnt** — a hatókör tény.
+
+**Cserébe megszűnt a fokozatos szállítás lehetősége.** Az egygépes szint, mint
+korán élesíthető termék, egy étteremnek használhatatlan: ott az első éles napon
+**egyszerre** kell működnie az asztalkezelésnek, fogásoknak, módosítóknak,
+menüknek, KDS-nek, készletnek, receptúrának, több gépnek, a fiskális rétegnek,
+az NTAK-nak és a felhős adminnak. **Az F2–F8 mind kötelező**, a HA nem opció
+(4+ gép), és **a pilot egy ÉLŐ étterem** — ott nem lehet kísérletezni szerviz
+közben.
+
+**A kockázat-kioltó sorrend ettől NEM lesz értéktelen** — az F1 továbbra is
+3 hét alatt oltja ki a legveszélyesebb premisszát 6 hónap helyett, és az M13
+kapu továbbra is megmenti a HA-terv újraépítését. **Csak a „kimehetünk élesbe"
+pont csúszik a végére.**
+
+**Új kötelező fáziselem: F8.6 — átállási terv.** Egy működő éttermet nem lehet
+péntek este átkapcsolni. Adatmigráció, csendes időpont, **visszaállási terv**, és
+⚠️ **NTAK-váltás kettős jelentés nélkül** — a régi és az új szoftver egyszerre
+nem jelenthet ugyanarról a forgalomról.
+
+**Új döntési pont: D7, még az F1 ELŐTT** — az ügyfél tényleges felállásának
+felmérése (milyen adóügyi eszköz, hány gép, milyen hardver, mit váltanak le).
+**Ez konkretizálja a K1 és K3 kaput.** A kérdéssor: `FAZISTERV.md` §7.5.
 
 ### 2.3 Ami a B1/c-től FÜGGETLENÜL már most elkezdhető (tervezésként, nem kódként)
 

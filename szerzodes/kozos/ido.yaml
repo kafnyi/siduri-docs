@@ -1,0 +1,64 @@
+# Siduri - kozos ido- es sorrendtipusok
+#
+# A sorrendezes soha nem a fali oran mulik (I17). Nem azert, mert az ora
+# pontatlan lehet - hanem mert JAVITHATJUK, es egy visszaugro ora megforditana
+# az esemenyek sorrendjet.
+$id: https://szerzodes.siduri.mythsystem.hu/kozos/ido.yaml
+
+components:
+  schemas:
+
+    Sorszam:
+      title: Monoton sorszam (epoch, szamlalo)
+      description: >
+        A SORRENDET EZ ADJA. Par, nem egyetlen szam: az epoch a
+        fencing-generacio (minden szerepvaltasnal no), a szamlalo azon belul
+        fut. Lexikografikusan rendezheto, tehat a sorrend atvetel utan is
+        helyes - es egy regebbi epochu szervertol erkezo rekord azonnal
+        felismerheto.
+      type: object
+      required: [epoch, szamlalo]
+      properties:
+        epoch:
+          type: integer
+          format: int64
+          minimum: 0
+        szamlalo:
+          type: integer
+          format: int64
+          minimum: 0
+      additionalProperties: false
+
+    Idobelyeg:
+      title: Idobelyeg
+      description: RFC 3339, idozonaval egyutt. Idozona nelkuli ertek ervenytelen.
+      type: string
+      format: date-time
+      examples: ["2026-08-25T19:36:38+02:00"]
+
+    UzletiNap:
+      title: Uzleti nap
+      description: >
+        Az UZLETI nap datuma, nem a naptari. A ket fogalom kulonbozik, es ezt a
+        kulonbseget mar egyszer elrontottuk azzal, hogy egyetlen szora kepeztuk
+        le oket.
+      type: string
+      format: date
+      examples: ["2026-08-25"]
+
+    KeletkezesiIdok:
+      title: Harom idoadat, amit minden rekord hordoz
+      type: object
+      required: [eszkozIdo, sorszam]
+      properties:
+        eszkozIdo:
+          $ref: '#/components/schemas/Idobelyeg'
+        szerverIdo:
+          allOf:
+            - $ref: '#/components/schemas/Idobelyeg'
+          description: >
+            A szerver oraja a befogadaskor. Offline keletkezesnel a
+            szinkronizalas ideje. A valaszban kotelezo, a keresben nincs jelen.
+        sorszam:
+          $ref: '#/components/schemas/Sorszam'
+      additionalProperties: false

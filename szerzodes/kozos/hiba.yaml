@@ -1,0 +1,49 @@
+# Siduri - kozos hibaformatum
+#
+# Mindharom szerzodesben ugyanaz. A gepi kod SOHA nem az uzenet szovegebol
+# szarmazik: aki szovegre agazik el, annak a kovetkezo forditas tori el a
+# logikajat.
+$id: https://szerzodes.siduri.mythsystem.hu/kozos/hiba.yaml
+
+components:
+  schemas:
+
+    Hiba:
+      title: Hiba
+      type: object
+      required: [kod, uzenet, azonosito]
+      properties:
+        kod:
+          type: string
+          description: >
+            Gepi kod, stabil es verziozott. ERRE agazik el a kliens.
+          pattern: '^[A-Z][A-Z0-9_]{2,63}$'
+          examples: ["REGI_EPOCH", "HIANYOS_AFA", "NAP_LEZARVA"]
+        uzenet:
+          type: string
+          description: >
+            Magyar szoveg a kezelonek. TENYT KOZOL, nem ir elo megoldast, es
+            keruloutat soha nem ajanl fel (A8 elv).
+          examples: ["A nap mar le van zarva, tetel nem rogzitheto."]
+        azonosito:
+          type: string
+          format: uuid
+          description: >
+            Nyomkovetesi azonosito. EZ KOTI OSSZE A KEPERNYOT A NAPLOVAL - a
+            kezelo ezt tudja bemondani a tamogatasnak.
+        reszletek:
+          type: array
+          description: Mezonkenti hibak, ha vannak.
+          items:
+            type: object
+            required: [mezo, kod, uzenet]
+            properties:
+              mezo:
+                type: string
+                examples: ["tetelek[3].afaKategoria"]
+              kod:
+                type: string
+              uzenet:
+                type: string
+            additionalProperties: false
+      additionalProperties: false

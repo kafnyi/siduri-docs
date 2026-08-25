@@ -1,0 +1,42 @@
+# Siduri - kozos azonositotipusok
+$id: https://szerzodes.siduri.mythsystem.hu/kozos/azonosito.yaml
+
+components:
+  schemas:
+
+    Azonosito:
+      title: Elsodleges kulcs (UUIDv7)
+      description: >
+        UUIDv7: idorendben novekvo, tehat indexbarat, de nem arulja el a
+        rekordok szamat. AZ AZONOSITO NEM A BIZONYLATSZAM - a kettot soha nem
+        keverjuk.
+      type: string
+      format: uuid
+      examples: ["0192f3a1-4c2e-7b3d-8e91-5a6b7c8d9e0f"]
+
+    IdempotenciaKulcs:
+      title: Idempotencia-kulcs
+      description: >
+        Minden allapotvaltoztato keres hordozza. Ez az outbox rekord
+        azonositoja: a degradalt modbol valo visszajatszas definicio szerint
+        ismetel, ezert az idempotencia nem opcio.
+      type: string
+      format: uuid
+
+    SiduriBizonylatszam:
+      title: Siduri bizonylatszam
+      description: >
+        Uzletinap-eloTag + eszkozszam + napi folyoszam. Az eszkozonkent
+        elhatarolt tartomany miatt az utkozes SZERKEZETILEG lehetetlen, es a
+        tartalek szerver atvetelkor azonnal kiszolgalhat - nem kell egyeztetnie.
+      type: string
+      pattern: '^[0-9]{6}[0-9]{3}[0-9]{5}$'
+      examples: ["26082500100042"]
+
+    AdougyiBizonylatszam:
+      title: Adougyi bizonylatszam
+      description: >
+        Az adougyi eszkoz sajat sorszama. KULON, NULLAZHATO mezo: nem minden
+        bizonylathoz tartozik, es soha nem a Siduri szam helyett all.
+      type: [string, 'null']
+      examples: ["A123456789/2026/00042", null]

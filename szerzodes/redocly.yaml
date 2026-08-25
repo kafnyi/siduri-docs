@@ -1,0 +1,20 @@
+# A szerzodesek ellenorzesenek szabalykeszlete.
+#
+# A folyamatos beepites ezt futtatja, es NULLA figyelmeztetessel kell atmennie.
+# Nem szigorusagbol: ha a figyelmeztetes megszokott latvany, akkor a kovetkezo
+# valodi hibat sem veszi eszre senki.
+apis:
+  kassza@v1:
+    root: ./kassza/v1/kassza.yaml
+
+extends:
+  - recommended
+
+rules:
+  # A szerzodes magyar tartomanyi nyelvet hasznal, angol technikai allvanyzattal.
+  # A Redocly angol elnevezesi konvencioit ezert nem kenyszeritjuk ki.
+  operation-operationId-url-safe: error
+  operation-4xx-response: error
+  security-defined: error
+  no-invalid-schema-examples: error
+  no-unresolved-refs: error

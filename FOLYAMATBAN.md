@@ -129,6 +129,71 @@ egy dátumozott, hivatkozott készlet fekszik használatlanul.
 
 ---
 
+## 0.3 Cégkörnyezet — a Siduri nem áll egyedül
+
+*(Informális bejelentés, 2026-08-23. Ide azért kerül be, mert két ponton
+tervezési következménye van.)*
+
+**A cég neve Myth System lesz** (`mythsystem.hu`, `mythsystem.com` megvéve),
+és **három terméket fog össze**:
+
+| Termék | Mi | Állapot |
+|--------|-----|---------|
+| **Garm** | Okosotthon-rendszer | **kész** |
+| **Hermes** | Távoli támogatási infrastruktúra: teljes support, **jegykezeléssel** | **kész** |
+| **Siduri** | Vendéglátóipari POS | **fejlesztés alatt** |
+
+### 0.3.1 `[TERVEZÉSI KÖVETKEZMÉNY]` A Hermes a mi eszkalációink CÉLPONTJA
+
+Végig azt írtuk, hogy *„a támogatási platform már létezik, nem ennek a
+projektnek a része"* — **most már tudjuk, MI az.** Ez nem csak névadás:
+a specifikációban **több eszkaláció is a levegőbe mutat**, és mindegyiknek a
+Hermes a természetes végpontja:
+
+| Honnan | Mi jut el hozzánk | Hivatkozás |
+|--------|-------------------|------------|
+| Integráció-kikapcsolás | **3 ismétlés után automatikus értesítés** | §19.4, L2.3 |
+| Fiskális integráció kikapcsolva | **azonnali** értesítés, nem napzáráskor | §19.5 |
+| NTAK-tanúsítvány lejárat | 60/30/14/7/1 nap, az utolsó kettő **felénk is** | §11.10 |
+| Árva tranzakció | **támogatói feloldó felület** — az ügyfél nem oldhatja fel | §7.5, M13 |
+| Nyers audit lekérés | csak mi látjuk | §18.4 |
+| Tartós integráció-kikapcsolás | csak Siduri állíthatja | L2.3 |
+| Windows Update beállítás visszaállítva | az updater jelez | §24.6 |
+| Replikációs slot érvénytelenedett | teljes újraszinkronizálás kell | §7.1 |
+
+**Teendő:** a felhő (F7.9 támogatói felület) **ne saját jegykezelést építsen**,
+hanem a Hermesbe küldjön. Ez **munkát spórol**, és egy helyre viszi a
+támogatást.
+
+⚠️ **Amit ki kell mondani:** ezek az eszkalációk azt feltételezik, hogy **valaki
+CSELEKSZIK rájuk.** Ha ugyanaz az ember támogatja a Garmot és a Hermest is, akkor
+**a riasztási küszöbök hangolása nem kozmetika, hanem kapacitáskérdés** — egy
+zajos riasztási csatornát senki nem fog nézni.
+
+### 0.3.2 `[DÖNTÉS — MOST NEM ÉPÍTÜNK PLATFORMOT]`
+
+Kézenfekvő lenne közös „Myth System platformot" tervezni. **Most nem tesszük.**
+
+**Indok:** az ügyfél vár, az F2–F8 mind kötelező (§7.2), és **három, eltérő
+tartományú termék korai általánosítása klasszikus projektölő.** A közös
+platform akkor épül, amikor **két termék már tényleg ugyanazt csinálja** —
+nem előre, feltevésre.
+
+**Amit viszont ingyen meg lehet tenni, és később drága lenne:**
+**két komponenst karnyújtásnyira tartunk**, hogy kiemelhető legyen rewrite nélkül —
+**a licenckezelés** (ujjlenyomat, heartbeat, türelmi idő) és **a frissítő**
+(`siduri-updater`, egy Windows offline patcher tartomány-független). Mindkettő
+nyilvánvalóan több terméké lehet. **Nem absztrahálunk előre — csak nem építünk
+beléjük Siduri-specifikus feltételezéseket.**
+
+### 0.3.3 Névhasználat
+
+A dokumentációban **„Fejlesztő: Siduri Systems"** szerepel. **Ez Myth Systemre
+változik**, amint a cégalapítás megtörtént. **A termék neve Siduri marad**, és a
+**„Siduri admin" fiók** (§18.2) is — az a termék sérthetetlen fiókja, nem a cégé.
+
+---
+
 ## 1. Mi KÉSZ
 
 **Hatvanhat döntés lezárva** (öt az 1., negyven a 2., huszonegy a 3. munkamenetben).

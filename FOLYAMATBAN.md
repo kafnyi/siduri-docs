@@ -186,7 +186,73 @@ nem előre, feltevésre.
 nyilvánvalóan több terméké lehet. **Nem absztrahálunk előre — csak nem építünk
 beléjük Siduri-specifikus feltételezéseket.**
 
-### 0.3.3 Névhasználat
+### 0.3.3 `[ELDÖNTVE]` A Siduri EGYBŐL a Myth System alá épül
+
+**A Garm és a Hermes élő rendszerek, és napokon belül átkerülnek a Myth System
+alá.** A Siduri még nem írt egy sor kódot sem — **tehát nincs értelme később
+átköltöztetni azt, amit most ingyen jó helyre lehet tenni.**
+
+#### Címzés
+
+| Cím | Mi | Miért külön |
+|-----|-----|------------|
+| `siduri.mythsystem.com` | **Webes admin** — amit ember nyit meg | Más hitelesítés, más terhelés |
+| `api.siduri.mythsystem.com` | **Felhő API** — amivel a gépek beszélnek | **Más rendelkezésre állási igény:** az admin kibír 10 perc kiesést, a **licenc-heartbeat és az NTAK-tartalék nem** |
+| `updates.siduri.mythsystem.com` | **Frissítés-terjesztés** | Gyorsítótárazható, más hibaprofil, és a `siduri-updater` később más termékhez is használható (§0.3.2) |
+
+*(A Hermes mintája szerint: `hermes.mythsystem.com`.)*
+
+#### `[SZABÁLY]` A felhő címe SOHA nem éghet a kliensbe
+
+Ez a legfontosabb tanulság abból, hogy a Garm és a Hermes **most költözik
+domaint.** A Siduri ne ismételje meg:
+
+> **A felhő és a Hermes címe konfigurációból jön, távolról frissíthetően, a
+> beépített alapértelmezés csak visszaesés.** Ha egy cím megváltozik, **nem
+> szabad, hogy minden telepített kliens frissítést igényeljen.**
+
+#### Kódszintű névterek — commit egyestől
+
+| Réteg | Névtér |
+|-------|--------|
+| Java (backend, felhő) | `com.mythsystem.siduri.*` |
+| C# (POS, updater) | `MythSystem.Siduri.*` |
+| Dart / Flutter | `siduri_*` csomagnevek |
+
+**Ezt az első committól így kell írni.** Egy Java-csomag átnevezése később
+mechanikus, de **mindent érint és beszennyezi a git-történetet** — pont az a
+plusz kör, amit el akarunk kerülni.
+
+**A repónevek maradnak** (`siduri-*`) — a GitHub-szervezet költözhet alattuk.
+
+#### `[TISZTÁZVA]` A támogatási kapacitás-aggály tárgytalan
+
+Korábban felvetettem, hogy ha ugyanaz az ember támogatja mindhárom terméket,
+akkor a riasztási küszöbök hangolása kapacitáskérdés. **Ez nem áll: a Garm és a
+Siduri támogatása külön csapat és külön felelős, és a Hermes ezt a szeparációt
+már megoldotta.**
+
+Egy dolog viszont marad belőle, más okból: **a zajos riasztási csatornát az is
+figyelmen kívül hagyja, akinek egyetlen terméke van.** Vagyis a küszöbhangolás
+továbbra is fontos — csak nem kapacitási, hanem szokásos tervezési kérdés.
+
+#### `[ÚJ FÜGGŐSÉG]` A Hermes ÉLŐ rendszer — integrálunk, nem tervezzük
+
+Mivel a Hermes már működik, saját API-val és bérlő-szeparációval, a
+Siduri→Hermes kapcsolat **ugyanabba a kategóriába kerül, mint a fiskális eszköz
+és az NTAK: adott külső rendszerhez illesztünk.**
+
+**Teendő az F7.9 előtt:** **a Hermes API-dokumentációja bemenet** — jegylétrehozás,
+bérlő/csapat azonosítás, riasztás-típusok, hitelesítés. Enélkül az eszkalációs
+útvonalak (§0.3.1) nem építhetők meg.
+
+#### `[ELDÖNTVE — nincs közös azonosság]`
+
+**A három termék ügyfélköre nem fedi egymást** (okosotthon-tulajdonos vs.
+étterem). **Külön azonosság- és fiókkezelés marad**, közös bejelentkezést most
+nem építünk — ez ugyanaz a döntés, mint a §0.3.2 (nem építünk platformot előre).
+
+### 0.3.4 Névhasználat
 
 A dokumentációban **„Fejlesztő: Siduri Systems"** szerepel. **Ez Myth Systemre
 változik**, amint a cégalapítás megtörtént. **A termék neve Siduri marad**, és a

@@ -1,7 +1,7 @@
 # Siduri — System Superprompt
 
 **Product:** Siduri — Hungarian hospitality POS and management system
-**Vendor:** Siduri Systems
+**Vendor:** Myth System *(Siduri is Myth System’s third product, alongside Garm and Hermes)*
 **Document status:** complete, current specification, written for machine consumption
 **Last updated:** 2026-08-23 (after the close of design session 3)
 

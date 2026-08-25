@@ -1,7 +1,7 @@
 # Siduri — Rendszerspecifikáció
 
 **Termék:** Siduri — magyar vendéglátóipari POS és menedzsmentrendszer
-**Fejlesztő:** Siduri Systems
+**Fejlesztő:** Myth System *(a Siduri a Myth System harmadik terméke, a Garm és a Hermes mellett)*
 **A dokumentum állapota:** teljes körű, aktuális specifikáció
 **Utolsó frissítés:** 2026-08-23 (3. tervezési munkamenet lezárása után)
 

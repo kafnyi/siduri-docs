@@ -1,0 +1,363 @@
+# Siduri — Fázisterv (E1)
+
+**Utolsó frissítés:** 2026-08-23
+**Előfeltétel:** a teljes specifikáció lezárva (`siduri_spec_hu.md`), 49 invariáns rögzítve.
+
+---
+
+## 0. Mi ez a dokumentum, és mi NEM
+
+**Ami:** a munka **sorrendje**, a **függőségei**, és fázisonként a **kilépési
+feltétel** — vagyis mikor mondhatjuk ki, hogy egy fázis kész.
+
+**Ami NEM: naptár.** És ezt nem lustaságból nem adom meg.
+
+> **A projekt átfutási idejét nem a fejlesztés határozza meg, hanem három külső
+> kapu, és egyik lead time-ját sem ismerjük.** Amíg ezek nincsenek meg, minden
+> dátum kitalált szám lenne — és pont az a fajta hamis kényelem, amit végig
+> kerültünk. **A terv abban a pillanatban naptárrá válik, amint a kapuk
+> átfutási ideje megvan.**
+
+**Alapfeltevés (a felhasználótól):** **a csapatlétszám nem korlát.** Ezért a terv
+**párhuzamos sávokra** épül, nem egyetlen szekvenciára. Ahol mégis sorrend van,
+ott az **valós függőség**, nem kapacitáshiány.
+
+---
+
+## 1. A három kapu, ami a naptárat adja
+
+| # | Kapu | Mit blokkol | Mikor kell elindítani | Lead time |
+|---|------|-------------|----------------------|-----------|
+| **K1** | **Gyártói kapcsolat + fizikai tesztkészülék** | A fiskális réteg **véglegesítését** (a fejlesztést nem) | **Ma** | `[ISMERETLEN]` — eddig egyetlen, szöveg nélküli e-mail |
+| **K2** | **MTÜ Igazolás + NTAK validációs teszt** | Az **élesítést**. Enélkül egyetlen ügyfél sem indulhat | **Ma** | `[ISMERETLEN]` — meg kell kérdezni |
+| **K3** | **Fizikai J1900 referenciagépek** | Az **M1–M9, M12–M14, M19 méréseket**, és ezen keresztül a HA-terv és a topológia igazolását | **Ma** | beszerzési idő, hetek |
+
+**K3 két lépcsőben kell:**
+
+| Lépcső | Mi | Mikor |
+|--------|-----|------|
+| **K3/a** | **2 db J1900** + 1 adóügyi eszköz | Az F1 fázishoz — ez a legkorábbi valós blokkoló |
+| **K3/b** | **Teljes referencia-telepítés**: 3 Windows POS + 2 tablet + 4 telefon + KDS + rendeléskijelző | Az M12-höz, az F6 fázis előtt |
+
+> **A K3/a beszerzése az egyetlen dolog, ami MA elindítható, kevés pénzbe kerül,
+> és azonnal felszabadít.** Enélkül az F1 kilépési feltétele nem teljesíthető.
+
+---
+
+## 2. Miért ebben a sorrendben — kockázat-kioltás, nem funkciólista
+
+A fázisok sorrendje **nem a funkciók fontossága szerint** áll, hanem aszerint,
+**mi tudja megölni a projektet, és azt mikor derítjük ki.**
+
+| # | Kockázat | Ha kiderül, mi omlik | Mikor derül ki ebben a tervben |
+|---|----------|----------------------|-------------------------------|
+| **R1** | **A P1 premissza hamis** — az adóügyi eszköz mégsem önállóan állítja ki és sorszámozza a bizonylatot | **A teljes degradált mód** (§6.2), és vele az USP fele | **F1 vége** — 3. hét, nem 6. hónap |
+| **R2** | **J1900-on nem fér el szerver + POS egyszerre** | A teljes topológia és az árazás alsó szintje | **F1 vége** (M1) |
+| **R3** | **A tartalék POS nem bírja az átvételt csúcson** (M12) | A teljes HA-terv | **F4 vége** (M13, az M12 olcsó előjátéka) |
+| **R4** | **Nincs gyártói partnerkapcsolat** | A fiskális réteg lezárása | K1, folyamatos |
+| **R5** | **A tanúsítás tovább tart, mint hittük** | Az élesítés | K2, folyamatos |
+| **R6** | **Nincs névre szóló első ügyfél** | **Az MVP-definíció maga egy fogadás** | Lásd §7 |
+
+> **A vezérelv: ami meg tudja ölni a tervet, azt a legolcsóbb pillanatban kell
+> kideríteni.** Egy hamis P1-et a 3. héten megtudni kellemetlen; a 6. hónapban
+> katasztrófa.
+
+---
+
+## 3. Sávok
+
+| Sáv | Mi | Repó |
+|-----|-----|------|
+| **A — Telephelyi mag** | Backend + POS kliens | `siduri-backend-server`, `siduri-pos-client` |
+| **B — Felhő** | Licenc, archívum, webes admin, statisztikák | `siduri-cloud-api` |
+| **C — Vékonykliensek** | PDA, KDS, rendeléskijelző, standoló | `siduri-flutter-clients` |
+| **D — Telepítés és üzemeltetés** | Frissítő, telepítő, ellenőrzőlista | `siduri-updater` |
+| **E — Kapuk** | Gyártó, MTÜ/NTAK, hardver, könyvelő | *(nem fejlesztés)* |
+
+**Minden sáv az API-szerződéstől függ** — ezért az az első dolog, ami elkészül.
+
+---
+
+## F0 — Kapunyitás `MA INDUL, VÉGIG FUT`
+
+Nem fázis, hanem **folyamatosan futó sáv**. Nincs kilépési feltétele; a többi
+fázis kilépési feltételei hivatkoznak rá.
+
+| # | Feladat |
+|---|---------|
+| F0.1 | **Prior Cash: valódi kapcsolatfelvétel** — bemutatkozás, integrációs szándék, **partneri megállapodás**, és mindenekelőtt **fizikai tesztkészülék**. Kérdésekkel együtt: nulla összegű tétel, DRS-gyűjtő, AJT-rekesz újrakiosztása, a szolgáltatás hitelesítése/IP-korlátozása |
+| F0.2 | **MTÜ / NTAK: a tanúsítási folyamat elindítása**, és mindenekelőtt **a lead time megkérdezése**. Plusz a négy nyitott kérdés (napi zárás utáni rendelésösszesítő, személyzeti fogyasztás, múltbeli zárási időbélyeg, utalvány-besorolás, szétbontott számla) |
+| F0.3 | **Hardver: K3/a beszerzése** — 2 db J1900 + 1 adóügyi eszköz |
+| F0.4 | **Könyvelői kérdéssor**: borravaló adózása, előleg áfakulcsa vegyes fogyasztásnál |
+| F0.5 | **Első ügyfél / tervezőpartner keresése** — lásd §7, ez a legalábbecsültebb tétel |
+
+---
+
+## F1 — Csontváz és kockázat-kioltás
+
+**Cél:** nem funkció, hanem **bizonyíték.** A fázis végén tudni fogjuk, hogy a
+technológiai alap és a legfontosabb premissza áll-e.
+
+### Mi épül
+
+| # | Tétel | Miért itt |
+|---|-------|-----------|
+| F1.1 | **API-szerződés (B8):** hol él, hogyan verziózzuk, ki a gazdája | **Minden sáv erre épül.** Kis csapatnál sem opcionális |
+| F1.2 | **Pénztípusok** (egész forint / nagy pontosságú egységköltség), lebegőpont tiltva | I1–I2. Utólag átírni az egész rendszert érinti |
+| F1.3 | **Bizonylat-számozás**: eszközönként elhatárolt tartomány, üzletinap-előtag, nullázható adóügyi mező | I13–I14. **Szerkezet, nem funkció** — utólag nem tehető bele |
+| F1.4 | **Epoch (fencing) mező a protokollban** | A HA az F6-ban jön, **de a mező az első naptól kell** |
+| F1.5 | **Helyi outbox** (csak-hozzáfűzhető, tartós) | A degradált mód és a nyomtatási szándékrögzítés is erre ül |
+| F1.6 | **Audit napló csontváza**: két áram, csak-hozzáfűzhető, adatbázisszinten kikényszerítve, hash-lánc a biztonsági ágon, UUID-hivatkozás | I24–I25, I35. Utólag beépíteni ugyanaz, mint utólag naplózni |
+| F1.7 | **Monoton óra + óraszinkron váz** | I15–I17 |
+| F1.8 | **A legvékonyabb függőleges szelet:** egy termék → kosár → készpénzes fizetés → **nyomtatás VALÓDI adóügyi eszközre** |
+| F1.9 | **Mindez EGY J1900-on**, szerver és kliens együtt, GraalVM natív image + PostgreSQL + WPF |
+
+### Kilépési feltétel — éles, nem puha
+
+| # | Feltétel |
+|---|----------|
+| ✅ | **A P1 premissza IGAZOLVA vagy MEGDŐLVE, írásban.** Az adóügyi eszköz szerver nélkül is kiállítja és sorszámozza a bizonylatot? |
+| ✅ | **Egy valódi bizonylat, valódi eszközön, valódi J1900-on kinyomtatva** |
+| ✅ | **M1 mérve** (kombinált szerver + pénztárgép egy gépen) |
+| ✅ | **M15 mérve** (nulla összegű tétel — elfogadja-e a firmware) |
+| ✅ | **M17 mérve** (nyomtatási ciklusidő) |
+| ✅ | **Az API-szerződés létezik és verziózott** |
+
+> **Elágazás:** ha **P1 hamis**, a degradált mód (§6.2) **újratervezendő**, az
+> USP kommunikációja változik, és az F6 hatóköre más lesz. **Itt megállunk és
+> újratervezünk** — nem megyünk tovább feltevésre.
+
+---
+
+## F2 — Az eladás magja `MVP`
+
+**Cél:** egy **egygépes hely jogszerűen tudjon kereskedni.** Ez egyben az ingyenes
+belépő szint terméke.
+
+| Terület | Tartalom |
+|---------|----------|
+| **Terméktörzs** | Kategóriák (max 4 szint, alulról öröklődő áfa-alapérték) · **két áfamező másolás-szemantikával** · kemény kapu hiányos áfánál · kiszerelések · ártörténet · életciklus (aktív / inaktív / soft delete) |
+| **Ár és pénz** | Bruttó alapú számolás · **áfakulcs-csoportonkénti visszaszámolás bizonylatszinten** · **az ár a sor létrehozásakor rögzül** (I42) · kerekítés csak a készpénzes részre · EUR |
+| **Eladás** | Gyorseladás · fizetési módok · vegyes fizetés · **számlamegosztás** · kedvezmény (áfa-arányos szétosztással) · **szervizdíj áfakulcsonként bontva** · borravaló |
+| **Bizonylat** | Sztornó vs. törlés · **számla–nyugta kölcsönös kizárás, mindkét útvonallal** · „NEM ADÓÜGYI BIZONYLAT" jelölés |
+| **Nap** | MUNKANAP a 23:45-ös vágással, **abszolút alapon mérve** · MŰSZAK · automatikus napzárás az előfázissal és a kötelező szünettel · **vakzárás** · címletkalkulátor |
+| **Fiskális** | Gyűjtőkiosztás · tételtípusok (áras / ár nélküli szövegsor / levonó külön úton) · a kliens nyomtat, a szándék **helyben** rögzül |
+| **Jogosultság** | Szintek, szerkeszthetően · **sérthetetlen Siduri admin** · fix offline belépés · PIN + RFID |
+| **Audit** | Mindkét áram élesben, indokkódokkal |
+
+**Kilépési feltétel:** egy egygépes telephely **valós forgalmat tud bonyolítani**
+jogszerű bizonylatokkal. *(NTAK nélkül még — az az F3.)*
+
+---
+
+## F3 — NTAK `MVP` · *párhuzamos az F2 második felével*
+
+| # | Tétel |
+|---|-------|
+| F3.1 | **Rendelésösszesítő, 15 percenként**, paraméterezhető ütemmel |
+| F3.2 | **Tartós, sorrendtartó, átfedésmentes kimenő sor** — ugyanolyan elsőrangú, mint a bizonylat-outbox |
+| F3.3 | **Feldolgozási nyugta lekérdezése** 24 órán belül, tárolással *(új, önálló folyamat)* |
+| F3.4 | **Napi zárás**, tárgynap a nyitás dátumából, `zaras − nyitas <= 24 óra` betartva |
+| F3.5 | **Nyitvatartási minta** + **visszamenőleges** zárva/forgalom nélküli nap küldés *(soha nem előre — I18)* |
+| F3.6 | **Kategóriák, egységek, áfakulcsok KONFIGURÁCIÓBÓL**, nem kódból (I-szabály: az ENUM változhat) |
+| F3.7 | **`osszesitett` degradált útvonal** okkóddal |
+| F3.8 | Mennyiségi egység + kiszerelési mennyiség a terméktörzsben |
+
+**Kilépési feltétel:** **a validációs teszt sikeres.** *(A K2 kapu része.)*
+
+---
+
+## F4 — Vendéglátás `MVP`
+
+| Terület | Tartalom |
+|---------|----------|
+| **Asztal** | Asztaltérkép-szerkesztő · asztalnyitás, vendégszám · felszolgáló · asztal-szintű kedvezmény · optimista zárolás |
+| **Rendelés** | Nézetek (felütés / vendég / fogás) · előnyugta és „fizetésre vár" |
+| **Fogások** | **Fogás-címke + „következő fogás indítása"** · a KDS lássa a visszatartottakat |
+| **Módosítók** | Csoportok, `min`/`max`, **FreeLimit háromállású ingyenes-választással** · levonó módosító anyagra hivatkozva · **minden módosító nyomtatódik** |
+| **Menü** | Menükomponensek, párosításonkénti felár, **szétrobbantás egész forintos arányosítással** |
+| **KDS** | Állapotváltás, a rendeléskijelző triggerelése |
+| **Vékonykliens** | Rendelésfelvétel · **fizetés megépítve, szerveroldali jogosultsággal kikapcsolva** · minimális archívum |
+| **Több gép** | Eszközszám-tartományok élesben · nyomtatási routing teljes körben |
+
+**Kilépési feltétel:**
+✅ Asztalkiszolgálásos étterem működik ·
+✅ **M13 mérve** (a tartalék POS terhelése normál üzemben, csak replikaként)
+
+> **Az M13 KAPU az F6 felé.** Ha a replika-terhelés már normál üzemben elviszi a
+> válaszidőt, akkor **az M12 értelmetlen, és a HA-tervet újra kell gondolni,
+> mielőtt megépítjük.**
+
+---
+
+## F5 — Készlet és admin `MVP` · *párhuzamos az F4-gyel*
+
+| # | Tétel |
+|---|-------|
+| F5.1 | Raktárak, raktárközi mozgás bizonylattal |
+| F5.2 | Receptúra (BOM), **levonó módosító visszaírja a készletet** |
+| F5.3 | Bevételezés, **bruttó + kötelező beszerzési áfakulcs**, **mozgóátlagár a negatív bázis külön kezelésével** |
+| F5.4 | **A készlet soha nem blokkol eladást**; a kézi „elfogyott" jelző igen |
+| F5.5 | Leltár korrekciós mozgásként, fordulónapi elszámolással, kalkulált veszteség %-kal |
+| F5.6 | Selejt és személyzeti fogyasztás **készletmozgásként** |
+| F5.7 | **Webes admin — EGY alkalmazás, a telephelyi szerverről is kiszolgálva** (30 napos offline korláttal, kiírva) |
+| F5.8 | Árrés-riportok **nettó alapon, teljesítési módonként bontva** |
+
+---
+
+## F6 — Magas rendelkezésre állás és degradált mód `MVP`
+
+> **Miért ilyen későn:** a HA egy olyan rendszert véd, aminek előbb léteznie kell,
+> és az M12 a **teljes referencia-telepítést** igényli. **A szerkezetek viszont
+> már az F1 óta bent vannak** (epoch, számozási tartományok, outbox) — itt a
+> **mechanizmus** épül rájuk, nem az alap.
+
+| # | Tétel |
+|---|-------|
+| F6.1 | **Outbox visszajátszás és visszatéréskori egyeztetés** |
+| F6.2 | Replikáció · **WAL-slot lemezalapú korlátozása + hangos jelzés + a teljes újraszinkronizálás útja** |
+| F6.3 | **Tanú-séma**, öndiagnózis-létra, a „ki esett ki" felismerés (**kölcsönös hitelesítéssel** — a belső hálózat nem megbízható) |
+| F6.4 | **Kétlépcsős failover**, 5 perces ajánlat monoton időmérőn, lejáró ajánlattal, idempotens átvétellel |
+| F6.5 | **Fencing kikényszerítése a KLIENSEN is** — régebbi epochú szerverrel tilos beszélni |
+| F6.6 | **Automatikus visszaállás** 1 perc stabil kölcsönös láthatóság után, billegés-védelemmel |
+| F6.7 | **Árva tranzakciók: karanténsor + Siduri támogatói feloldó felület** (az ügyfél látja, hogy van, de nem oldhatja fel) |
+| F6.8 | Degradált mód teljes felülete és személyzeti üzenetei |
+
+**Kilépési feltétel:** ✅ **M4, M5, M6, M7, M12, M13, M19 mérve** · ✅ **M12
+sikeres** — a tartalék POS csúcsterhelés alatt átveszi a szolgálatot.
+
+---
+
+## F7 — Felhő `MVP` · *önálló sáv, korán indul*
+
+| # | Tétel |
+|---|-------|
+| F7.1 | Licenc, heartbeat (10 nap), **hardveres ujjlenyomat**, két ujjlenyomat egy azonosítón → mindkettő tiltva |
+| F7.2 | **Archívum (8 év)** + **audit hash-horgonyzás** |
+| F7.3 | **Webes admin kiszolgálása** (ugyanaz az alkalmazás, mint az F5.7) |
+| F7.4 | Több telephely, lánc/franchise, **zárolható beállítások**, visszajelzés a leérkezésről, eszköz-láthatóság |
+| F7.5 | **Felhő HA:** két fizikai szerver, automatikus átcsatornázás, aktív-passzív írás |
+| F7.6 | **Lejárat-figyelő**: NTAK-tanúsítvány, licenc, API-kulcsok — 60/30/14/7/1 nap |
+| F7.7 | **Zárva tartás alatti NTAK-küldés**, ha a telephelyi szerver ki van kapcsolva |
+| F7.8 | Kockázatvállalási nyilatkozat tárolása **SHA-256 lezárással** |
+| F7.9 | **Támogatói felület**: árva tranzakciók, nyers audit, tartós integráció-kikapcsolás |
+
+---
+
+## F8 — Élesítés
+
+| # | Tétel |
+|---|-------|
+| F8.1 | **MTÜ Igazolás + validációs teszt** *(K2)* |
+| F8.2 | **Telepítési ellenőrzőlista élesben**: vendég-wifi szétválasztás · Windows Update újraindítás letiltva · TPM-ág megállapítva · fizikai rögzítés |
+| F8.3 | **Frissítési sorrend** kikényszerítve (a szerepet vivő gépek nem frissülnek egyszerre) |
+| F8.4 | **Pilot telephely**, felügyelt üzem |
+| F8.5 | **AZ ELSŐ ÉLES TESZTEN MINDENT MÉRÜNK** — a teljes `MERESEK.md` |
+
+---
+
+## 4. Kritikus út
+
+```
+K3/a hardver ──► F1 ──► [P1 elágazás] ──► F2 ──► F3 ──► K2 tanúsítás ──► F8 élesítés
+                                             │
+                                             ├──► F4 ──► [M13 kapu] ──► F6
+                                             └──► F5
+F7 (felhő) ──────────────────────── önálló sáv, az F5.7-nél találkozik ─────►
+K1 gyártó ─────────────────────── a fiskális réteg lezárásáig fut ─────────►
+```
+
+**A kritikus úton három dolog van, és egyik sem kód:**
+
+| # | Elem | Miért kritikus |
+|---|------|----------------|
+| 1 | **K3/a hardver** | Az F1 kilépési feltétele mérésekhez kötött |
+| 2 | **K2 tanúsítás** | Az élesítés kapuja, ismeretlen lead time-mal |
+| 3 | **K1 gyártói kapcsolat** | A fiskális réteg lezárásának kapuja |
+
+> **Ha holnap kétszer annyian dolgoznánk rajta, a projekt nem lenne feleannyi
+> idő** — mert a kritikus úton külső átfutási idők állnak. **Ezért kell a K1–K3-at
+> ma elindítani, nem akkor, amikor odaérünk.**
+
+---
+
+## 5. Amit ma el lehet kezdeni, nulla külső függőséggel
+
+| # | Feladat | Sáv |
+|---|---------|-----|
+| 1 | **API-szerződés** (F1.1) — hol él, verziózás, gazda | A |
+| 2 | **Adatmodell**: pénztípusok, bizonylat-számozás, epoch, audit-váz | A |
+| 3 | **Felhő alapok**: licenc, archívum-séma, hitelesítés | B |
+| 4 | **UI/UX kör** a `UiUX/` skill-készlettel — **német szövegekkel tesztelve** | A, C |
+| 5 | **Telepítési ellenőrzőlista** megírása | D |
+| 6 | **Kapulevelek megírása és elküldése** (F0.1, F0.2, F0.4) | E |
+
+---
+
+## 6. Amit tudatosan NEM viszünk az MVP-be
+
+| Terület | Címke | Miért |
+|---------|-------|-------|
+| e-pénztárgép (3. fiskális üzemmód) | `v2` | Az AEE-s út a jelenlegi cél |
+| DRS visszaváltás (göngyölegvisszavétel) | `v1/v2` | A hely nem kötelezett visszaváltóhely lenni |
+| Utalványok | `v1` | Nem blokkolja a kereskedést |
+| Előleg / asztalfoglalás | `v1` | Ugyanaz |
+| Allergének | `v1` | **Opcionális kiegészítő funkció**, kevesen használják |
+| 18+ piktogram | `v1` | Ugyanaz |
+| Mérleg és tára | `v1` | Szűk termékkör |
+| Kioszk, QR-rendelés, rendeléskijelző | `v1/v2` | Nem a kereskedés magja |
+| Kiszállítás mint teljesítési mód | `v1` | Az elviteli áfamező már megvan |
+| Kasszafiók-szenzor | `v2` | Hardverfüggő, kicsi érték |
+| Offline pendrive-mentés | `v2` | Szűk célcsoport *(kivéve, ha fesztivál a célpiac — akkor `v1`)* |
+| Nyomtatás-átirányítás másik eszközre | `v1` | Az „gépenként egy eszköz" ajánlás ezt ritkává teszi |
+| Külső API (kiszállító platformok, CRM) | `v2` | — |
+
+---
+
+## 7. A terv legnagyobb kockázata — és nem technikai
+
+> **Nincs névre szóló első fizető ügyfél.**
+
+Ez azt jelenti, hogy **az MVP-definíció egy fogadás**, nem megrendelés. A jelenlegi
+munkafeltevés (kis bár / büfé, 1–2 pénztár) **feszül** azzal, amit közben
+eldöntöttünk: a HA az MVP-ben van, a felhő teljes menedzsment-platform, a
+vendéglátás asztalkezeléssel jön — **ezek együtt már nem egy kis büfé igényei.**
+
+**Javaslat:** **tervezőpartner keresése az F1 alatt**, nem az F8 előtt.
+Egy valódi hely, aki hajlandó korán használni, és cserébe beleszól. Két dolgot ad,
+amit semmi más nem:
+
+1. **Az MVP hatókörét ténnyé teszi**, feltevés helyett.
+2. **A pilot (F8.4) és a mérési helyszín (K3/b) ugyanaz a hely lehet** — a
+   referencia-telepítés így nem külön költség.
+
+**Ha nincs ilyen partner az F2 végéig, azt kockázatként kell kezelni és kimondani**,
+nem elhallgatni.
+
+---
+
+## 8. Döntési pontok — hol állunk meg és tervezünk újra
+
+| # | Mikor | Mit döntünk |
+|---|-------|-------------|
+| **D1** | **F1 vége** | **P1 igaz vagy hamis?** Ha hamis: a degradált mód és az USP újratervezése |
+| **D2** | **F1 vége** | **M1 eredménye:** elbírja-e a J1900 a szerver + POS párost? Ha nem, a topológia és az árazás alsó szintje változik |
+| **D3** | **F4 vége** | **M13 eredménye:** van-e értelme az M12-nek? Ha nincs, **a HA-terv újragondolása az F6 MEGÉPÍTÉSE ELŐTT** |
+| **D4** | **K2 válasza megjön** | A tanúsítás lead time-ja alapján **a terv naptárrá válik**, és eldől, kell-e átcsoportosítani |
+| **D5** | **K1 válasza megjön** | Ha nincs partnerkapcsolat, eldöntendő: várunk, vagy más gyártóval is felvesszük a kapcsolatot |
+| **D6** | **F2 vége** | Van-e tervezőpartner? Ha nincs, az MVP-hatókör felülvizsgálata |
+
+---
+
+## 9. Fázisonkénti kilépési feltételek — összefoglaló
+
+| Fázis | Kilépési feltétel |
+|-------|-------------------|
+| **F1** | P1 eldöntve írásban · valódi bizonylat valódi eszközön valódi J1900-on · M1, M15, M17 mérve · API-szerződés él |
+| **F2** | Egygépes hely jogszerűen kereskedik |
+| **F3** | **NTAK validációs teszt sikeres** |
+| **F4** | Asztalkiszolgálásos étterem működik · **M13 mérve** |
+| **F5** | Készlet, receptúra, leltár, webes admin él |
+| **F6** | **M12 sikeres** — a tartalék POS csúcson átvesz · M4, M5, M6, M7, M19 mérve |
+| **F7** | Licenc, archívum, admin, felhő-HA, lejárat-figyelő él |
+| **F8** | **MTÜ Igazolás megvan** · pilot fut · a teljes mérési lista lezárva |

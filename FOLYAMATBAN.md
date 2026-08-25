@@ -447,17 +447,36 @@ mit állapított meg közben a gép; és a megerősítő képernyő számmal mon
 következményt, ne egyszerű igen/nem legyen (különben kialakul a „nyomd meg a zöld
 gombot" reflex).
 
-### 2.2 `[MÁR CSAK RÉSZLETEK BLOKKOLJÁK]` E1 — fázisterv
+### 2.2 `[KÉSZ]` E1 — fázisterv
 
-**A fázisterv még nincs megírva.** → `NYITOTT_KERDESEK.md:585`
+**A fázisterv megírva: [`FAZISTERV.md`](FAZISTERV.md).**
 
-- **Megállapított tény:** nincs konkrét, névre szóló első fizető ügyfél.
-- **Munkafeltételezés** (felülvizsgálandó, amint van ügyfél): kis bár / büfé, 1–2
-  pénztár, pincér nélkül. **FIGYELEM:** ezt a munkafeltételezést a 2. munkamenet
-  döntései feszítik — lásd 1.1 szakasz 1. pontja (minimum 2 dedikált gép).
-- **Mi hiányzik még hozzá:** a 2.1 négy részletkérdése közül az 1. (egypénztáras
-  hely) és a 3. (mikor cseréljünk szerepet) érdemben befolyásolja a scope-ot.
-  A 2. és a 4. nem — azok a fázistervvel párhuzamosan is eldönthetők.
+Amit rögzít: nyolc fázis (F0–F8), öt párhuzamos sáv, fázisonkénti **éles kilépési
+feltétel**, **kritikus út** és **hat döntési pont**, ahol megállunk és
+újratervezünk.
+
+**Amit tudatosan NEM ad meg: naptárat.** Az átfutási időt **három külső kapu**
+határozza meg (gyártói kapcsolat + tesztkészülék · MTÜ tanúsítás · fizikai J1900
+referenciagépek), és **egyik lead time-ját sem ismerjük.** A terv abban a
+pillanatban válik naptárrá, amint ezek megvannak — addig minden dátum kitalált
+szám lenne.
+
+**A terv szervezőelve nem a funkciók fontossága, hanem a kockázat-kioltás:**
+ami meg tudja ölni a projektet, azt a legolcsóbb pillanatban kell kideríteni.
+Ezért az **F1 kilépési feltétele nem funkció, hanem bizonyíték** — a P1 premissza
+(az adóügyi eszköz önállóan állítja ki és sorszámozza a bizonylatot) **igazolva
+vagy megdöntve, írásban**, valódi eszközön, valódi J1900-on. Egy hamis P1-et a
+3. héten megtudni kellemetlen; a 6. hónapban katasztrófa.
+
+**Három dolog van a kritikus úton, és egyik sem kód:** a hardverbeszerzés, a
+tanúsítás és a gyártói kapcsolat. **Ezért a csapatlétszám növelése nem rövidíti
+arányosan a projektet** — a K1–K3 kapukat ma kell elindítani, nem akkor, amikor
+odaérünk.
+
+**A terv legnagyobb kockázata nem technikai:** nincs névre szóló első fizető
+ügyfél, tehát **az MVP-definíció egy fogadás.** A javaslat: tervezőpartner
+keresése már az F1 alatt — az teszi ténnyé a hatókört, és ugyanaz a hely lehet a
+pilot és a mérési helyszín is.
 
 ### 2.3 Ami a B1/c-től FÜGGETLENÜL már most elkezdhető (tervezésként, nem kódként)
 

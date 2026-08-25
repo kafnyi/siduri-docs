@@ -4,7 +4,7 @@
 > memória- és versenyhelyzet-állítás CSAK méréssel." Nélküle ezek a tételek
 > szétszóródnak a tervben, és a fázisterv írásakor egy részük némán kimarad.**
 >
-> **Utolsó frissítés:** 2026-08-23 (3. munkamenet — M15–M18 felvéve)
+> **Utolsó frissítés:** 2026-08-23 (3. munkamenet — M15–M19 felvéve)
 > **Belépési pont a projekthez:** `FOLYAMATBAN.md`
 > **A döntések igazságforrása:** `NYITOTT_KERDESEK.md`
 
@@ -208,3 +208,11 @@ A becslés (G9.2): biztonsági ág ~150–300 rekord/nap/telephely, működési 
 ~3000–5000. **A működési ág viszi a tárhelyet, nem a biztonsági.**
 **Mérendő:** valós forgalom mellett a rekordszám, a tömörített méret, és a
 hash-lánc írási költsége a biztonsági ágon.
+
+### `[ ]` M19 — A replikációs slot WAL-felhalmozódása a 64 GB-os SSD-n
+Egy leszakadt tartalék szerverhez tartozó replikációs slot miatt a fő szerver
+korlátlanul őrzi a WAL-t. **Mérendő:** mekkora WAL keletkezik óránként valós
+csúcsforgalom mellett, tehát **hány óra alatt telik meg a maradék hely**; és
+mennyi ideig tart egy **teljes újraszinkronizálás** J1900 páron, ami a slot
+érvénytelenedése után elkerülhetetlen. Ebből jön a lemezalapú korlát és a
+riasztási küszöb konkrét értéke.

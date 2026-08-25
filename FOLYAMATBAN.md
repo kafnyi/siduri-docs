@@ -286,6 +286,23 @@ rendelés 24 órás korlátja, nyitvatartási naptár, változó ENUM-készletek
 | **L2** | **A kikapcsolás gépenkénti, a lejárat 1 ÓRA** (nem napzárás — egy óra alatt nem tud normává válni, és az ismételt kikapcsolás maga a jelzés). Eszkalációs létra: üzletvezető 1 óra → 3 ismétlés után értesítés felénk → tartós kikapcsolás csak Siduri. **Lejáratkor ELŐBB önteszt, csak utána visszakapcsolás** — különben óránként valaki egy sikertelen fizetést eszik meg. **És egy új általános szabály: KÉT integrációosztály** — a választóvonal nem az integráció fajtája, hanem hogy hordoz-e jogi/pénzügyi következményt. A nyomtató, KDS az ügyfél eszköze, ő állítja szabadon, lejárat és eszkaláció nélkül (egy kikapcsolva felejtett konyhai nyomtató két percen belül kiderül; egy adóügyi eszköz napokig nem) |
 | **L1** | **Integrációk ideiglenes kikapcsolása — új funkció.** Kétszintű jog: bekapcsolni csak mi, ideiglenesen kikapcsolni az általunk **integrációnként** felhatalmazott szerep. **Az NTAK és az audit napló soha nem kapcsolható ki** (nincs hozzájuk kézi tartalék). Öt kötelező korlát a „minden ideiglenes megkerülés állandósul" ellen: **kötelező lejárat**, kötelező indok, tartós jelzés minden gépen, **háttér-önteszt automatikus visszakapcsolással**, és napzárási jelentés. **A kikapcsolást SOHA nem ajánljuk fel** (a korábbi javaslatom elvetve: a megkerülés felajánlása a megkerülés megtanítása) — dedikált gomb a beállításokban, a hibaüzenet iránymutat („szóljon az üzletvezetőnek") de nem kínál kart, a hiba a jogosulthoz jut el, és tartós, elrejthetetlen sáv jelzi az állapotot **a teendővel együtt**, plusz kötelező nyugtázás napzáráskor. A fiskális integrációra szigorúbb szabályok, mert **ez a visszaélés kara** |
 
+### 2.0.5 `[+]` Külső felülvizsgálat (Gemini) — 17 tétel értékelve (M szakasz)
+
+| Kategória | Db | Tételek |
+|---|---|---|
+| **Valódi hiányosság nálunk — beépítve** | 11 | számla/nyugta kizárás · utalványok (egycélú vs. többcélú) · NTAK-tanúsítvány lejárat · allergének · GDPR vendégadat-törlés · számlamegosztás · címletkalkulátor · negatív készlet · Windows Update · kártyaterminál internet-figyelmeztetés · **PostgreSQL WAL-felhalmozódás** |
+| **Beépítve, de a javaslat korrigálva** | 5 | szervizdíj-plafon (nincs jogi felső határ, a kemény 15% sértené az A3 elvet) · 18+ figyelmeztetés (tételenkénti felugró = zaj; a felelősség nem hárul át) · audit UUID (a jogi premissza téves, a mechanizmus jó) · kártyás borravaló (a „szigorúan tilos" túl abszolút) · terminál-üzenet szövege (a javaslat kerülőutat ajánlott = A8 sértés) |
+| **A javaslat JOBB a mi döntésünknél — módosítottunk** | 1 | **árva tranzakció feloldása kizárólag Siduri támogatói felületen** |
+
+**A két legfontosabb lelet:**
+
+- **PostgreSQL WAL:** egy leszakadt tartalék szerverhez tartozó replikációs slot miatt a fő szerver korlátlanul őrzi a WAL-t → betelik a 64 GB-os SSD → **a fő szerver megáll.** Nálunk kiemelten veszélyes, mert két, eddig külön kezelt tényt köt össze: a tartalék egy POS gép, és **azt valaki kikapcsolhatja** (§5.2). Új mérés: M19.
+- **Windows Update:** a teljes HA-t a szerver hardverhibája ellen építettük, közben a **sokkal valószínűbb** esemény egy Windows-újraindítás csúcsidőben — és az teljesen megelőzhető. Kötelező telepítési ellenőrzőlista-tétel lett.
+
+Részletes értékelés tételenként: `NYITOTT_KERDESEK.md`, **M) szakasz**.
+A `siduri_spec_hu.md` és a `siduri_superprompt_en.md` frissítve; az invariánslista
+30-ról **41 pontra** bővült.
+
 ### 2.0.1 `[!]` A 3. munkamenetből MÉG NYITOTT tételek
 
 Ezek a 2026-08-23-i körben felmerültek, de **még nincs rájuk válasz**. Amíg
@@ -310,6 +327,9 @@ ezeken a pontokon feltételes marad.
 | **N15** | **L0:** van-e a gyártói szolgáltatásnak bármilyen **hitelesítési, IP-korlátozási vagy figyelési-cím** beállítása? (a nem-localhost figyelés kérdése tárgytalan — már most bárhonnan fogad) | **gyártó** |
 | **N16** | **K3.2:** elfogadja-e az NTAK a múltbeli (utolsó tevékenység szerinti) zárási időbélyeget, ha a szerver 24 óránál tovább volt halott? | **NTAK / MTÜ** |
 | ~~N17~~ | ~~Kikapcsolás hatóköre~~ -> **ELDÖNTVE (L2):** gépenkénti; **1 órás lejárat** eszkalációs létrával; és **két integrációosztály** — védett (adóügyi, bankkártya, NTAK: Siduri kezeli) vs. ügyfél-eszköz (nyomtató, KDS: az üzletvezetőé, lejárat és gépezet nélkül) | — |
+| **N18** | **M2.d:** milyen NTAK-besorolást kap a többcélú utalvány ELADÁSA? | **NTAK / MTÜ** |
+| **N19** | **M10.e:** a szétbontott számla az NTAK-ban egy rendelésösszesítő több fizetési móddal, vagy több rendelésösszesítő? | **NTAK / MTÜ** |
+| **N20** | **M9.d:** a borravaló adózása (borravaló vs. felszolgálási díj, készpénz vs. kártya) | **könyvelő / adótanácsadó** |
 | **N11** | **H3 következménye:** a 15 perces NTAK-küldés miatt a kimenő NTAK-sor tartós, felügyelt sor kell legyen, és a feldolgozási nyugtákat is le kell kérdezni (24 órán belül). Új munkatétel a fázistervben | tervezés |
 
 

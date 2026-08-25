@@ -4873,3 +4873,345 @@ Egy esti műszakban akár 5–6 kikapcsolási ciklus is lehet ugyanarra az eszk�
 **A napzárási nyugtázás összevontan jelenjen meg** — egy tétel eszközönként és
 integrációnként, a ciklusok számával és az összesített idővel —, **ne hat külön
 nyugtázandó bejegyzés.** Csak a **védett (A) osztályra** vonatkozik.
+
+---
+
+## M) Külső felülvizsgálat (Gemini) — értékelés és beépítés (2026-08-23)
+
+Bemenet: a felhasználó által megrendelt külső átnézés a kész specifikációról,
+17 tétellel, jogi / biztonsági / üzemeltetési fókusszal.
+
+**Értékelési szabály (a felhasználótól):** ütközés esetén **a mi megbeszélésünk a
+mérvadó** — de meg kell vizsgálni, nem jobb-e az ő javaslata.
+
+### Összesítő
+
+| Kategória | Darab | Tételek |
+|-----------|-------|---------|
+| **Valódi hiányosság nálunk — beépítve** | 11 | M1, M2, M3, M5, M7, M10, M11, M12, M14, M15, M17 |
+| **Beépítve, de a javaslat korrigálva** | 5 | M4, M6, M8, M9, M16 |
+| **A javaslat JOBB a mi döntésünknél — módosítunk** | 1 | M13 |
+
+---
+
+### `[ÚJ — VALÓDI HIÁNY]` M1 — Számla vs. nyugta kölcsönös kizárás
+
+**A lelet helyes.** Ha a vendég áfás számlát kér (számlázó API), és a tranzakciót
+**a fiskális eszközön is lezárják**, ugyanaz az értékesítés **kétszer kerül be a
+NAV felé** — egyszer a pénztárgép adatszolgáltatásán, egyszer az Online Számla
+rendszeren. A spec §16.7-ben szerepelt a „vagy", de **a kizárás mechanizmusa
+sehol nem volt kimondva.**
+
+*Pontosítás Gemini megfogalmazásához:* a probléma nem „kétszeres áfafizetés",
+hanem **kétszeres bevételjelentés** — a hatóság felé a bevétel felfújva jelenik
+meg, és az eltérést az adóalanynak kell magyaráznia.
+
+**A megoldás pontosabb, mint a javaslat — két külön útvonal kell, nem egy tiltás:**
+
+| Útvonal | Mikor | Menete |
+|---------|-------|--------|
+| **A) Eleve számlás** | A vendég a fizetés ELŐTT kéri | A kosár **számlás módba** kapcsol → **a fiskális eszköz felé nem megy semmi**; amit papíron kiadunk, azon **„NEM ADÓÜGYI BIZONYLAT"** |
+| **B) Utólagos számlaigény** | A nyugta már kinyomtatva | **A nyugtát SZTORNÓZNI kell**, és csak utána állítható ki a számla. Nem elég „nem küldeni többet" |
+
+**A B) útvonal a fontosabb**, mert az fordul elő gyakrabban (a vendég a nyugta
+láttán kéri a számlát), és **ez az, amit a javaslat nem fed le.**
+
+| # | Kikötés |
+|---|---------|
+| M1.a | **Szoftveres reteszelés:** számlás módban a fiskális adapter hívása szerkezetileg lehetetlen, nem csak letiltva |
+| M1.b | A bizonylat **tárolja, melyik útvonalon készült** — utólag ellenőrizhetően |
+| M1.c | **Az NTAK felé mindkét útvonal ugyanúgy jelentendő** — az NTAK nem a bizonylat típusától, hanem a forgalomtól függ |
+
+### `[ÚJ — VALÓDI HIÁNY]` M2 — Utalványok: egycélú vs. többcélú
+
+**A lelet helyes, és a tervben egyáltalán nem szerepelt.**
+
+**Amit a javaslat kihagy, és a lényeg:** **kétféle utalvány van**, eltérő
+adókezeléssel (áfatörvény, az uniós utalvány-irányelv átültetése):
+
+| Típus | Mi az | ÁFA az ELADÁSKOR | ÁFA a BEVÁLTÁSKOR |
+|-------|-------|------------------|-------------------|
+| **Egycélú utalvány** | A beváltáskori adómérték és a teljesítés helye **már az eladáskor ismert** (pl. „1 db pizza" utalvány) | **Adóztatandó** — az eladás maga az adóköteles ügylet | Nincs újabb adóztatás |
+| **Többcélú utalvány** | Bármire beváltható, vegyes adómértékkel (klasszikus ajándékutalvány) | **Áfa hatályán kívül** | **Ekkor keletkezik az adófizetési kötelezettség** |
+
+**Egyetlen „Utalvány" terméktípus tehát NEM elég** — a terméktörzsben
+**`utalványtípus` mező kell** (egycélú / többcélú), és a kettő fiskálisan
+ellentétesen viselkedik.
+
+| # | Teendő | Címke |
+|---|--------|-------|
+| M2.a | **`utalvány` termékjelző + `utalványtípus`** (egycélú / többcélú) | `v1` |
+| M2.b | **Többcélú eladása:** áfa hatályán kívül → **ugyanaz a gyűjtő-probléma, mint a DRS-nél** (§10.3) — nincs szabad rekesz. **A kérdés összevonva a DRS-kérdéssel** a gyártó/NAV felé | `v1` |
+| M2.c | **Beváltás:** fizetési mód, nem termék. A beváltott tételek normál módon adóznak és jelentendők | `v1` |
+| M2.d | **NTAK:** a többcélú utalvány ELADÁSA valószínűleg `EGYEB / NEM_VENDEGLATAS`. ⚠️ **Igazolandó** — a javaslat állítja, de forrás nélkül | `[IGAZOLANDÓ]` |
+| M2.e | **Kintlévő utalványok nyilvántartása** (kiadott / beváltott / lejárt) — kötelezettség a mérlegben | `v2` |
+
+### `[ÚJ — VALÓDI HIÁNY]` M3 — NTAK-tanúsítványok lejáratának figyelése
+
+**A lelet helyes.** A telephelyenkénti NTAK-tanúsítványok lejárnak; ha ez
+váratlanul történik, **a beküldés leáll**, és az elmaradt adatszolgáltatás
+szankcionálható. A spec említette a telephelyenkénti tanúsítványokat, **a
+lejáratkezelést nem.**
+
+**Két korrekció a javaslathoz:**
+
+| # | Korrekció |
+|---|-----------|
+| M3.a | **A FELHŐ figyeljen, ne a telephelyi szerver.** Ha a telephelyi szerver az, ami áll, akkor pont nem tud riasztani. |
+| M3.b | **30 nap kevés.** Új tanúsítványt igényelni átfutási idő. Javaslat: **60 / 30 / 14 / 7 / 1 napos, erősödő** riasztás — az utolsó kettő már felénk is megy, nem csak az ügyfélnek |
+| M3.c | **Terjesszük ki minden lejáró hitelesítő adatra:** licenc, számlázó API-kulcs, felhős tanúsítványok. Egy közös „lejárat-figyelő" olcsóbb, mint három külön |
+
+### `[BEÉPÍTVE — a javaslat KORRIGÁLVA]` M4 — Szervizdíj felső határa
+
+**A mechanizmus jó, az indoklás és a mérték hibás.**
+
+**Az elgépelés elleni védelem valós igény** — egy 150%-os szervizdíj egy
+mellényúlásból tényleg kimehet, és a kárt utólag nehéz rendezni.
+
+**De a javaslat két hibája:**
+
+| # | Hiba |
+|---|------|
+| M4.a | **„A fogyasztóvédelem bünteti a túlzó felszolgálási díjat"** — ez így nem áll. **Nincs jogszabályi felső határ**; a követelmény a **világos, előzetes ártájékoztatás**. A díjat fel kell tüntetni az étlapon/árlistán, a mértékét nem korlátozzák |
+| M4.b | **A kemény 15%-os korlát sérti az A3 elvet** („ne mondjuk meg az ügyfélnek, mit akar"). Egy rendezvényhelyszín szerződéses szervizdíja lehet magasabb |
+
+**Helyette:**
+
+* **Puha megerősítés konfigurálható küszöb felett:** „Biztosan 25%? Ez szokatlanul magas." — a küszöb állítható, alapértelmezés 15%.
+* **Kemény korlát csak abszurd értéknél** (pl. 100% felett), mert az bizonyosan elgépelés.
+* **Ami viszont VALÓS jogi követelmény, és eddig nem szerepelt:** a szervizdíj mértékét **előzetesen közölni kell**. A rendszernek ezt támogatnia kell (az árlistán/étlapon megjelenő szöveg), és a nyugtán elkülönítve kell szerepelnie — ez utóbbi már megvolt (§16.5).
+
+### `[ÚJ — VALÓDI HIÁNY]` M5 — Allergének (1169/2011/EU)
+
+**A lelet helyes, és valódi hiány.** A spec az „allergénszöveget" csak
+fordítandó tartalomként említette, **kötelezettségként sehol.**
+
+**A javaslatnál JOBB megoldás — az allergén az ANYAGHOZ tartozik, nem a termékhez:**
+
+A javaslat 14 kódot tenne a termékre. Ez rossz, mert **minden receptúra-változás
+csendben érvénytelenítené** a terméken lévő listát — és az elavult allergénlista
+veszélyesebb, mint a hiányzó.
+
+| # | Szabály |
+|---|---------|
+| M5.a | **Az allergént az ALAPANYAGHOZ rendeljük** (a 14 uniós kód). A termék allergénlistája a **receptúrából származtatott**, és **élő** — receptmódosításkor magától frissül |
+| M5.b | **A módosítók is beleszámítanak** (extra sajt → tej). A származtatás a módosítókat is végigveszi |
+| M5.c | **Kézi felülírás lehetséges**, de **feltűnő jelzéssel** — keresztszennyeződés és készen vásárolt termék miatt kell |
+| M5.d | **POS-on „Allergén infó" gomb** → azonnali lista; kérésre az **előnyugtára is** nyomtatható |
+| M5.e | **Az adatok pontossága az ügyfél felelőssége** — ugyanaz az elv, mint az áfánál és az NTAK-kategóriánál. Mi a képességet adjuk |
+
+> **Ez az EGYETLEN hely, ahol az A3/A4 elv („a számított érték kitöltő segédlet,
+> nem élő hivatkozás") NEM érvényes, és a fordítottja igaz.** Az indok az A5
+> elv: a hibairányok itt sem egyenértékűek — egy elmaradt allergénjelzés
+> **életveszélyes**, egy fölösleges csak kellemetlen. Ezért itt **élő
+> származtatás** kell, felülírással, nem másolat.
+
+### `[BEÉPÍTVE — a javaslat KORRIGÁLVA]` M6 — Korhatáros (18+) termékek
+
+**A jelző hasznos, a megvalósítás és az indoklás korrigálandó.**
+
+| # | Korrekció |
+|---|-----------|
+| M6.a | **„Felelősség áthárítása a pultosra" — ez nem így működik.** Egy naplózott gombnyomással a munkáltató jogi felelőssége nem száll át a dolgozóra. A napló értéke **belső, munkáltatói bizonyíték** arról, hogy a folyamat működött — nem több |
+| M6.b | **Tételenkénti felugró ablak ELLENJAVALLT.** Ami minden sörnél felugrik, azt 200 ezredmásodperc alatt elkattintják — **zaj lesz belőle, nem védelem** (ugyanaz a családja, mint az A7/A8 problémáknak). Helyette: **rendelésenként EGYSZER**, az első korhatáros tételnél |
+| M6.c | **Telephelyenként konfigurálható, üzemmódfüggő alapértékkel:** gyorseladás/pult módban alapból bekapcsolva (ott a vendég a pultnál áll), **asztalkiszolgálásban alapból kikapcsolva** (ott a pincér az asztalnál már látta a vendéget, a felugró ablak a pultnál értelmetlen) |
+| M6.d | A jelző **kategóriaszinten** öröklődik, terméken felülírható |
+
+### `[ÚJ — VALÓDI HIÁNY]` M7 — Törzsvendég-profilok GDPR-törlése
+
+**A lelet helyes, és valódi hiány** — a soft delete a *termékekre* volt kimondva,
+a **vendégadatokra semmi.**
+
+**Két lényeges kiegészítés a javaslathoz:**
+
+| # | Kiegészítés |
+|---|-------------|
+| M7.a | **Nem elég a nevet átírni.** Az anonimizálásnak ki kell terjednie a **telefonszámra, e-mailre, címre, hűségkártya-számra**, és — ami a legkockázatosabb — a **szabad szöveges megjegyzésekre**. Oda írja a személyzet, hogy „a piros autós fickó" — ez önmagában újraazonosít |
+| M7.b | **A BIZONYLATOKAT nem érintheti.** A számla nevet és címet hordoz, és **8 évig kötelezően megőrzendő** — a GDPR törlési jog **nem írja felül a jogszabályi megőrzési kötelezettséget**. A törlés a **CRM-profilra** vonatkozik, nem a számviteli bizonylatra. *(Ezt a javaslat nem említi, pedig enélkül a funkció jogsértést okozna.)* |
+| M7.c | A statisztikák sértetlenek maradnak (a fogyasztási adat a profil-azonosítóhoz kötött, nem a névhez) — ez a javaslatban helyesen szerepel |
+
+### `[BEÉPÍTVE — a jogi premissza HIBÁS, a mechanizmus JÓ]` M8 — Kilépett dolgozók az audit naplóban
+
+**A javaslat jogi premisszája téves, a mérnöki megoldása viszont helyes és
+kellett volna.**
+
+**Miért téves a premissza:** a **jogi kötelezettség teljesítéséhez, illetve jogi
+igények előterjesztéséhez/védelméhez** szükséges adatkezelésre **a törlési jog
+nem terjed ki.** Egy volt dolgozó **nem követelheti** annak törlését, hogy ki
+sztornózott melyik bizonylatot — épp ez az a nyom, aminek túl kell élnie. A
+számviteli megőrzés önálló jogalap.
+
+**Miért jó mégis a megoldás — három okból, amiből kettő nem is GDPR:**
+
+| # | Indok |
+|---|-------|
+| M8.a | **Helyes normalizálás.** A név egy helyen éljen (a felhasználó rekordjában), a napló **belső UUID-t** hivatkozzon |
+| M8.b | **A hash-lánc túléli a névváltozást.** Ha a nevet a rekordba írnánk, egy házasságkötés utáni névváltozás után vagy elavult nevünk lenne, vagy egy megváltoztathatatlan rekordot kellene átírni — **ami a láncot törné** |
+| M8.c | **Pszeudonimizálási kar marad a kezünkben** arra a ritka esetre, ha egy konkrét ügy megkívánja: a **megjelenítő réteget** cseréljük, a lánc érintetlen |
+
+**Kikötés, ami a mi tervünkből marad:** a **szerep pillanatképként** tárolódik a
+rekordban (az AKKORI szerep), mert a jelenlegi szerep hazudna.
+Tehát: **azonosság = UUID (hivatkozás), szerep = pillanatkép (másolat).**
+
+### `[BEÉPÍTVE — a javaslat TÚL ABSZOLÚT]` M9 — Kártyás borravaló
+
+**A lelet megerősíti a meglévő döntésünket** (a kártyás borravaló nem módosítja a
+fizikai kasszát), és **hozzáad egy hiányzó funkciót.**
+
+| # | Értékelés |
+|---|-----------|
+| M9.a | **A pénztárgép-hiány magyarázata helyes és eddig hiányzott:** ha a kártyás borravalót a műszak végén a fiókból veszik ki készpénzben, **a fizikai kassza hiányba kerül** a záráskori elváráshoz képest |
+| M9.b | **ÚJ FUNKCIÓ, ami eddig nem szerepelt: felhasználónkénti borravaló-riport** a hó végi bérszámfejtéshez, a felhős admin felületen. **Beépítve** |
+| M9.c | **A „SZIGORÚAN TILOS készpénzben kifizetni" TÚL ABSZOLÚT.** A gyakorlatban sok hely kifizeti — és ez **rendben van, ha nyomon követett készpénzmozgásként történik**, saját bizonylattal, nem néma fiókcsökkentésként. **A helyes szabály: soha nem lehet nyomkövetetlen fiókkivét** |
+| M9.d | ⚠️ **A „bérként adózik" állítás forrás nélküli.** A borravaló adózása Magyarországon nem triviális (borravaló vs. felszolgálási díj, készpénz vs. kártya). **A könyvelőnek/adótanácsadónak szóló kérdés** — de a tervezési következmény (felhasználónkénti riport) mindkét kimenetel mellett ugyanaz |
+
+### `[ÚJ — VALÓDI HIÁNY, NAGYOBB, MINT AHOGY A JAVASLAT KERETEZI]` M10 — Számlamegosztás
+
+**A specifikációban a számlamegosztás EGYÁLTALÁN nem szerepelt** — pedig
+asztalkiszolgálásnál alapfunkció. Ez a mi hiányunk, nem apróság.
+
+**Két külön megosztási mód van, a javaslat csak az egyiket fedi:**
+
+| Mód | Mit csinál | Nehézség |
+|-----|-----------|----------|
+| **Egyenlő bontás (n felé)** | A teljes számlát n részre osztja | **Kerekítés** + az áfa és a szervizdíj arányos hozzárendelése |
+| **Tételes bontás (ki mit evett)** | Minden vendég a saját tételeit fizeti | Nem kell arányosítani, **de a megosztott tételt** (egy üveg bor négyüknek) tovább kell bontani |
+
+| # | Szabály |
+|---|---------|
+| M10.a | **Determinisztikus maradékelosztás:** 10 000 / 3 → 3 333 + 3 333 + **3 334**. Ugyanaz a bontás mindig ugyanazt adja |
+| M10.b | **A bontás áfakulcsonként történik, nem a végösszegen.** Vegyes kosárnál (5%-os étel + 27%-os ital) minden résznek **arányos áfaszerkezetet** kell kapnia — különben a gyűjtőkre rossz összeg megy |
+| M10.c | **A szervizdíj ugyanígy arányosodik**, áfakulcsonként (§16.5) |
+| M10.d | **Minden rész ÖNÁLLÓ bizonylat, saját SIDURI számmal.** A napi folyószámos séma (§8.1) ezt gond nélkül kezeli |
+| M10.e | ⚠️ **Igazolandó:** egy szétbontott számla az NTAK-ban **egy** rendelésösszesítő több fizetési móddal, vagy **több** rendelésösszesítő? A `rendelesVegosszegeHUF` és a `fizetesiModok` szerkezete alapján több fizetési mód egy rendelésen belül kezelhető — **de a bizonylatonkénti bontás valószínűbb.** Megkérdezendő |
+
+### `[ÚJ — HASZNOS, KIS TÉTEL]` M11 — Címletkalkulátor a műszakzáráshoz
+
+Beépített szorzós címletszámláló (20 000 × 4, 10 000 × 3, …) a záráskori
+készpénz-összesítéshez. **Nincs benne architekturális kockázat, valós
+hibacsökkentés.** `v1`.
+
+**Kiegészítés:** a **címletbontás mentődjön el a műszakzárás rekordjában**, ne
+csak a végösszeg. Egy kasszaeltérés visszakeresésénél a címletszerkezet
+gyakran megmondja, mi történt (pl. egy 20 000-es hiányzik → nem centizés,
+hanem egy darab bankjegy).
+
+### `[ÚJ — VALÓDI HIÁNY]` M12 — A készlet SOHA nem blokkolhat eladást
+
+**A lelet helyes, és nálunk csak a módosítókra volt kimondva** (§17.5), általános
+szabályként nem.
+
+> **A készlet állapota SOHA nem blokkolhatja a POS értékesítést.** Ha a
+> szoftveres készlet mínuszba fut, az **jelzés a menedzsmentnek**, nem akadály a
+> pultosnak.
+
+**Két kiegészítés, amit a javaslat nem tartalmaz:**
+
+| # | Kiegészítés |
+|---|-------------|
+| M12.a | **A „mínuszos készlet" és az „elfogyott" KÉT KÜLÖN dolog.** A mínuszos készlet adathiba (elmaradt bevételezés) → **nem látszik a pultosnak**. Az **„elfogyott" viszont kézi jelző**, amit a személyzet állít be, és **igenis kiszürkíti a gombot** — az valós információ a vendég felé. A javaslat ezt a kettőt összemossa |
+| M12.b | ⚠️ **Numerikus csapda: a mozgóátlagár negatív készleten.** Ha a készlet −5 és bevételezünk 10-et új áron, a mozgóátlag-számítás **negatív bázison értelmetlen eredményt ad** — és onnantól minden árrésszám hibás. **A negatív bázist külön kell kezelni** (a negatív rész az utolsó ismert bekerülési áron), és **jelezni kell**, hogy az adott tétel átlagára korrekcióból származik |
+
+### `[A JAVASLAT JOBB A MI DÖNTÉSÜNKNÉL — MÓDOSÍTUNK]` M13 — Árva tranzakciók: támogatói felület
+
+**A mi döntésünk (A4) az volt:** az árva tranzakciók **kimentése automatikus**, a
+**könyvelésük emberi döntés** — de **nem mondtuk meg, MELYIK emberé.**
+
+**A javaslat: vegyük el az ügyféltől teljesen, csak Siduri rendszergazda oldja
+fel egy dedikált támogatói felületen.**
+
+**Ez jobb, és elfogadjuk. Négy okból:**
+
+| # | Indok |
+|---|-------|
+| M13.a | **A duplikált adóügyi bizonylat jogi következmény.** Nem az a szint dönt róla, aki hajnali kettőkor a pultnál áll |
+| M13.b | **A feloldáshoz az adóügyi eszköz SAJÁT naplóját kell keresztbe olvasni** (§16.2) — ez szakértelem, nem gombnyomás |
+| M13.c | **Ritka.** Csak kemény átvétel után keletkezik, tehát a támogatói bevonás nem skálázódik rosszul |
+| M13.d | **Illeszkedik a MEGLÉVŐ mintánkba:** a nyers audit csak a miénk (§18.4), a tartós integráció-kikapcsolás csak a miénk (§19.4). **Ugyanaz az eszkalációs létra, harmadik alkalmazása** — nem új fogalom |
+
+**Két kikötés, ami a mi elveinkből jön, és a javaslatban nincs benne:**
+
+| # | Kikötés |
+|---|---------|
+| M13.e | **A feloldatlan árva tranzakció NEM blokkolhatja az üzletmenetet.** Karanténsorba kerül, a hely tovább dolgozik |
+| M13.f | **Az ügyfél LÁSSA, hogy van feloldatlan tétel**, akkor is, ha nem tud vele mit kezdeni — A2 elv (néma kudarc nincs). Elrejteni tilos; csak a *feloldást* vesszük el, a *tudást* nem |
+
+### `[BEÉPÍTVE]` M14 — Kockázatvállalási nyilatkozat kriptográfiai lezárása
+
+**Jó kiegészítés a meglévő tervhez** (§24.4). A nyilatkozat rögzítésekor a
+**teljes szöveg + dátum + a KONFIGURÁCIÓS ÁLLAPOT** összefűzve, **SHA-256
+lenyomattal**, az aláírással együtt a felhőbe.
+
+**Amit hozzátesz a meglévőhöz:** eddig a szöveg verzióját mentettük (melyik
+szöveget írták alá). **A lenyomat azt is bizonyítja, hogy pontosan AZ a
+csomag nem változott utólag** — és **kriptográfiailag hozzáköti az aláírást
+ahhoz a konkrét konfigurációhoz**, amit elutasítottak. Ez utóbbi hiányzott.
+
+> ⚠️ **Őszinte korlát:** egy érintőképernyős aláírás + SHA-256 **NEM minősített
+> elektronikus aláírás.** Ez **bizonyíték**, nem eIDAS-megfelelés — és nem is
+> szabad annak beállítani sem az ügyfél, sem magunk felé. Bizonyítékként viszont
+> lényegesen erősebb, mint egy sima mentett kép, és olcsó.
+
+### `[ÚJ — VALÓDI HIÁNY, ÉS KÍNOS]` M15 — Windows Update újraindítás a szerveren
+
+**A lelet helyes, és ez a lista legkínosabb tétele nekünk.**
+
+A teljes HA-rendszert a **szerver hardverhibája** ellen építettük. Közben a
+**sokkal valószínűbb** esemény az, hogy a **Windows Update szombat este 20:00-kor
+újraindítja a szerverként dolgozó pénztárgépet** — és ez **teljesen
+megelőzhető.**
+
+Rosszabb: a mi failoverünk **kézi** (5 perc után ember nyom gombot). Tehát egy
+Windows-újraindítás **5+ perc csökkentett módot és egy emberi döntést** okoz,
+csúcsidőben, teljesen fölöslegesen.
+
+| # | Teendő |
+|---|--------|
+| M15.a | **A telepítés kötelezően letiltja az automatikus újraindítást** — Windows 10 IoT Enterprise LTSC-n ez házirenddel/beállítással megtehető (halasztás + aktív órák + újraindítás-tiltás) |
+| M15.b | **KÖTELEZŐ TELEPÍTÉSI ELLENŐRZŐLISTA-TÉTEL**, ugyanabban az osztályban, mint a vendég-wifi szétválasztása (§10.6) |
+| M15.c | **Az updater ELLENŐRZI a beállítást**, és ha valaki visszaállította, **jelez** — a felhőbe is |
+| M15.d | **A frissítés sorrendje már korábban is kemény követelmény volt** (§5.2/4) — ez most kiegészül azzal, hogy az **operációs rendszer** frissítése is beleszámít, nem csak a mi szoftverünké |
+
+### `[BEÉPÍTVE — a SZÖVEG korrigálva a saját elvünk miatt]` M16 — Kártyaterminál internetfüggősége
+
+**A mechanizmus jó és eddig hiányzott:** a meglévő internet-jelzőt (§6.5)
+össze kell kötni a fizetési folyamattal, hogy a személyzet **a fizetés
+megkezdése ELŐTT** tudja meg, ne egy 45 másodperces időtúllépés után.
+
+⚠️ **A javasolt SZÖVEG viszont sérti a saját A8 elvünket** — a javaslat üzenete
+azt mondja: *„használja a kézi módot"*. **Ez a megkerülés felajánlása**, amit az
+integráció-kikapcsolásnál kifejezetten megtiltottunk (§19.5).
+
+**Helyes szöveg — tényt közöl, nem ír elő megoldást:**
+
+> „Nincs külső internetkapcsolat. A kártyaterminál valószínűleg nem fog működni."
+
+Pont. A személyzet tudja, mik a lehetőségei; nem a rendszer dolga a
+kerülőútra terelni. *(Jó jel, hogy a saját elvünk kiszűrte a javaslat egy
+részletét.)*
+
+### `[ÚJ — A LISTA LEGERŐSEBB MŰSZAKI LELETE]` M17 — PostgreSQL WAL-felhalmozódás
+
+**Ez a legjobb technikai tétel a listában, és valódi, ismert PostgreSQL bukási
+mód:** egy leszakadt készenléti szerverhez tartozó **replikációs slot miatt a fő
+szerver korlátlanul őrzi a WAL-t** → **betelik a lemez** → **a FŐ SZERVER
+MEGÁLL.** 64 GB-os SSD-n ez napok, nem hetek kérdése.
+
+**És nálunk KIEMELTEN veszélyes, mert két olyan dolgot köt össze, amit külön-külön
+már tudtunk, de soha nem raktunk egymás mellé:**
+
+* a tartalék szerver **egy POS gép**, és
+* **„a szerepet vivő gépet valaki kikapcsolhatja, mert az számára csak egy kassza"** (§5.2/2).
+
+Tehát a „napokig leszakadt készenléti szerver" **nem ritka széleset, hanem egy
+általunk MÁR DOKUMENTÁLT kockázat kiszámítható következménye.**
+
+**Pontosabb megoldás, mint a javaslaté:**
+
+| # | Megoldás |
+|---|----------|
+| M17.a | **A korlát LEMEZ alapú legyen, ne idő alapú** — mert a valódi korlát a hely, nem az óra. A PostgreSQL erre való beépített mechanizmusa a slot által megőrizhető WAL méretének korlátozása; a határ átlépésekor a slot érvénytelenedik |
+| M17.b | **Következmény, amit ki kell mondani:** az érvénytelenített slot után a tartalék **NEM tud növekményesen felzárkózni** — **teljes újraszinkronizálás** kell (bázismentés). Ez J1900-on **nehéz művelet**, tervezni kell rá, és **csúcsidőn kívülre** kell tenni |
+| M17.c | **Hangosan kell szólnia** (A2 elv): „a tartalék szerver leszakadt, teljes újraszinkronizálás szükséges" — nem csendes slot-eldobás |
+| M17.d | **A WAL-méret és a lemezbüdzsé kölcsönhatásba lép a 30 napos purge-dzsel** (§24.2) és a 64 GB-os SSD-vel → **mérendő**, `MERESEK.md` |
+| M17.e | **Riasztás küszöb ELŐTT is:** ha a slot által tartott WAL eléri a büdzsé felét, az már figyelmeztetés — ne a leállás legyen az első jelzés |

@@ -272,6 +272,24 @@ fault state** and **never influences** the "server or me?" decision.
 * Working assumption: **asynchronous replication**. `[MEASURE]` The claim "synchronous is impossible" is **not yet measured** (`MERESEK.md` M4).
 * The "automatically switch from synchronous to asynchronous" branch is **rejected** (silent failure, A2).
 * **The epoch field (fencing) is a REQUIREMENT**, present in the protocol from day one.
+* **`[BASE]` Mandatory protection against replication-slot WAL accumulation.**
+  A replication slot belonging to a disconnected standby makes the primary
+  **retain WAL indefinitely** → **the disk fills** → **THE PRIMARY STOPS.**
+  On a 64 GB SSD this is a matter of days.
+
+  **Especially dangerous here**, because it joins two facts we had treated
+  separately: the backup server is **a POS machine**, and **"the machine carrying
+  the role can be switched off by staff, because to them it is just a till"**
+  (§5.2). A standby disconnected for days is therefore **not an edge case but the
+  predictable consequence of a risk we already documented.**
+
+  | # | Solution |
+  |---|----------|
+  | a | **The limit is DISK-based, not time-based** — the real constraint is space. Cap the WAL a slot may retain; beyond the limit the slot is invalidated |
+  | b | **Consequence that must be stated:** after slot invalidation the standby **cannot catch up incrementally** — a **full resynchronisation** is required. That is a heavy operation on J1900 and must be scheduled **outside peak hours** |
+  | c | **It must be loud** (principle A2), never a silent slot drop |
+  | d | **Alert BEFORE the threshold:** a warning at half the budget — the stoppage must not be the first signal |
+  | e | `[MEASURE]` Interaction of WAL size with the 30-day purge and the 64 GB SSD |
 
 ## 7.2 Two-stage failover `MVP`
 
@@ -313,6 +331,20 @@ avoidance.
 * The old "superuser account only" rule is **rejected**.
 * **Extraction of orphan transactions is automatic and mandatory.**
 * **Booking them is NOT automatic** — duplicate fiscal receipt risk requires a human decision.
+**Orphan transactions are resolved EXCLUSIVELY on a Siduri support surface.**
+This task is **taken away from the customer entirely** — a duplicate fiscal
+document is a legal consequence, resolving it requires **cross-reading the fiscal
+device's own journal**, and that is expertise, not a button press. It is rare
+(only after a hard takeover), so support involvement scales fine. It is the same
+escalation pattern as the raw audit (§18.4) and persistent integration disable
+(§19.4).
+
+**Two constraints:**
+
+| # | Constraint |
+|---|-----------|
+| a | **An unresolved orphan must NOT block trading** — it goes to a quarantine queue and the site keeps working |
+| b | **The customer must SEE that unresolved items exist**, even though they cannot act on them (principle A2). We take away the **resolution**, never the **knowledge** |
 * **Role swap happens immediately once stable** — no deferral to a quiet window.
 
 ## 7.6 Flap protection `MVP`
@@ -410,6 +442,12 @@ machine and per user.
 * Cash in/out and skimming **with a document**.
 * Shift handover **with unchanged drawer balance** (no skimming) is allowed.
 * **Drawer discrepancy logged at open** (shortage / surplus registered).
+* **Built-in denomination calculator** for shift close: a multiplying counter
+  (20 000 × 4, 10 000 × 3, …) for totalling cash. `v1`
+  **Store the denomination breakdown in the shift-close record**, not just the
+  total — when investigating a discrepancy the denomination structure often
+  reveals what happened (a missing 20 000 note is not sloppy counting, it is one
+  banknote).
 
 ## 9.3 Automatic day close `MVP`
 
@@ -760,6 +798,13 @@ CUSTOMER's job.** We build the environment and the capability.
 going live, with per-site certificates and message signing. **This is an external
 gate that dominates the schedule** — lead time, not development work.
 
+**Certificate expiry monitoring is required — IN THE CLOUD, not on the site
+server.** If the site server is the thing that is down, it cannot raise the alarm.
+Escalating alerts at **60 / 30 / 14 / 7 / 1 days**; the last two **also reach us**,
+not only the customer. Obtaining a new certificate has lead time.
+**The same expiry monitor serves every other credential** (licence, invoicing API
+key, cloud certificates) — one shared mechanism is cheaper than three separate ones.
+
 ---
 
 # 12. Product catalogue
@@ -836,6 +881,39 @@ Three states: **active / inactive / soft-deleted**.
 
 **Why:** purchase VAT is deductible, therefore not a cost. Gross-based margin
 would be **21–27% wrong** — and margin is the system's most important business report.
+
+## 12.8 Allergens `MVP`
+
+**A statutory obligation** (EU 1169/2011): the venue must inform guests about the
+14 EU allergens, and this is actively inspected.
+
+> **An allergen belongs to the INGREDIENT, not to the product.** Putting 14 codes
+> on the product would mean **every recipe change silently invalidates** the list
+> — and a stale allergen list is more dangerous than a missing one.
+
+| # | Rule |
+|---|------|
+| a | **Allergens are assigned to ingredients.** A product's allergen list is **derived from the recipe** and is **LIVE** — it updates itself when the recipe changes |
+| b | **Modifiers count too** (extra cheese → milk). Derivation walks them |
+| c | **Manual override is possible**, but with a **prominent marker** — needed for cross-contamination and bought-in prepared items |
+| d | **An "Allergen info" button on the POS** → instant list; printable on the proforma on request |
+| e | **Accuracy is the customer's responsibility** — we provide the capability |
+
+> **This is the ONE place where principles A3/A4 do NOT apply and the inverse
+> holds: here a LIVE derivation is required, not a copy.** The reason is
+> principle A5 — the error directions are unequal here too, but the other way
+> round: **a missed allergen warning can kill someone**, a superfluous one is
+> merely inconvenient.
+
+## 12.9 Age-restricted (18+) products `v1`
+
+A configurable **18+ flag**, **inherited at category level, overridable per product**.
+
+| # | Rule |
+|---|------|
+| a | **Warns ONCE PER ORDER**, on the first age-restricted line — **not per line.** A prompt that fires on every beer gets clicked through: **it becomes noise, not protection** |
+| b | **Configurable per site, with a mode-dependent default:** ON by default in quick-sale/bar mode (the guest is at the counter), **OFF by default in table service** (the waiter already saw the guest at the table) |
+| c | **Audited** — but be clear that **this does not transfer legal liability to the cashier.** A logged click is **internal employer evidence** that the process ran; nothing more |
 
 ---
 
@@ -1032,6 +1110,11 @@ drifts by orders of magnitude.
 * **On amount change**, cancel + resend.
 * **On storno**, automatic refund command.
 * **On printer failure, a pending transaction** — never silent swallowing.
+* **Internet warning BEFORE card payment:** the existing internet indicator (§6.5)
+  is wired into the payment flow so staff learn before starting the payment, not
+  after a 45-second timeout. **The wording states a fact and prescribes no
+  solution:** *"No external internet connection. The card terminal will probably
+  not work."* — **offering a workaround is forbidden** (principle A8, §19.5).
 
 ## 16.2 Who prints `BASE`
 
@@ -1072,6 +1155,13 @@ is there; a physically destroyed machine needs support anyway.
 * **Must be computed split by VAT rate**, because the fiscal department allocation gives it **its own per-rate slots** (§10.3).
 * **Must not be folded into product lines.**
 * **In NTAK it is also a standalone line item** (`EGYEB / SZERVIZDIJ`).
+* **Typo protection:** a **soft confirmation above a configurable threshold**
+  ("Are you sure, 25%? That is unusually high."), default threshold 15%; a
+  **hard cap only at absurd values** (above 100%), which is certainly a slip.
+  **No hard 15% ceiling** — there is no statutory maximum, and it would violate
+  principle A3 (an event venue's contractual service charge may be higher).
+* **A genuine legal requirement:** the service charge rate **must be disclosed in
+  advance**. The system must support the text shown on the price list / menu.
 
 ## 16.6 Tip `MVP`
 
@@ -1079,11 +1169,78 @@ is there; a physically destroyed machine needs support anyway.
 * **Card tips:** reported separately for accounting; **they do not alter the physical drawer**.
 * **The NTAK day close carries an `osszesBorravalo` field** → tips must be aggregated per day.
 * **In NTAK a standalone line item** (`EGYEB / BORRAVALO`).
+* **Per-user tip report** in the cloud admin UI, for month-end payroll. `MVP`
+* **Why it must not come from the drawer:** if card tips are paid out in cash at
+  shift end, **the physical drawer falls short** of the expected closing balance.
+  **The rule: never an untracked drawer withdrawal.** If the customer does pay it
+  out in cash, that is a **separate, documented cash movement**, not a silent
+  drawer reduction.
+* `[UNVERIFIED]` **The taxation of tips** (tip vs. service charge, cash vs. card)
+  is non-trivial — a question for the accountant. The design consequence (the
+  per-user report) is the same under either outcome.
 
-## 16.7 Invoicing `v1`
+## 16.7 Invoicing and the receipt/invoice interlock `BASE`
 
 VAT invoice via Számlázz.hu / Billingo API, **or** a "simplified invoice" on the
 fiscal printer.
+
+> **Mutual exclusion — mandatory.** If the guest receives a VAT invoice AND the
+> transaction is also closed on the fiscal device, the same sale is reported
+> **twice to the authority** — once through the cash register's reporting, once
+> through the Online Invoice system. Revenue appears inflated, and the taxpayer
+> has to explain the discrepancy.
+
+**Two distinct paths are required, not one prohibition:**
+
+| Path | When | Flow |
+|------|------|------|
+| **A) Invoice from the start** | The guest asks BEFORE payment | The basket switches to **invoice mode** → **nothing is sent to the fiscal device**; anything printed carries **"NEM ADÓÜGYI BIZONYLAT"** |
+| **B) Invoice requested afterwards** | The receipt is already printed | **The receipt must be STORNOED first**, and only then may the invoice be issued |
+
+**Path B is the more common one** — the guest asks after seeing the receipt.
+
+| # | Constraint |
+|---|-----------|
+| a | **Software interlock:** in invoice mode, calling the fiscal adapter is **structurally impossible**, not merely disabled |
+| b | The document **records which path produced it** |
+| c | **Both paths report identically to NTAK** — NTAK depends on turnover, not on document type |
+
+## 16.8 Vouchers `v1`
+
+**Two kinds of voucher exist, with opposite tax treatment** (VAT Act,
+implementing the EU voucher directive):
+
+| Type | What it is | VAT AT SALE | VAT AT REDEMPTION |
+|------|-----------|-------------|-------------------|
+| **Single-purpose** | The applicable rate and place of supply are **known at sale** (e.g. "one pizza") | **Taxable** | none |
+| **Multi-purpose** | Redeemable for anything, mixed rates (classic gift voucher) | **Outside the scope of VAT** | **The tax point arises here** |
+
+**A single "Voucher" product type is NOT enough** — the product master needs a
+**`voucher` flag + `voucher type`**.
+
+| # | Item |
+|---|------|
+| a | **Selling a multi-purpose voucher is outside VAT scope** → **the same department problem as DRS** (§10.3): there is no free slot. **This question is merged with the DRS question** to the vendor/NAV |
+| b | **Redemption is a PAYMENT METHOD, not a product.** Redeemed lines are taxed and reported normally |
+| c | `[UNVERIFIED]` The NTAK classification for the SALE of a multi-purpose voucher — likely `EGYEB / NEM_VENDEGLATAS`, but must be confirmed |
+| d | **Outstanding voucher register** (issued / redeemed / expired) — a balance-sheet liability. `v2` |
+
+## 16.9 Split bill `MVP`
+
+**Two split modes exist:**
+
+| Mode | What it does | Difficulty |
+|------|-------------|------------|
+| **Equal split (n ways)** | Divides the whole bill into n parts | **Rounding** + proportional allocation of VAT and service charge |
+| **Item split (who ate what)** | Each guest pays their own lines | A **shared line** (one bottle of wine for four) must be sub-split |
+
+| # | Rule |
+|---|------|
+| a | **Deterministic remainder distribution:** 10 000 / 3 → 3 333 + 3 333 + **3 334**. The same split always yields the same numbers |
+| b | **Splitting happens PER VAT RATE, not on the grand total.** In a mixed basket each part must receive a proportional VAT structure — otherwise wrong amounts land on the departments |
+| c | **Service charge is allocated the same way**, per VAT rate (§16.5) |
+| d | **Each part is its OWN document with its own SIDURI number** — the daily-sequence scheme handles this (§8.1) |
+| e | `[UNVERIFIED]` In NTAK, is a split bill **one** order summary with several payment methods, or **several** order summaries? Per-document splitting is more likely |
 
 ---
 
@@ -1121,6 +1278,19 @@ is only `NORMAL / SZTORNO / HELYESBITO`. If they turn out to be reportable, the
 
 * **Modifiers are selectable regardless of stock.**
 * **Subtractive modifiers write stock back** (§13.2).
+
+## 17.6 Stock must NEVER block a sale `BASE`
+
+> **Stock level must NEVER block POS selling.** If a goods receipt was missed and
+> software stock shows zero, the guest must still receive the physically present
+> product.
+
+| # | Rule |
+|---|------|
+| a | **Negative stock is invisible to the cashier** — stock is not their concern. The cloud admin shows it to management with an **unambiguous red indicator** |
+| b | **A later goods receipt fills the negative automatically** |
+| c | **"Negative stock" and "sold out" are TWO DIFFERENT things.** Negative stock is a data error → invisible to the cashier. **"Sold out" is a manual flag** set by staff, and it **does grey out the button** — that is genuine information for the guest |
+| d | ⚠️ **Numerical trap: moving average on negative stock.** If stock is −5 and 10 are received at a new price, the moving-average calculation **produces nonsense on a negative base**, and every margin figure afterwards is wrong. The negative base must be **handled explicitly** (the negative portion at the last known cost), and it must be **flagged** that the item's average derives from a correction |
 
 ---
 
@@ -1160,6 +1330,16 @@ is only `NORMAL / SZTORNO / HELYESBITO`. If they turn out to be reportable, the
 **Who** (user + device + their role AT THAT TIME) · **when** (device clock +
 server clock + monotonic sequence) · **what** · **where** · **before / after** ·
 and where mandatory: **why** (reason code + free text).
+
+* **An audit record references the user EXCLUSIVELY by an internal UUID, never by
+  a plain-text name.** Three reasons, two of which are not privacy-related:
+  correct normalisation; **the hash chain survives a name change** (otherwise a
+  name change would leave us with either a stale name or the need to rewrite an
+  immutable record — **breaking the chain**); and it keeps a
+  **pseudonymisation lever** for the rare case that demands one (swap the
+  **display layer**, chain untouched).
+  **The role, however, stays a SNAPSHOT** (the role at that time), because the
+  current role would lie. So: **identity = UUID (reference), role = snapshot (copy).**
 
 ### TWO separate streams
 
@@ -1541,6 +1721,7 @@ the primary cloud server**, retrievable, timestamped, protected.
 | b | **TWO timestamps**, and **the cloud's is authoritative** — the local clock belongs to the customer's machine |
 | c | **An offline path is required**, because fresh installations often have no internet — and until the cloud confirms, that must be displayed |
 | d | **A configuration change requires a NEW form**, otherwise we hold a signature for a setup that no longer exists |
+| e | **Cryptographic sealing:** the **full text + date + the CONFIGURATION STATE** concatenated, with a **SHA-256 digest**, sent to the cloud together with the signature. This proves not only which text was signed but that **exactly that bundle was not altered afterwards**, and it **cryptographically binds the signature to the specific configuration** that was declined. ⚠️ **Honest limitation: a touch-screen signature plus SHA-256 is NOT a qualified electronic signature.** It is evidence, not eIDAS compliance — and must not be presented as such |
 
 **When required:** when the customer knowingly declines the backup server, the
 second fiscal device, or network separation; and for delegating the temporary
@@ -1551,6 +1732,31 @@ disable of the fiscal integration.
 * Standalone offline patcher (`siduri-updater`) working around Windows file locks.
 * **Update ORDER is a hard requirement:** role-carrying machines (main and backup server) must not update simultaneously.
 * **New permissions arriving with an update are denied by default, with a prominent notification** (§18.1).
+
+## 24.6 Windows Update on a role-carrying machine `BASE`
+
+> **We built the entire HA system against server HARDWARE FAILURE. Meanwhile the
+> far more likely event is Windows Update rebooting the cash register acting as
+> the server at 20:00 on a Saturday — and that is entirely preventable.**
+
+Worse: our failover is **manual** (a human presses the button after 5 minutes).
+So a Windows reboot causes **5+ minutes of reduced operation and a human
+decision**, at peak, for no reason at all.
+
+| # | Item |
+|---|------|
+| a | **Installation must disable automatic restarts** — achievable on Windows 10 IoT Enterprise LTSC via policy/settings (deferral + active hours + no auto-restart) |
+| b | **A MANDATORY INSTALLATION CHECKLIST ITEM**, in the same class as guest WiFi separation (§10.6) |
+| c | **The updater VERIFIES the setting**, and if someone reverted it, **reports — to the cloud as well** |
+| d | The hard requirement on update ordering (§5.2) **extends to the operating system**, not only our software |
+
+## 24.7 Erasure of guest data (GDPR) `v1`
+
+| # | Rule |
+|---|------|
+| a | **One-click anonymisation** of the regular-guest profile. Statistics stay intact (consumption data is bound to the profile identifier, not the name) |
+| b | **Renaming is not enough.** It must cover **phone number, email, address, loyalty card number**, and — the riskiest — **free-text notes.** That is where staff write "the guy with the red car", which re-identifies on its own |
+| c | **It must NOT touch DOCUMENTS.** An invoice carries name and address and is **retained for 8 years by law** — **the right to erasure does not override a statutory retention obligation.** Erasure applies to the **CRM profile**, not to accounting documents |
 
 ---
 
@@ -1753,3 +1959,14 @@ For quick machine reference. Violating any of these is a defect, not a trade-off
 | I28 | The software never rejects a customer's chosen configuration |
 | I29 | Errors are never silently swallowed |
 | I30 | No AI attribution in any artifact |
+| I31 | In invoice mode, calling the fiscal adapter is structurally impossible; a later invoice request requires storno of the receipt first |
+| I32 | Selling a multi-purpose voucher is outside VAT scope; redemption is a payment method, not a product |
+| I33 | The allergen list is LIVE-derived from the recipe, never a copy — the sole exception to principles A3/A4 |
+| I34 | Stock never blocks a sale; only the manual "sold out" flag greys out a button |
+| I35 | An audit record references the user by UUID, never by plain-text name; the role is a snapshot |
+| I36 | A card tip is never an untracked drawer withdrawal |
+| I37 | A split bill allocates per VAT rate, never on the grand total |
+| I38 | Only Siduri may resolve an orphan transaction — but the customer can see that unresolved items exist |
+| I39 | Replication-slot WAL retention is disk-capped, and reaching the cap is loud |
+| I40 | Automatic Windows restarts are disabled on role-carrying machines, and this is verified |
+| I41 | GDPR erasure touches the CRM profile; never an accounting document |

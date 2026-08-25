@@ -1956,6 +1956,28 @@ fejlesztési nem.
 * **Asztaltörténet és felhasználó-történet** — kurált, vizuális nézetek a működési auditágból (§18.4).
 * Franchise/lánc szinten: egy üzletre, több kiválasztottra, a teljes csoportra (§22.3).
 
+### 26.1 `[ÚJ]` Export és import `ALAP`
+
+> **Részletes terv: `EXPORT_IMPORT.md`.** Itt csak az, ami invariáns.
+
+**Az alapelv: a PDF bizonyíték, az XLSX nyersanyag.** Ahol mindkét használat
+valós, ott mindkettő legyen.
+
+| # | Szabály |
+|---|---------|
+| a | **Az adminfelület MINDEN listás nézetéhez jár export** — egyetlen közös szolgáltatás, nem képernyőnkénti funkció. Így nem is felejthető el |
+| b | **Az export azt adja, AMIT LÁTSZ** — a szűrés, a rendezés és az oszlopválasztás érvényes rá. Lapozásnál a teljes szűrt eredményt, előre kimondva |
+| c | ⚠️ **Ami bizonyítékként működik, abból NINCS szerkeszthető export** — bizonylatmásolat, napi zárás hivatalos példánya, biztonsági auditág. Egy Excelben átírt „nyugta" hamisítvány, amit mi adtunk a kezébe |
+| d | **Az import sablonja maga az export** — letöltöd, átírod, visszatöltöd. Nincs külön sablonfájl, ami elavul |
+| e | ⚠️ **Az import mindig kétlépéses: kötelező szárazfutás.** Feltöltés → soronkénti előnézet (új / módosul / változatlan / hibás, régi→új értékkel) → jóváhagyás → írás. **Közvetlen írás soha** |
+| f | ⚠️ **Az import NEM kerülőút a szabályok alól.** Amit a felület nem enged (pl. hiányos áfa), azt az import sem — ugyanaz a kód, nem egy második, lazább változat |
+| g | **Az import külön jogosultság**, nem jár a „terméket szerkeszthet" joggal. A tömeges módosítás nem ugyanaz, mint az egyesével szerkesztés |
+| h | **Minden import azonosított köteg, egészben visszavonható**; az ár az ártörténetbe kerül. A biztonsági auditágra megy a köteg (ki, mikor, fájl-lenyomat, sorszám), a működésire az entitásonkénti változás |
+| i | ⚠️ **A vonalkód oszlop MINDIG szöveg**, exportnál és importnál is. Az Excel a 13 jegyű EAN-t számmá alakítja, és a vezető nullát levágja. A már elrontott érték **hiba, nem javítandó** — a „javításunk" rossz kódot gyártana |
+| j | ⚠️ **Az XLSX lebegőpontosan tárol.** A pénz- és egységköltség-cellákat **szövegként olvassuk**, és szövegből alakítjuk nagy pontosságú tizedessé. Az import az a határ, ahol az **I1 invariáns** megsérülhetne |
+| k | **Folyamatos írás/olvasás, nem memóriában összeállítás** — offline a telephelyi szerver készíti a fájlt, POS mellett futva |
+| l | **CSV: csak importnál**, és az elválasztó/kódolás/tizedesjel **kimondva, nem kitalálva**. Exportnál CSV nincs |
+
 ---
 
 ## 27. MVP és ütemezés
@@ -2042,6 +2064,9 @@ A „számviteli megőrzési idő" premissza rendezve: 8 év, felhős archívumm
 | **M16** | Melyik gyűjtőre mehet a DRS | §14.4 |
 | **M17** | Nyomtatási válaszidő és a bizonylat teljes ciklusideje | Hány tétel felett lassul érezhetően |
 | **M18** | Az audit napló két ágának tényleges mérete | §18.4 |
+| **M20** | **Az Excel-könyvtár natív képbe fordul-e**, és ad-e szöveges cellaértéket lebegőpont nélkül | `EXPORT_IMPORT` §4.2, §6 — **blokkoló**, mert az I1 invariánst döntheti el az import határán |
+| **M21** | **20 000 soros export memóriaigénye és ideje a telephelyi szerveren**, POS mellett futva | `EXPORT_IMPORT` §5 |
+| **M22** | **A PDF könyvtár natív képbe fordul-e**, magyar ékezetekkel, beágyazott betűtípussal | `EXPORT_IMPORT` §6.3 |
 
 **Fizikai hardver kell hozzá:** M1–M9 egy J1900-at, M4/M5/M7/M13 **kettőt**,
 **az M12 a TELJES referencia-telepítést** (3 Windows POS + 2 tablet + 4 telefon +
@@ -2135,3 +2160,8 @@ Gyors összefoglaló. Ezek megsértése **hiba, nem kompromisszum.**
 | I47 | Kilépett dolgozó soft delete; a napló és a korábbi adat érintetlen marad |
 | I48 | Offline vészmentésnél a titkosító kulcs soha nem csak a mentett gépen él, és a mentést vissza kell olvasni |
 | I49 | Egy biztonsági funkció, ami csendben nem működik (hiányzó szenzor, ellenőrizetlen mentés), tiltott — hamis biztonságérzetet ad |
+| I50 | Ami bizonyítékként működik — bizonylatmásolat, napi zárás hivatalos példánya, biztonsági auditág —, abból soha nincs szerkeszthető export |
+| I51 | Az import mindig kétlépéses: szárazfutás, soronkénti előnézet, jóváhagyás. Közvetlen írás soha |
+| I52 | Az import ugyanazokat az érvényességi szabályokat futtatja, mint a felület; soha nem kerülőút alóluk |
+| I53 | A vonalkód oszlop exportnál és importnál is szöveg; a számmá alakult kód hiba, nem javítandó érték |
+| I54 | Az import a pénz- és egységköltség-cellákat szövegként olvassa; lebegőpontos érték a beolvasási útvonalon soha |

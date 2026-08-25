@@ -227,3 +227,28 @@ csúcsforgalom mellett, tehát **hány óra alatt telik meg a maradék hely**; �
 mennyi ideig tart egy **teljes újraszinkronizálás** J1900 páron, ami a slot
 érvénytelenedése után elkerülhetetlen. Ebből jön a lemezalapú korlát és a
 riasztási küszöb konkrét értéke.
+
+---
+
+## Export és import `[ÚJ — 2026-08-25]`
+
+### `[ ]` M20 — Az Excel-könyvtár natív képbe fordul-e, és lebegőpont nélkül olvas-e
+**Ez a legkeményebb a háromból, mert két döntést is dönthet el.**
+Az Apache POI erősen reflexió-alapú, a GraalVM natív fordítás pedig pont a
+reflexiót nem szereti; a hibák **fordítás után, futásidőben** jelentkeznek.
+**Mérendő:** (a) a `fastexcel` és a POI natív képbe illesztése — sikerül-e,
+mekkora leíróval; (b) **ad-e az olvasó szöveges cellaértéket**, vagy csak
+lebegőpontosat. Ha csak lebegőpontosat ad, **az a könyvtár alkalmatlan**, mert
+az import határán megsértené az I1 invariánst *(EXPORT_IMPORT §4.2, §6)*.
+
+### `[ ]` M21 — Húszezer soros export a telephelyi szerveren, POS mellett
+Offline esetben a fájlt a telephelyi gép állítja elő, miközben szervert és
+POS klienst is futtat. **Mérendő:** csúcsmemória és teljes idő folyamatos
+írással, i3-on és J1900-on egyaránt. Ebből jön ki, kell-e sorszám-korlát vagy
+háttérbe tett feladat — és ha igen, hol *(EXPORT_IMPORT §5)*.
+
+### `[ ]` M22 — A PDF könyvtár natív képbe fordul-e, magyar ékezetekkel
+Ugyanaz a szempont a másik formátumra, plusz a **beágyazott betűtípus**: az
+ékezetes karakterek hiánya PDF-ben tipikusan **némán** jelentkezik, kihagyott
+vagy dobozzá váló betűkkel. **Mérendő:** natív fordítás, és egy teljes magyar
+karakterkészletű minta vizuális ellenőrzése *(EXPORT_IMPORT §6.3)*.

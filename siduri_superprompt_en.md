@@ -1947,6 +1947,28 @@ not development cost.
 
 ---
 
+## 26.1 `[NEW]` Export and import `BASE`
+
+> **Detailed design: `EXPORT_IMPORT.md`.** Only the invariants are stated here.
+
+**Governing principle: PDF is evidence, XLSX is raw material.** Where both uses
+are real, provide both.
+
+| # | Rule |
+|---|------|
+| a | **Every list view in the admin gets an export** — one shared service, not a per-screen feature, so it cannot be forgotten |
+| b | **The export returns WHAT YOU SEE** — filtering, ordering and column selection apply. With paging, the full filtered result, stated up front |
+| c | ⚠️ **Anything that functions as evidence has NO editable export** — receipt copies, the official day-close document, the security audit stream. An "receipt" edited in Excel is a forgery we handed over |
+| d | **The import template IS the export** — download, edit, upload. No separate template file that drifts |
+| e | ⚠️ **Import is always two-phase: a dry run is mandatory.** Upload → row-by-row preview (new / changed / unchanged / invalid, with old→new values) → approval → write. **Never a direct write** |
+| f | ⚠️ **Import is NOT a bypass of the rules.** Whatever the UI rejects (e.g. incomplete VAT), the import rejects too — the same code, not a second, laxer copy |
+| g | **Import is a separate permission**, not implied by "may edit products". Bulk modification is not the same act as editing one item |
+| h | **Every import is an identified batch, revocable as a whole**; prices enter price history. The security audit stream records the batch (who, when, file digest, row count), the operational stream the per-entity change |
+| i | ⚠️ **The barcode column is ALWAYS text**, on export and import alike. Excel turns a 13-digit EAN into a number and drops the leading zero. An already-corrupted value is **an error, not something to repair** — our "repair" would fabricate a wrong code |
+| j | ⚠️ **XLSX stores numbers as floating point.** Money and unit-cost cells are **read as text** and parsed into high-precision decimal from the string. Import is the boundary where **invariant I1** could be breached |
+| k | **Streaming read and write, never assembled in memory** — offline, the site server produces the file while also running a POS |
+| l | **CSV: import only**, with separator, encoding and decimal mark **stated, not guessed**. No CSV on export |
+
 # 27. MVP and scheduling
 
 ## 27.1 MVP core
@@ -2123,3 +2145,8 @@ For quick machine reference. Violating any of these is a defect, not a trade-off
 | I47 | A departing employee is soft-deleted; the audit log and prior data stay untouched |
 | I48 | In offline emergency backup the encryption key never lives only on the backed-up machine, and the dump is read back and verified |
 | I49 | A security feature that silently does not work (missing sensor, unverified backup) is forbidden — it creates false confidence |
+| I50 | Anything that functions as evidence — receipt copies, the official day-close document, the security audit stream — never has an editable export |
+| I51 | Import is always two-phase: dry run, row-by-row preview, approval. Never a direct write |
+| I52 | Import runs the same validation rules as the UI; it is never a bypass of them |
+| I53 | The barcode column is text on both export and import; a barcode turned into a number is an error, not a value to repair |
+| I54 | Import reads money and unit-cost cells as text; a floating-point value never appears on the read path |

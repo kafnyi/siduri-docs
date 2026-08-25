@@ -45,14 +45,52 @@ Két külön dolog, és soha nem keverendő:
 | Mikor | rekord létrehozásakor | bizonylat kiállításakor |
 | Egyedi | globálisan | üzleti napon belül eszközönként |
 
-### 1.3 `[NYITOTT — ÜGYFÉLKÉRDÉS]` Ember által olvasható termékkód
+### 1.3 `[ELDÖNTVE]` Vonalkód — NEM cikkszám
 
-A leváltott rendszerből valószínűleg **cikkszámmal** jönnek a termékek, és a
-személyzet is arra emlékszik.
+**Az ügyfél nem a leváltott rendszer cikkszámát akarja, hanem VONALKÓD-kezelést.**
+A vonalkód-olvasó már ott van a gépeken; ha egyszer ott van, a kólát is le
+lehessen csippantani.
 
-**Javaslat:** legyen egy **opcionális, ügyfél által adott `kod` mező** a
-terméken, egyediségi megkötéssel telephelyen belül, **kereshetően** — de **soha
-nem azonosítóként.** *(Jóváhagyásra vár.)*
+**Ez más entitás, mint egy cikkszám, és másképp is kell modellezni:**
+
+| # | Szabály |
+|---|---------|
+| a | **A vonalkód a KISZERELÉSHEZ tartozik, nem a termékhez.** A 0,33 és a 0,5 literes kóla **külön EAN** — ezért is jó, hogy a kiszerelés önálló gyermek entitás |
+| b | **Egy kiszereléshez TÖBB vonalkód tartozhat** (más beszállító, régi és új csomagolás, gyűjtőcsomag) → **önálló `vonalkod` tábla, nem oszlop** |
+| c | **Egyediség telephelyen belül**: egy vonalkód **pontosan egy** kiszerelésre mutathat, különben a beolvasás kétértelmű. Globálisan ugyanaz az EAN más bérlőnél természetesen létezhet |
+| d | **Nem azonosító.** A rekord kulcsa továbbra is `uuid` v7 |
+| e | **Leváltott rendszerből származó cikkszám NEM kell** |
+
+#### 1.3.1 Beolvasási viselkedés
+
+| Eset | Mi történik |
+|------|-------------|
+| **Ismert vonalkód** | A kiszerelés a kosárba kerül, mennyiség 1 |
+| **Ismeretlen vonalkód** | **Nem hiba, hanem lehetőség:** „ismeretlen vonalkód — melyik termékhez tartozik?" → hozzárendelés meglévő kiszereléshez, **jogosultsághoz kötve**, auditnaplózva |
+
+> **Az ismeretlen kód hozzárendelése a legértékesebb része a funkciónak.**
+> Így a vonalkód-készlet **használat közben épül fel**, nem külön adatrögzítési
+> projektként. Enélkül a funkció csak addig ér valamit, amíg valaki egyszer
+> beviszi az összes kódot — vagyis soha.
+
+#### 1.3.2 `[TERVEZÉSI KIKÖTÉS]` A HID-billentyűzet probléma
+
+**A vonalkód-olvasók többsége billentyűzetként viselkedik** — begépeli a
+számjegyeket és nyom egy Entert. A felületnek **meg kell tudnia különböztetni a
+beolvasást attól, hogy valaki kézzel beírt egy számot.**
+
+Szokásos megoldás: **időzítés** (az olvasó nagyságrenddel gyorsabban „gépel",
+mint az ember), opcionálisan előtag-karakterrel megerősítve.
+
+**Ezt a felület-tervezésbe kell venni**, nem utólag ráakasztani — mert
+befolyásolja, hogy a POS-nak mikor van „fókuszban" a beviteli mező.
+
+#### 1.3.3 `[NYITOTT — v2]` Mérleges vonalkód
+
+A mérlegek által nyomtatott, **súlyt vagy árat magába kódoló** vonalkód
+(jellemzően `2`-vel kezdődő EAN-13) valós minta a kiskereskedelemben.
+**Étteremhez most nem kell, de a szerkezet ne zárja ki** — a vonalkód-feloldás
+legyen bővíthető mintaillesztéssel.
 
 ---
 
@@ -324,12 +362,81 @@ felhasznalo ──── szerep ──── szerep_jogosultsag ──── jog
 
 ---
 
-## 7. `[NYITOTT]` Amit még el kell dönteni ehhez a réteghez
+## 7. Korábbi nyitott kérdések — lezárva
 
-| # | Kérdés | Miért most |
-|---|--------|-----------|
-| **A1** | **Ember által olvasható termékkód** (cikkszám) kell-e? *(1.3)* | A migrációnál derül ki, de a mező most kerül be |
-| **A2** | **Kell-e az első ügyfélnek német/angol TERMÉKNÉV** az első naptól? | Ettől függ, hogy a tartalomfordítás-táblák `MVP` vagy `v1` |
+**Mindkét korábbi kérdés megválaszolva** *(vonalkód: 1.3 · tartalomfordítás: 8)*.
+
+**Új, ennél fontosabb nyitott tétel keletkezett belőlük:** lásd **§9 — az eCassa
+megjegyzés.**
+
+## 8. `[ELDÖNTVE]` Tartalomfordítás — MVP, de csak HU + EN
+
+**Az első ügyfél KÉRI az angol terméknevet. A német nem prioritás.**
+
+| Réteg | Nyelv | Címke |
+|-------|-------|-------|
+| **Szoftverszövegek** (gomb, hibaüzenet, riportfejléc) | **HU + EN + DE** — ez a mi munkánk, olcsó | `MVP` |
+| **Tartalom** (terméknév, kategórianév, módosítónév, leírás, allergénszöveg) | **HU + EN kötelezően támogatva**, DE ugyanazon a szerkezeten később, fejlesztés nélkül | `MVP` |
+
+**Ebből következik:** a **fordítástáblák az F2-be kerülnek**, nem `v1`-be.
+
+```
+forditas
+  entitas_tipus, entitas_id, mezo, nyelv → szoveg
+  ELSŐDLEGES KULCS: (entitas_tipus, entitas_id, mezo, nyelv)
+```
+
+| # | Szabály |
+|---|---------|
+| a | **Mezőnként opcionális, MAGYAR visszaeséssel.** Ha nincs angol név, a magyar jelenik meg |
+| b | **Kényszeríteni tilos** — nincs mentési kapu hiányzó fordításra *(A3 elv)* |
+| c | **DE: „hiányzó fordítások" lista** a webes adminban. Nem kapu, hanem **segédlet** — az ügyfél kéri az angolt, tehát látnia kell, hol tart |
+| d | **Új nyelv = adat, nem fejlesztés.** A szerkezet nyelvfüggetlen |
+
+### 8.1 Hol jelenik meg az angol név — és hol NEM
+
+| Felület | Nyelv |
+|---------|-------|
+| **Fiskális nyugta** | **MAGYAR, mindig** — jogszabályi kötöttség. **Az angol név ide SOHA nem kerül** |
+| Nem fiskális példány | választható |
+| QR-os vendégoldal | a vendég nyelve |
+| Másodkijelző (vendégtájékoztató) | választható |
+| KDS, konyhai jegy | **magyar** — a konyha magyarul dolgozik |
+| Riportok | a felhasználó nyelve |
+
+> **Ez a leggyakoribb félreértés-forrás:** hogy „a rendszer angolul is tud", az
+> **nem jelenti azt, hogy a nyugta angol lehet.** Az adóügyi bizonylat nyelve
+> kötött.
+
+## 9. `[!!] ÚJ, FONTOS` — az „eCassa" megjegyzés
+
+Az ügyfél megjegyzésében szerepel, hogy a vonalkód-olvasó **„az eCassa rendszer
+miatt"** van a gépeken.
+
+> **Az eCassa egy magyar online pénztárgép-márka. Ha az első ügyfélnek eCassa
+> adóügyi eszköze van, akkor a teljes fiskális integrációs előkészületünk
+> ROSSZ GYÁRTÓRA irányult.**
+
+Eddig a **Fiscat / Prior Cash** illesztő-protokollra készültünk — az a
+dokumentum, amit kaptunk, és amiért a partnerkapcsolatot építjük (K1).
+
+**Ez közvetlenül érinti:**
+
+| # | Mit |
+|---|-----|
+| a | **K1 kapu** — lehet, hogy más gyártóval kell kapcsolatba lépni, vagy MINDKETTŐVEL |
+| b | **F1 kilépési feltétele** — „valódi bizonylat valódi eszközön": **melyik eszközön?** |
+| c | **A gyűjtőkiosztás** (§10.3) — a kapott 8 rekeszes kiosztás **eszközspecifikus lehet** |
+| d | **A nulla összegű tétel és a DRS-gyűjtő kérdései** — más gyártónál más a válasz |
+
+**AZONNALI TEENDŐ — ez a D7 döntési pont legfontosabb kérdése:**
+
+> **Pontosan milyen adóügyi eszköz van az első ügyfélnél? Gyártó, típus,
+> és melyik cég szervizeli?**
+
+*Lehetséges, hogy a Prior Cash több márkát is forgalmaz és az illesztő közös —
+de erre **feltevést építeni tilos**, mert az egész F1 fázis erre az egy eszközre
+épül.*
 
 ---
 

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "collections": {
+    "rbraga01/a-team": {
+      "identifier": "rbraga01/a-team",
+      "apiUrl": "",
+      "scope": "local",
+      "installedAt": "2026-08-25T16:16:58.147Z",
+      "updatedAt": "2026-08-25T16:16:58.147Z",
+      "components": {
+        "rbraga01/a-team:skills/api-contract-first/SKILL.md": {
+          "source": "rbraga01/a-team",
+          "type": "skill",
+          "componentName": "api-contract-first",
+          "sourcePath": "skills/api-contract-first/SKILL.md",
+          "installedPath": "W:\\Wurfel_Obsidian_Safe\\Siduri\\Siduri-Docs\\skill-sets\\api-contract-first\\.claude\\skills\\api-contract-first",
+          "hash": "9dd18521180fe8287a83b99ae8452e2fa777ff86",
+          "configFile": null,
+          "configKeys": null,
+          "configFragment": null
+        }
+      }
+    }
+  }
+}

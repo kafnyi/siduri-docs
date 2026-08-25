@@ -156,10 +156,18 @@ figyelmet elvinnék.
 
 ## 8. `[ÚJ NYITOTT DÖNTÉS]` A webes admin frontend stackje
 
-**Az átnézés hozta felszínre:** a listában ott van `react-expert`,
-`nextjs-developer`, `vue-expert`, `angular-architect`, `typescript-pro`,
-`javascript-pro`, `js-security-audit`, `shadcn` — **és nem tudom, melyik
-releváns, mert ezt még nem döntöttük el.**
+**`[MEGVÁLASZOLVA 2026-08-23]` A javaslat: Vue 3 + TypeScript + Vite**
+*(részletes indoklás: `WEBADMIN_STACK.md`)*.
+
+**Ebből következik a skill-választás:**
+
+| Skill | Verdikt |
+|-------|---------|
+| **`vue-expert`** *(vagy `vue-expert-js`)* | ✅ **EZ az egy frontend skill, ami bekerül** |
+| **`typescript-pro`** | 🟡 Feltételesen — ha a `vue-expert` nem fedi le |
+| `react-expert` · `nextjs-developer` · `angular-architect` · `shadcn` · `migrate-radix-to-base` | ⛔ **Tárgytalan** |
+| `javascript-pro` | ⛔ TypeScriptet írunk |
+| `js-security-audit` | 🟡 Feltételesen, egy biztonsági kör erejéig |
 
 A specifikáció annyit mond, hogy **EGY webes admin alkalmazás van, két helyről
 kiszolgálva** *(§22.2)* — **a technológiáját nem.**
@@ -193,6 +201,6 @@ kiszolgálva** *(§22.2)* — **a technológiáját nem.**
 
 **Amikor odaérünk (4):**
 `playwright-expert` *(webes admin)* · `brand` *(Myth System cégarculat)* ·
-`spec-miner` *(átállás)* · **+1 frontend skill**, ha a 8. pont eldőlt
+`spec-miner` *(átállás)* · **`vue-expert`** *(eldőlt — lásd 8.)*
 
 **Összesen: 20 skill a 128-ból.**

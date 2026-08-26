@@ -1,0 +1,39 @@
+{
+  "leiras": "Sorosszeg. Egesz darabszamnal PONTOS, ezert nem kell kerekitest megnevezni. Tort mennyisegnel kereskedoi kerekites.",
+  "esetek": [
+    {
+      "egysegar": 2490,
+      "mennyiseg": "3.000000",
+      "sorosszeg": 7470,
+      "megjegyzes": "Harom menu. A harom kulon sor osszege UGYANENNYI - ez az NTAK kovetelmenye."
+    },
+    {
+      "egysegar": 1490,
+      "mennyiseg": "2.000000",
+      "sorosszeg": 2980
+    },
+    {
+      "egysegar": 2500,
+      "mennyiseg": "0.350000",
+      "sorosszeg": 875,
+      "megjegyzes": "Kimert aru."
+    },
+    {
+      "egysegar": 1000,
+      "mennyiseg": "0.333500",
+      "sorosszeg": 334,
+      "megjegyzes": "333,5 -> kereskedoi kerekitessel 334."
+    },
+    {
+      "egysegar": 1000,
+      "mennyiseg": "1.000000",
+      "sorosszeg": 1000
+    },
+    {
+      "egysegar": -1500,
+      "mennyiseg": "1.000000",
+      "sorosszeg": -1500,
+      "megjegyzes": "Sztornosor."
+    }
+  ]
+}

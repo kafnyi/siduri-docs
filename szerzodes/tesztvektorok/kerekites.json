@@ -1,0 +1,91 @@
+{
+  "leiras": "Keszpenzes kerekites ot forintra. A legkozelebbi otos; egesz forintnal holtverseny nincs, ezert a szabaly elojelfuggetlen. A kulonbozet onallo, konyvelheto tetel.",
+  "esetek": [
+    {
+      "osszeg": 0,
+      "kerekitett": 0,
+      "kulonbozet": 0
+    },
+    {
+      "osszeg": 1230,
+      "kerekitett": 1230,
+      "kulonbozet": 0
+    },
+    {
+      "osszeg": 1231,
+      "kerekitett": 1230,
+      "kulonbozet": -1
+    },
+    {
+      "osszeg": 1232,
+      "kerekitett": 1230,
+      "kulonbozet": -2
+    },
+    {
+      "osszeg": 1233,
+      "kerekitett": 1235,
+      "kulonbozet": 2
+    },
+    {
+      "osszeg": 1234,
+      "kerekitett": 1235,
+      "kulonbozet": 1
+    },
+    {
+      "osszeg": 1235,
+      "kerekitett": 1235,
+      "kulonbozet": 0
+    },
+    {
+      "osszeg": 1236,
+      "kerekitett": 1235,
+      "kulonbozet": -1
+    },
+    {
+      "osszeg": 1237,
+      "kerekitett": 1235,
+      "kulonbozet": -2
+    },
+    {
+      "osszeg": 1238,
+      "kerekitett": 1240,
+      "kulonbozet": 2
+    },
+    {
+      "osszeg": 1239,
+      "kerekitett": 1240,
+      "kulonbozet": 1
+    },
+    {
+      "osszeg": 234,
+      "kerekitett": 235,
+      "kulonbozet": 1,
+      "megjegyzes": "Vegyes fizetes: 1234-bol 1000 kartya + 234 keszpenz. A kerekites a KESZPENZES RESZRE megy."
+    },
+    {
+      "osszeg": -1231,
+      "kerekitett": -1230,
+      "kulonbozet": 1
+    },
+    {
+      "osszeg": -1232,
+      "kerekitett": -1230,
+      "kulonbozet": 2
+    },
+    {
+      "osszeg": -1233,
+      "kerekitett": -1235,
+      "kulonbozet": -2
+    },
+    {
+      "osszeg": -1234,
+      "kerekitett": -1235,
+      "kulonbozet": -1
+    },
+    {
+      "osszeg": -1238,
+      "kerekitett": -1240,
+      "kulonbozet": -2
+    }
+  ]
+}

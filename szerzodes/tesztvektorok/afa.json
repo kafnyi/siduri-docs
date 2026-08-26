@@ -1,0 +1,75 @@
+{
+  "leiras": "Afa-visszaszamolas AFAKULCS-CSOPORTONKENT, BIZONYLATSZINTEN. A brutto MINDIG pontosan a netto es az afa osszege: az afa kivonassal all elo, nem szorzassal.",
+  "esetek": [
+    {
+      "kategoria": "C_27",
+      "brutto": 1500,
+      "netto": 1181,
+      "afa": 319
+    },
+    {
+      "kategoria": "C_27",
+      "brutto": 999,
+      "netto": 787,
+      "afa": 212,
+      "megjegyzes": "Harom darab 333 Ft-os sor. Soronkent szamolva 786 jonne ki - egy forint elteres."
+    },
+    {
+      "kategoria": "C_27",
+      "brutto": 333,
+      "netto": 262,
+      "afa": 71
+    },
+    {
+      "kategoria": "C_27",
+      "brutto": 2980,
+      "netto": 2346,
+      "afa": 634
+    },
+    {
+      "kategoria": "C_27",
+      "brutto": 1,
+      "netto": 1,
+      "afa": 0
+    },
+    {
+      "kategoria": "A_5",
+      "brutto": 3200,
+      "netto": 3048,
+      "afa": 152
+    },
+    {
+      "kategoria": "A_5",
+      "brutto": 2200,
+      "netto": 2095,
+      "afa": 105
+    },
+    {
+      "kategoria": "B_18",
+      "brutto": 1180,
+      "netto": 1000,
+      "afa": 180,
+      "megjegyzes": "Pontosan oszthato eset."
+    },
+    {
+      "kategoria": "E_0",
+      "brutto": 1690,
+      "netto": 1690,
+      "afa": 0
+    },
+    {
+      "kategoria": "D_AJT",
+      "brutto": 1690,
+      "netto": 1690,
+      "afa": 0,
+      "megjegyzes": "Szamszeruen egyezik a nulla kulccsal, de KULON kategoria - a kimutatasban nem vonhato ossze."
+    },
+    {
+      "kategoria": "C_27",
+      "brutto": -1500,
+      "netto": -1181,
+      "afa": -319,
+      "megjegyzes": "Sztorno."
+    }
+  ]
+}

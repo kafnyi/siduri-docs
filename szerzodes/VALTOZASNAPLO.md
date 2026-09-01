@@ -108,3 +108,31 @@ teljesítési módonként bontva kell számolni.
 csökkentett** alapra számolódik. Ez a védhető alapértelmezés — szolgáltatási
 díjat azon összeg után szedni, amit a vendég ténylegesen fizet. **Ha az ügyfél
 másképp akarja, az konfiguráció, és meg kell kérdezni, nem kitalálni.**
+
+### v1.4.0 — 2026-09-01 — *sztornó és a számla–nyugta kizárás* `NEM TÖRŐ`
+
+**Új:** `BizonylatMod` (`ADOUGYI` / `SZAMLA`) a lezárásban és a válaszban,
+`BizonylatTipus` (`NORMAL` / `SZTORNO`) a válaszban.
+
+⚠️ **A kölcsönös kizárás nem kényelmi szabály.** Ha a vendég áfás számlát kap
+**és** a tranzakciót a fiskális eszközön is lezárják, ugyanaz az értékesítés
+**kétszer kerül be a hatóság felé** — egyszer a pénztárgép adatszolgáltatásán,
+egyszer az Online Számla rendszeren. **Az eltérést az adóalanynak kell
+magyaráznia.**
+
+**Két útvonal, nem egy tiltás:**
+
+| Útvonal | Mikor | Menete |
+|---------|-------|--------|
+| **A) Eleve számlás** | a vendég a fizetés ELŐTT kéri | `mod: SZAMLA` — a fiskális eszköz felé nem megy semmi; a papíron **„NEM ADÓÜGYI BIZONYLAT"** |
+| **B) Utólagos** | a nyugta már kinyomtatva | **a nyugtát SZTORNÓZNI kell**, és csak utána állítható ki a számla |
+
+**A B) a gyakoribb** — a vendég a nyugta láttán kéri a számlát.
+
+**Hogyan van kikényszerítve, három rétegben:**
+
+| Réteg | Mi |
+|-------|-----|
+| **Adatbázis** | Számlás módban adóügyi bizonylatszám **nem is létezhet** — nem tiltva van, hanem **a rossz állapot ábrázolhatatlan** |
+| **Szerver** | Az adóügyi eredmény jelentése számlás bizonylatra **hangos hibát** ad, nem csendes semmit |
+| **Kliens** | A számlás bizonylatból nem építhető adóügyi nyomtatási kérés |

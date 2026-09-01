@@ -263,3 +263,32 @@ fordítás viselkedése itt ugyanúgy ismeretlen, mint az Excel- és a PDF-köny
 memória, és a szívverés tartható-e másodperces ütemben csúcsterhelés alatt.
 **Ha megbukik, a csatorna technológiája dől**, és vele a KDS meg a
 rendeléskijelző ütemezése.
+
+### `[x]` M24 — A számlamegosztás áfaeltérése `MÉRVE`
+
+**Kérdés:** ha egy rendelést részekre osztunk, a részek áfájának összege
+megegyezik-e az osztatlan bizonylatéval?
+
+**Nem.** A visszaszámolás bizonylatonként kerekít, három bizonylat pedig
+háromszor kerekít.
+
+| Beállítás | Érték |
+|-----------|-------|
+| Esetek | 5 000 véletlen rendelés |
+| Áfakulcsok | 2 (5% és 27%) |
+| Részek | 2–4 |
+| **Eltérő eset** | **3 338 / 5 000 (67%)** |
+| **Legnagyobb eltérés** | **4 Ft** |
+
+**Ez nem hiba, és nem javítható el** anélkül, hogy vagy a részek összege ne
+adná ki a rendelést, vagy valamelyik rész áfája ne a saját tartalmából jönne.
+A kettő közül egyik sem cserélhető el erre.
+
+**Következmény a riportra:** a napi összesítő nem feltételezheti, hogy a
+bizonylatok áfájának összege megegyezik a rendelések áfájának összegével.
+Aki ezt egyeztetni próbálja, forintokat fog keresni, amik nincsenek eltűnve.
+
+**A mérés a tesztben él** (`SzamlamegosztasTest.az_afa_osszege_elterhet`), és
+azt is ellenőrzi, hogy **legyen** eltérés: ha soha nem térne el, ez a
+figyelmeztetés fölösleges lenne, és akkor törölni kellene, nem meghagyni
+„biztos, ami biztos" alapon.

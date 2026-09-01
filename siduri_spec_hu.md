@@ -1322,6 +1322,37 @@ utalvány-irányelv átültetése):
 | d | **Minden rész ÖNÁLLÓ bizonylat, saját SIDURI számmal** — a napi folyószámos séma ezt kezeli (§8.1) |
 | e | `[IGAZOLANDÓ]` Az NTAK-ban egy szétbontott számla **egy** rendelésösszesítő több fizetési móddal, vagy **több** rendelésösszesítő? A bizonylatonkénti bontás a valószínűbb |
 
+#### 16.9.1 `[MEGVALOSITVA]` Amit a megvalósítás pontosított
+
+**A b) szabály szigorodott: nem áfakulcsonként osztunk, hanem SORONKÉNT.**
+Az áfakulcsonkénti arányosítás az *egyenlő* bontásra elég lett volna, a
+*tételesre* nem: ott a hozzárendelés soronként történik, és két, azonos
+áfakulcsú tétel más-más vendéghez tartozhat. Soronként osztva **mindkét mód
+ugyanaz a művelet, más súlyokkal** — az egyenlő bontás annyi, hogy minden sor
+minden részre azonos súllyal kerül. Két külön eljárásnál előbb-utóbb csak az
+egyikbe került volna bele egy javítás.
+
+**⚠️ Új, mért tény: a részek áfájának összege ELTÉRHET az osztatlan
+bizonylatétól.** A visszaszámolás bizonylatonként kerekít, három bizonylat
+pedig háromszor kerekít. Mérve *(M24)*: két áfakulcs és 2–4 rész mellett 5 000
+esetből **3 338-ban tért el, a legnagyobb eltérés 4 Ft**. Nem hiba, de
+**létezik**, és aki a napi összesítőt nézi, találkozni fog vele — tehát a
+riportnak nem szabad úgy tennie, mintha a kettőnek egyeznie kellene.
+
+**Amit szerkezetileg tartatunk be:**
+
+| Szabály | Hol | Ha csak megállapodás lenne |
+|---------|-----|----------------------------|
+| A részek összege **pontosan** a rendelés | Halasztott ellenőrzés a megosztás tábláin: a hiányos kiosztás **nem commitálható** | A különbözet csendben eltűnne — a vendégek kevesebbet fizetnének, mint ami az asztalon volt |
+| Kiosztatlan tétel nem maradhat | Ugyanaz az ellenőrzés | Ugyanaz, csak nagyobb tétellel |
+| Nincs nulla forintos rész | Ellenőrzés + a mag hibaüzenete | Három vendég „elosztana" egy forintot, és valaki 0 Ft-os nyugtát kapna |
+| A rendelés **nem zár le**, amíg van fizetetlen rész | Trigger a rendelésen | Az első fizetés után a maradék tartozása eltűnne a nyitott rendelések közül |
+| Részenként egy bizonylat, `x/y` jelöléssel | Egyedi index + trigger a részek számának egyezésére | A vendég kezében levő papíron az állna, hogy „2/3", miközben a rendszerben már más | 
+
+| # | Nyitott kérdés |
+|---|----------------|
+| f | `[KÉRDÉS]` **Mit lát a vendég egy egyenlő bontás nyugtáján?** Az egyharmadnyi sör tételsorként **tört mennyiséggel** (csúnya, és nem tudjuk, hogy az adóügyi eszköz elfogadja-e), vagy **áfakulcsonként egy összevont sor**? A választáshoz az adóügyi eszköz viselkedése kell — ez az **F0.1**-en múlik. A pénzmozgás és az áfa mindkét esetben ugyanaz; **csak a kiírás kérdéses**, ezért nem blokkolja a megvalósítást |
+
 ### 16.10 Előleg és asztalfoglalás `v1`
 
 | # | Elem |
@@ -2148,7 +2179,7 @@ Gyors összefoglaló. Ezek megsértése **hiba, nem kompromisszum.**
 | I34 | A készlet soha nem blokkol eladást; csak a kézi „elfogyott" jelző szürkíti ki a gombot |
 | I35 | Az auditrekord a felhasználót UUID-vel hivatkozza, soha nem szöveges névvel; a szerep pillanatkép |
 | I36 | A kártyás borravaló soha nem nyomkövetetlen fiókkivét |
-| I37 | A számlamegosztás áfakulcsonként arányosít, soha nem a végösszegen |
+| I37 | A számlamegosztás **soronként** arányosít, soha nem a végösszegen — ebből az áfakulcsonkénti arányosság következik, fordítva nem *(§16.9.1)* |
 | I38 | Árva tranzakciót csak Siduri oldhat fel — de az ügyfél látja, hogy van feloldatlan tétel |
 | I39 | A replikációs slot WAL-felhalmozódása lemez alapon korlátozott, és a korlát elérése hangos |
 | I40 | A szerepet vivő gépen az automatikus Windows-újraindítás tiltott, és ezt ellenőrizzük |

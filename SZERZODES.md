@@ -155,6 +155,24 @@ oldjuk meg, hogy soha nem adunk hozzá, hanem szabállyal:
 **csendes elnyelése** rossz összeget vagy rossz gyűjtőt eredményez. A hangos
 elutasítás kellemetlen; a néma félreértés kimutathatatlan.
 
+### 4.2/b ⚠️ `[ÚJ SZABÁLY]` Mikor fagy be egy verzió
+
+**A 4.1 táblázata azt írja le, mi engedhető meg egy KIADOTT verzión. Volt egy
+hiányzó mondat, ami nélkül a szabály használhatatlanul szigorú lett volna:**
+
+> **Egy szerződésverzió akkor fagy be, amikor az ELSŐ kliens élesben ráfordul.**
+> Addig módosítható — de **minden módosítás bekerül a változásnaplóba**, a
+> „miért" indoklással.
+
+**Miért kell ez kimondva:** e nélkül minden fejlesztés közbeni finomítás új fő
+verziót igényelne, és három hét alatt `v7`-nél tartanánk anélkül, hogy egyetlen
+kliens is létezne. **A verziószám akkor ér valamit, ha valakinek fáj, ha nő** —
+ha nem fáj senkinek, csak zaj.
+
+**A határ éles, és nem mozgatható:** az első éles telepítés napjától a 4.1
+táblázat kivétel nélkül érvényes. **A „még csak egy ügyfél van" nem mentesség** —
+az az egy ügyfél is elad, és az ő kliense is elromlik.
+
 ### 4.3 Két fő verzió egyszerre — mennyi ideig
 
 | Szerződés | Meddig kell a régit is kiszolgálni |

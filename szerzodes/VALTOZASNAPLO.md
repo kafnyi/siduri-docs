@@ -67,3 +67,24 @@ egy év múlva átállási terv.
 | **Szívverés, és 5 másodperces elavulási küszöb** | Egy TCP-kapcsolat percekig „nyitva" maradhat egy halott szerver felé |
 
 **Nem törő változás:** új fájl, meglévő alak nem módosult.
+
+### v1.2.0 — 2026-09-01 — *kiszerelés és teljesítési mód* ⚠️ `KIADÁS ELŐTTI MÓDOSÍTÁS`
+
+> ⚠️ **Ez a változás TÖRŐ lenne, ha a `v1` már be lenne fagyva.** Nincs — még
+> egyetlen kliens sem fordult rá élesben *(§4.2/b)*. **Ez az utolsó pillanat,
+> amikor ilyet szabad**; az első éles telepítés napjától a §4.1 táblázata
+> kivétel nélkül érvényes.
+
+**Mi változott, és miért:**
+
+| Változás | Miért |
+|----------|-------|
+| `ErtekesithetoTetel.bruttoEgysegar` → **`bruttoAr`** | Az értékesíthető egység mostantól a **kiszerelés**, nem a termék. A 0,5 l és a 0,3 l csapolt sör két külön egység, saját árral és vonalkóddal — de egy termék gyermekei. **Az ár a kiszerelésen él**; ha a terméken is ott maradna, két igazságforrás keletkezne, és előbb-utóbb eltérnének |
+| `afaKategoria` → **`afaHelyben` + `afaElvitel`** | Két áfamező, **másolat-szemantikával**. Ha hivatkozás lenne, a helyben fogyasztás kulcsának csökkentése csendben lecsökkentené az elviteli áfát is — ami jogsértés. **A két hibairány nem egyenértékű:** a túl magas áfa pénzügyi hátrány, a túl alacsony jogsértés |
+| **Új: `TeljesitesMod`** a rendelésnyitásban | E nélkül a második áfamező holt súly: nincs, ami eldöntse, melyiket kell használni. A **kiszállítás az elviteli** mezőt használja — áfakulcsot soha nem égetünk a kódba |
+| `tetelAzonosito` **jelentése** pontosítva | Mostantól a kiszerelés azonosítója. Az alak nem változott, a jelentés igen — **és ez az a fajta változás, ami kiadás után szigorúan tilos**, mert a fordító nem veszi észre |
+
+**Ami NEM változott:** nincs külön elviteli **bruttó** ár. Ha a hamburger 1500 és
+elvitelre kérik, az 1500 marad; csak a kulcs más. Ebből következik, hogy **a
+nettó árbevétel teljesítési módonként eltér**, tehát minden árrés-kimutatást
+teljesítési módonként bontva kell számolni.

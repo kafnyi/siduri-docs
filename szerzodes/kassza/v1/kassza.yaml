@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.0.0
+  version: 1.2.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -118,6 +118,8 @@ paths:
                   $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
                 asztalAzonosito:
                   $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+                teljesitesMod:
+                  $ref: '#/components/schemas/TeljesitesMod'
               additionalProperties: false
             examples:
               gyorseladas:
@@ -125,6 +127,7 @@ paths:
                 value:
                   azonosito: "0192f3a1-4c2e-7b3d-8e91-5a6b7c8d9e0f"
                   eszkozIdo: "2026-08-25T19:36:38+02:00"
+                  teljesitesMod: HELYBEN
       responses:
         '201':
           $ref: '#/components/responses/Rendeles'
@@ -485,16 +488,29 @@ components:
 
     ErtekesithetoTetel:
       title: Ertekesitheto tetel
+      description: |
+        Egy ertekesitheto egyseg: a KISZERELES, nem a termek.
+
+        A 0,5 l csapolt sor es a 0,3 l ket kulon ertekesitheto egyseg, sajat
+        arral es sajat vonalkoddal - de egyetlen termek gyermekei, tehat a
+        nevet, a kategoriat es az afakulcsokat onnan oroklik.
+
+        A RENDSZER NEM SZAMOL ARAT: a 0,3 l nem a 0,5 l aranak arányos resze,
+        hanem amennyit az ugyfel mond.
       type: object
-      required: [azonosito, megnevezes, bruttoEgysegar, afaKategoria, mennyisegiEgyseg]
+      required: [azonosito, megnevezes, bruttoAr, afaHelyben, afaElvitel, mennyisegiEgyseg]
       properties:
         azonosito:
-          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: A KISZERELES azonositoja. Ez megy a tetelfelvetelkor.
         megnevezes:
           type: string
+          description: >
+            A termek neve, a kiszereles nevevel kiegeszitve, ha az nem "Alap".
         megnevezesEn:
           type: string
-        bruttoEgysegar:
+        bruttoAr:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
           description: >
@@ -502,8 +518,23 @@ components:
             pontosan szorzodik, tort egysegarnal harom kulon sor osszege nem
             feltetlenul adna ki a 3x menuart - pont az NTAK kovetelmenyet
             sertenenk meg.
-        afaKategoria:
-          $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+        afaHelyben:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+          description: Helyben fogyasztas eseten ervenyes kulcs.
+        afaElvitel:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+          description: |
+            Elvitel es kiszallitas eseten ervenyes kulcs.
+
+            MASOLAT, nem hivatkozas. Ha hivatkozas lenne, a helyben fogyasztas
+            kulcsanak csokkentese csendben lecsokkentene ezt is - ami komoly
+            jogsertes. A ket hibairany nem egyenerteku: a tul magas afa
+            penzugyi hatrany, a tul alacsony jogsertes.
+
+            NINCS kulon elviteli BRUTTO ar. Csak a kulcs mas - es ezert a netto
+            arbevetel teljesitesi modonkent kulonbozik.
         mennyisegiEgyseg:
           type: string
           examples: ["DARAB", "KILOGRAMM", "LITER"]
@@ -529,7 +560,9 @@ components:
         azonosito:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tetelAzonosito:
-          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: A KISZERELES azonositoja, az ertekesitheto tetel listajabol.
         mennyiseg:
           $ref: '../../kozos/penz.yaml#/components/schemas/Mennyiseg'
         eszkozIdo:
@@ -561,6 +594,18 @@ components:
           $ref: '../../kozos/ido.yaml#/components/schemas/Sorszam'
       additionalProperties: false
 
+    TeljesitesMod:
+      title: Teljesitesi mod
+      description: |
+        A KISZALLITAS az ELVITELI afamezot hasznalja.
+
+        Afakulcsot soha nem egetunk a kodba: a termeken levo mezo dont, nem a
+        mod neve. Ha az ENUM bovul, a kliens az ismeretlen erteket beolvassa, de
+        nem kezeli ugy, mintha ertene.
+      type: string
+      enum: [HELYBEN, ELVITEL, KISZALLITAS]
+      default: HELYBEN
+
     Rendeles:
       title: Rendeles
       type: object
@@ -571,6 +616,8 @@ components:
         allapot:
           type: string
           enum: [NYITOTT, LEZART, SZTORNOZOTT]
+        teljesitesMod:
+          $ref: '#/components/schemas/TeljesitesMod'
         asztalAzonosito:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tetelek:

@@ -291,7 +291,15 @@ A pincér sztornózni akar, de nincs joga. **Nem az a megoldás, hogy kilép és
 | `MINOSEGI_KIFOGAS` | A vendég visszaküldte |
 | `KONYHAI_HIBA` | A konyha rontotta el |
 | `ARHIBA` | Rossz ár került rá |
+| `SZAMLAIGENY` | `[MEGVALOSITASKOR]` A vendég utólag számlát kért |
 | `EGYEB` | *(szabad szöveg kötelező)* |
+
+> **A `SZAMLAIGENY` a megvalósításkor derült ki, nem tervezésnél.** A nyugta →
+> számla átváltás **sztornó**: az eredetit sztornózzuk, és számla készül
+> helyette. Kód nélkül ez `EGYEB`-ként, kézzel írt szöveggel jelent volna meg —
+> vagyis **a leggyakoribb sztornó lett volna a legkevésbé elemezhető**, és a
+> sztornóstatisztika úgy nézett volna ki, mintha folyton visszavonnánk
+> eladásokat.
 
 ### 7.2 Küszöb feletti kedvezmény
 
@@ -325,6 +333,24 @@ A pincér sztornózni akar, de nincs joga. **Nem az a megoldás, hogy kilép és
 | `SZEMELYZETI` | Személyzeti fogyasztás |
 | `EGYEB` | *(szabad szöveg kötelező)* |
 
+### 7.6/b `[MEGVALOSITASKOR]` Kassza készpénzmozgása
+
+| Kód | Jelentés |
+|-----|----------|
+| `VALTOPENZ` | Váltópénz |
+| `FOLOZES` | Fölözés trezorba |
+| `BESZERZES` | Beszerzés kasszából |
+| `BORRAVALO_KIFIZETES` | Borravaló kifizetése |
+| `TULAJDONOSI_BEFIZETES` | Tulajdonosi befizetés |
+| `EGYEB` | *(szabad szöveg kötelező)* |
+
+> **Ez a készlet a tervben nem szerepelt**, a kód viszont már írta a mezőt: a
+> `keszpenzmozgas` táblának indokoszlopa van, és a szolgáltatás szabad
+> szöveggel töltötte. Egy készlet nélkül a kassza minden mozdulata
+> elemezhetetlen marad — pedig **pont a kassza mozgása az, amit utólag meg kell
+> tudni magyarázni**. A `FIOKNYITAS` *(7.5)* nem helyettesíti: az a **nyitás**
+> indoka, ez a **pénzmozgásé**.
+
 ### 7.7 Integráció ideiglenes kikapcsolása
 
 `NINCS_HALOZAT` · `ESZKOZ_MEGHIBASODAS` · `KABEL_SZAKADAS` · `ESZKOZ_NEM_VALASZOL` · `EGYEB`
@@ -357,3 +383,25 @@ A pincér sztornózni akar, de nincs joga. **Nem az a megoldás, hogy kilép és
 | d | „az olvasás nem naplózódik, helyette jogosultság szabályoz" — **milyen bontásban?** | 4.10, külön az árrés és a beszerzési ár |
 | e | **Jogosultság offline?** *(eddig sehol)* | 2. szakasz |
 | f | **Vezetői jóváhagyás kilépés nélkül?** *(eddig sehol)* | 3. szakasz — **és az audit MINDKÉT személyt rögzíti** |
+
+---
+
+## 9. `[MEGVALOSITVA]` Ami ebből kód lett
+
+| Szabály | Hol tartatja be | Ha csak megállapodás lenne |
+|---------|-----------------|----------------------------|
+| 6.1 — az indok listából választott | `siduri.indok_ellenoriz()`, minden indokot tároló táblán trigger | Egy új írási útvonalon valaki kihagyná, és fél év múlva derülne ki |
+| 6.2 — mindenhol van `EGYEB`, ott a szöveg kötelező | Ellenőrző-feltétel a táblán + a katalógustöltés önellenőrzése | Egy új készlet `EGYEB` nélkül kerülne be, és a pult mögött derülne ki, hogy a kezelő nem tud mit választani |
+| 6.3 — az alapkészletet nem törölheti | Trigger: az alapkód nem módosítható és nem törölhető; az alkalmazási szerepnek nincs joga hozzá | **Épp ott tűnne el a `LOPASGYANU`, ahol számítana** |
+| 7.9 — a degradált mód készlete zárt | `egyeb_engedett = hamis` a készleten + trigger | Valaki felvenne egy `EGYEB`-et, és a hatóság felé a mi szövegünk menne ki |
+
+**Két döntés, aminek ára van, és vállaltuk:**
+
+| Döntés | Ár | Miért mégis |
+|--------|----|-------------|
+| Az alapkód **ki sem kapcsolható**, nem csak törölhetetlen | A kezelő olyan kódokat is lát, amiket sosem használ | A kikapcsolás a törlés másik neve lenne: a riportok telephelyek között összehasonlíthatatlanná válnának |
+| A telephely **nem vehet fel alapkóddal azonos saját kódot** | Egy megszokott belső elnevezést nem tud használni, ha ütközik | Ha a `VENDEG_ELALLT` az egyik telephelyen mást jelentene, a közös alapkészletnek nem lenne értelme |
+
+**Az NTAK-nak menő szöveg külön mező**, nem a belső megnevezés. A belső címke
+bármikor átfogalmazható; ha ugyanaz a mező lenne, egy szépített felirat
+csendben átírná a hatósági bejelentést.

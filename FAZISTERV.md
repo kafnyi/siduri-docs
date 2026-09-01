@@ -1,7 +1,7 @@
 # Siduri — Fázisterv (E1)
 
 **Utolsó frissítés:** 2026-08-23 (első ügyfél megvan: étterem, teljes funkcionalitással)
-**Előfeltétel:** a teljes specifikáció lezárva (`siduri_spec_hu.md`), 54 invariáns rögzítve.
+**Előfeltétel:** a teljes specifikáció lezárva (`siduri_spec_hu.md`), 57 invariáns rögzítve.
 
 ---
 

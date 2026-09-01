@@ -2150,3 +2150,6 @@ For quick machine reference. Violating any of these is a defect, not a trade-off
 | I52 | Import runs the same validation rules as the UI; it is never a bypass of them |
 | I53 | The barcode column is text on both export and import; a barcode turned into a number is an error, not a value to repair |
 | I54 | Import reads money and unit-cost cells as text; a floating-point value never appears on the read path |
+| I55 | The event channel is never the sole source of truth; full state is always retrievable independently of it |
+| I56 | A stale event channel is visibly flagged in the UI; a silently stale screen is forbidden |
+| I57 | An event's sequence is the same `(epoch, counter)` pair; the client discards events from an older generation |

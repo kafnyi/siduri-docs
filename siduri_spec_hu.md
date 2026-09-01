@@ -2067,6 +2067,7 @@ A „számviteli megőrzési idő" premissza rendezve: 8 év, felhős archívumm
 | **M20** | **Az Excel-könyvtár natív képbe fordul-e**, és ad-e szöveges cellaértéket lebegőpont nélkül | `EXPORT_IMPORT` §4.2, §6 — **blokkoló**, mert az I1 invariánst döntheti el az import határán |
 | **M21** | **20 000 soros export memóriaigénye és ideje a telephelyi szerveren**, POS mellett futva | `EXPORT_IMPORT` §5 |
 | **M22** | **A PDF könyvtár natív képbe fordul-e**, magyar ékezetekkel, beágyazott betűtípussal | `EXPORT_IMPORT` §6.3 |
+| **M23** | **A WebSocket-réteg natív képbe fordul-e**, és bírja-e a 12 tartós kapcsolatot a telephelyi gépen | `ESEMENYCSATORNA` §6 — **blokkoló**, mert bukásnál a csatorna technológiája dől |
 
 **Fizikai hardver kell hozzá:** M1–M9 egy J1900-at, M4/M5/M7/M13 **kettőt**,
 **az M12 a TELJES referencia-telepítést** (3 Windows POS + 2 tablet + 4 telefon +
@@ -2165,3 +2166,6 @@ Gyors összefoglaló. Ezek megsértése **hiba, nem kompromisszum.**
 | I52 | Az import ugyanazokat az érvényességi szabályokat futtatja, mint a felület; soha nem kerülőút alóluk |
 | I53 | A vonalkód oszlop exportnál és importnál is szöveg; a számmá alakult kód hiba, nem javítandó érték |
 | I54 | Az import a pénz- és egységköltség-cellákat szövegként olvassa; lebegőpontos érték a beolvasási útvonalon soha |
+| I55 | Az eseménycsatorna soha nem az igazság egyetlen forrása; a teljes állapot a csatornától függetlenül mindig lekérdezhető |
+| I56 | Az elavult eseménycsatorna láthatóan jelződik a felületen; némán elavult képernyő tilos |
+| I57 | Az esemény sorszáma ugyanaz a `(epoch, számláló)` pár; régebbi generációjú eseményt a kliens eldob |

@@ -50,3 +50,20 @@ telephelyi szerver —, és a szerződésteszt mindkettőn ugyanaz fut. Ez teszi
 
 *Még nincs kiadva.* A **legszigorúbb kompatibilitási kényszerű** szerződés: a
 felhő és a telephely soha nem frissül egyszerre.
+
+### v1.1.0 — 2026-08-26 — *eseménycsatorna borítéka* `NEM TÖRŐ`
+
+**Új fájl:** `kassza/v1/esemenyek.yaml` — a leküldő eseménycsatorna üzenetalakjai.
+
+**Miért most, amikor a csatorna csak az F5-ben épül meg:** ugyanaz az ok, amiért
+az epoch mező az első naptól benne van a kérésekben. **Egy protokollmező
+utólagos felvétele minden kliens minden verzióját érinti** — most ingyen van,
+egy év múlva átállási terv.
+
+| Mit rögzít | Miért |
+|-----------|-------|
+| Az esemény sorszáma **ugyanaz a `(epoch, számláló)` pár** | Nem új mechanizmus. A régebbi generációjú esemény azonnal felismerhető, és szerepváltás után nem kell külön „ürítsd a gyorsítótárat" üzenet |
+| **Újracsatlakozás: `POTLAS` vagy `UJRATOLTES`** | Az `UJRATOLTES` nem hibajelzés. ⚠️ Csendben folytatni tilos: a kliens azt hinné, naprakész, holott lyuk van a történetében |
+| **Szívverés, és 5 másodperces elavulási küszöb** | Egy TCP-kapcsolat percekig „nyitva" maradhat egy halott szerver felé |
+
+**Nem törő változás:** új fájl, meglévő alak nem módosult.

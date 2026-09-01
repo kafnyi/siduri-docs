@@ -1,0 +1,139 @@
+# Siduri - a K1 lekuldo eseménycsatornaja
+#
+# A csatorna technologiaja WebSocket (ESEMENYCSATORNA.md, S1). Ez a fajl NEM a
+# szallitast irja le, hanem az UZENETEK ALAKJAT - azt, ami a technologiatol
+# fuggetlenul ervenyes.
+#
+# Miert most, amikor a csatorna csak az F5-ben epul meg: ugyanazert, amiert az
+# epoch mezo az elso naptol benne van a keresekben. Egy protokollmezo utolagos
+# felvetele minden kliens minden verziojat erinti.
+#
+# ALAPELV, ami minden alabbi alakra ervenyes:
+#   Az esemenycsatorna SOHA nem az igazsag egyetlen forrasa. Aki lemaradt,
+#   annak teljes allapotot kell tudnia kerni. Egy elveszett esemeny nemán rossz
+#   kepernyot hagy maga utan, es a szakacs a rossz kepernyorol foz.
+$id: https://szerzodes.siduri.mythsystem.hu/kassza/v1/esemenyek.yaml
+
+components:
+  schemas:
+
+    Boritek:
+      title: Esemenyboritek
+      description: >
+        Minden lekuldott uzenet ebben az alakban erkezik. A tartalom tipusfuggo;
+        a boritek allando.
+      type: object
+      required: [tipus, sorszam, szerverIdo]
+      properties:
+        tipus:
+          $ref: '#/components/schemas/EsemenyTipus'
+        sorszam:
+          allOf:
+            - $ref: '../../kozos/ido.yaml#/components/schemas/Sorszam'
+          description: |
+            UGYANAZ a (epoch, szamlalo) par, ami a rekordok sorrendjet es a
+            fencinget adja. Nem uj mechanizmus.
+
+            Ebbol harom dolog jon ingyen:
+              - a kliens pontosan tudja, hol tart;
+              - a regebbi generacioju esemeny azonnal felismerheto, es
+                eldobhato - egy leszakadt, majd visszatert regi szerver
+                esemenyei nem irjak felul a friss allapotot;
+              - szerepvaltas utan nem kell kulon "uritsd a gyorsitotarat"
+                uzenet: az epoch valtozasa maga az uzenet.
+        szerverIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+        entitasTipus:
+          type: string
+          examples: ["RENDELES", "TETELSOR", "ASZTAL", "BIZONYLAT"]
+        entitasAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tartalom:
+          description: >
+            Tipusfuggo. NYITOTT KERDES (E1): teljes objektum vagy csak
+            azonosito. A KDS-nel valoszinuleg a teljes objektum a jobb, de ezt
+            valos adaton kell eldonteni, az F5-ben.
+          type: object
+          additionalProperties: true
+      additionalProperties: false
+
+    EsemenyTipus:
+      title: Esemenytipus
+      description: >
+        A kliens az ISMERETLEN erteket koteles beolvasni - nem eshet el rajta a
+        csatorna feldolgozasa -, de nem kezelheti ugy, mintha ertene: az
+        ismeretlen esemenyt eldobja, es a tenyt naplozza.
+      type: string
+      enum:
+        - SZIVVERES
+        - RENDELES_VALTOZOTT
+        - TETELSOR_ERKEZETT
+        - TETELSOR_ELKESZULT
+        - BIZONYLAT_LEZARULT
+        - ASZTAL_VALTOZOTT
+        - UZEMMOD_VALTOZOTT
+
+    Szivveres:
+      title: Szivveres
+      description: |
+        Masodpercenkent erkezik.
+
+        A kliens ot masodperc utan elavultnak tekinti a csatornat - NEM varja
+        meg a TCP idotullepeset, ami percekig is eltarthat. Egy TCP-kapcsolat
+        percekig "nyitva" maradhat egy halott szerver fele.
+
+        AZ ELAVULT CSATORNA LATSZIK A FELULETEN. Egy nemán elavult KDS rosszabb,
+        mint egy lathatoan leszakadt: az elsonel a szakacs elhiszi, hogy nincs
+        uj rendeles.
+      type: object
+      required: [tipus, sorszam, szerverIdo]
+      properties:
+        tipus:
+          const: SZIVVERES
+        sorszam:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Sorszam'
+        szerverIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    UjracsatlakozasKeres:
+      title: Ujracsatlakozas
+      description: >
+        A kliens a csatorna megnyitasa utan ezzel jelenti, hol tartott.
+      type: object
+      required: [utolsoSorszam]
+      properties:
+        utolsoSorszam:
+          allOf:
+            - $ref: '../../kozos/ido.yaml#/components/schemas/Sorszam'
+          description: Az utolso feldolgozott esemeny sorszama.
+      additionalProperties: false
+
+    UjracsatlakozasValasz:
+      title: Ujracsatlakozas valasza
+      description: |
+        A szerver donti el, hogy potolja a hianyzo esemenyeket, vagy teljes
+        ujratoltest ker.
+
+        AZ UJRATOLTES NEM HIBAJELZES, hanem normalis valasz: a szerver veges
+        pufferben tartja az esemenyeket, es ha a kliens ennel regebbi, a teljes
+        allapot lekerese olcsobb es biztosabb, mint orakat visszajatszani.
+
+        AMI TILOS: csendben folytatni onnan, ahol a szerver tud. A kliens
+        ilyenkor azt hinne, hogy naprakesz, holott lyuk van a tortenetében.
+      type: object
+      required: [dontes, aktualisEpoch]
+      properties:
+        dontes:
+          type: string
+          enum: [POTLAS, UJRATOLTES]
+        aktualisEpoch:
+          type: integer
+          format: int64
+          description: >
+            Ha ez nagyobb, mint amit a kliens ismert, szerepvaltas tortent: a
+            kliens minden gyorsitotarazott allapotot eldob.
+        indok:
+          type: string
+          description: Emberi olvasasra, naplozasra. A kliens NEM erre agazik el.
+      additionalProperties: false

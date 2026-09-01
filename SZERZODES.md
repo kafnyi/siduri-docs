@@ -283,26 +283,36 @@ kliens hagyná ki, amelyik offline üzemel.
 
 ---
 
-## 7. `[NYITOTT — DÖNTÉST IGÉNYEL]` A leküldő csatorna
+## 7. `[ELDÖNTVE — S1]` A leküldő csatorna: WebSocket
 
-**A K1 nem oldható meg tisztán kérés-válasz alapon.** A KDS-nek, a
-rendeléskijelzőnek és az asztaltérképnek **a szerver felől érkező eseményre**
-van szüksége.
+> **Részletes indoklás: `ESEMENYCSATORNA.md`.** Itt csak az, ami a szerződést
+> érinti.
 
-| Jelölt | Mellette | Ellene |
-|--------|----------|--------|
-| **WebSocket** *(hajlok rá)* | Kétirányú; jól támogatott .NET-ben, Dartban és böngészőben egyaránt | Állapotos kapcsolat; újracsatlakozás és visszatöltés külön munka |
-| **Szerver-küldte esemény (SSE)** | Egyszerűbb, HTTP-n ül | **Egyirányú**; a kliens→szerver út marad kérés-válasz |
-| **Lekérdezés (polling)** | Legegyszerűbb | Késleltetés vagy terhelés — LAN-on kár érte |
+**A döntés: WebSocket**, és nem azért, mert ez a modern.
 
-**Amit mindenképp ki kell mondani, bármelyik nyerjen:**
+| # | Ok |
+|---|-----|
+| a | ⚠️ **A .NET-ben nincs beépített SSE-kliens.** A POS kliens C#/WPF: WebSocketre van beépített osztály, SSE-re nincs — a folyamot, az újracsatlakozást és a `Last-Event-ID` kezelést kézzel kellene megírni. **Az SSE „egyszerűbb" volta pont a legfontosabb kliensünkön nem érvényesül** |
+| b | **A KDS-nek visszafelé is beszélnie kell** — a szakács ott jelzi, hogy egy tétel elkészült. SSE mellett ez külön hívás lenne, és két csatorna állapotát kellene együtt tartani |
 
-> **Az eseménycsatorna SOHA nem lehet az igazság egyetlen forrása.** Aki
-> lemaradt eseményekről, annak **teljes állapotot** kell tudnia kérni —
-> különben egy elveszett esemény némán rossz képernyőt hagy maga után, és a
-> szakács a rossz képernyőről főz.
+**A boríték MOST kerül a szerződésbe** *(`szerzodes/kassza/v1/esemenyek.yaml`)*,
+**a megvalósítás az F5-ben** épül meg a KDS-sel együtt. Ugyanaz az ok, amiért az
+epoch mező az első naptól benne van: egy protokollmező utólagos felvétele
+**minden kliens minden verzióját** érinti.
 
-**Ez F1-ben eldöntendő**, mert a K1 alakját érinti.
+### 7.1 Amit a szerződés rögzít
+
+| # | Szabály |
+|---|---------|
+| a | **Az esemény sorszáma ugyanaz a `(epoch, számláló)` pár** — nem új mechanizmus. Így a régebbi generációjú esemény azonnal felismerhető és eldobható, és szerepváltás után nem kell külön „ürítsd a gyorsítótárat" üzenet |
+| b | **Újracsatlakozáskor a szerver dönt:** `POTLAS` vagy `UJRATOLTES`. **Az `UJRATOLTES` nem hibajelzés**, hanem normális válasz — véges pufferből nem lehet órákat visszajátszani. ⚠️ **Csendben folytatni tilos**: a kliens azt hinné, naprakész, holott lyuk van a történetében |
+| c | **Másodperces szívverés, és a kliens 5 másodperc után elavultnak tekinti a csatornát** — nem várja meg a TCP időtúllépését, ami percekig is eltarthat |
+| d | ⚠️ **Az elavult csatorna LÁTSZIK a felületen.** Egy némán elavult KDS rosszabb, mint egy láthatóan leszakadt: az elsőnél a szakács elhiszi, hogy nincs új rendelés |
+| e | **A csatorna nem hitelesít külön** — ugyanaz az eszközazonosság és munkamenet. Egy második hitelesítési út egy második hibalehetőség |
+
+**Blokkoló mérés: M23** — a WebSocket-réteg natív képbe fordul-e, és bírja-e a
+12 tartós kapcsolatot a telephelyi gépen. **A puszta keretrendszer-támogatás nem
+elég bizonyíték**, mert a natív kép hibái futásidőben jelentkeznek.
 
 ---
 
@@ -310,7 +320,7 @@ van szüksége.
 
 | # | Kérdés |
 |---|--------|
-| **S1** | **A leküldő csatorna technológiája** *(7. fejezet)* — **F1-ben eldöntendő** |
+| ~~**S1**~~ | ~~A leküldő csatorna technológiája~~ — **ELDÖNTVE: WebSocket** *(7. fejezet, `ESEMENYCSATORNA.md`)* |
 | **S2** | **A kompatibilitási ellenőrzés eszköze** — melyik nyílt eszköz ismeri fel megbízhatóan a törő változást OpenAPI 3.1-en |
 | **S3** | **A K3 tömeges átvitelének alakja** — a napi szinkron nem ugyanaz, mint egy rendelés felküldése; lehet, hogy külön formátum kell |
 | **S4** | **A szerződésgazda megnevezése** — ez személyi döntés, nem technikai |

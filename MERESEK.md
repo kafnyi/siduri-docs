@@ -252,3 +252,14 @@ Ugyanaz a szempont a másik formátumra, plusz a **beágyazott betűtípus**: az
 ékezetes karakterek hiánya PDF-ben tipikusan **némán** jelentkezik, kihagyott
 vagy dobozzá váló betűkkel. **Mérendő:** natív fordítás, és egy teljes magyar
 karakterkészletű minta vizuális ellenőrzése *(EXPORT_IMPORT §6.3)*.
+
+### `[ ]` M23 — A WebSocket-réteg natív képbe fordul-e, és bírja-e a 12 kapcsolatot
+Az S1 döntés WebSocketre esett *(`ESEMENYCSATORNA.md`)*, de a GraalVM natív
+fordítás viselkedése itt ugyanúgy ismeretlen, mint az Excel- és a PDF-könyvtárnál.
+**A puszta keretrendszer-támogatás nem elég bizonyíték:** a natív kép hibái
+**futásidőben** jelentkeznek, nem fordításkor.
+**Mérendő:** (a) a csatorna natív képbe illesztése — sikerül-e, mekkora leíróval;
+(b) **12 tartós kapcsolat** a telephelyi gépen, POS klienssel együtt futva —
+memória, és a szívverés tartható-e másodperces ütemben csúcsterhelés alatt.
+**Ha megbukik, a csatorna technológiája dől**, és vele a KDS meg a
+rendeléskijelző ütemezése.

@@ -88,3 +88,23 @@ egy év múlva átállási terv.
 elvitelre kérik, az 1500 marad; csak a kulcs más. Ebből következik, hogy **a
 nettó árbevétel teljesítési módonként eltér**, tehát minden árrés-kimutatást
 teljesítési módonként bontva kell számolni.
+
+### v1.3.0 — 2026-09-01 — *kedvezmény, szervizdíj, borravaló* `NEM TÖRŐ`
+
+**Új, mind elhagyható mező a lezárásban:** `kedvezmeny`, `szervizdijSzazalek`,
+`borravalo`, `kedvezmenyIndokKod`, `kedvezmenyIndokSzoveg`, `megerositve`.
+**A válaszban új:** `borravalo` és `egyebTetelek`.
+
+| Szabály | Miért így |
+|---------|-----------|
+| **A kedvezmény áfakulcs-arányosan oszlik szét**, maradék nélkül | Ha nem így lenne, a különbözet nem tűnne el — **rossz gyűjtőre kerülne**, és azt az adóhatóság látja |
+| **A kedvezmény és a szervizdíj ÖNÁLLÓ SOR, áfakulcsonként** | Az adóügyi gyűjtőkiosztásban a szervizdíjnak **saját, áfakulcsonkénti rekeszei** vannak. A termékbe olvasztva rossz rekeszbe kerülne |
+| **A kedvezmény negatív, a szervizdíj pozitív** — adatbázis-kikötés | Ha felcserélődne, a végösszeg jó lenne, **a gyűjtők viszont nem** |
+| **A borravaló nincs az áfacsoportokban** | A gyűjtőkiosztásban nincs borravaló-rekesz: a borravaló nem ellenérték egy szolgáltatásért. A végösszeg viszont tartalmazza |
+| **A `megerositve` a SZÁNDÉKOT erősíti meg, nem az összeget** | Ezért külön mező, és nem az érték megismétlése |
+| ⚠️ **Kemény 15%-os szervizdíj-plafon NINCS** | Nincs jogszabályi felső határ, és egy rendezvényhelyszín szerződéses szervizdíja lehet magasabb. Kemény korlát csak 100% felett, mert az bizonyosan mellényúlás |
+
+⚠️ **Üzleti döntés, amit meg kell erősíteni:** a szervizdíj **a kedvezménnyel
+csökkentett** alapra számolódik. Ez a védhető alapértelmezés — szolgáltatási
+díjat azon összeg után szedni, amit a vendég ténylegesen fizet. **Ha az ügyfél
+másképp akarja, az konfiguráció, és meg kell kérdezni, nem kitalálni.**

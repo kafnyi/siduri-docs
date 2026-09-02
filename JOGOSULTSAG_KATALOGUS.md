@@ -266,6 +266,40 @@ A pincér sztornózni akar, de nincs joga. **Nem az a megoldás, hogy kilép és
 | **Tulajdonos** | Minden ügyféloldali jog |
 | **Siduri admin** | Minden + a `siduri.*` kör. **Sérthetetlen** |
 
+### 5.1 `[MEGVALOSITVA]` A sablon és a szerep két külön dolog
+
+**A sablonok soha nem érvényesülnek újra.** Ez nem részletkérdés, hanem az
+egész megoldás alakját meghatározza:
+
+| | Sablon | Szerep |
+|---|--------|--------|
+| **Kié** | A miénk — ajánlás | Az ügyfélé — döntés |
+| **Hogyan változik** | Ismételhető migráció frissíti | Az ügyfél írja át |
+| **Ki írhatja** | **Csak katalógustöltés** — az alkalmazás nem | A jogosult felhasználó |
+| **Mikor hat** | Az **ezután** létrehozott szerepekre | Azonnal |
+
+**Ha a sablon a meglévő szerepekre is hatna** — ahogy a jogosultság-katalógus és
+az indokkódok teszik —, akkor minden frissítés **csendben visszaállítaná az
+ügyfél saját szerepeit**. A pincértől elvett sztornójog egy verziófrissítés után
+visszakerülne, és senki nem venné észre.
+
+**Az érvényesítés ezért egyszeri**, és nem csak alkalmazási ellenőrzés őrzi:
+sablononként legfeljebb egy szerep lehet telephelyenként, egyedi indexszel.
+
+**A szerep megjegyzi, melyik sablonból készült** — de nem azért, hogy
+frissíteni lehessen, hanem hogy a felület meg tudja mutatni, **miben tér el** az
+ügyfél szerepe az alapértelmezéstől. Az eltérés láthatósága sokat ér; a csendes
+felülírása semmit.
+
+**A Tulajdonos és a Siduri admin halmaza számolódik**, nem listából: egy új
+jogosultság felvételekor egy statikus lista elavulna, és **a hiány néma lenne**.
+A Tulajdonos így sem kap `siduri.*` jogot.
+
+> ⚠️ **Egy bukott teszt derítette ki:** a sablontáblák globális, bárki által
+> írható állapotok voltak. Egy telephely adminja átírhatta volna azt, amit
+> **minden** telephely új szerepei kapnak — és a hatás csak a következő
+> telepítésnél látszott volna. Most csak katalógustöltés írhatja őket.
+
 ---
 
 # II. RÉSZ — INDOKKÓDOK

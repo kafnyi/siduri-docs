@@ -62,6 +62,25 @@ kell hozzá** — `#8A6D2F` már **4,87:1**, tehát megfelel. Ez viszont már
 
 ---
 
+## 3.5 A FELÜLET palettája — nem ugyanaz, mint a logóé
+
+**A logó színei a logóé; az alkalmazásé csak PASSZOLJON hozzájuk.** Ez nem
+engedmény, hanem szükségszerű: a logó fehér alapra készült arculati elem, a
+felület pedig egy este, félhomályban, órákon át nézett munkaeszköz.
+
+| # | Kikötés | Miért |
+|---|---------|-------|
+| a | **Sötét téma az ALAPÉRTELMEZÉS**, nem a világos | A Siduri legtöbb üzemórája este és éjjel telik. Egy világos felület a sötét teremben **fényforrás**, amibe a felszolgáló minden rendelésnél belenéz |
+| b | **Semmi neon, semmi tiszta telített szín** nagy felületen | A telített kék-zöld és a tiszta fehér az, amitől négy óra után fáj a szem. A felületek **tompított, alacsony telítettségű** változatok |
+| c | **A legvilágosabb felület se legyen tiszta fehér**, a legsötétebb se tiszta fekete | A `#FFFFFF` sötétben vakít; a `#000000` pedig a rá kerülő szöveget élesíti túl (halo-hatás). Törtfehér és mélyszürke a két véglet |
+| d | **A kontrasztminimumok ettől NEM lazulnak** | „Kímélje a szemet" nem jelenti azt, hogy „olvashatatlan". A 4,5:1 továbbra is alsó határ — a tompítás a **telítettséget** viszi le, nem a kontrasztot |
+| e | **A jelzőszínek (hiba, figyelmeztetés) maradnak erősek** | Amit észre KELL venni, azt észre kell venni. A tompítás a nyugalmi állapoté, nem a riasztásé |
+
+> **Világos téma is kell**, mert nappali pultnál, ablak mellett a sötét felület
+> tükröz. De **az alapértelmezés a sötét** — az a gyakoribb üzemmód.
+
+---
+
 ## 4. Hova kerülnek ezek a színek
 
 **Egyetlen közös jelforrás, mindhárom felületre** *(a `WEBADMIN_STACK.md` W2

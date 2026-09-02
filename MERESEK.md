@@ -292,3 +292,42 @@ Aki ezt egyeztetni próbálja, forintokat fog keresni, amik nincsenek eltűnve.
 azt is ellenőrzi, hogy **legyen** eltérés: ha soha nem térne el, ez a
 figyelmeztetés fölösleges lenne, és akkor törölni kellene, nem meghagyni
 „biztos, ami biztos" alapon.
+
+### `[~]` M25 — A PIN-lenyomatolás költsége `RÉSZBEN MÉRVE`
+
+**Kérdés:** hány iterációt bír el a PBKDF2 úgy, hogy a belépés a pult mögött ne
+legyen érezhetően lassú?
+
+**Mérve** (Intel Xeon @ 2,8 GHz, PBKDF2-HMAC-SHA512, legjobb az 5 futásból):
+
+| Iteráció | Idő |
+|----------|-----|
+| 10 000 | 16,8 ms |
+| 50 000 | 69,3 ms |
+| 100 000 | 120,4 ms |
+| **210 000** *(OWASP ajánlás)* | **250,2 ms** |
+| 400 000 | 473,2 ms |
+
+**A választott érték: 60 000** (≈83 ms ezen a gépen).
+
+**Miért nem az OWASP 210 000-e:** a célgép a **J1900**, ami ennél a Xeonnál
+becslés szerint 3–4-szer lassabb — vagyis az OWASP-érték ott **közel egy
+másodperc belépésenként**. Egy műszakkezdésnél, öt ember után ez fél perc
+állás a pultnál.
+
+**És miért fér ez bele:** mert a PIN kulcstere **tízezer**. Az iterációszám
+emelése a támadónak percekben, a kezelőnek másodpercekben számít:
+
+| Iteráció | 10 000 tipp végigfuttatása |
+|----------|---------------------------|
+| 60 000 | ~8 perc |
+| 210 000 | ~42 perc |
+
+**Egyik sem védelem.** A PIN-t nem a KDF védi, hanem a **bors** — a szerveren
+tartott kulcs, ami nincs az adatbázisban. Ahol egy paraméter másodrendű, ott a
+kisebb üzemeltetési kockázat nyer.
+
+> ⚠️ `[MÉRENDŐ]` **A J1900-as szám becslés, nem mérés.** A tényleges értéket a
+> K3/a hardver megérkezésekor kell megmérni *(F0.3)*. Ha ott a 60 000 is
+> 500 ms fölött van, lejjebb kell vinni — és akkor azt is ki kell mondani,
+> hogy a KDF ott már tényleg csak formaság.

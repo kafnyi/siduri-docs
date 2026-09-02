@@ -1455,6 +1455,59 @@ rendeléskorlát (§11.4) rájuk is vonatkozik.
 * Felhasználók listázása **avatárokkal és nevekkel**; **csak PIN-t elfogadó** jelszómező.
 * **Hardveres belépés:** RFID / NFC kártyaolvasó.
 
+#### 18.3.1 `[MEGVALOSITVA]` Amit a PIN-ről ki KELL mondani
+
+> ⚠️ **Egy négyjegyű PIN-t a lenyomatolás önmagában NEM véd meg.** Tízezer
+> lehetőség van. Aki megszerzi az adatbázist **és** a szerveren tartott kulcsot,
+> mindet végigpróbálja — akármilyen lassú a hasítófüggvény *(mérve: M25)*.
+> Ezt nem szabad elhallgatni az ügyfél elől, mert a védelem mértékéből
+> következik, mire elég a PIN és mire nem.
+
+**Három dolog véd, és egyik sem a hasítófüggvény:**
+
+| # | Védelem | Mit ér |
+|---|---------|--------|
+| 1 | **A „bors"** — kulcs, ami **nincs az adatbázisban** | Egy adatbázismásolat önmagában **nem elég** a próbálgatáshoz. Ez a különbség egy szivárgás és egy teljes kompromittálódás között |
+| 2 | **Növekvő várakozás** hibás kísérlet után | Száz tipp **több mint hét óra** — a próbálgatás nem fér bele egy műszakba, és minden kísérlet ott van a biztonsági naplóban |
+| 3 | **A PIN nem elég mindenhez** | A magas kockázatú műveletekhez vezetői jóváhagyás kell *(§3)*, és azt egy ellesett PIN nem pótolja |
+
+**És egy negyedik tény, amit nem mi kontrollálunk:** a pult mögött a PIN-t
+**látják**. Aki a felszolgáló mögött áll, leolvassa. Ezért a PIN azt mondja meg,
+**ki nyomta meg** — nem azt, hogy **jogosult-e** rá.
+
+#### 18.3.2 `[MEGVALOSITVA]` Az RFID-kártya AZONOSÍTÓ, nem hitelesítő
+
+Az olcsó kártyák azonosítója **bármelyik telefonnal kiolvasható és percek alatt
+másolható**. Ezért a kártya önmagában **nem léptet be**: megmondja, ki állítja
+magát valakinek, a PIN pedig azt, hogy tényleg ő az.
+
+| # | Kikötés | Miért |
+|---|---------|-------|
+| a | A nyers kártyaazonosító **nem kerül az adatbázisba** — oszlop sincs rá | Egy kiszivárgott listából a kártyák célzottan másolhatók lennének. Amit nem tárolunk, azt nem is lehet kiszivárogtatni |
+| b | **A visszavont kártya nem éledhet újra** | Ha újraaktiválható lenne, a visszavonás értelmét vesztené: aki lemásolta, kivárná |
+| c | Az ismeretlen kártya és a rossz PIN **ugyanazt a hibát** adja | Külön üzenet megmondaná a próbálgatónak, melyik felén jár a feladatnak |
+
+#### 18.3.3 `[DÖNTÉS]` A belépés két lépés, nem egy
+
+**Előbb azonosítás** (kártya vagy névre koppintás), **azután PIN.** A csak-PIN-es
+belépés egy koppintással gyorsabb lenne, de két dolgot kényszerítene ki:
+
+| Következmény | Miért baj |
+|--------------|-----------|
+| **Egyedi PIN-ek a telephelyen belül** | A rendszernek meg kellene mondania, hogy egy PIN „foglalt" — ez önmagában szivárgás |
+| **Determinisztikus lenyomat**, felhasználónkénti só nélkül | Különben minden belépéskor **minden** felhasználó lenyomatát végig kellene próbálni. Húsz emberrel ez belépésenként másodpercek |
+
+A kártyás azonosítás **visszaadja az elvesztett koppintást**, és nem rontja el a
+modellt.
+
+#### 18.3.4 `[TISZTÁZVA]` Az „offline belépés" itt nem az, aminek látszik
+
+A 18.2 „fix offline belépést" ír. A POS azonban a **telephelyi** szerverrel
+beszél, ugyanazon a helyi hálózaton: **a felhő kiesése a belépést nem érinti.**
+Ha a telephelyi szerver esik ki, az nem a belépést állítja meg, hanem a
+kereskedést — arra nem a hitelesítés a válasz, hanem a szerver
+rendelkezésre állása.
+
 ### 18.4 Audit napló `ALAP`
 
 #### Alapelvek

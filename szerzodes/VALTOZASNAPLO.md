@@ -136,3 +136,34 @@ magyaráznia.**
 | **Adatbázis** | Számlás módban adóügyi bizonylatszám **nem is létezhet** — nem tiltva van, hanem **a rossz állapot ábrázolhatatlan** |
 | **Szerver** | Az adóügyi eredmény jelentése számlás bizonylatra **hangos hibát** ad, nem csendes semmit |
 | **Kliens** | A számlás bizonylatból nem építhető adóügyi nyomtatási kérés |
+
+### v1.5.0 — 2026-09-02 — *`Siduri-Felhasznalo` fejléc* ⚠️ `TÖRŐ, DE KIADÁS ELŐTT`
+
+**Új, kötelező fejléc minden íráson:** `Siduri-Felhasznalo` — **aki a műveletet
+kezdeményezi.**
+
+> ⚠️ **Ez törő változás lenne, ha lenne éles kliens.** A §4.2/b szabály szerint
+> a verzió akkor fagy be, amikor **az első kliens élesbe megy** — az még nem
+> történt meg, tehát ez kiadás előtti módosítás. **Ez az utolsó pillanat, amikor
+> ingyen van.**
+
+**Miért nem naplózási kényelem:**
+
+A jogosultsági modell elkészült — katalógus, szerepek, egyszeri felhatalmazás,
+a `siduri.*` kör nem delegálhatósága —, és **semmi nem hívta.** Nem
+mulasztásból: **a hívásnak nem volt hova megmondania, KI kezdeményezi.** A
+kérés borítékja a telephelyet, az eszközt, a generációt és az idempotencia-
+kulcsot hordozta; embert nem.
+
+Ugyanebből következett, hogy az audit **„ki" mezője a legtöbb helyen üres**
+volt. Egy audit, ami nem tudja, ki tette, nem audit.
+
+| Ezután | Előtte |
+|--------|--------|
+| Minden művelet jogosultsághoz kötött | A modell megvolt, de nem érvényesült |
+| Az audit tudja, ki tette | `null` a legtöbb bejegyzésben |
+| A vezetői jóváhagyás **mindkét személyt** rögzíti | Nem volt kit rögzíteni |
+
+**Hibakódok:** a hiányzó jogosultság `NINCS_JOGOSULTSAG` (403); a hiányzó
+fejléc mostantól `HIBAS_KERES` (400) — korábban `BELSO_HIBA` (500) volt,
+amiből a kliensfejlesztő annyit látott, hogy „elromlott a szerver".

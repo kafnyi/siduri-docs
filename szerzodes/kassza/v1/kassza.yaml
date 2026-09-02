@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.4.0
+  version: 1.5.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -103,6 +103,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Eszkoz'
         - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
         - $ref: '#/components/parameters/IdempotenciaKulcs'
       requestBody:
         required: true
@@ -156,6 +157,7 @@ paths:
         - $ref: '#/components/parameters/RendelesAzonosito'
         - $ref: '#/components/parameters/Eszkoz'
         - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
         - $ref: '#/components/parameters/IdempotenciaKulcs'
       requestBody:
         required: true
@@ -194,6 +196,7 @@ paths:
         - $ref: '#/components/parameters/RendelesAzonosito'
         - $ref: '#/components/parameters/Eszkoz'
         - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
         - $ref: '#/components/parameters/IdempotenciaKulcs'
       requestBody:
         required: true
@@ -317,6 +320,7 @@ paths:
         - $ref: '#/components/parameters/BizonylatAzonosito'
         - $ref: '#/components/parameters/Eszkoz'
         - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
         - $ref: '#/components/parameters/IdempotenciaKulcs'
       requestBody:
         required: true
@@ -419,6 +423,24 @@ components:
         felvetele a protokollba kesobb minden kliens minden verziojat erinti.
 
         A szerver a regebbi epochu kerest REGI_EPOCH kodu hibaval utasitja el.
+
+    Felhasznalo:
+      name: Siduri-Felhasznalo
+      in: header
+      required: true
+      schema:
+        $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      description: |
+        AKI a muveletet kezdemenyezi.
+
+        Nem naplozasi kenyelem: enelkul egyetlen muvelet sem engedelyezheto, es
+        az audit "ki" mezoje ures marad. A megvalositas ezt ugy deritette ki,
+        hogy a jogosultsagi modell elkeszult, de SEMMI nem hivta - nem
+        mulasztasbol, hanem mert a hivasnak nem volt hova megmondania, ki
+        kezdemenyezi.
+
+        A szerver a hianyzo jogosultsagot NINCS_JOGOSULTSAG kodu hibaval
+        utasitja el, es kerulout soha nem ajanl fel.
 
     IdempotenciaKulcs:
       name: Idempotencia-Kulcs

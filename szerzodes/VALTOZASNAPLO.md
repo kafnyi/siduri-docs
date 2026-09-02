@@ -167,3 +167,32 @@ volt. Egy audit, ami nem tudja, ki tette, nem audit.
 **Hibakódok:** a hiányzó jogosultság `NINCS_JOGOSULTSAG` (403); a hiányzó
 fejléc mostantól `HIBAS_KERES` (400) — korábban `BELSO_HIBA` (500) volt,
 amiből a kliensfejlesztő annyit látott, hogy „elromlott a szerver".
+
+### v1.6.0 — 2026-09-02 — *belépés-végpont* `NEM TÖRŐ`
+
+**Új:** `POST /kassza/v1/belepes`.
+
+**Miért csak most:** a v1.5.0 kötelezővé tette a `Siduri-Felhasznalo` fejlécet
+— **de a kliensnek nem volt honnan megtudnia, kit írjon bele.** A hitelesítés a
+szerveren megvolt, végpont nélkül. A protokoll így önmagában ellentmondott: a
+kliens csak akkor tudott volna bármit csinálni, ha már tudja, ki ő.
+
+> ⚠️ **Ez az egyetlen végpont, ami nem kér `Siduri-Felhasznalo` fejlécet** — és
+> nem kivétel a szabály alól, hanem a szabály értelme: **itt derül ki, ki a
+> felhasználó.** Ha ez a végpont is felhasználót kérne, a belépéshez már be
+> kellene lépni.
+
+**A válasz visszaadja a jogosultsághalmazt**, hogy a felület ne kínáljon fel
+olyat, ami úgyis elutasításba futna. **Ez nem jelenti azt, hogy a döntés a
+kliensé:** minden művelet a szerveren is ellenőrződik. Két helyen két döntés
+lenne; itt egy döntés van és egy előzetes jelzés.
+
+| Válaszmező | Miért van ott |
+|------------|---------------|
+| `pinCsereKotelezo` | A felvételkor adott PIN-t a felvevő **ismeri**. Amíg nem cserélik, a „ki nyomta meg" kérdésre a válasz nem az, akire hivatkoznánk |
+| `jogosultsagok` | A `siduri.*` kör **soha** nem kerül bele — helyben úgysem gyakorolja senki, viszont a kliens lemezén fölösleges támadási felület |
+| `magasKockazatu` | Ezek a kliensen **lejárnak**, ha régen látta a szervert. A sima eladás soha — az alternatíva az, hogy egy hálózati hiba megállítja a kereskedést |
+
+**A hibaválaszok szándékosan egyformák:** a nem létező felhasználó, a rossz PIN
+és a rossz **alakú** PIN mind `401`, ugyanazzal a szöveggel. Külön üzenet
+megmondaná a próbálgatónak, melyik felén jár a feladatnak.

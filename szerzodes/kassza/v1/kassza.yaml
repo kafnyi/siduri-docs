@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.5.0
+  version: 1.6.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -43,6 +43,71 @@ tags:
     description: A lezaras utani adougyi ut
 
 paths:
+  /belepes:
+    post:
+      operationId: belepes
+      summary: Belepes PIN-nel, kartyaval vagy nev alapjan azonositva
+      description: |
+        ⚠️ EZ AZ EGYETLEN VEGPONT, AMI NEM KER Siduri-Felhasznalo FEJLECET - es
+        ez nem kivetel a szabaly alol, hanem a szabaly ertelme: ITT DERUL KI, KI
+        A FELHASZNALO. Ha ez a vegpont is felhasznalot kerne, a belepeshez mar
+        be kellene lepni.
+
+        A belepes KET LEPES: eloszor kiderul, KI allitja magat valakinek
+        (kartyaval vagy a nevere koppintva), azutan jon a PIN.
+
+        ⚠️ A KARTYA AZONOSITO, NEM HITELESITO. Az olcso kartyak azonositoja
+        barmelyik telefonnal kiolvashato es percek alatt masolhato, ezert a
+        kartya ONMAGABAN nem leptet be: a PIN dont.
+
+        A valasz visszaadja a jogosultsaghalmazt is, hogy a felulet ne kinaljon
+        fel olyat, ami ugyis elutasitasba futna. Ez NEM jelenti azt, hogy a
+        dontes a kliense: minden muvelet a szerveren is ellenorzodik.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BelepesKeres'
+      responses:
+        '200':
+          description: Sikeres belepes
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BelepesValasz'
+        '401':
+          description: |
+            Sikertelen belepes. A valasz MINDIG ugyanaz - "Hibas azonosito vagy
+            PIN" -, akkor is, ha a felhasznalo nem letezik, es akkor is, ha a
+            PIN alakja rossz. Kulon uzenet megmondana a probalgatonak, melyik
+            felen jar a feladatnak.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '423':
+          description: A fiok zarolva van; a feloldas vezetoi dontes, nem idozito.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '429':
+          description: |
+            Tul sok sikertelen kiserlet - varakozni kell. NEM kemeny zarolas: az
+            fegyver lenne a szemelyzet kezeben (eleg otszor rossz PIN-t utni az
+            uzletvezeto nevere szombat este). A novekvo varakozas ugyanazt a
+            tamadast megallitja, de nem zarja ki azt, akinek dolga van.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
 
   /termekek:
     get:
@@ -551,6 +616,65 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+    BelepesKeres:
+      type: object
+      required: [pin]
+      properties:
+        kartyaUid:
+          type: string
+          description: |
+            A leolvasott kartyaazonosito. A szerver ezt NEM tarolja nyersen -
+            egy kiszivargott listabol a kartyak celzottan masolhatok lennenek.
+          maxLength: 64
+        felhasznalo:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        pin:
+          type: string
+          pattern: '^[0-9]{4,8}$'
+          description: |
+            Mindket azonositasi modnal KOTELEZO.
+
+            ⚠️ Egy negyjegyu PIN-t a lenyomatolas onmagaban nem vedi meg -
+            tizezer lehetoseg van. A vedelem a szerveren tartott kulcs (ami nincs
+            az adatbazisban), a novekvo varakozas, es az, hogy a magas kockazatu
+            muveletekhez vezetoi jovahagyas is kell.
+      description: |
+        Vagy a kartyaUid, vagy a felhasznalo szerepel - a PIN mindig.
+
+    BelepesValasz:
+      type: object
+      required: [felhasznalo, pinCsereKotelezo, jogosultsagok, magasKockazatu]
+      properties:
+        felhasznalo:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        pinCsereKotelezo:
+          type: boolean
+          description: |
+            Ha igaz, a felulet a PIN cserejeig semmit nem engedhet.
+
+            A felvetelkor adott PIN-t a felvevo ISMERI. Amig nem cserelik, a
+            "ki nyomta meg" kerdesre a valasz nem az, akire hivatkoznank.
+        jogosultsagok:
+          type: array
+          items:
+            type: string
+          description: |
+            A felulet ebbol tudja, mit kinaljon fel. A siduri.* kor SOHA nem
+            kerul bele: helyben ugysem gyakorolja oket senki, viszont egy
+            gyorsitotarazott masolat a kliens lemezen folosleges tamadasi
+            felulet.
+        magasKockazatu:
+          type: array
+          items:
+            type: string
+          description: |
+            Ezek a kliensen LEJARNAK, ha regen latta a szervert. A sima eladas
+            soha - mert annak az alternativaja az, hogy egy halozati hiba
+            megallitja a kereskedest, es az nagyobb kar, mint amit megelozne.
+
+            A lejaratot a kliens MONOTON oran meri: fali oran eleg lenne
+            visszaallitani a gep orajat, es a jogok soha nem jarnanak le.
+
 
     ErtekesithetoTetel:
       title: Ertekesitheto tetel

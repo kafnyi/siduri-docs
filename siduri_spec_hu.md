@@ -496,11 +496,24 @@ Az ügyfél által állítható, **tervezett napzárási időpont** (pl. 04:00).
 4. Közben a felhasználók tájékoztatása: *„automatikus napzárás folyamatban, kis türelmet"*.
 
 **Kötelező szünet a zárás és a következő nyitás között:** állítható,
-**minimum 5 perc, alapértelmezés 10 perc.**
+~~**minimum 5 perc, alapértelmezés 10 perc**~~ → **minimum 15 perc,
+alapértelmezés 15 perc** `[JAVÍTVA a megvalósításkor]`.
 
-> **A szünet MAGA a biztonsági tartalék.** 04:00 zárás + 10 perc → a munkanap
-> matematikailag legfeljebb **23 óra 50 perc** lehet. Nem kell külön őrszem a
+> **A szünet MAGA a biztonsági tartalék.** 04:00 zárás + 15 perc → a munkanap
+> matematikailag legfeljebb **23 óra 45 perc** lehet. Nem kell külön őrszem a
 > 24 órás korlát betartására: a konfiguráció szerkezetéből következik.
+
+> ⚠️ **Ez a szakasz ellentmondott önmagának, és a megvalósítás derítette ki.**
+> 10 perces szünettel a munkanap 23 óra 50 perc lehetne — ami **a 23:45-ös
+> kényszerzárás FÖLÉ megy.** Vagyis nem az automatika zárt volna, hanem a
+> vészfék, **minden nap, öt perccel a tervezett zárás előtt** — pontosan az,
+> amit a d) pont vészféknek szán.
+>
+> **A javítás nem egy nagyobb szám, hanem egy származtatás:**
+> `szünet ≥ 24 óra − a kényszerzárás küszöbe = 24:00 − 23:45 = 15 perc`.
+> Így a kettő nem csúszhat szét újra: aki a kényszerzárást mozdítja, a szünet
+> alsó határát is mozdítja vele. **Ára:** a hely 15 percig zárva van 10 helyett
+> — hajnali négykor ez nem ár.
 
 **Négy kötelező kiegészítés:**
 

@@ -1,0 +1,61 @@
+{
+  "$megjegyzes": [
+    "A Siduri jelforrása. EBBŐL generál mindhárom felület — a webes admin (CSS),",
+    "a POS kliens (WPF ResourceDictionary) és a vékonykliensek (Dart).",
+    "A generálás FORDÍTÁSI LÉPÉS, nem kézi másolás: a kézi másolás garantáltan",
+    "szétcsúszik, és a szétcsúszást senki nem veszi észre, mert mindegyik felület",
+    "külön-külön jól néz ki.",
+    "",
+    "A kontrasztarányokat az eszkozok/marka_ellenoriz.py számolja újra. Ha egy",
+    "szín változik, a szkript mondja meg, mi bukott el — nem a felhasználó."
+  ],
+  "verzio": "1.0.0",
+  "marka": {
+    "$megjegyzes": "MÉRVE a logóból (Siduri-Logo.png), nem becsülve.",
+    "melyzoldkek": "#194254",
+    "arany": "#C9A460"
+  },
+  "sotet": {
+    "$megjegyzes": [
+      "AZ ALAPÉRTELMEZETT TÉMA. A Siduri legtöbb üzemórája este és éjjel telik;",
+      "egy világos felület a sötét teremben fényforrás, amibe a felszolgáló minden",
+      "rendelésnél belenéz.",
+      "A háttér nem tiszta fekete: a #000000 a rá kerülő szöveget túlélesíti."
+    ],
+    "hatter": "#0E1D25",
+    "felulet": "#152B35",
+    "felulet_emelt": "#1E3A47",
+    "keret": "#2C4E5D",
+    "szoveg": "#E6EDF1",
+    "szoveg_halvany": "#A7BDC8",
+    "arany": "#C9A460",
+    "hiba": "#F08A7A",
+    "figyelmeztetes": "#E8B860",
+    "siker": "#7DC49B"
+  },
+  "vilagos": {
+    "$megjegyzes": [
+      "Nappali pultnál, ablak mellett a sötét felület tükröz — ezért kell.",
+      "A legvilágosabb felület se tiszta fehér a nagy felületeken: a törtfehér",
+      "háttér kevésbé vakít."
+    ],
+    "hatter": "#F4F1EC",
+    "felulet": "#FFFFFF",
+    "felulet_emelt": "#FFFFFF",
+    "keret": "#D8D2C8",
+    "szoveg": "#194254",
+    "szoveg_halvany": "#4A6B7A",
+    "arany": "#C9A460",
+    "arany_szoveg": "#7D6330",
+    "hiba": "#A32E1C",
+    "figyelmeztetes": "#7A5600",
+    "siker": "#1E6B45"
+  },
+  "szabalyok": {
+    "$megjegyzes": "Amit a generátor NEM tud betartatni, de a felülvizsgálat igen.",
+    "arany_vilagos_temaban_nem_szoveg": "Világos alapon az arany 2,34:1 — szövegre alkalmatlan. Ott az arany_szoveg a helyes token.",
+    "jelzoszinek_nem_tompulnak": "Amit észre KELL venni, azt észre kell venni. A tompítás a nyugalmi állapoté, nem a riasztásé.",
+    "nincs_tiszta_feher_nagy_feluleten": "Sötétben vakít.",
+    "nincs_tiszta_fekete": "A rákerülő szöveget túlélesíti (halo-hatás)."
+  }
+}

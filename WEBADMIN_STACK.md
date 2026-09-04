@@ -358,7 +358,7 @@ legjobb választás.
 | # | Ami még nyitott |
 |---|-----------------|
 | **W1** | **Az adatrács végleges kiválasztása** — a PrimeVue DataTable a javaslat, de az **érintésbarát sormagasság** és a mi tokenjeink **kipróbálandók**, mielőtt véglegesítjük |
-| **W2** | **Közös token-fájl formátuma** a Flutter és a Vue felé *(10.3)* — ez a Myth System szintű dizájn-egység valódi hordozója, nem a keretrendszer |
+| ~~**W2**~~ | ~~**Közös token-fájl formátuma** a Flutter és a Vue felé *(10.3)*~~ → **LEZÁRVA:** `marka.json` a jelforrás, `eszkozok/marka_ellenoriz.py` a kapu. Lásd `MARKA.md` §7 |
 
 ---
 
@@ -461,6 +461,6 @@ amit ki kell mondani, mielőtt ígéretet teszünk rá.
 | # | Ami még nyitott |
 |---|-----------------|
 | **W1** | Az adatrács végleges kiválasztása — PrimeVue DataTable, érintésbarát sormagassággal, a mi tokenjeinkkel, **kipróbálás után** |
-| **W2** | A közös token-fájl formátuma a Flutter és a Vue felé |
+| ~~**W2**~~ | ~~A közös token-fájl formátuma a Flutter és a Vue felé~~ → lezárva, `MARKA.md` §7 |
 | **W3** | **`[ÚJ]` Törzsadat-szerkesztés offline telephely mellett.** A tulajdonos otthon, laptopról árat ír át a felhőben, miközben az étterem internete áll. **Melyik az igazság forrása, és mi történik ütközésnél?** Ez a laptop-elsőségből következik, és **el kell dönteni, mielőtt a szinkron megépül** |
 | **W4** | **`[ÚJ]` A felhő rendelkezésre állási vállalása** a törzsadat-karbantartásra *(13.5)* |

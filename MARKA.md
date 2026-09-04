@@ -29,18 +29,34 @@ Mindhárom `*-Vector.svg` **egyetlen `<image>` elem, beágyazott PNG-vel**. Null
 > SVG), az sokat érne. Ha nincs, az sem tragédia — de akkor a kisméretű jelet
 > és a nyomtatóra valót külön kell megrajzolni, és ezt jobb most tudni.
 
-### 1.2 A vízszintes logónak fekete kerete van
+### 1.2 A vízszintes logó rendben van — a fekete keret az én hibám volt
 
-A `Siduri-flat.png` szélén `#000000` keret fut körbe. **Ez a márkaszínek között
-nem szerepel**, és sötét felületen kifejezetten rosszul mutat. Valószínűleg
-exportálási maradvány — érdemes keret nélkül is elmenteni.
+Korábban azt írtam ide, hogy a `Siduri-flat.png` szélén fekete keret fut körbe.
+**Nem fut.** A kép széle teljesen átlátszó (`alpha = 0`); a „keret" abból
+keletkezett, hogy a mérésnél RGBA-ból RGB-be konvertáltam, ami **az
+átlátszóságot feketére lapítja**. A fájllal nincs baj.
 
-### 1.3 Kisméretű jel továbbra sem létezik
+*(Meghagyom a hibát láthatóan, mert a tanulság használható: átlátszóságot
+tartalmazó képnél a `convert("RGB")` néma adatvesztés.)*
 
-A logó **hajszálvékony arany áramkörvonalakat** tartalmaz. 16 × 16 képponton
-(böngészőfül, alkalmazásikon) ezek szürke pacává mosódnak; az adóügyi nyomtató
-egyszínű, alacsony felbontású kimenetén szintén eltűnnek — **és a
-bizonylatfejléc az, amit a vendég hazavisz.**
+### 1.3 Kisméretű jel — 64 képpontig jó, alatta nem
+
+Ez már **megnézve**, nem feltételezve:
+
+| Méret | Mit lehet látni |
+|-------|-----------------|
+| **64 px** | Az alak felismerhető: a fej, az amfora és a köpeny elkülönül |
+| **32 px** | ⚠️ Az arany áramkörvonalak és a haj csigái **egyetlen szürkés foltba** mosódnak |
+
+Böngészőfülhöz és alkalmazásikonhoz tehát **egyszerűsített jelet kell rajzolni**:
+kevesebb vonal, vastagabb kontúr, az áramkörmintázat elhagyva vagy néhány pontra
+redukálva. Ez a nagyból nem vezethető le.
+
+Ugyanez áll az adóügyi nyomtatóra, ami **egyszínű és alacsony felbontású** — és
+**a bizonylatfejléc az, amit a vendég hazavisz.**
+
+A méretezett változatok a `Siduri/szarmaztatott/` alatt vannak; a 32 képpontos
+**bizonyítéknak** van ott, nem használatra.
 
 ---
 
@@ -140,7 +156,7 @@ Jelenleg mind a **38 páros** megfelel.
 | b | **Kisméretű, egyszerűsített jel** (16–32 px) | A vékony vonalak eltűnnek; a nagyból nem vezethető le, meg kell rajzolni |
 | c | **Egyszínű változat a bizonylatfejléchez** | Az adóügyi nyomtató egyszínű és alacsony felbontású |
 | d | **Sötét háttérre szánt változat** | A jel fehér alapra készült; a felület alapértelmezésben sötét |
-| e | **Keret nélküli vízszintes logó** | Lásd §1.2 |
+| e | ~~Keret nélküli vízszintes logó~~ | **Nem kell** — nem volt keret, lásd §1.2 |
 | f | **A „By Myth Systems" alsorral mi a szabály?** | A POS fejlécében nincs rá hely; kell-e egyáltalán a terméken belül |
 
 ---
@@ -160,6 +176,8 @@ ezzel lezárva)*. A `marka.json`-ból generálódik:
 szétcsúszik, és a szétcsúszást senki nem veszi észre, mert mindegyik felület
 külön-külön jól néz ki.
 
-> **A logófájlok jelenleg a `dev` ágon vannak.** Ahhoz, hogy a POS kliens és a
-> webes admin használni tudja őket, be kell kerülniük azokba a repókba is —
-> ez ágkezelési döntés, ezért nem nyúltam hozzá.
+**A mesterek helye:** `Siduri/` ebben a repóban *(a `dev` ágról átvéve)*. A
+méretezett változatok: `Siduri/szarmaztatott/`. Az alkalmazásrepók **onnan
+kapják**, amire szükségük van — nem az egész készletet, mert a `*-Vector.svg`
+fájlok raszterképet tartalmaznak, tehát nagyobbak és semmivel sem többet
+tudnak, mint a PNG-k.

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.6.0
+  version: 1.7.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -43,6 +43,47 @@ tags:
     description: A lezaras utani adougyi ut
 
 paths:
+  /kezelok:
+    get:
+      operationId: kezelok
+      summary: A belepokepernyon felkinalhato kezelok
+      description: |
+        Csak azok, akik BE TUDNAK lepni: aktiv felhasznalok, akiknek van
+        beallitott PIN-juk. Aki nincs koztuk, azt felkinalni csak arra lenne jo,
+        hogy valaki hiaba probalkozzon vele.
+
+        ⚠️ Ez a lista a szemelyzet nevet adja vissza HITELESITES NELKUL. Tudatos:
+        ugyanezek a nevek a kioszk kepernyojen amugy is ott vannak, es a
+        belepeshez PIN kell. Amit NEM ad vissza: jogosultsagot, szerepet,
+        kartyat - azaz semmit, ami a probalgatast segitene.
+
+        A zaroltak benne maradnak: aki zarolva van, arrol a sajat belepesi
+        kiserletekor kap ertelmes uzenetet. A listabol kihagyva csak annyit
+        latna, hogy "eltuntem", es a tamogatas keresne, mi tortent.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+      responses:
+        '200':
+          description: A felkinalhato kezelok
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Kezelo'
+        '400':
+          description: |
+            Hianyzo vagy rossz alaku keresfejlec. Kulon kod, mert egy hianyzo
+            fejlec nem uzemzavar: a kliensfejlesztonek egy mondatban meg lehet
+            mondani, mi hianyzik.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
   /belepes:
     post:
       operationId: belepes
@@ -616,6 +657,16 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+    Kezelo:
+      type: object
+      required: [azonosito, nev]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+          description: A belepokepernyon megjeleno nev. MAS nem megy ki.
+
     BelepesKeres:
       type: object
       required: [pin]

@@ -196,3 +196,25 @@ lenne; itt egy döntés van és egy előzetes jelzés.
 **A hibaválaszok szándékosan egyformák:** a nem létező felhasználó, a rossz PIN
 és a rossz **alakú** PIN mind `401`, ugyanazzal a szöveggel. Külön üzenet
 megmondaná a próbálgatónak, melyik felén jár a feladatnak.
+
+### v1.7.0 — 2026-09-04 — *kezelőlista a belépőképernyőnek* `NEM TÖRŐ`
+
+**Új:** `GET /kassza/v1/kezelok`.
+
+**Miért csak most:** a v1.6.0 megadta a belépést, de a kliensnek **nem volt
+honnan megtudnia, kiket kínáljon fel**. Kártyás belépésnél ez nem gond — kártya
+nélkül viszont a belépőképernyő üres listát mutatott volna.
+
+**Csak akik be tudnak lépni:** aktív felhasználók, akiknek van beállított
+PIN-jük. Aki nincs köztük, azt felkínálni csak arra lenne jó, hogy valaki hiába
+próbálkozzon vele.
+
+> ⚠️ **Ez a lista a személyzet nevét adja vissza hitelesítés nélkül.** Tudatos:
+> ugyanezek a nevek a kioszk képernyőjén amúgy is ott vannak, és a belépéshez
+> PIN kell. Amit **nem** ad vissza: jogosultságot, szerepet, kártyát — semmit,
+> ami a próbálgatást segítené. Egy teszt őrzi, hogy a válaszban **pontosan két
+> mező** van.
+
+**A zároltak benne maradnak.** Aki zárolva van, arról a saját belépési
+kísérletekor kap értelmes üzenetet; a listából kihagyva csak annyit látna, hogy
+„eltűntem", és a támogatás keresné, mi történt.

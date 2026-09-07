@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.7.0
+  version: 1.8.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -43,6 +43,198 @@ tags:
     description: A lezaras utani adougyi ut
 
 paths:
+  /nap/nyitas:
+    post:
+      operationId: napotNyit
+      summary: Munkanap nyitasa
+      description: |
+        ⚠️ EZ A RESZ HIANYZOTT, ES A HIANY BLOKKOLO VOLT: az eladas lezarasa
+        nyitott munkanapot es muszakot igenyel, a kliensnek viszont nem volt
+        modja egyiket sem megnyitni. A kassza a szerzodes korabbi alakjaval el
+        sem tudott volna kezdeni kereskedni.
+
+        A nyitast a kotelezo SZUNET korlatozza: a napzaras ota el kell telnie
+        egy beallitott idonek. Ez nem kenyelmi szabaly, hanem az a biztonsagi
+        tartalek, ami miatt a munkanap matematikailag nem erheti el a 24 orat -
+        amit az NTAK napi zaras szinkron, azonnali elutasitassal ellenoriz.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NapNyitasKeres'
+      responses:
+        '200':
+          description: A megnyitott nap allapota
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NapAllapot'
+        '403':
+          description: Nincs jogosultsag a napnyitashoz.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          description: |
+            Mar van nyitott nap, VAGY a kotelezo szunet meg tart.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /nap/allapot:
+    get:
+      operationId: napAllapot
+      summary: A nyitott munkanap allapota
+      description: |
+        A felulet ebbol irja ki a figyelmeztetest. A csakFaliora jelzest KI KELL
+        IRNI: szerver-ujrainditas utan a meresunk visszaesik a fali orara, es
+        egy orajavitas eszrevetlenul elmozdithatja.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+      responses:
+        '200':
+          description: A nap allapota
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NapAllapot'
+        '409':
+          description: Nincs nyitott nap.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /nap/zaras:
+    post:
+      operationId: napotZar
+      summary: Munkanap kezi zarasa
+      description: |
+        A KEZI zaras valakinek a dontese, ezert jogosultsaghoz kotott. Az
+        automatikus es a kenyszerzaras mogott nincs ember - azokat az utemezo
+        vegzi, es ott nincs mit ellenorizni.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EszkozIdoKeres'
+      responses:
+        '200':
+          description: A nap lezarva
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lezarva:
+                    type: boolean
+        '403':
+          description: Nincs jogosultsag.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /muszak/nyitas:
+    post:
+      operationId: muszakotNyit
+      summary: Muszak nyitasa az eszkozon
+      description: |
+        MUSZAK NELKUL NINCS ELADAS. Nem formasag: a bizonylat a muszakhoz
+        tartozik, es enelkul a kassza soha nem lenne elszamolhato.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MuszakNyitasKeres'
+      responses:
+        '200':
+          description: A megnyitott muszak
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [muszak]
+                properties:
+                  muszak:
+                    $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        '403':
+          description: Nincs jogosultsag.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          description: Mar van nyitott muszak ezen az eszkozon, vagy nincs nyitott nap.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /muszak/zaras:
+    post:
+      operationId: muszakotZar
+      summary: Muszak zarasa cimletbontassal
+      description: |
+        ⚠️ A VALASZ ALAKJA A JOGOSULTSAGTOL FUGG, NEM A KERESETOL. Aki nem latja
+        a muszakosszesitot, annak a valasz NEM TARTALMAZ osszeget - nem nullat,
+        nem ureset: A MEZO NINCS OTT. Amit nem kuldunk el, azt a kliens nem
+        tudja veletlenul kiirni.
+
+        A vakzaras nem kulon jelzo, hanem a muszak.osszesito_lathato jogosultsag
+        HIANYA. Kulon kapcsoloval a ketto szetcsuszhatna: valakinek latszana az
+        osszesito, de megis vaknak jelolnenk.
+
+        ⚠️ A ROGZITES UTAN SEM mutatjuk vissza az elterest. Egy "elteres: +5 000"
+        visszajelzesbol a kezelo megtanulta a vart szamot a kovetkezo alkalomra.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MuszakZarasKeres'
+      responses:
+        '200':
+          description: |
+            A zaras eredmenye. Vakzarasnal az osszegmezok HIANYOZNAK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MuszakZarasValasz'
+        '403':
+          description: Nincs jogosultsag, vagy mas muszakjahoz kell kulon jog.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          description: A muszak mar le van zarva.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
   /kezelok:
     get:
       operationId: kezelok
@@ -657,6 +849,103 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+    NapNyitasKeres:
+      type: object
+      required: [uzletiNap, eszkozIdo]
+      properties:
+        uzletiNap:
+          type: string
+          format: date
+          description: |
+            Az uzleti nap datuma. NEM naptari nap: a 23:40-kor felutott rendeles
+            es a 00:20-kor kiadott nyugta ugyanahhoz az uzleti naphoz tartozik.
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+
+    EszkozIdoKeres:
+      type: object
+      required: [eszkozIdo]
+      properties:
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+
+    MuszakNyitasKeres:
+      type: object
+      required: [nyitoKeszpenz, eszkozIdo]
+      properties:
+        nyitoKeszpenz:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+
+    MuszakZarasKeres:
+      type: object
+      required: [muszak, cimletbontas, eszkozIdo]
+      properties:
+        muszak:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        cimletbontas:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 0
+          description: |
+            Cimletenkenti darabszam, pl. {"TIZEZER": 3, "OTEZER": 2}.
+
+            A BONTAST is taroljuk, nem csak a vegosszeget: egy kasszaelteresnel
+            a cimletszerkezet gyakran megmondja, mi tortent - egy hianyzo
+            huszezres nem centizes, hanem egy darab bankjegy.
+        zaroFelhasznalo:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+
+    MuszakZarasValasz:
+      type: object
+      required: [muszak, vakzaras]
+      properties:
+        muszak:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        vakzaras:
+          type: boolean
+          description: |
+            Ha igaz, az osszegmezok HIANYOZNAK a valaszbol - nem uresek, nem
+            nullak: nincsenek ott.
+        vartKeszpenz:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+        szamoltKeszpenz:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+        elteres:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+
+    NapAllapot:
+      type: object
+      required: [munkanap, uzletiNap, hosszPerc, szint, csakFaliora]
+      properties:
+        munkanap:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        uzletiNap:
+          type: string
+          format: date
+        hosszPerc:
+          type: integer
+          format: int64
+          description: |
+            A nyitas ota eltelt ido percben, a KONZERVATIVABB meres szerint
+            (monoton es faliora kozul a nagyobb).
+        szint:
+          type: string
+          enum: [NINCS, ENYHE, EROS, KENYSZER]
+          description: |
+            A kuszobok ELTELT IDOTARTAMOK, nem oraidok. A "23:45" nem este
+            negyed tizenkettot jelent, hanem huszonharom ora negyvenot percet a
+            nyitas ota.
+        csakFaliora:
+          type: boolean
+          description: |
+            ⚠️ KI KELL IRNI. Szerver-ujrainditas utan a meres visszaesik a fali
+            orara, es egy orajavitas eszrevetlenul elmozdithatja.
+
     Kezelo:
       type: object
       required: [azonosito, nev]

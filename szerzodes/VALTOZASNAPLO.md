@@ -218,3 +218,46 @@ próbálkozzon vele.
 **A zároltak benne maradnak.** Aki zárolva van, arról a saját belépési
 kísérletekor kap értelmes üzenetet; a listából kihagyva csak annyit látna, hogy
 „eltűntem", és a támogatás keresné, mi történt.
+
+### v1.8.0 — 2026-09-07 — *nap- és műszakvégpontok* `NEM TÖRŐ`
+
+**Új:** `POST /kassza/v1/nap/nyitas`, `GET /kassza/v1/nap/allapot`,
+`POST /kassza/v1/nap/zaras`, `POST /kassza/v1/muszak/nyitas`,
+`POST /kassza/v1/muszak/zaras`.
+
+**Miért csak most:** a v1.7.0-val a kliens **be tudott lépni, de nem tudott
+eladni.** A szerver minden eladást nyitott naphoz és nyitott műszakhoz köt — a
+szerződésben viszont nem volt végpont, amivel a napot vagy a műszakot ki
+lehetett volna nyitni. Ugyanaz a hiba, mint a v1.6.0-nál: a szabály megvolt, a
+teljesítéséhez vezető út nem.
+
+**A `GET /nap/allapot` nem kényelmi végpont.** A kliens indulásakor azt kell
+megtudnia, *hol tart a telephely* — nyitva van-e a nap, jár-e a saját műszaka,
+mennyi van hátra a kényszerzárásig. E nélkül a felület vagy fölöslegesen kérne
+nyitást, vagy hagyná a kezelőt eladni olyan napra, amit rég le kellett volna
+zárni.
+
+| Válaszmező | Miért van ott |
+|------------|---------------|
+| `hosszPerc` | A nyitás óta eltelt idő, a **konzervatívabb** mérés szerint (monoton és fali óra közül a nagyobb). Ha a kettő elcsúszik, a szigorúbbat hisszük el |
+| `szint` | `NINCS` / `ENYHE` / `EROS` / `KENYSZER`. A kezelő **előre** lássa, hogy a kassza mikor áll meg, ne akkor derüljön ki, amikor sor áll a pult előtt |
+| `csakFaliora` | Szerver-újraindítás után a mérés visszaesik a fali órára. **Ezt ki kell írni:** egy órajavítás onnantól észrevétlenül elmozdítja a hosszt |
+
+**A küszöbök eltelt időtartamok, nem óraidők.** A „23:45" nem este negyed
+tizenkettőt jelent, hanem huszonhárom óra negyvenöt percet a *nyitás* óta. Egy
+délben nyitó helyen a kényszerzárás másnap délelőtt van — és ez a helyes
+viselkedés, nem hiba.
+
+> ⚠️ **A vakzárás nem kérés-mező.** A `MuszakZarasValasz`-ban a `vartKeszpenz`,
+> `szamoltKeszpenz` és `elteres` mezők **hiányoznak** a válaszból, ha a záró
+> kezelőnek nincs `muszak.osszesito_lathato` joga — nem nullák, nem nullázottak,
+> **nincsenek ott.** Ha kérés-mező lenne, a kliens hazudhatna róla; ha a válasz
+> csak elrejtené, a hálózaton akkor is átmenne. Így a szerver **nem is állítja
+> elő** azt, amit nem szabad látnia.
+>
+> A `vakzaras: true` jelzi a kliensnek, hogy ne várjon összeget. A záró kezelő
+> így megszámolja a kasszát anélkül, hogy tudná, mennyit *kellene* találnia — az
+> eltérést a műszakösszesítőt látó vezető nézi meg utólag.
+
+**A napzárás nem kér összeget.** A nap zárása a műszakok zárásából adódik; ha
+külön összeget kérne, két igazság lenne ugyanarról a pénzről.

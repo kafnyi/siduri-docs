@@ -261,3 +261,37 @@ viselkedés, nem hiba.
 
 **A napzárás nem kér összeget.** A nap zárása a műszakok zárásából adódik; ha
 külön összeget kérne, két igazság lenne ugyanarról a pénzről.
+
+### v1.9.0 — 2026-09-07 — *az idempotencia a nap- és műszakírásokra is* ⚠️ `TÖRŐ, DE KIADÁS ELŐTT`
+
+**Változás:** a `nap/nyitas`, `nap/zaras`, `muszak/nyitas` és `muszak/zaras`
+mostantól **kötelezően** kéri az `Idempotencia-Kulcs` fejlécet. A
+`GET /nap/allapot` nem — az nem ír semmit.
+
+> ⚠️ **Ez a v1.8.0 hibájának javítása, néhány órával a v1.8.0 után.** A v1.8.0
+> nem törlődik és nem íródik át: két repó hordozza kimásolva, lenyomatokkal, és
+> egy csendben átírt verziószám pont azt a bizalmat mossa el, amiért a
+> lenyomatok egyáltalán léteznek.
+
+**A szabály az ELSŐ kiadás óta ki van írva.** A v1.0.0 táblázata így szól:
+*„`Idempotencia-Kulcs` minden íráson — a degradált módból való visszajátszás
+definíció szerint ismétel."* A v1.8.0 négy írást vett fel, és **egyiken sem**
+volt ott. Nem új felismerés kellett hozzá, csak az, hogy a meglévő szabályt
+alkalmazzuk arra, amit épp írunk.
+
+**A kár konkrét lett volna, nem elvi:**
+
+| Mikor | Mi történt volna | Mit lát a kezelő |
+|-------|------------------|------------------|
+| Műszaknyitás, a **válasz** vész el | Az újraküldés `409 MAR_VAN_NYITOTT_MUSZAK` | Hibaüzenet egy művelet után, ami **sikerült** — és nincs meg a műszak azonosítója, tehát zárni sem tud |
+| Műszakzárás, a válasz vész el | Az újraküldés `409` | A leszámolt készpénz **már rögzült**, a kezelő mégis újraszámol — és a második szám lesz a hivatalos |
+| Napnyitás, a válasz vész el | Az újraküldés `409 MAR_VAN_NYITOTT_NAP` | A kassza indulása látszik hibának |
+
+**Ez pont a rossz hálózaton fáj**, vagyis ott, ahol a Siduri dolgozik. Egy jó
+vonalon a válasz nem szokott elveszni — és épp ezért nem derült volna ki a
+fejlesztésnél, csak élesben.
+
+**Egy teszt őrzi**, és a teszt bizonyítottan megfogja: a javítás nélkül
+`MAR_VAN_NYITOTT_MUSZAK`-ra bukik. Egy második teszt azt is őrzi, hogy ugyanaz a
+kulcs **más művelethez** hangos `409 IDEMPOTENCIA_KULCS_UTKOZES` — a csendes
+elfogadás azt hitetné a klienssel, hogy a második művelet is lefutott.

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.8.0
+  version: 1.9.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -61,6 +61,7 @@ paths:
         - $ref: '#/components/parameters/Eszkoz'
         - $ref: '#/components/parameters/Epoch'
         - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
       requestBody:
         required: true
         content:
@@ -124,6 +125,7 @@ paths:
         - $ref: '#/components/parameters/Eszkoz'
         - $ref: '#/components/parameters/Epoch'
         - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
       requestBody:
         required: true
         content:
@@ -158,6 +160,7 @@ paths:
         - $ref: '#/components/parameters/Eszkoz'
         - $ref: '#/components/parameters/Epoch'
         - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
       requestBody:
         required: true
         content:
@@ -208,6 +211,7 @@ paths:
         - $ref: '#/components/parameters/Eszkoz'
         - $ref: '#/components/parameters/Epoch'
         - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
       requestBody:
         required: true
         content:

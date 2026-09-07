@@ -10,9 +10,15 @@
 > **A horgony frissítése a MUNKA RÉSZE, nem utómunka** (§10). Elavult horgony = §2.4
 > döntési premissza-hiba: a következő kört egy nem létező hátralék hajszolására küldi.
 
-**Utolsó frissítés:** 2026-08-23 (3. munkamenet — módosítók, menü, DRS, pénz, audit napló, nyomtatás, **NTAK RMS specifikáció elsődleges forrásból**)
-**Fázis:** tervezés. **KÓDOLÁS MÉG NEM KEZDŐDÖTT EL, és nem is szabad elkezdeni** —
-lásd „Miért nem kódolunk még".
+**Utolsó frissítés:** 2026-09-07 (megvalósítás — nap- és műszakvégpontok, POS-főképernyő)
+**Fázis:** **MEGVALÓSÍTÁS.** A tervezési szakasz lezárult; a kódolás fut.
+Az állapotot a **7. szakasz** vezeti (mi épült meg, mi hiányzik, mi blokkolt).
+
+> ⚠️ **Ez a fájl KÉT rétegű, és a kettőt nem szabad összekeverni.** Az 1–3.
+> szakasz a **tervezési szakasz döntéstörténete** — továbbra is érvényes, mert
+> az indoklások nélkül a következő kör újratárgyalná őket. A 7. szakasz a
+> **megvalósítás élő állapota**. Ha a kettő ellentmond, a 7. nyer: az a mérve,
+> nem feltételezve.
 
 > **A `fájl:sor` hivatkozásokról:** a sorszámok a 2026-08-22-i állapotra érvényesek,
 > és a `NYITOTT_KERDESEK.md` **minden szerkesztésekor elcsúsznak**. Ha nem stimmel,
@@ -384,7 +390,14 @@ fázisterv (E1) írásakor NEVESÍTENI kell:
 
 ---
 
-## 2. A KÖVETKEZŐ TÉTEL
+## 2. A tervezési szakasz hátraléka — *lezárt réteg*
+
+> **Ez a szakasz a TERVEZÉSI szakasz „következő tétel" listája volt.** A
+> megvalósítás soron következő munkája a **7.3 szakaszban** van. Ami itt még
+> nyitottként szerepel, az **tervezési nyitottság** — nem a kódolás hátraléka.
+> A kettő összekeverése §2.4-es premissza-hiba: a következő kört rossz
+> feladatra küldi.
+
 
 ### 2.0 `[!!]` NTAK RMS SPECIFIKÁCIÓ — két korábbi döntés MEGDŐLT
 
@@ -714,19 +727,27 @@ telepítési modell.
 **kettő** — beszerzési tétel, hetekig tarthat, érdemes a kódolással
 párhuzamosan elindítani.
 
-## 4. Miért nem kódolunk még
+## 4. Miért nem kódoltunk sokáig — és mi oldotta fel
 
-A felhasználó explicit kérése: *„kódolni egyelőre nem kell, még csak tárgyaljuk át a
-projectet és véssük kőbe a végleges, mindenre kiterjedő, nagyon pontos tervet."*
+> **LEZÁRVA.** Ez a szakasz korábban azt mondta ki, hogy kódolni **nem szabad**.
+> Az akkori indoklás helyes volt; ma már nem érvényes, és **egy elavult „ez
+> blokkolt" bekezdés a következő kört egy nem létező hátralék hajszolására
+> küldi** (§2.4). Ezért a szakasz nem törlődik — de meg van fordítva.
 
-Ezen felül mérnöki okból is korai:
-- egy blokkoló döntés nyitva (B1/c — ki vált át a tartalék szerverre, és a vele
-  együtt döntendő A4 visszaállítás), és csak utána írható meg a fázisterv (E1),
-- öt igazolatlan premissza (3. szakasz) — köztük EGY olyan, amin **már meghozott
-  döntés** áll,
-- és **B8** — az API-szerződés helye — még nincs eldöntve
-  (`NYITOTT_KERDESEK.md:449`), ami 2–3 fős, három nyelvű csapatnál az **első hét**
-  tétele. Ha kód születik előtte, a varrat (§6) már szétcsúszott mire észrevesszük.
+A felhasználó akkori kérése: *„kódolni egyelőre nem kell, még csak tárgyaljuk át
+a projectet és véssük kőbe a végleges, mindenre kiterjedő, nagyon pontos
+tervet."* Ezen felül három mérnöki ok is szólt ellene:
+
+| Ami blokkolt | Mi oldotta fel |
+|--------------|----------------|
+| Egy blokkoló döntés nyitva (ki vált át a tartalék szerverre, és ki állítja vissza a főt) | Eldőlt: a gép ellenőriz, az ember dönt; a visszaállítás automatikus, a könyvelése nem |
+| A fázisterv hiánya | Megvan: `FAZISTERV.md` |
+| **Az API-szerződés helye nem volt eldöntve** — 2–3 fős, három nyelvű csapatnál az első hét tétele | Eldőlt: a szerződés a `siduri-docs/szerzodes/` alatt él, a repók **rögzített verziójú másolatot** hordoznak lenyomatokkal |
+
+**A harmadik ok volt a legfontosabb, és jól méretük fel:** a szerződés ma
+`kassza` v1.8.0-nál tart, és minden verzióemelést a `VALTOZASNAPLO.md`
+megindokol. Ha a kód előbb született volna, a varrat már szétcsúszott volna,
+mire észrevesszük.
 
 ---
 
@@ -739,14 +760,22 @@ Ezen felül mérnöki okból is korai:
 
 **Tényleges állapot (mérve, nem feltételezve — `git remote -v`, `git branch`):**
 
-| Repó | GitHub remote | Tartalom |
-|------|---------------|----------|
-| `kafnyi/siduri-docs` | ✔ | 5 doksi + üres README |
-| `kafnyi/siduri-backend-server` | ✔ | csak README (üres) |
-| `kafnyi/siduri-pos-client` | ✔ | csak README (üres) |
+| Repó | GitHub remote | Tartalom (2026-09-07) |
+|------|---------------|------------------------|
+| `kafnyi/siduri-docs` | ✔ | Teljes dokumentáció + `szerzodes/` (az API-szerződés **eredetije**) + `Siduri/` (logók) |
+| `kafnyi/siduri-backend-server` | ✔ | Java 21 / Spring Boot, `mag` + `szerver` modul, Flyway V1–V16, **353 teszt zöld** |
+| `kafnyi/siduri-pos-client` | ✔ | .NET 8 / WPF, `Mag` + `Kliens` + tesztek; belépőképernyő és főképernyő bekötve |
 | `kafnyi/siduri-flutter-clients` | ✔ | csak README (üres) |
 | `kafnyi/siduri-updater` | ✔ | csak README (üres) |
 | `kafnyi/siduri-cloud-api` | ✔ | csak README (üres) |
+
+> ⚠️ **A `master` NEM elhanyagolható.** Egy korábbi körben a Rider „nem
+> ismerte fel a projektet" — három kört vitt el a nyomozás a `.sln` fájl
+> tartalmán, mire kiderült: **a `master` ágon csak a README volt**, és az IDE
+> az alapértelmezett ágat klónozza. A tanulság nem a `.sln`-ről szól, hanem a
+> sorrendről: **előbb azt kell megnézni, ott vannak-e egyáltalán a fájlok**,
+> és csak utána, hogy mi van bennük. Azóta minden kör végén a munkaág a
+> `master`-be is bemegy.
 
 **Munkabranch mind a 6 repóban:** `claude/siduri-hospitality-system-gpixt0`
 (a `master` az alapértelmezett branch). §10 tehát **teljesül**: a távoli branch az
@@ -760,10 +789,12 @@ dokumentáció-tárolás. Kód nem kerül bele. Ide jön a teljes projekt-dokume
 megkötés, az egyetlen követelmény, hogy **soha ne maradjanak le a valóságtól**,
 akkor sem, ha a tényleges terv-dokumentáció épp lemaradt.
 
-**Nyitott következmény:** a **B8** (hol él az API-szerződés) javaslata „6. repo VAGY
-a `Siduri-Docs`-ban egy `contracts/` mappa" volt. Mivel a Docs csak doksinak van
-szánva, ez a `contracts/` ág **most gyengébb** — vagy 6. repót nyitunk, vagy a Docs
-kikötését lazítjuk. Eldöntendő a B8-nál.
+**Ez a következmény ELDŐLT** (az API-szerződés helye): a szerződés a
+`siduri-docs/szerzodes/` alatt él. A „csak dokumentáció" kikötés **tudatosan
+lazult**: a szerződés nem kód, hanem a rendszer legfontosabb dokumentuma — az,
+amiben a három nyelv megegyezik. A repók **másolatot** hordoznak (`szerzodes/`),
+`LENYOMATOK.txt` lenyomatokkal, és mindkét oldalon teszt őrzi, hogy a másolatot
+nem írták át kézzel.
 
 **Munkamenet-szabály (§10):** hosszú folyamat indítása előtt ellenőrizd, nincs-e
 félbeszakadt — és ha van, kérdezd meg, azt folytassuk-e.
@@ -779,19 +810,86 @@ trailer nélkül.**
 
 Új munkamenet indításakor, ebben a sorrendben:
 
-1. Olvasd el ezt a fájlt (kész).
+1. Olvasd el ezt a fájlt (kész) — **különösen a 7. szakaszt**, az a megvalósítás
+   élő állapota.
 2. Olvasd el a `MERNOKISAROKKOVEK.md`-t — a szabályok kötelezőek, és az indoklás
    („miért") a szabály része, nem díszítés.
 3. Olvasd el a `NYITOTT_KERDESEK.md`-t. A két spec-fájlt **csak ezután**, és a
    `[MÓDOSÍTVA]` / `[SUPERSEDED]` jelöléseket komolyan véve.
 4. **Olvasd el a 0.1 szakaszt** (kommunikációs szabályok) — ha ezt kihagyod, a
    felhasználó nem tud dönteni, mert csupasz azonosítókkal fogsz kérdezni.
-5. A soron következő munka: **B1/c lezárása a felhasználóval** — ki vált át a
-   tartalék szerverre, amikor a fő meghal, és vele együtt az A4 (ki és hogyan
-   állítja vissza a fő szervert) — a 2.1 szakasz szerint. Majd **E1 fázisterv**
-   (2.2). Ami közben a döntéstől függetlenül vihető: 2.3 szakasz.
+5. A soron következő munka a **7.3 szakaszban** van, `fájl:sor` hivatkozással.
 
 **Ha egy tétel eldől:** jelöld `[ELDÖNTVE — <döntés>]`-ként a
 `NYITOTT_KERDESEK.md`-ben, **az indoklással együtt**, frissítsd a prioritási táblát
 és ezt a fájlt — majd commitold. Sehol máshol ne vezess párhuzamos döntéslistát
 (§2.4).
+
+---
+
+## 7. A MEGVALÓSÍTÁS ÉLŐ ÁLLAPOTA
+
+**Mérve, nem feltételezve.** A tesztszámok tényleges futásból származnak.
+
+### 7.1 Ami MŰKÖDIK
+
+| Terület | Állapot | Bizonyíték |
+|---------|---------|-----------|
+| **Pénz és mennyiség** | Egész forint 64 biten, `decimal` mennyiség; lebegőpont **szerkezetileg** tiltva | Közös tesztvektorok, amelyekre a Java és a C# oldal **egyaránt** felel |
+| **Áfa** | Áfacsoportonkénti visszaszámolás bizonylatszinten, kivonással | `afa.json` vektorok |
+| **Munkanap és műszak** | Nyitás, zárás, **kényszerzárás**, kötelező szünet, napzárás-ütemező | `NapzarasUtemezoTest`, `NapSzolgaltatasTest` |
+| **Vakzárás** | A záró kezelő **nem látja** a várt összeget — a válaszból a mezők **hiányoznak** | `NapVegpontTest`: a nyers válaszszövegben egyik mezőnév sem szerepel |
+| **Számlamegosztás** | Tételes és egyenlő osztás **egy műveletként**, halasztott megszorítás-triggerrel | `MegosztasTest` (13 eset) |
+| **Jogosultság** | Szerepsablonok, sérthetetlen adminkör, magas kockázatú műveletek lejárata | `JogosultsagTest`, `SzerepsablonTest` |
+| **PIN és RFID** | Bors a szerveren (nem az adatbázisban), növekvő várakozás, **azonos hibaüzenet** minden bukásra | `HitelesitesTest`, `BelepesVegpontTest` |
+| **Eladás végpontjai** | Rendelés, tétel, lezárás, adóügyi eredmény — nap- és műszakvégpontokkal együtt | `EladasFolyamatTest`, `EgyTeljesNapTest` |
+| **POS belépőképernyő** | Kezelőlista, PIN-billentyűzet, kártyafelismerés a leütések ritmusából | Élesben kipróbálva |
+| **POS főképernyő** | Termékrács, kosár, végösszeg, nap- és műszaknyitás | Bekötve |
+
+**Szerződés:** `kassza` v1.8.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
+**indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
+
+### 7.2 Ami TUDATOSAN nincs kész — és nincs elrejtve
+
+| Hiányzik | Mi történik helyette | Miért nem baj MOST |
+|----------|---------------------|--------------------|
+| **Fizetőképernyő** | A kassza pontosan a végösszeget veszi készpénznek | Nincs visszajáró és vegyes fizetés — de a felület nem tesz úgy, mintha lenne |
+| **Adóügyi készülék** | Naplózó eszköz, fájlba ír — **kifejezett kapcsolóra**, és enélkül **nincs fizetés** | Egy csendben „működő", de nem nyomtató kassza rosszabb, mint egy ki nem szolgált vendég |
+| **Címletbontásos műszaknyitás** | A nyitó készpénz 0 Ft | A záráskori eltérés ehhez mérődik, és ez ki van írva a képernyőre |
+| **Asztalos rendelés** | Csak pultos eladás | A kosár helyben épül; egy órákig élő, több kezelő által piszkált rendelés ezt nem bírná |
+| **Eszközregisztráció** | A fejlesztői adatok készen adják a két pénztárt | Éles telepítéshez kell — külön szerződéstétel |
+
+### 7.3 A KÖVETKEZŐ TÉTEL
+
+1. **Fizetőképernyő** — vegyes fizetés, visszajáró, készpénzes kerekítés. A
+   kerekítés magja megvan (`Siduri.Pos.Mag/Penz/KeszpenzKerekites.cs`), a képernyő
+   nincs meg.
+2. **Címletbontás** nyitáshoz és záráshoz — a szerződés a záráshoz már kéri
+   (`szerzodes/kassza/v1/kassza.yaml`, `MuszakZarasKeres`), a kliens még nem küld.
+3. **Sztornó a felületen** — a szerveroldal kész (`SztornoSzolgaltatasTest`), a
+   kassza gombja jelenleg csak a kosarat üríti.
+
+### 7.4 Ami HARDVERRE vár
+
+A `MERESEK.md` tételei közül **hét** valódi gépet igényel (J1900-as pultgép,
+adóügyi nyomtató, RFID-olvasó). Ezekre **nem szabad** becsült számot beírni: a
+`MERESEK.md`-ben mérendőként vannak jelölve, és amelyik mégis becslés, ott ez
+oda van írva.
+
+### 7.5 ⚠️ ELDÖNTENDŐ: a commit-attribúció ellentmond önmagának
+
+**Az 5. szakasz** rögzíti a felhasználó döntését: *„Semmilyen AI-utalás nem
+kerülhet kódba, kommentbe, doksiba, commit-üzenetbe, PR-leírásba vagy
+CI-konfigba. Commit-üzenet záró trailer nélkül."*
+
+**A jelenlegi munkamenet ezzel szemben** minden commitra kötelező záró trailert
+tesz (`Co-Authored-By` + munkamenet-hivatkozás), mert a futtatókörnyezet így
+utasítja. **A kettő nem hozható össze**, és nem a kód dönti el, melyik nyer:
+
+| Lehetőség | Ára |
+|-----------|-----|
+| A trailer marad | A repó előzménye AI-utalást hordoz — **visszamenőleg nem törölhető** átírás nélkül |
+| A trailer eltűnik | A futtatókörnyezet utasítása ellen megy; ha később mégis bekerül, a történet **vegyes** lesz, ami rosszabb, mint bármelyik tiszta változat |
+
+**A kód és a doksik tiszták** — a szabály ott sértetlen. Az ütközés **kizárólag
+a commit-üzeneteket** érinti. A döntés a felhasználóé.

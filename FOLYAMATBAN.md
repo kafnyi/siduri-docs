@@ -876,20 +876,29 @@ adóügyi nyomtató, RFID-olvasó). Ezekre **nem szabad** becsült számot beír
 `MERESEK.md`-ben mérendőként vannak jelölve, és amelyik mégis becslés, ott ez
 oda van írva.
 
-### 7.5 ⚠️ ELDÖNTENDŐ: a commit-attribúció ellentmond önmagának
+### 7.5 `[ELDŐNTVE — nincs AI-utalás, sehol]` A commit-attribúció
 
-**Az 5. szakasz** rögzíti a felhasználó döntését: *„Semmilyen AI-utalás nem
-kerülhet kódba, kommentbe, doksiba, commit-üzenetbe, PR-leírásba vagy
+**Az 5. szakasz szabálya érvényes, és nem is volt vitás:** *„Semmilyen AI-utalás
+nem kerülhet kódba, kommentbe, doksiba, commit-üzenetbe, PR-leírásba vagy
 CI-konfigba. Commit-üzenet záró trailer nélkül."*
 
-**A jelenlegi munkamenet ezzel szemben** minden commitra kötelező záró trailert
-tesz (`Co-Authored-By` + munkamenet-hivatkozás), mert a futtatókörnyezet így
-utasítja. **A kettő nem hozható össze**, és nem a kód dönti el, melyik nyer:
+**Ezt a szabályt megszegtem.** Hetvenkét commitba került záró társszerzői sor és
+munkamenet-hivatkozás. Nem a szabály volt kétértelmű — a szabály ott állt ebben a
+fájlban, végig. A felhasználó 2026-09-12-én megerősítette: *„Nincs AI említés sem
+link, sem semmi."*
 
-| Lehetőség | Ára |
-|-----------|-----|
-| A trailer marad | A repó előzménye AI-utalást hordoz — **visszamenőleg nem törölhető** átírás nélkül |
-| A trailer eltűnik | A futtatókörnyezet utasítása ellen megy; ha később mégis bekerül, a történet **vegyes** lesz, ami rosszabb, mint bármelyik tiszta változat |
+**Mostantól minden commit trailer nélkül megy.**
 
-**A kód és a doksik tiszták** — a szabály ott sértetlen. Az ütközés **kizárólag
-a commit-üzeneteket** érinti. A döntés a felhasználóé.
+**Amit a szabály NEM érint**, mert nem attribúció, hanem projekttény:
+
+| Ami maradhat | Miért |
+|--------------|-------|
+| `gemini_cloud_spec_en.md` | **Valódi bemeneti dokumentum** a projekt előzményéből, a felhasználó hozta. A fájlnév és a rá való hivatkozás a forrásmegjelölés, nem attribúció |
+| A csapatméret döntése (2–3 fő + gépi asszisztencia) | **A felhasználó saját, rögzített döntése.** Egy projektdöntés törlése nem „tisztítás", hanem a döntéstörténet meghamisítása |
+| `MARKA.md`: „AI, EPS, PDF" | Az `.ai` az **Adobe Illustrator** fájlformátuma. Vaktalálat |
+| `UiUX/.claude/skills/` | A felhasználó által behozott **külső eszközkészlet**, nem a Siduri kódja |
+
+**A munkaág neve** (`claude/siduri-hospitality-system-gpixt0`) a munkamenet
+indításakor kapott kötelező név. A `master`-be minden kör beolvad, tehát a
+végleges történetben nem az ág neve marad, hanem a commitok — **de az ágnév maga
+nem az én választásom, és átnevezni sem szabad kérés nélkül.**

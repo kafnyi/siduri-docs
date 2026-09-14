@@ -848,6 +848,9 @@ trailer nélkül.**
 | **Fizetőképernyő** | Vegyes fizetés, ötforintos kerekítés, visszajáró, címletgombok | `FizetestervTeszt`, benne a szerver ellenőrzését utánzó invariáns |
 | **Címletszámláló** | Műszaknyitás leszámolással, műszak- és napzárás a felületről | `CimletbontasTeszt`; a vakzárás élesben, nyers válaszon ellenőrizve |
 | **Sztornó** | Tételtörlés, bizonylat-visszavonás, indokválasztó a szerver kódjaival | `SztornoVegpontTest` (9 eset); a teljes út élesben végigvíve |
+| **PIN-csere** | Kötelező csere belépés után, megkerülhetetlenül | `KezeloVegpontTest` |
+| **Vezetői jóváhagyás** | Egy műveletre, a jóváhagyó PIN-jével | `KezeloVegpontTest`: önmagát senki nem hagyhatja jóvá |
+| **Készpénzmozgás** | Befizetés, kifizetés, fölözés, váltópénz — típusonkénti joggal | `KezeloVegpontTest` |
 
 **Szerződés:** `kassza` v1.8.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
 **indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
@@ -869,17 +872,35 @@ trailer nélkül.**
 > A szolgáltatásréteg tesztjei saját magukat hívják, nem a klienst. A védelem
 > nem több teszt, hanem **más fajta**: olyan, ami a kliens útján megy végig.
 > **Minden további szolgáltatásnál ezt kell először megnézni.**
+>
+> **A módszer, amivel a maradékot megtaláltuk** — érdemes megismételni minden
+> körben:
+>
+> ```
+> # minden @Service allapotvaltoztato muvelete, es hivja-e vezerlo
+> for F in $(grep -rl "@Service" --include=*.java szerver/src/main/java); do
+>   grep -B3 "^    public " $F | grep -A3 "@Transactional" | grep "^    public " \
+>     | sed 's/.*public [^ ]* \([a-zA-Z0-9_]*\)(.*/\1/' | sort -u \
+>     | while read M; do
+>         cat szerver/src/main/java/.../api/*.java | grep -q "\.$M(" || echo "$F: $M"
+>       done
+> done
+> ```
+>
+> Négy rést adott: **PIN-csere** (zsákutca volt), **vezetői jóváhagyás**,
+> **készpénzmozgás**, **számlamegosztás**.
 
-1. **Vezetői jóváhagyás a helyszínen** — a szerver ismeri (`felhatalmazas` mező),
-   a kassza még nem kínálja fel. Ma a jog nélküli kezelő csak elutasítást kap,
-   pedig a jóváhagyás pont azért van, hogy ne kelljen kilépnie.
-2. **Régebbi bizonylat sztornózása** — a kasszáról ma csak a legutóbbi vonható
+1. **Számlamegosztás** — a **negyedik** rés, amit a rendszeres átvizsgálás
+   talált: a `MegosztasSzolgaltatas` (`megoszt`, `megosztastVisszavon`,
+   `reszSzamlatLezar`) készen áll, végpont nélkül. Ez az F2 kötelező tartalma.
+2. **Vezetői jóváhagyás a kasszán** — a végpont megvan, a sztornó képernyője
+   még nem ajánlja fel. Ma a jog nélküli kezelő csak elutasítást kap, pedig a
+   jóváhagyás pont azért van, hogy ne kelljen kilépnie.
+3. **Készpénzmozgás képernyője** — a végpont megvan, a felületen nincs gomb.
+4. **Régebbi bizonylat sztornózása** — a kasszáról ma csak a legutóbbi vonható
    vissza. A többihez bizonylatlista, keresés és saját képernyő kell.
-3. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
-   Egy órákig élő, több kezelő által piszkált rendelés ezt nem bírja; az a
-   szerveren tartott rendelést igényel.
-4. **Árfolyamforrás**, és utána a valutás fizetés. Enélkül a valuta nem
-   kínálható fel — lásd a 7.2 szakaszt.
+5. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
+6. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
 
 ### 7.4 Ami HARDVERRE vár
 

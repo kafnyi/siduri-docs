@@ -851,6 +851,7 @@ trailer nélkül.**
 | **PIN-csere** | Kötelező csere belépés után, megkerülhetetlenül | `KezeloVegpontTest` |
 | **Vezetői jóváhagyás** | Egy műveletre, a jóváhagyó PIN-jével | `KezeloVegpontTest`: önmagát senki nem hagyhatja jóvá |
 | **Készpénzmozgás** | Befizetés, kifizetés, fölözés, váltópénz — típusonkénti joggal | `KezeloVegpontTest` |
+| **Számlamegosztás** | Egyenlő és tételes osztás, részenkénti fizetés, **félbehagyás és folytatás** | `MegosztasVegpontTest` (7 eset); az újraindulás utáni folytatás élesben |
 
 **Szerződés:** `kassza` v1.8.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
 **indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
@@ -890,16 +891,23 @@ trailer nélkül.**
 > Négy rést adott: **PIN-csere** (zsákutca volt), **vezetői jóváhagyás**,
 > **készpénzmozgás**, **számlamegosztás**.
 
-1. **Számlamegosztás** — a **negyedik** rés, amit a rendszeres átvizsgálás
-   talált: a `MegosztasSzolgaltatas` (`megoszt`, `megosztastVisszavon`,
-   `reszSzamlatLezar`) készen áll, végpont nélkül. Ez az F2 kötelező tartalma.
-2. **Vezetői jóváhagyás a kasszán** — a végpont megvan, a sztornó képernyője
-   még nem ajánlja fel. Ma a jog nélküli kezelő csak elutasítást kap, pedig a
-   jóváhagyás pont azért van, hogy ne kelljen kilépnie.
-3. **Készpénzmozgás képernyője** — a végpont megvan, a felületen nincs gomb.
-4. **Régebbi bizonylat sztornózása** — a kasszáról ma csak a legutóbbi vonható
+> **A rendszeres átvizsgálás lefutott, és a négy rés mind be van zárva.** A
+> következő körben **újra le kell futtatni** — nem azért, mert biztos találni
+> fog valamit, hanem mert a hiány fajtája ilyen: nem látszik, amíg valaki
+> bele nem fut.
+
+1. **Vezetői jóváhagyás a kasszán** — a végpont megvan (`POST /felhatalmazas`),
+   a sztornó képernyője még nem ajánlja fel. Ma a jog nélküli kezelő csak
+   elutasítást kap, pedig a jóváhagyás pont azért van, hogy ne kelljen
+   kilépnie — és a műszak se keveredjen össze.
+2. **Készpénzmozgás képernyője** — a végpont megvan, a felületen nincs gomb.
+3. **Régebbi bizonylat sztornózása** — a kasszáról ma csak a legutóbbi vonható
    vissza. A többihez bizonylatlista, keresés és saját képernyő kell.
+4. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
+   adag az egyiknek, egy a másiknak); a képernyő ma csak egyenlő osztozást kínál
+   egy közös soron.
 5. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
+   A megosztás már felküldi a rendelést; az asztalos folyamat ezt terjesztené ki.
 6. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
 
 ### 7.4 Ami HARDVERRE vár

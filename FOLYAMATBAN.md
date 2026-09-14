@@ -940,25 +940,43 @@ trailer nélkül.**
 | `eladas.szamla_keres` | Nyugta helyett számla | Más adóügyi út, más bizonylat |
 | `kassza.borravalo_kifizetes` | Borravaló kifizetése a fiókból | Pénz a fiókból, jog nélkül |
 
-> **A javítás NEM ebben a körben történt**, mert nem a régebbi bizonylatok
-> sztornójához tartozik — de **ki van mondva, és a következő tétel**. **ÁRA:**
-> amíg nincs javítva, ezek a műveletek a kasszán **jogosultság-ellenőrzés
-> nélkül** mennek át. A szerep-sablonok ki vannak osztva, tehát a *szándék*
-> megvan — csak nem érvényesül.
+> ✅ **JAVÍTVA** *(szerződés v1.15.0, `MERESEK.md` M28)*. Mind az öt jog
+> ellenőrzött. A söprés újrafuttatva: **84-ből 63** marad ellenőrizetlen, és
+> **egy sem** vonatkozik élő kódútra.
+>
+> A javítás közben még két dolog került elő:
+> - **a küszöb megkerülhető volt egy legördülő-választással** — a
+>   küszöbvizsgálat csak a *százalékos* kedvezményt nézte, így egy 10 000
+>   Ft-ra adott 9 999 Ft-os „fix" kedvezmény (99,99%) indok nélkül átment;
+> - a **`BORRAVALO_KIVET`** mozgástípust az adatbázis a V9 óta ismerte, a jog
+>   is ki volt osztva — **a kód soha nem állította elő**.
+>
+> ⚠️ **Amit ki kell mondani:** a POS-kliensnek **nincs** kedvezmény-,
+> szervizdíj- vagy számlaigény-felülete, tehát **ezen a kasszán** ez a négy jog
+> nem volt elérhető. A rés az **API-felületen** volt valódi. Ez nem menti a
+> hibát: a szerver nem építhet arra, hogy a saját kliense jól viselkedik.
 
 1. ✅ **Régebbi bizonylat sztornózása** — **KÉSZ** *(szerződés v1.14.0)*. Két új
    végpont (`GET /bizonylatok/szam/{n}` riportjog nélkül, `GET /bizonylatok`
    riportjoggal), `BizonylatkeresoKepernyo` a kasszán, a sztornó pedig a
    **nyitott** napra és a **saját** műszakba kerül. A `sztorno.mas_muszakbol`
    jog végre ténylegesen ellenőrzött.
-2. ⚠️ **Az öt ellenőrizetlen jogosultság a lezáráson** — lásd a fenti táblát.
-   **Ez a legközelebbi tétel.**
-3. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
+2. ✅ **Az öt ellenőrizetlen jogosultság a lezáráson** — **KÉSZ**
+   *(szerződés v1.15.0)*. A `felhatalmazas` mező a lezárási kérésen, a
+   `TOBB_JOGOSULTSAG_HIANYZIK` hibakód, és a kapu **egy helyen**
+   (`JogosultsagSzolgaltatas.kaput`) — a sztornó és a lezárás ugyanazt
+   használja, hogy a szabály ne csússzon szét.
+3. ⚠️ **Kedvezmény-felület a kasszán** — a szerver most már helyesen
+   ellenőrzi, a POS-kliensnek viszont **nincs** kedvezmény-, szervizdíj- és
+   számlaigény-képernyője. **ÁRA:** a négy lezárási jog a gyakorlatban addig
+   nem gyakorolható erről a kasszáról; a jóváhagyás útja megvan a
+   szerződésben, de nincs mit jóváhagyni.
+4. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
    adag az egyiknek, egy a másiknak); a képernyő ma csak egyenlő osztozást kínál
    egy közös soron.
-4. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
+5. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
    A megosztás már felküldi a rendelést; az asztalos folyamat ezt terjesztené ki.
-5. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
+6. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
 
 ### 7.4 Ami HARDVERRE vár
 

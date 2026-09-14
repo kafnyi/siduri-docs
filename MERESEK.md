@@ -309,6 +309,58 @@ vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosa
 a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
 egyezzen, az áfa kerekedjen.
 
+### `[x]` M28 — A lezárás egyetlen jogosultságot sem ellenőrzött `SÖPRÉSSEL TALÁLVA, JAVÍTVA`
+
+**Ez nem mérés volt, hanem söprés** — az M27 tanulságából született új köri
+ellenőrzés első éles futása: *melyik katalóguskódot nem ellenőrzi soha a kód.*
+
+| | |
+|---|---|
+| Katalóguskódok | **84** |
+| Soha nem ellenőrzött | **69** |
+| Ebből még meg nem épült funkció | 64 — ez rendben van |
+| **Élő kódútra vonatkozó** | **5** |
+
+**Az öt, és amit engedett:**
+
+| Jogosultság | Mit engedett bárkinek |
+|-------------|----------------------|
+| `kedvezmeny.vegosszeg` | Tetszőleges végösszeg-kedvezmény — **a vendégtől teljes ár, a gépbe kedvezmény** |
+| `kedvezmeny.kuszob_felett` | A küszöb feletti kedvezményt is, vezetői rálátás nélkül |
+| `szervizdij.modositas` | A szervizdíj átírását — a felszolgálói jutalék alapját |
+| `eladas.szamla_keres` | Nyugta helyett számlát, más adóügyi úton |
+| `kassza.borravalo_kifizetes` | *(közvetve)* a borravaló kivételét a `kassza.kifizetes` joggal |
+
+⚠️ **A `rendelestLezar` szó szerint nulla jogosultság-ellenőrzést tartalmazott.**
+Nem rossz feltétel volt benne, nem elavult kód — **nem volt ott semmi**.
+
+**Két további lelet a javítás közben:**
+
+1. **A küszöb megkerülhető volt egy legördülő-választással.** A
+   küszöbvizsgálat csak a **százalékos** kedvezményt nézte. Egy 10 000 Ft-os
+   számlára adott **9 999 Ft-os „fix" kedvezmény — 99,99%** — indok és külön
+   jog nélkül átment. A fix összeget mostantól a kedvezmény előtti alaphoz
+   arányítjuk.
+2. **A `BORRAVALO_KIVET` mozgástípus fél kézzel volt megépítve.** Az
+   adatbázis a V9 óta ismerte *(„SOHA NEM LEHET NYOMKÖVETHETETLEN FIÓKKIVÉT")*,
+   az indokkód és a jogosultság is létezett — **a kód viszont soha nem
+   állította elő**. A tervező szándéka megvolt, a huzal hiányzott.
+
+**⚠️ Ami ezt enyhíti, és ami nem.** A POS-kliensnek **nincs** kedvezmény-,
+szervizdíj- vagy számlaigény-felülete, tehát **ezen a kasszán** a négy lezárási
+jog nem volt elérhető. A rés az **API-felületen** volt valódi: bármely más
+kliens, egy vékonykliens, vagy egy közvetlen hívás kihasználhatta volna. **Ez
+nem menti a hibát** — a szerver nem építhet arra, hogy a saját kliense jól
+viselkedik.
+
+> ⚠️ **A söprés a következő körben is fusson.** A maradék ellenőrizetlen kódok
+> között most nincs ilyen súlyú — a legközelebb figyelendők: `kedvezmeny.tetel`
+> és `ar.kezi_felulriras`, amint a tételszintű kedvezmény, illetve a kézi
+> árfelülírás megépül. **A jog ellenőrzését a funkcióval EGYÜTT kell megírni,
+> nem utána.**
+
+---
+
 ### `[x]` M27 — A sztornó a lezárt napra és a lezárt műszakba került `MÉRVE, JAVÍTVA`
 
 **Ez sem terv szerinti mérés volt:** a *régebbi bizonylatok sztornózása*

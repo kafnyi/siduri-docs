@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.14.0
+  version: 1.15.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1125,6 +1125,26 @@ paths:
         adougyi eszkozre, majd a /bizonylatok/{id}/adougyi-eredmeny hivassal
         jelenti, mi lett belole. A ketto kozott a bizonylat allapota
         NYOMTATASRA_VAR.
+
+        ⚠️ A LEZARAS JOGOSULTSAGAI - NEGY KULON FELTETEL. A sima lezarashoz nem
+        kell kulon jog; az alabbiak akkor lepnek eletbe, ha a keres tartalmazza
+        oket. A kliensnek ezt ELORE tudnia kell, mert a gombot ennek alapjan
+        kinalja fel:
+
+        | Jog | Mikor kell | Miert |
+        |-----|-----------|-------|
+        | kedvezmeny.vegosszeg | barmilyen kedvezmenynel | Itt valhat szet a vendeg altal fizetett es a gepbe utott osszeg |
+        | kedvezmeny.kuszob_felett | a telephelyi kuszob felett | A kuszob pont az a hatar, ami folott vezetonek kell latnia |
+        | szervizdij.modositas | nem nulla szervizdijnal | A felszolgaloi jutalek alapja |
+        | eladas.szamla_keres | SZAMLA modnal | Mas adougyi ut, mas bizonylat |
+
+        ⚠️ A KUSZOB A FIX OSSZEGU KEDVEZMENYRE IS VONATKOZIK. A fix osszeget a
+        kedvezmeny elotti alaphoz aranyitjuk; enelkul a kuszob egyetlen
+        legordulo-valasztassal megkerulheto lenne (10 000 Ft-ra adott 9 999
+        Ft-os "fix" kedvezmeny 99,99%).
+
+        Hianyzo jog eseten a "felhatalmazas" mezo az ut - de az EGY jogot potol,
+        nem kettot. Reszletek a LezarasKeres alaknal.
       parameters:
         - $ref: '#/components/parameters/RendelesAzonosito'
         - $ref: '#/components/parameters/Eszkoz'
@@ -1478,7 +1498,7 @@ components:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tipus:
           type: string
-          enum: [BEFIZETES, KIFIZETES, FOLOZES, VALTOPENZ]
+          enum: [BEFIZETES, KIFIZETES, FOLOZES, VALTOPENZ, BORRAVALO_KIVET]
         osszeg:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
@@ -2129,6 +2149,25 @@ components:
             A kezelo megerositette a szokatlanul magas szervizdijat. NEM
             az osszeget erositi meg, hanem a SZANDEKOT - ezert kulon
             mezo, es nem az ertek megismetlese.
+        felhatalmazas:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: |
+            A HELYSZINEN JOVAHAGYO vezeto felhatalmazasanak azonositoja, ha a
+            kezdemenyezonek hianyzik a lezarashoz kello jog.
+
+            A pincer az asztalnal all. Nem az a megoldas, hogy kilep es az
+            uzletvezeto bejelentkezik - az lassu, es a muszak is
+            osszekeveredne. Az uzletvezeto a helyszinen jovahagyja az EGY
+            muveletet, es az auditba MINDKET szemely bekerul.
+
+            ⚠️ A JOVAHAGYAS EGY JOGOT POTOL, NEM KETTOT. Egyetlen kodra szol
+            es egyszer hasznalhato fel. Ha a lezarashoz ket jog is hianyzik
+            (peldaul kuszob feletti kedvezmenynel a kedvezmeny.vegosszeg ES a
+            kedvezmeny.kuszob_felett), a szerver TOBB_JOGOSULTSAG_HIANYZIK
+            kodu 403-at ad, es a kliensnek NEM szabad jovahagyast kernie: a
+            vezeto odaallna, jovahagyna, es a muvelet a masodik kapun megis
+            elhasalna - mar elhasznalt jovahagyassal.
       additionalProperties: false
     Fizetes:
       title: Fizetes

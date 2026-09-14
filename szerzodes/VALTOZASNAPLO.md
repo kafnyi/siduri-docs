@@ -504,3 +504,50 @@ joggal* vonhatta vissza. Ami nincs ellenőrizve, az nincs.
 fel. Ha a kezelőnek mindkét jog hiányzik, a kliens **ne kérjen jóváhagyást** —
 a vezető odaállna, jóváhagyná, és a művelet a második kapun mégis elhasalna,
 már elhasznált jóváhagyással.
+
+---
+
+### v1.15.0 — 2026-09-14 — *a lezárás végre ellenőrzi a jogosultságokat* ⚠️ `TÖRŐ, DE KIADÁS ELŐTT`
+
+**Miért nem volt jó az előző:** a `POST /rendelesek/{r}/lezaras` **egyetlen
+jogosultságot sem nézett meg**. A kódok léteztek, a szerep-sablonok helyesen
+osztották ki őket — a kód viszont soha nem kérdezte meg. Ez a
+jogosultság-söprés *(FOLYAMATBAN.md §7.3)* eredménye: **84 katalóguskódból 69
+volt ellenőrizetlen**, és ebből öt **élő kódútra** vonatkozott.
+
+**Amit ez a gyakorlatban jelentett:** bárki, aki egyáltalán el tudott adni,
+adhatott **tetszőleges végösszeg-kedvezményt** — a vendégtől teljes ár, a gépbe
+kedvezmény, a különbözet a zsebbe. Ez a kasszavisszaélés legrégebbi formája.
+
+**A lezárás négy jogosultsága:**
+
+| Jog | Mikor kell | Miért |
+|-----|-----------|-------|
+| `kedvezmeny.vegosszeg` | bármilyen kedvezménynél | Itt válhat szét a vendég által fizetett és a gépbe ütött összeg |
+| `kedvezmeny.kuszob_felett` | a telephelyi küszöb felett | A küszöb pont az a határ, ami fölött vezetőnek kell látnia |
+| `szervizdij.modositas` | nem nulla szervizdíjnál | A felszolgálói jutalék alapja |
+| `eladas.szamla_keres` | `SZAMLA` módnál | Más adóügyi út, más bizonylat |
+
+**A sima lezáráshoz továbbra sem kell külön jog.** Ezek csak akkor lépnek
+életbe, ha a kérés tartalmazza őket.
+
+**Új mező — `felhatalmazas` a `LezarasKeres`-en.** A pincér az asztalnál áll;
+nem az a megoldás, hogy kilép és az üzletvezető bejelentkezik. ⚠️ **De egy
+jóváhagyás EGY jogot pótol, nem kettőt:** egyetlen kódra szól és egyszer
+használható fel. Ha két jog hiányzik (küszöb feletti kedvezménynél tipikusan
+mindkettő), a szerver `TOBB_JOGOSULTSAG_HIANYZIK` kódú **403**-at ad, **a
+jóváhagyást pedig nem használja el** — a kliensnek ilyenkor **nem szabad**
+jóváhagyást kérnie.
+
+**⚠️ A küszöb mostantól a FIX összegű kedvezményre is vonatkozik.** Eddig csak
+a százalékos alakot nézte, tehát egy 10 000 Ft-os számlára adott **9 999 Ft-os
+„fix" kedvezmény — vagyis 99,99%** — indok és külön jog nélkül átment. A küszöb
+egyetlen legördülő-választással megkerülhető volt. A fix összeget mostantól a
+**kedvezmény előtti alaphoz** arányítjuk.
+
+**Új készpénzmozgás-típus: `BORRAVALO_KIVET`.** Az adatbázis ezt a típust a V9
+óta ismeri, és a `kassza.borravalo_kifizetes` jog is ki volt osztva — **a kód
+viszont soha nem állította elő**. A készpénzes borravalót így egy sima
+`KIFIZETES`-ként vitték ki, a `kassza.kifizetes` joggal. A kettő nem ugyanaz: a
+beszerzésre kivitt pénz a **vállalkozásé**, a borravaló a **személyzeté**. Más
+felelősség — és a borravaló-riport is csak így tud külön számot mondani.

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.9.0
+  version: 1.10.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -345,6 +345,166 @@ paths:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
+
+  /indokok/{keszlet}:
+    get:
+      operationId: indokok
+      summary: Egy indokkeszlet felkinalhato kodjai
+      description: |
+        A felulet ebbol epiti az indokvalasztot.
+
+        ⚠️ EZ NELKUL A SZTORNO NEM MUKODIK. A szerver kotelezo indokkodot ker,
+        es CSAK a telephelyen ervenyes kodot fogadja el - a kliensnek viszont
+        nem volt honnan megtudnia, melyek ezek. Ugyanaz a hiba, mint amikor a
+        belepes kotelezo volt, de nem volt belepes-vegpont.
+
+        Az ALAPKESZLET telephelyfuggetlen, de barmelyik telephely felvehet
+        sajat kodot melle - ezert nem lehet a kliensbe egetni.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - name: keszlet
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [SZTORNO, KEDVEZMENY, ARFELULIRAS, LELTAR, FIOKNYITAS,
+                   NEM_FIZETETT_LEZARAS, KESZPENZMOZGAS, INTEGRACIO_KIKAPCSOLAS,
+                   ORAALLITAS, DEGRADALT_MOD, SZAMLAIGENY]
+      responses:
+        '200':
+          description: A felkinalhato indokkodok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Indokkod'
+        '400':
+          description: Ismeretlen indokkeszlet.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/tetelek/{tetelsorAzonosito}/torles:
+    post:
+      operationId: tetelsortTorol
+      summary: Nyitott rendeles tetelsoranak torlese
+      description: |
+        ⚠️ A TORLES ES A SZTORNO NEM UGYANAZ, es a kulonbseg nem szohasznalat:
+
+        |                      | Torles                    | Sztorno                  |
+        |----------------------|---------------------------|--------------------------|
+        | Mit erint            | NYITOTT rendeles tetelsorat | LEZART, fizetett bizonylatot |
+        | Keletkezik bizonylat | nem                       | igen, NEGATIV bizonylat  |
+        | Adougyi szam kell    | nem                       | igen, az eredetie        |
+
+        Ha a kettot osszemosnank, a lezart bizonylat "torolhetove" valna - ami
+        pontosan az a kar, amivel egy muszakot nyugtaadas nelkul le lehet
+        vezetni.
+
+        A JOG ATTOL FUGG, ELMENT-E MAR A KONYHARA. A felutes utan tiz
+        masodperccel torolt tetel elgepeles; a konyhara mar elkuldott tetel
+        torlese fizetes elott a visszaeles mintaja - ket kulon dolog, ket
+        kulon jog.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+        - name: rendelesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: tetelsorAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndokolasKeres'
+      responses:
+        '200':
+          $ref: '#/components/responses/Rendeles'
+        '403':
+          description: Nincs jogosultsag - kulon jog kell a konyhara mar elkuldott tetelhez.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          description: A rendeles mar nem nyitott, vagy a tetelsor mar torolve van.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /bizonylatok/{bizonylatAzonosito}/sztorno:
+    post:
+      operationId: bizonylatotSztornoz
+      summary: Lezart bizonylat sztornozasa
+      description: |
+        NEM TOROL: UJ, NEGATIV BIZONYLAT keletkezik, sajat sorszammal,
+        ellentetes elojelu osszegekkel, az eredetire hivatkozva. Az eredeti
+        allapota SZTORNOZOTT lesz, de a TARTALMA ERINTETLEN MARAD.
+
+        ⚠️ AZ INDOKKOD KOTELEZO, es csak a telephelyen ervenyes kod fogadhato el.
+        A felkinalhato kodokat a GET /indokok/SZTORNO adja.
+
+        ⚠️ AZ ADOUGYI SZTORNOHOZ KELL AZ EREDETI ADOUGYI SZAM. Ha hianyzik, a
+        muvelet nem indul el csendben: az tamogatoi eset, az eszkoz sajat
+        naplojabol feloldva.
+
+        VEZETOI JOVAHAGYAS: ha a kezdemenyezonek nincs sztornojoga, nem kell
+        kilepnie es az uzletvezetonek belepnie - az lassu, es a muszak is
+        osszekeveredne. Az uzletvezeto a helyszinen jovahagyja az EGY
+        muveletet (felhatalmazas mezo), es az auditba MINDKET szemely bekerul.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+        - name: bizonylatAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SztornoKeres'
+      responses:
+        '201':
+          description: A keletkezett NEGATIV bizonylat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bizonylat'
+        '403':
+          description: Nincs sztornojog, es vezetoi jovahagyas sem erkezett.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          description: A bizonylat mar sztornozva van.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          description: Hianyzo vagy ervenytelen indokkod.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   /termekek:
     get:
@@ -853,6 +1013,57 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+    Indokkod:
+      type: object
+      required: [kod, megnevezes, szabadSzovegKotelezo, alap]
+      properties:
+        kod:
+          type: string
+        megnevezes:
+          type: string
+        szabadSzovegKotelezo:
+          type: boolean
+          description: |
+            Ha igaz, a kod mellé SZOVEGET is kell irni. Az "egyeb" tipusu kodok
+            onmagukban semmit nem magyaraznak meg.
+        alap:
+          type: boolean
+          description: |
+            Alapkeszletbeli kod: a jelentese MINDEN telephelyen ugyanaz. A
+            telephely sajat kodjai nem osszehasonlithatok telephelyek kozott.
+
+    IndokolasKeres:
+      type: object
+      required: [indokKod, eszkozIdo]
+      properties:
+        indokKod:
+          type: string
+        indokSzoveg:
+          type: string
+          description: Kotelezo, ha az indokkod szabadSzovegKotelezo jelzoje igaz.
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    SztornoKeres:
+      type: object
+      required: [indokKod, eszkozIdo]
+      properties:
+        indokKod:
+          type: string
+        indokSzoveg:
+          type: string
+        felhatalmazas:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: |
+            A HELYSZINEN JOVAHAGYO vezeto azonositoja, ha a kezdemenyezonek
+            nincs sztornojoga. Az auditba MINDKET szemely bekerul - a
+            jovahagyas nem mossa el, ki inditotta.
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
     NapNyitasKeres:
       type: object
       required: [uzletiNap, eszkozIdo]

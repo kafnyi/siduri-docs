@@ -295,3 +295,50 @@ fejlesztésnél, csak élesben.
 `MAR_VAN_NYITOTT_MUSZAK`-ra bukik. Egy második teszt azt is őrzi, hogy ugyanaz a
 kulcs **más művelethez** hangos `409 IDEMPOTENCIA_KULCS_UTKOZES` — a csendes
 elfogadás azt hitetné a klienssel, hogy a második művelet is lefutott.
+
+### v1.10.0 — 2026-09-14 — *sztornó, tételtörlés, indokkódok* `NEM TÖRŐ`
+
+**Új:** `GET /kassza/v1/indokok/{keszlet}`,
+`POST /kassza/v1/rendelesek/{rendeles}/tetelek/{tetelsor}/torles`,
+`POST /kassza/v1/bizonylatok/{bizonylat}/sztorno`.
+
+**Miért csak most — harmadszor ugyanaz a minta.** A sztornó szolgáltatásrétege
+készen állt, teszttel együtt. Végpont nélkül viszont **a kassza egyetlen rossz
+nyugtát sem tudott volna visszavonni.** Előbb a belépés volt így, aztán a nap- és
+műszaknyitás, most a sztornó: a szabály megvolt, a teljesítéséhez vezető út nem.
+
+> **Ez a harmadik eset, és ezért nem véletlen.** A szolgáltatásréteg tesztjei
+> saját magukat hívják, nem a HTTP-felületet — így egy teljesen kész szolgáltatás
+> is maradhat elérhetetlen anélkül, hogy bármi pirosra váltana. A védelem nem
+> több teszt, hanem **más fajta**: olyan, ami a kliens útján megy végig.
+
+**A törlés és a sztornó nem ugyanaz**, és a különbség nem szóhasználat:
+
+| | Törlés | Sztornó |
+|---|--------|---------|
+| Mit érint | **Nyitott** rendelés tételsorát | **Lezárt**, fizetett bizonylatot |
+| Keletkezik bizonylat? | Nem | **Igen — negatív bizonylat** |
+| Kell az adóügyi szám? | Nem | **Igen, az eredetié** |
+
+Ha a kettőt összemosnánk, a lezárt bizonylat „törölhetővé" válna — pontosan az a
+kár, amivel egy műszakot nyugtaadás nélkül le lehet vezetni.
+
+**Az indokkód-végpont nem kényelmi tétel.** A szerver kötelező indokkódot kér, és
+**csak a telephelyen érvényeset** fogad el — a kliensnek viszont nem volt honnan
+megtudnia, melyek ezek. Kódba égetni nem lehet: az alapkészlet mellé bármelyik
+telephely felvehet sajátot.
+
+> ⚠️ **A készlet NEVE nem választható KÓD.** A `SZTORNO` a készlet neve; a
+> választható kódok a `VENDEG_ELALLT`, `TEVES_FELUTES`, `MINOSEGI_KIFOGAS`,
+> `KONYHAI_HIBA`, `ARHIBA`, `SZAMLAIGENY`, `EGYEB`. **Ezt a hibát a végpont
+> tesztjének írása közben magam követtem el** — ami pontosan azt mutatja, miért
+> nem lehet a kliensre bízni, hogy kitalálja.
+
+**Küldés után kötelező az indok, előtte nem.** Küldés előtt a törlés a normális
+munka része; a kötelező indok ott csak arra tanítaná meg a kezelőt, hogy gépiesen
+ugyanazt válassza — és akkor a kód semmit nem érne ott sem, ahol számít.
+
+**Vezetői jóváhagyás a sztornóhoz:** ha a kezdeményezőnek nincs sztornójoga, nem
+kell kilépnie és az üzletvezetőnek belépnie — az lassú, és a műszak is
+összekeveredne. Az üzletvezető a helyszínen jóváhagyja az **egy** műveletet
+(`felhatalmazas` mező), és az auditba **mindkét személy** bekerül.

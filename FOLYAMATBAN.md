@@ -846,6 +846,7 @@ trailer nélkül.**
 | **POS belépőképernyő** | Kezelőlista, PIN-billentyűzet, kártyafelismerés a leütések ritmusából | Élesben kipróbálva |
 | **POS főképernyő** | Termékrács, kosár, végösszeg, nap- és műszaknyitás | Bekötve |
 | **Fizetőképernyő** | Vegyes fizetés, ötforintos kerekítés, visszajáró, címletgombok | `FizetestervTeszt`, benne a szerver ellenőrzését utánzó invariáns |
+| **Címletszámláló** | Műszaknyitás leszámolással, műszak- és napzárás a felületről | `CimletbontasTeszt`; a vakzárás élesben, nyers válaszon ellenőrizve |
 
 **Szerződés:** `kassza` v1.8.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
 **indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
@@ -856,17 +857,17 @@ trailer nélkül.**
 |----------|---------------------|--------------------|
 | **Valutás fizetés** | Nincs felkínálva | A szerződés és az adatbázis ismeri, **árfolyamforrás viszont sehol nincs a rendszerben**. Árfolyam nélkül a valutás fizetés nem könyvelhető: a pénztáros elfogadná a pénzt, a bizonylat pedig hamis összeget mutatna |
 | **Adóügyi készülék** | Naplózó eszköz, fájlba ír — **kifejezett kapcsolóra**, és enélkül **nincs fizetés** | Egy csendben „működő", de nem nyomtató kassza rosszabb, mint egy ki nem szolgált vendég |
-| **Címletbontásos műszaknyitás** | A nyitó készpénz 0 Ft | A záráskori eltérés ehhez mérődik, és ez ki van írva a képernyőre |
 | **Asztalos rendelés** | Csak pultos eladás | A kosár helyben épül; egy órákig élő, több kezelő által piszkált rendelés ezt nem bírná |
 | **Eszközregisztráció** | A fejlesztői adatok készen adják a két pénztárt | Éles telepítéshez kell — külön szerződéstétel |
 
 ### 7.3 A KÖVETKEZŐ TÉTEL
 
-1. **Címletbontás** nyitáshoz és záráshoz — a szerződés a záráshoz már kéri
-   (`szerzodes/kassza/v1/kassza.yaml`, `MuszakZarasKeres`), a kliens még nem küld.
-   A műszak jelenleg 0 Ft nyitó készpénzzel indul, és ez ki van írva a képernyőre.
-2. **Sztornó a felületen** — a szerveroldal kész (`SztornoSzolgaltatasTest`), a
-   kassza gombja jelenleg csak a kosarat üríti.
+1. **Sztornó a felületen** — a szerveroldal kész (`SztornoSzolgaltatasTest`), a
+   kassza „Sztornó" gombja jelenleg csak a kosarat üríti: egy már kiadott
+   bizonylatot nem tud visszavonni.
+2. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
+   Egy órákig élő, több kezelő által piszkált rendelés ezt nem bírja; az a
+   szerveren tartott rendelést igényel.
 3. **Árfolyamforrás**, és utána a valutás fizetés. Enélkül a valuta nem
    kínálható fel — lásd a 7.2 szakaszt.
 

@@ -309,6 +309,36 @@ vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosa
 a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
 egyezzen, az áfa kerekedjen.
 
+### `[x]` M26 — A készpénzmozgás előjelének hiánya `MÉRVE, JAVÍTVA`
+
+**Nem terv szerinti mérés volt:** a készpénzmozgás képernyőjének bekötésekor
+derült ki, hogy **a szerver nem tette rá az előjelet** a mozgás összegére.
+
+A várt kasszatartalom **egyetlen összegzésből** áll
+(`sum(keszpenzmozgas.osszeg)`), típusonkénti ágazás nélkül — a tábla kommentje
+ezt ki is mondja. Ehhez az kell, hogy az előjel a **tárolt** értékben legyen.
+Nem volt benne.
+
+| | |
+|---|---|
+| Nyitó készpénz | 100 000 Ft |
+| Váltópénz +5 000 · Befizetés +10 000 · Kifizetés −2 500 · Fölözés −50 000 | |
+| **Helyes várt kasszatartalom** | **62 500 Ft** |
+| **Amit a hibás kód adott** | **167 500 Ft** |
+| **Eltérés** | **105 000 Ft** — pontosan a kifizetés és a fölözés kétszerese |
+
+**Miért nem fogta meg teszt:** a szolgáltatásréteg tesztje maga küldte az
+előjelet (`Penz.forint(-15_000)`), vagyis **a saját feltevését ellenőrizte**.
+Az új HTTP-végpont viszont — a szerződés szerint helyesen — pozitív összeget
+adott tovább, és ott bukott ki.
+
+**A javítás ott van, ahol minden hívó átmegy:** a szolgáltatásban. Ha minden
+hívó maga előjelezne, az ágazás annyi helyen lenne, ahányan hívják, és **egy
+elfelejtett ág csendben hamis számot adna.** Pontosan ez történt.
+
+**A regressziós teszt bizonyítottan fog:** a javítás nélkül 62 500 helyett
+167 500 jön ki.
+
 ### `[~]` M25 — A PIN-lenyomatolás költsége `RÉSZBEN MÉRVE`
 
 **Kérdés:** hány iterációt bír el a PBKDF2 úgy, hogy a belépés a pult mögött ne

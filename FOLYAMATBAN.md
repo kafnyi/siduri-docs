@@ -852,6 +852,7 @@ trailer nélkül.**
 | **Vezetői jóváhagyás** | Egy műveletre, a jóváhagyó PIN-jével — **a kasszáról is** | `KezeloVegpontTest` (11 eset); a pincér→vezető út élesben |
 | **Készpénzmozgás** | Befizetés, kifizetés, fölözés, váltópénz — típusonkénti joggal | `KezeloVegpontTest` |
 | **Számlamegosztás** | Egyenlő és tételes osztás, részenkénti fizetés, **félbehagyás és folytatás** | `MegosztasVegpontTest` (7 eset); az újraindulás utáni folytatás élesben |
+| **Készpénzmozgás képernyője** | Váltópénz, befizetés, kifizetés, fölözés — típusonkénti joggal | `KeszpenzmozgasTeszt`; az **előjel** élesben ellenőrizve |
 
 **Szerződés:** `kassza` v1.8.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
 **indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
@@ -896,17 +897,21 @@ trailer nélkül.**
 > fog valamit, hanem mert a hiány fajtája ilyen: nem látszik, amíg valaki
 > bele nem fut.
 
-1. **Készpénzmozgás képernyője** — a végpont megvan (`POST /kassza/mozgas`), a
-   felületen nincs gomb. A váltópénz betétele és a fölözés napi munka; ma
-   egyiket sem lehet rögzíteni a kasszáról.
-2. **Régebbi bizonylat sztornózása** — a kasszáról ma csak a legutóbbi vonható
+> ⚠️ **A készpénzmozgás bekötése egy csendes pénzhibát hozott elő** — a mozgás
+> előjele nem került rá a tárolt összegre, és egy fölözés **növelte** volna a
+> fiók várt tartalmát (`MERESEK.md`, M26). A tanulság nem a hibáról szól, hanem
+> arról, **miért nem látszott**: a szolgáltatásréteg tesztje maga küldte az
+> előjelet, vagyis a saját feltevését ellenőrizte. **Ahol a teszt adja a
+> bemenetet, ott érdemes megnézni, nem a feltevést méri-e.**
+
+1. **Régebbi bizonylat sztornózása** — a kasszáról ma csak a legutóbbi vonható
    vissza. A többihez bizonylatlista, keresés és saját képernyő kell.
-3. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
+2. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
    adag az egyiknek, egy a másiknak); a képernyő ma csak egyenlő osztozást kínál
    egy közös soron.
-4. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
+3. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
    A megosztás már felküldi a rendelést; az asztalos folyamat ezt terjesztené ki.
-5. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
+4. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
 
 ### 7.4 Ami HARDVERRE vár
 

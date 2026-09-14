@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.10.0
+  version: 1.11.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -345,6 +345,175 @@ paths:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
+
+  /pin:
+    post:
+      operationId: pintCserel
+      summary: A SAJAT PIN csereje
+      description: |
+        ⚠️ EZ NELKUL EGY UJ FELHASZNALO EGYALTALAN NEM TUD DOLGOZNI. A belepes
+        valasza pinCsereKotelezo jelzest adhat, es a felulet ilyenkor SEMMIT nem
+        engedhet a csereig - vegpont nelkul viszont a csere sem volt lehetseges.
+        A kezelo egy zsakutcaban allt.
+
+        Miert kotelezo a csere: a felvetelkor adott PIN-t a FELVEVO ismeri. Amig
+        nem cserelik, a "ki nyomta meg" kerdesre a valasz nem az, akire
+        hivatkoznank.
+
+        ⚠️ A JELENLEGI PIN-T IS KERJUK. Nem formasag: a munkamenet egy nyitva
+        hagyott kassza elott is el, es akkor barki atirhatna a bejelentkezett
+        kezelo PIN-jet - vagyis kizarhatna a sajat gepebol, es a nevében
+        dolgozhatna tovabb.
+
+        A jelenlegi PIN ellenorzese ugyanazon az uton megy, mint a belepes:
+        ugyanaz a novekvo varakozas, es a rossz PIN UGYANAZT a 401-et adja.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PinCsereKeres'
+      responses:
+        '200':
+          description: A PIN lecserelve. A kotelezo csere ezzel megszunik.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [lecserelve]
+                properties:
+                  lecserelve:
+                    type: boolean
+        '401':
+          description: |
+            A jelenlegi PIN hibas. UGYANAZ a valasz, mint a sikertelen
+            belepesnel - kulon uzenet megmondana a probalgatonak, melyik felen
+            jar a feladatnak.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          description: Az uj PIN gyenge (tul rovid, csupa azonos jegy, sorozat, gyakori).
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /felhatalmazas:
+    post:
+      operationId: felhatalmazastKer
+      summary: Vezetoi jovahagyas a HELYSZINEN, EGY muveletre
+      description: |
+        A pincer sztornozni akar, de nincs joga. NEM az a megoldas, hogy kilep
+        es az uzletvezeto bejelentkezik - az lassu, es a MUSZAK is
+        osszekeveredne: a bizonylatok hirtelen az uzletvezeto muszakjaba
+        kerulnenek.
+
+        Helyette az uzletvezeto a helyszinen jovahagyja az EGY muveletet, es az
+        auditba MINDKET szemely bekerul. A valaszul kapott azonositot a
+        kezdemenyezo a muvelet keresenek felhatalmazas mezojebe teszi.
+
+        ⚠️ A JOVAHAGYONAK IS PIN-T KELL UTNIE. Enelkul a kero egyszeruen
+        BEIRHATNA a vezetoje azonositojat, es sajat magat hatalmazna fel - a
+        jovahagyas pont annyit erne, mint a hianya.
+
+        ⚠️ A siduri.* kor jovahagyassal SEM gyakorolhato, es nem minden
+        jogosultsag delegalhato egyszeri felhatalmazassal.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FelhatalmazasKeres'
+      responses:
+        '201':
+          description: A felhatalmazas azonositoja
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [felhatalmazas]
+                properties:
+                  felhatalmazas:
+                    $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        '401':
+          description: A jovahagyo PIN-je hibas.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '403':
+          description: |
+            A jovahagyonak sincs meg a jogosultsaga, VAGY a jogosultsag
+            egyszeri felhatalmazassal nem adhato.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /kassza/mozgas:
+    post:
+      operationId: keszpenzmozgas
+      summary: Befizetes, kifizetes, folozes, valtopenz
+      description: |
+        A KASSZA MINDEN MOZDULATANAK VAN OKA, es az ok LISTABOL valasztott.
+        Szabad szovegbol egy ev mulva nem lehet megmondani, hanyszor vittek ki
+        penzt beszerzesre: "beszerzes", "bevasarlas", "boltba mentem" mind
+        ugyanaz - csak a gep szamara nem.
+
+        A JOG A MOZGAS TIPUSAHOZ tartozik, nem a "keszpenzmozgas" fogalmahoz.
+        Egy pultosnak a valtopenz betetele napi munka; a folozes mar a trezor
+        fele mozgat penzt, es az mas felelosseg.
+
+        Az osszeg ELOJELET a szerver adja a tipusbol: a befizetes es a
+        valtopenz pozitiv, a kifizetes es a folozes negativ. Egyetlen osszegzes
+        adja a vart kasszatartalmat, nem tipusonkenti agazas - az utobbi egy
+        elfelejtett aggal csendben hamis szamot adna.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeszpenzmozgasKeres'
+      responses:
+        '200':
+          description: A mozgas rogzitve
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rogzitve]
+                properties:
+                  rogzitve:
+                    type: boolean
+        '403':
+          description: Nincs jogosultsag EHHEZ a mozgastipushoz.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          description: Nulla osszeg, ismeretlen tipus, vagy hianyzo indokkod.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   /indokok/{keszlet}:
     get:
@@ -1013,6 +1182,68 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+    PinCsereKeres:
+      type: object
+      required: [jelenlegiPin, ujPin, eszkozIdo]
+      properties:
+        jelenlegiPin:
+          type: string
+          pattern: '^[0-9]{4,8}$'
+        ujPin:
+          type: string
+          pattern: '^[0-9]{4,8}$'
+          description: |
+            A szerver tovabbi gyengeseget is elutasit: csupa azonos jegy,
+            novekvo vagy csokkeno sorozat, es a gyakori PIN-ek listaja.
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    FelhatalmazasKeres:
+      type: object
+      required: [jovahagyo, jovahagyoPin, jogosultsagKod, eszkozIdo]
+      properties:
+        jovahagyo:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        jovahagyoPin:
+          type: string
+          pattern: '^[0-9]{4,8}$'
+          description: |
+            ⚠️ KOTELEZO. Enelkul a kero beirhatna a vezetoje azonositojat, es
+            sajat magat hatalmazna fel.
+        jogosultsagKod:
+          type: string
+          description: Amire a felhatalmazas szol. EGY muveletre ervenyes.
+        muveletLeiras:
+          type: string
+          description: Mit hagy jova - ez kerul az auditba, a ket szemely neve melle.
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    KeszpenzmozgasKeres:
+      type: object
+      required: [muszak, tipus, osszeg, indokKod, eszkozIdo]
+      properties:
+        muszak:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tipus:
+          type: string
+          enum: [BEFIZETES, KIFIZETES, FOLOZES, VALTOPENZ]
+        osszeg:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: |
+            POZITIV szam. Az elojelet a szerver adja a tipusbol - igy a kliens
+            nem tud "negativ befizetest" kuldeni.
+        indokKod:
+          type: string
+        indokSzoveg:
+          type: string
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
     Indokkod:
       type: object
       required: [kod, megnevezes, szabadSzovegKotelezo, alap]

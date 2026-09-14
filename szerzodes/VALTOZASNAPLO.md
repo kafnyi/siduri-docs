@@ -342,3 +342,43 @@ ugyanazt válassza — és akkor a kód semmit nem érne ott sem, ahol számít.
 kell kilépnie és az üzletvezetőnek belépnie — az lassú, és a műszak is
 összekeveredne. Az üzletvezető a helyszínen jóváhagyja az **egy** műveletet
 (`felhatalmazas` mező), és az auditba **mindkét személy** bekerül.
+
+### v1.11.0 — 2026-09-14 — *PIN-csere, vezetői jóváhagyás, készpénzmozgás* `NEM TÖRŐ`
+
+**Új:** `POST /kassza/v1/pin`, `POST /kassza/v1/felhatalmazas`,
+`POST /kassza/v1/kassza/mozgas`.
+
+**Ezeket már nem egyesével találtuk meg.** A sztornó volt a harmadik olyan
+szolgáltatás, ami készen állt, de HTTP-felület nélkül elérhetetlen volt. Három
+után **rendszeres átvizsgálás** jött: minden állapotot változtató
+szolgáltatásműveletre rákérdeztünk, hívja-e vezérlő. Négy további rést adott,
+ebből három ez a három végpont. *(A negyedik a számlamegosztás.)*
+
+> ⚠️ **A PIN-csere hiánya ZSÁKUTCA volt.** A belépés válasza kötelező cserét
+> jelezhet, és a felület ilyenkor **semmit nem engedhet** a cseréig — cserélni
+> viszont nem lehetett. **Egy újonnan felvett kezelő egyáltalán nem tudott
+> dolgozni.**
+
+**A jelenlegi PIN-t is kérjük a cseréhez.** Nem formaság: a munkamenet egy
+nyitva hagyott kassza előtt is él, és akkor bárki átírhatná a bejelentkezett
+kezelő PIN-jét — vagyis **kizárhatná a saját gépéből**, és a nevében
+dolgozhatna tovább.
+
+> ⚠️ **Az ellenőrzésre beütött PIN-en NEM fut a gyengeség-vizsgálat.** Egy
+> elgépelés simán lehet gyenge alakú („0000"), és ha a gyengeség-kivétel
+> felszállna, az ilyen elgépelés **más választ adna**, mint egy sima rossz PIN —
+> megmondaná a próbálgatónak, melyik bemeneteket veszi egyáltalán figyelembe a
+> rendszer. Ezt a hibát a végpont **első változata elkövette**, és a teszt fogta
+> meg: minden érvénytelen alak ugyanazt a `401`-et kapja. Az **új** PIN-t
+> viszont továbbra is szigorúan vizsgáljuk.
+
+**A jóváhagyónak is PIN-t kell ütnie.** Enélkül a kérő egyszerűen beírhatná a
+vezetője azonosítóját, és **saját magát hatalmazná fel** — a jóváhagyás pont
+annyit érne, mint a hiánya. Önmagát senki nem hagyhatja jóvá: akkor a jóváhagyás
+egy plusz gombnyomás lenne, nem második ember.
+
+**A készpénzmozgás előjelét a szerver adja a típusból**, a kérésben csak pozitív
+szám lehet. Így a kliens nem tud „negatív befizetést" küldeni, ami a várt
+kasszatartalmat csendben elrontaná. **A jog a mozgás típusához tartozik**, nem a
+„készpénzmozgás" fogalmához: a váltópénz betétele napi munka, a fölözés már a
+trezor felé mozgat pénzt.

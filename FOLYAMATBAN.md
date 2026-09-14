@@ -904,14 +904,61 @@ trailer nélkül.**
 > előjelet, vagyis a saját feltevését ellenőrizte. **Ahol a teszt adja a
 > bemenetet, ott érdemes megnézni, nem a feltevést méri-e.**
 
-1. **Régebbi bizonylat sztornózása** — a kasszáról ma csak a legutóbbi vonható
-   vissza. A többihez bizonylatlista, keresés és saját képernyő kell.
-2. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
+> ⚠️ **A RÉGEBBI BIZONYLATOK SZTORNÓJA UGYANEZT HOZTA, MÉG SÚLYOSABBAN.** A
+> képernyő megépítése előtt megnéztem, **biztonságos-e egyáltalán** egy tegnapi
+> nyugtát visszavonni. Nem volt az: a sztornó a **lezárt** nap **lezárt**
+> műszakába került, és **visszamenőleg átírta** egy már elszámolt kassza számát
+> (`MERESEK.md`, M27). Ehhez jött, hogy a `sztorno.mas_muszakbol` jogosultság a
+> katalógusban **létezett**, sablonban is **ki volt osztva** — és a kód **soha
+> nem hivatkozott rá**.
+>
+> ⚠️ **ÚJ SÖPRÉS, amit ezentúl minden körben le kell futtatni:** a katalógusban
+> lévő jogosultságkódok és a kódban **ténylegesen ellenőrzött** kódok halmaza
+> eltérhet, és az eltérés **néma**. Egy teszt bizonyítja, hogy minden
+> *hivatkozott* kód létezik a katalógusban — a **fordított** irányt semmi nem
+> bizonyítja.
+>
+> ```
+> # katalogusbeli kodok, amiket a kod SOHA nem ellenoriz
+> grep -o "('[a-z_]*\.[a-z_]*'" R__jogosultsag_katalogus.sql | tr -d "('" | sort -u \
+>   > /tmp/katalogus
+> grep -rho "Jogosultsagkodok\.[A-Z_]*" --include=*.java src/main | sort -u > /tmp/hivatkozott
+> # a Jogosultsagkodok.java-n at osszevetve: amelyik kodhoz nincs hivatkozott
+> # konstans, azt a szerver SOHA nem koveteli meg
+> ```
+>
+> **Az első futás eredménye:** 84 katalóguskódból **69** nincs ellenőrizve. A
+> többség olyan funkcióhoz tartozik, ami **még nem épült meg** (készlet, riport,
+> törzsadat-kezelés) — az rendben van. **Öt viszont ÉLŐ kódútra vonatkozik**,
+> és ezeket a `rendelestLezar` **egyáltalán nem ellenőrzi**:
+
+| Jogosultság | Mit enged ma bárkinek | Miért fáj |
+|-------------|----------------------|-----------|
+| `kedvezmeny.vegosszeg` | Tetszőleges végösszeg-kedvezmény | **A klasszikus visszaélési út.** A pincér a vendégtől teljes árat kér, a gépbe kedvezményt üt |
+| `kedvezmeny.kuszob_felett` | Küszöb feletti kedvezmény | A küszöb pont az a határ, ami fölött vezetőnek kellene jóváhagynia |
+| `szervizdij.modositas` | A szervizdíj átírása | A felszolgálói jutalék alapja |
+| `eladas.szamla_keres` | Nyugta helyett számla | Más adóügyi út, más bizonylat |
+| `kassza.borravalo_kifizetes` | Borravaló kifizetése a fiókból | Pénz a fiókból, jog nélkül |
+
+> **A javítás NEM ebben a körben történt**, mert nem a régebbi bizonylatok
+> sztornójához tartozik — de **ki van mondva, és a következő tétel**. **ÁRA:**
+> amíg nincs javítva, ezek a műveletek a kasszán **jogosultság-ellenőrzés
+> nélkül** mennek át. A szerep-sablonok ki vannak osztva, tehát a *szándék*
+> megvan — csak nem érvényesül.
+
+1. ✅ **Régebbi bizonylat sztornózása** — **KÉSZ** *(szerződés v1.14.0)*. Két új
+   végpont (`GET /bizonylatok/szam/{n}` riportjog nélkül, `GET /bizonylatok`
+   riportjoggal), `BizonylatkeresoKepernyo` a kasszán, a sztornó pedig a
+   **nyitott** napra és a **saját** műszakba kerül. A `sztorno.mas_muszakbol`
+   jog végre ténylegesen ellenőrzött.
+2. ⚠️ **Az öt ellenőrizetlen jogosultság a lezáráson** — lásd a fenti táblát.
+   **Ez a legközelebbi tétel.**
+3. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
    adag az egyiknek, egy a másiknak); a képernyő ma csak egyenlő osztozást kínál
    egy közös soron.
-3. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
+4. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
    A megosztás már felküldi a rendelést; az asztalos folyamat ezt terjesztené ki.
-4. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
+5. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
 
 ### 7.4 Ami HARDVERRE vár
 

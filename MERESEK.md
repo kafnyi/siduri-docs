@@ -309,6 +309,79 @@ vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosa
 a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
 egyezzen, az áfa kerekedjen.
 
+### `[x]` M27 — A sztornó a lezárt napra és a lezárt műszakba került `MÉRVE, JAVÍTVA`
+
+**Ez sem terv szerinti mérés volt:** a *régebbi bizonylatok sztornózása*
+építése előtt azt akartam ellenőrizni, **biztonságos-e egyáltalán** egy tegnapi
+nyugtát visszavonni. Nem volt az.
+
+A sztornó az **eredeti** bizonylat üzleti napját és **eredeti** műszakját
+örökölte. Élő szerveren mérve:
+
+```
+   eredeti üzleti napja : 2026-10-24
+   sztornó üzleti napja : 2026-10-24
+   a NYITOTT nap        : 2026-10-25
+   a sztornó műszakja   : … állapota: LEZART
+   ⚠️ A SZTORNÓ A LEZÁRT MŰSZAKBA KERÜLT.
+   Az 1. műszak várt készpénze MOST: -1200 Ft
+   A záráskor rögzített várt érték : 1200 Ft
+   ⚠️⚠️ A LEZÁRT MŰSZAK SZÁMA VISSZAMENŐLEG MEGVÁLTOZOTT.
+```
+
+**Három seb, és mindhárom néma volt:**
+
+| # | Mi történt | Miért súlyos |
+|---|-----------|--------------|
+| 1 | A **lezárt** műszak várt készpénze 1 200 → −1 200 Ft | Egy elszámolt, **átadott** kassza száma módosult az átadás **után**. Aki aláírta, már nem azt írta alá, ami ott van |
+| 2 | A bizonylatszám a lezárt nap sorozatából folytatódott | A szám előtagja **maga az üzleti nap** (`yyMMdd`): egy **ma** kiadott bizonylat egy **már lejelentett nap** számsorát toldotta meg |
+| 3 | A pénz **ma** jött ki a fiókból, a hiánya tegnapra könyvelődött | A mai kassza bevétele többet mutat, mint ami benne van — és a különbözetet a **mai** műszakon keresik |
+
+**És egy negyedik, amit csak a javítás közben talált meg a számolás.** A várt
+készpénz adatbázisfüggvénye **kihagyta** a sztornózott bizonylatokat
+(`b.allapot <> 'SZTORNOZOTT'`), miközben a sztornó **saját negatív
+fizetéssorai** ugyanabban a műszakban voltak. Két külön mechanizmus ugyanarra
+a visszavonásra. A régi és az új képlet valós sorokon összevetve:
+
+| Eset | Régi képlet | Helyes |
+|------|------------|--------|
+| 1 000 Ft-os nyugta saját műszakban sztornózva | **−1 000 Ft** | **0 Ft** |
+| 1 270 Ft-os nyugta saját műszakban sztornózva | **−1 270 Ft** | **0 Ft** |
+
+Vagyis a kihagyás nem is a lezárt napnál kezdett el hazudni, hanem **már
+ugyanabban a műszakban is**: a fiók mínuszban állt egy olyan visszavonás után,
+ami után pontosan ott kellett volna lennie, ahol azelőtt.
+
+**A javítás nem kivételez, hanem összead.** A sztornó önálló bizonylat,
+negatív fizetéssorokkal, abban a műszakban, ahol a pénz **ténylegesen** kijön
+a fiókból *(V17 migráció)*:
+
+| | 1. műszak | 2. műszak |
+|---|---|---|
+| Ugyanabban a műszakban visszavonva | +1 200 − 1 200 = **0 Ft** | — |
+| Másnap visszavonva | **+1 200 Ft** *(ennyi volt a fiókban záráskor)* | **−1 200 Ft** *(ennyi megy ki ma)* |
+
+**Miért nem fogta meg teszt — harmadszor ugyanaz a minta.** 384 zöld teszt
+futott, és a sztornó-fixek után **egyetlen sem lett piros**. A sztornó tesztjei
+azt nézték, **keletkezik-e** negatív bizonylat, azt nem, hogy **hova**. A
+javítást megelőzően megírt nyolc új teszt közül **öt azonnal piros lett** a
+régi kóddal — vagyis nem az volt a baj, hogy nehéz mérni, hanem hogy senki nem
+nézett oda.
+
+**Egy negyedik lelet, ugyanebből a körből:** a `sztorno.mas_muszakbol`
+jogosultság a katalógusban **létezett**, az ÜZLETVEZETŐ sablonjában **benne
+volt** — és a kód **sehol nem hivatkozott rá**. Egy műszakfelelős a saját mai
+nyugtáját és a tegnap estit ugyanazzal az **egy** joggal vonhatta vissza. A
+megadott jog nem az, amit érvényesítünk: **ami nincs ellenőrizve, az nincs.**
+
+> ⚠️ **Tanulság a következő körre:** a jogosultságkódok katalógusa és a kódban
+> ténylegesen ellenőrzött kódok halmaza **eltérhet**, és az eltérés néma. Egy
+> teszt bizonyítja, hogy minden *hivatkozott* kód létezik a katalógusban — a
+> fordított irányt (**minden katalóguskódot ellenőriz-e valaki**) semmi nem
+> bizonyítja. Ezt a söprést is fel kell venni a köri ellenőrzésbe.
+
+---
+
 ### `[x]` M26 — A készpénzmozgás előjelének hiánya `MÉRVE, JAVÍTVA`
 
 **Nem terv szerinti mérés volt:** a készpénzmozgás képernyőjének bekötésekor

@@ -452,3 +452,55 @@ elcsúszni attól, amiből a bizonylat készül.
 osztva (a harmadik soron ketten osztoznak) → 1 575 + 2 775 = 4 350 Ft; az első
 rész fizet; **a kliens „újraindul"**; a maradék **kizárólag az állapot-végpontból**
 kifizethető volt.
+
+---
+
+### v1.14.0 — 2026-09-14 — *régebbi bizonylat megkeresése, és a sztornó helyre kerül* ⚠️ `TÖRŐ, DE KIADÁS ELŐTT`
+
+**Miért nem volt jó az előző:** a kasszán **nem lehetett megtalálni egy
+korábbi bizonylatot**. A sztornó végpontja bizonylat-**azonosítót** kér — azt
+viszont csak az a kliens ismerte, amelyik az eladást maga zárta le. A másnap
+visszatérő vendég a kezében tartotta a nyugtát, a pincér a számot be tudta
+volna ütni, de **nem volt hova**. A szabály megvolt, az odavezető út nem.
+
+**Új végpontok:**
+
+| Végpont | Jog | Miért így |
+|---------|-----|-----------|
+| `GET /bizonylatok/szam/{siduriBizonylatszam}` | **nincs riportjog** | Aki a számot be tudja ütni, az a papírt is látja. A riportjog ott védene, ahol nincs mit védeni |
+| `GET /bizonylatok` | `riport.napi_forgalom` | A **teljes nap** végigböngészése forgalmi adat, akkor is, ha sztornózni akarnak belőle |
+
+Mindkettő **fejlécet** ad (`BizonylatFejlec`), nem teljes bizonylatot: szám,
+idő, végösszeg, állapot. Amit nem küldünk el, azt nem is kell védeni.
+
+**A törő rész — a sztornó helye megváltozott.** A sztornó eddig az **eredeti**
+bizonylat üzleti napjára és **eredeti** műszakjába került. **Mérve, élő
+szerveren**, három seb, mindhárom néma *(MERESEK.md M27)*:
+
+1. A már elszámolt, **lezárt** műszak várt készpénze **visszamenőleg
+   megváltozott**: 1 200 Ft → −1 200 Ft. Egy átadott kassza száma módosult az
+   átadás után.
+2. A bizonylatszám **előtagja maga az üzleti nap** (`yyMMdd`), tehát egy **ma**
+   kiadott bizonylat egy **már lejelentett nap** számsorát toldotta meg.
+3. A pénz **ma** jön ki a fiókból, a hiánya viszont tegnapra könyvelődött — a
+   különbözetet a mai műszak vállán keresték volna.
+
+**Amit a kliensnek tudnia kell:**
+
+- a válaszban kapott sztornó száma **mai előtagot** visel, nem az eredetiét —
+  a kettőt ne hasonlítsa össze;
+- **nyitott műszak nélkül** a sztornó `409 NINCS_NYITOTT_MUSZAK`: csukott
+  fiókból nem jön ki pénz;
+- az eredeti bizonylat üzleti napja és műszakja **változatlan marad**.
+
+**Más műszak bizonylatához külön jog kell** (`sztorno.mas_muszakbol`) a
+`sztorno.bizonylat` mellett. ⚠️ **Ez a jog a katalógusban eddig is ott volt, az
+ÜZLETVEZETŐ sablonjában is — de a kód sehol nem hivatkozott rá.** Egy
+műszakfelelős a saját mai nyugtáját és a tegnap estit *ugyanazzal az egy
+joggal* vonhatta vissza. Ami nincs ellenőrizve, az nincs.
+
+**Új hibakód:** `TOBB_JOGOSULTSAG_HIANYZIK` (403). A helyszíni jóváhagyás
+**egy** jogot pótol, nem kettőt: egyetlen kódra szól, és egyszer használható
+fel. Ha a kezelőnek mindkét jog hiányzik, a kliens **ne kérjen jóváhagyást** —
+a vezető odaállna, jóváhagyná, és a művelet a második kapun mégis elhasalna,
+már elhasznált jóváhagyással.

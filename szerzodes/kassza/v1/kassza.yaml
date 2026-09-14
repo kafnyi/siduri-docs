@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.13.0
+  version: 1.14.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -815,6 +815,80 @@ paths:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
+  /bizonylatok/szam/{siduriBizonylatszam}:
+    get:
+      operationId: bizonylatSzamSzerint
+      summary: Egy bizonylat a Siduri bizonylatszama alapjan
+      description: |
+        EZ AZ, AMI A VENDEG KEZEBEN VAN. A masnap visszatero vendeg hozza a
+        nyugtat, es a pincer a szamot uti be.
+
+        ⚠️ EZ A KERESES NEM IGENYEL RIPORTJOGOT - szemben a nap teljes
+        listajaval. Aki a szamot be tudja utni, az a papirt is latja; a
+        riportjog ott vedene, ahol nincs mit vedeni.
+
+        A valasz FEJLEC, nem teljes bizonylat: szam, ido, vegosszeg, allapot.
+        Amit nem kuldunk el, azt nem is kell vedeni. Az allapotbol latszik,
+        hogy a bizonylatot mar sztornoztak-e.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - name: siduriBizonylatszam
+          in: path
+          required: true
+          schema:
+            type: string
+          description: A nyugtan szereplo Siduri bizonylatszam.
+      responses:
+        '200':
+          description: A megtalalt bizonylat fejlece
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BizonylatFejlec'
+        '404':
+          description: Nincs ilyen szamu bizonylat ezen a telephelyen.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /bizonylatok:
+    get:
+      operationId: napBizonylatai
+      summary: A nyitott uzleti nap bizonylatai
+      description: |
+        A nap forgalmanak listaja, legujabb elol - ezert RIPORTJOGHOZ KOTOTT
+        (riport.napi_forgalom), szemben a szamra keresessel. Aki egy konkret
+        nyugtat akar visszavonni, annak a szam eleg.
+
+        CSAK A NYITOTT NAP. A lezart napok bizonylatainak listazasa riport, nem
+        kasszamuvelet - az a webes adminra tartozik. A lezart nap egy konkret
+        bizonylata tovabbra is elerheto szam szerint.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+      responses:
+        '200':
+          description: A nyitott nap bizonylatai, legujabb elol
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BizonylatFejlec'
+        '403':
+          description: Nincs riport.napi_forgalom jogosultsag.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          description: Nincs nyitott uzleti nap.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
   /bizonylatok/{bizonylatAzonosito}/sztorno:
     post:
       operationId: bizonylatotSztornoz
@@ -831,10 +905,31 @@ paths:
         muvelet nem indul el csendben: az tamogatoi eset, az eszkoz sajat
         naplojabol feloldva.
 
+        ⚠️ A SZTORNO A NYITOTT NAPRA ES A SAJAT NYITOTT MUSZAKBA KERUL, nem az
+        eredetieibe. A penz MOST jon ki a fiokbol, tehat ott is kell
+        megjelennie. Ebbol harom dolog kovetkezik a kliensre nezve:
+          - a valaszban kapott bizonylat szamanak ELOTAGJA A MAI NAP (yyMMdd),
+            nem az eredetie - a kettot ne hasonlitsa ossze;
+          - NYITOTT MUSZAK NELKUL a sztorno 409-cel elutasitasra kerul
+            (NINCS_NYITOTT_MUSZAK): csukott fiokbol nem jon ki penz;
+          - az eredeti bizonylat uzleti napja es muszakja VALTOZATLAN marad.
+
+        ⚠️ MAS MUSZAKBOL VALO SZTORNOHOZ KULON JOG KELL
+        (sztorno.mas_muszakbol) a sztorno.bizonylat MELLETT. A sajat
+        muszakban az imenti elgepeles visszavonasa a normalis munka resze; egy
+        mar elszamolt muszak bizonylata utolagos beavatkozas.
+
         VEZETOI JOVAHAGYAS: ha a kezdemenyezonek nincs sztornojoga, nem kell
         kilepnie es az uzletvezetonek belepnie - az lassu, es a muszak is
         osszekeveredne. Az uzletvezeto a helyszinen jovahagyja az EGY
         muveletet (felhatalmazas mezo), es az auditba MINDKET szemely bekerul.
+
+        ⚠️ A JOVAHAGYAS EGY JOGOT POTOL, NEM KETTOT. A felhatalmazas egyetlen
+        kodra szol es egyszer hasznalhato fel. Ha a kezelonek MINDKET jog
+        hianyzik (sztorno.bizonylat ES sztorno.mas_muszakbol), a szerver
+        TOBB_JOGOSULTSAG_HIANYZIK kodu 403-at ad, es a kliensnek NEM szabad
+        jovahagyast kernie: a vezeto odaallna, jovahagyna, es a muvelet a
+        masodik kapun megis elhasalna - mar elhasznalt jovahagyassal.
       parameters:
         - $ref: '#/components/parameters/Eszkoz'
         - $ref: '#/components/parameters/Epoch'
@@ -859,13 +954,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/Bizonylat'
         '403':
-          description: Nincs sztornojog, es vezetoi jovahagyas sem erkezett.
+          description: >
+            Nincs sztornojog es vezetoi jovahagyas sem erkezett
+            (NINCS_JOGOSULTSAG), vagy ket jog is hianyzik, amit egyetlen
+            jovahagyas nem potol (TOBB_JOGOSULTSAG_HIANYZIK).
           content:
             application/json:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
         '409':
-          description: A bizonylat mar sztornozva van.
+          description: >
+            A bizonylat mar sztornozva van (MAR_SZTORNOZVA), vagy nincs nyitott
+            muszak, amibol a penz kijohetne (NINCS_NYITOTT_MUSZAK).
           content:
             application/json:
               schema:
@@ -2052,6 +2152,46 @@ components:
           $ref: '../../kozos/penz.yaml#/components/schemas/ValutaOsszeg'
         arfolyam:
           $ref: '../../kozos/penz.yaml#/components/schemas/Arfolyam'
+      additionalProperties: false
+
+    BizonylatFejlec:
+      title: BizonylatFejlec
+      description: |
+        Egy bizonylat annyi mezovel, amennyi a MEGTALALASAHOZ kell.
+
+        SZANDEKOSAN KEVESEBB, MINT A Bizonylat: nincs benne tetelsor,
+        afabontas, fizetes. A kereses celja az, hogy a kezelo kivalassza a
+        helyes nyugtat - ehhez a szam, az ido es a vegosszeg eleg. Amit nem
+        kuldunk el, azt nem is kell vedeni.
+
+        Az allapotbol latszik, hogy a bizonylatot MAR SZTORNOZTAK-e: a
+        SZTORNOZOTT alkalmatlan ujabb sztornora.
+      type: object
+      required:
+        [azonosito, siduriBizonylatszam, adougyiBizonylatszam, allapot, tipus,
+         mod, vegosszeg, szerverIdo]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        siduriBizonylatszam:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/SiduriBizonylatszam'
+        adougyiBizonylatszam:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/AdougyiBizonylatszam'
+          description: Nyomtatas elott, es adougyi nyomtatas nelkuli uton null.
+        allapot:
+          type: string
+          enum: [NYOMTATASRA_VAR, KINYOMTATVA, NYOMTATASI_HIBA, SZTORNOZOTT]
+        tipus:
+          $ref: '#/components/schemas/BizonylatTipus'
+        mod:
+          $ref: '#/components/schemas/BizonylatMod'
+        vegosszeg:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: Sztorno bizonylatnal NEGATIV.
+        szerverIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
       additionalProperties: false
 
     Bizonylat:

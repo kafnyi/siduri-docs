@@ -551,3 +551,41 @@ viszont soha nem állította elő**. A készpénzes borravalót így egy sima
 `KIFIZETES`-ként vitték ki, a `kassza.kifizetes` joggal. A kettő nem ugyanaz: a
 beszerzésre kivitt pénz a **vállalkozásé**, a borravaló a **személyzeté**. Más
 felelősség — és a borravaló-riport is csak így tud külön számot mondani.
+
+---
+
+### v1.16.0 — 2026-09-14 — *kedvezmény-felület a kasszán, és a telephelyi küszöbök lekérdezhetők*
+
+**Miért nem volt jó az előző:** a v1.15.0 óta a szerver helyesen ellenőrzi a
+lezárás négy jogosultságát — a POS-kliensnek viszont **nem volt** kedvezmény-,
+szervizdíj- és számlaigény-felülete. A szabály megvolt, a hozzá vezető út nem;
+ugyanaz a minta, mint a sztornónál és a nap-/műszaknyitásnál.
+
+**Új végpont — `GET /beallitasok`:**
+
+| | |
+|---|---|
+| Mit ad | `kedvezmenyIndokSzazalek`, `szervizdijMegerositesSzazalek` |
+| Jogosultság | **nincs** — ez nem forgalmi adat, hanem a telephely szabálya |
+
+⚠️ **Miért kell egyáltalán:** a kassza a kedvezmény beütésekor — **a kérés
+elküldése előtt** — meg akarja mondani a kezelőnek, hogy kell-e indok és
+vezetői jóváhagyás. Kódba égetve ezek egy hónap múlva mást mutatnának, mint
+amit a szerver elfogad, és a kezelő a **szerver elutasításából** tudná meg,
+a vendég előtt.
+
+**A `Szazalek` protokoll-alakja külön a megjelenítési alaktól.** A magyar
+szövegbe való `10,00%` jel a szerződés mintáján (`^[0-9]{1,3}\.[0-9]{2}$`)
+elbukik. Ezt a **saját tesztem fogta meg** az első futáson; a mintát mostantól
+külön állítás is őrzi.
+
+**Új közös tesztvektorok: `kedvezmeny.json` (8 eset).** A kassza a
+fizetőképernyőn **kiírja a fizetendőt**, mielőtt a szerver válasza megérkezne.
+Ha a két számítás egy forintban eltér, a szerver a lezárást *„a fizetés nem
+egyezik"* hibával utasítja el — a vendég előtt, készpénzzel a kézben. A
+vektorok az egyetlen dolog, ami a két megvalósítást együtt tartja.
+
+**A vektorfájlok mostantól a lenyomatjegyzékben is benne vannak.** Eddig csak a
+`*.yaml` szerepelt, tehát egy **kézzel átírt tesztvektor észrevétlen maradt**
+volna — pont az, ami a két nyelv egyezését bizonyítja. A kliens tesztje ezt
+mindvégig ellenőrizte; csak soha nem futott le *(lásd `MERESEK.md` M29)*.

@@ -309,6 +309,55 @@ vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosa
 a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
 egyezzen, az áfa kerekedjen.
 
+### `[x]` M29 — A C# kliens SOHA nem fordult le, és a pénzszabályok egyezése feltevés volt `MÉRVE`
+
+**A környezet megváltozott, és ez a legfontosabb sor ebben a bejegyzésben:**
+a .NET SDK telepíthető ebbe a környezetbe (`dotnet-install.sh --channel 8.0`),
+és a WPF-kliens is fordul rajta a `-p:EnableWindowsTargeting=true` kapcsolóval.
+**Eddig minden C# munka fordítás nélkül készült** — a helyettesítő ellenőrzés
+(XAML-jólformáltság, kötésnevek, zárójel-egyensúly) hasznos volt, de nem az.
+
+**Amit az első fordítás azonnal kiadott — két, régóta bent ülő hiba:**
+
+| Hol | Mi | Miért nem látszott |
+|-----|----|--------------------|
+| `KozosVektorokTeszt.cs` | Egy teszt **metódus neve** (`Sorosszeg`) elfedte az azonos nevű **osztályt**, amit hívni akart | Csak a fordító látja |
+| `FizetestervTeszt.cs` | xUnit-elemzői hiba (`Where` az `Assert.Single` előtt), és a projekt **hibává** minősíti a figyelmeztetéseket | Csak a fordító látja |
+
+**Vagyis a kliens tesztkészlete soha nem futott le.** Ez azt is jelenti, hogy
+egy ott ülő, kész ellenőrzés — *„minden szerződésfájl szerepel a
+lenyomatjegyzékben"* — **némán állt**. Amikor végre lefutott, azonnal igazat
+mondott: a `tesztvektorok/*.json` fájlok **nem** voltak a jegyzékben, tehát egy
+kézzel átírt vektor észrevétlen maradt volna.
+
+> ⚠️ **A tanulság nem az, hogy a tesztek jók.** Az, hogy **egy teszt, ami nem
+> fut, pontosan annyit ér, mint a hiánya** — de közben azt az érzést kelti,
+> hogy a terület le van fedve. Ez rosszabb, mint ha ott sem lenne.
+
+**A pénzszabályok egyezése: 500 esetes differenciál-mérés.**
+
+A kedvezményszámítás mostantól **két nyelven** él (Java szerver, C# kassza),
+mert a kassza a fizetőképernyőn kiírja a fizetendőt, mielőtt a szerver válasza
+megérkezne. Az eltérés ára nem elméleti: a szerver *„a fizetés nem egyezik"*
+hibával utasítja el a lezárást — a vendég előtt, készpénzzel a kézben.
+
+| | |
+|---|---|
+| Véletlen esetek | **500** (1–4 áfakulcs, százalékos/fix/nincs kedvezmény, 0–100% szervizdíj, borravaló) |
+| Összehasonlítva | áfacsoportonkénti bruttó, áruk összege, végösszeg |
+| **Eltérés** | **0** |
+
+A 8 kézzel írt közös vektor *(`kedvezmeny.json`)* a nehéz eseteket rögzíti — a
+maradék szétosztását, a holtverseny feloldását, a szervizdíj alapját, a nem
+bontható kategóriát —, a 500 véletlen eset pedig azt mutatja, hogy a két
+megvalósítás **nem csak a kiválasztott pontokon** egyezik.
+
+> ⚠️ `[MÉRENDŐ]` **A WPF-felület továbbra sem FUT itt, csak fordul.** A
+> képernyők tényleges viselkedését — fókusz, érintés, kiosztás a J1900-on —
+> csak valódi gépen lehet megnézni *(F0.3)*.
+
+---
+
 ### `[x]` M28 — A lezárás egyetlen jogosultságot sem ellenőrzött `SÖPRÉSSEL TALÁLVA, JAVÍTVA`
 
 **Ez nem mérés volt, hanem söprés** — az M27 tanulságából született új köri

@@ -966,17 +966,42 @@ trailer nélkül.**
    `TOBB_JOGOSULTSAG_HIANYZIK` hibakód, és a kapu **egy helyen**
    (`JogosultsagSzolgaltatas.kaput`) — a sztornó és a lezárás ugyanazt
    használja, hogy a szabály ne csússzon szét.
-3. ⚠️ **Kedvezmény-felület a kasszán** — a szerver most már helyesen
-   ellenőrzi, a POS-kliensnek viszont **nincs** kedvezmény-, szervizdíj- és
-   számlaigény-képernyője. **ÁRA:** a négy lezárási jog a gyakorlatban addig
-   nem gyakorolható erről a kasszáról; a jóváhagyás útja megvan a
-   szerződésben, de nincs mit jóváhagyni.
+3. ✅ **Kedvezmény-felület a kasszán** — **KÉSZ** *(szerződés v1.16.0)*.
+   `KedvezmenyKepernyo` a fizetés **előtt** (a kedvezmény megváltoztatja a
+   fizetendőt), a számítás a magban (`BizonylatSzamito`), új `GET
+   /beallitasok` végpont a telephelyi küszöbökre, és a helyszíni jóváhagyás
+   útja végig. A képernyő **előre megmondja**, mihez kell vezető — a pincér
+   nem a vendég előtt tudja meg.
 4. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
    adag az egyiknek, egy a másiknak); a képernyő ma csak egyenlő osztozást kínál
    egy közös soron.
 5. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
    A megosztás már felküldi a rendelést; az asztalos folyamat ezt terjesztené ki.
 6. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
+
+> ⚠️ **A KÖRNYEZET MEGVÁLTOZOTT: a C# kliens mostantól FORDÍTHATÓ ÉS
+> TESZTELHETŐ itt.** Eddig minden C# munka fordítás nélkül készült; a
+> helyettesítő ellenőrzés (XAML-jólformáltság, kötésnevek, zárójel-egyensúly)
+> hasznos volt, de nem az.
+>
+> ```
+> curl -sSL -o dotnet-install.sh https://dot.net/v1/dotnet-install.sh
+> ./dotnet-install.sh --channel 8.0 --install-dir /opt/dotnet
+> dotnet test tesztek/Siduri.Pos.Mag.Tesztek/Siduri.Pos.Mag.Tesztek.csproj
+> dotnet build src/Siduri.Pos.Kliens -p:EnableWindowsTargeting=true   # WPF Linuxon
+> ```
+>
+> **Az első fordítás azonnal két hibát adott ki** — mindkettő csak fordítóval
+> látható, és emiatt a kliens tesztkészlete **soha nem futott le**. Egy ott ülő,
+> kész ellenőrzés (*„minden szerződésfájl a lenyomatjegyzékben"*) így némán
+> állt; amint lefutott, igazat mondott. *(`MERESEK.md` M29)*
+>
+> **A tanulság nem az, hogy a tesztek jók.** Az, hogy **egy teszt, ami nem fut,
+> pontosan annyit ér, mint a hiánya** — de közben azt az érzést kelti, hogy a
+> terület le van fedve.
+>
+> ⚠️ **A WPF-felület továbbra sem FUT itt, csak fordul.** A tényleges
+> viselkedés valódi gépet igényel.
 
 ### 7.4 Ami HARDVERRE vár
 

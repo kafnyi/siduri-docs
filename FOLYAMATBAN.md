@@ -849,7 +849,7 @@ trailer nélkül.**
 | **Címletszámláló** | Műszaknyitás leszámolással, műszak- és napzárás a felületről | `CimletbontasTeszt`; a vakzárás élesben, nyers válaszon ellenőrizve |
 | **Sztornó** | Tételtörlés, bizonylat-visszavonás, indokválasztó a szerver kódjaival | `SztornoVegpontTest` (9 eset); a teljes út élesben végigvíve |
 | **PIN-csere** | Kötelező csere belépés után, megkerülhetetlenül | `KezeloVegpontTest` |
-| **Vezetői jóváhagyás** | Egy műveletre, a jóváhagyó PIN-jével | `KezeloVegpontTest`: önmagát senki nem hagyhatja jóvá |
+| **Vezetői jóváhagyás** | Egy műveletre, a jóváhagyó PIN-jével — **a kasszáról is** | `KezeloVegpontTest` (11 eset); a pincér→vezető út élesben |
 | **Készpénzmozgás** | Befizetés, kifizetés, fölözés, váltópénz — típusonkénti joggal | `KezeloVegpontTest` |
 | **Számlamegosztás** | Egyenlő és tételes osztás, részenkénti fizetés, **félbehagyás és folytatás** | `MegosztasVegpontTest` (7 eset); az újraindulás utáni folytatás élesben |
 
@@ -896,19 +896,17 @@ trailer nélkül.**
 > fog valamit, hanem mert a hiány fajtája ilyen: nem látszik, amíg valaki
 > bele nem fut.
 
-1. **Vezetői jóváhagyás a kasszán** — a végpont megvan (`POST /felhatalmazas`),
-   a sztornó képernyője még nem ajánlja fel. Ma a jog nélküli kezelő csak
-   elutasítást kap, pedig a jóváhagyás pont azért van, hogy ne kelljen
-   kilépnie — és a műszak se keveredjen össze.
-2. **Készpénzmozgás képernyője** — a végpont megvan, a felületen nincs gomb.
-3. **Régebbi bizonylat sztornózása** — a kasszáról ma csak a legutóbbi vonható
+1. **Készpénzmozgás képernyője** — a végpont megvan (`POST /kassza/mozgas`), a
+   felületen nincs gomb. A váltópénz betétele és a fölözés napi munka; ma
+   egyiket sem lehet rögzíteni a kasszáról.
+2. **Régebbi bizonylat sztornózása** — a kasszáról ma csak a legutóbbi vonható
    vissza. A többihez bizonylatlista, keresés és saját képernyő kell.
-4. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
+3. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
    adag az egyiknek, egy a másiknak); a képernyő ma csak egyenlő osztozást kínál
    egy közös soron.
-5. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
+4. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
    A megosztás már felküldi a rendelést; az asztalos folyamat ezt terjesztené ki.
-6. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
+5. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
 
 ### 7.4 Ami HARDVERRE vár
 

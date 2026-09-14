@@ -847,6 +847,7 @@ trailer nélkül.**
 | **POS főképernyő** | Termékrács, kosár, végösszeg, nap- és műszaknyitás | Bekötve |
 | **Fizetőképernyő** | Vegyes fizetés, ötforintos kerekítés, visszajáró, címletgombok | `FizetestervTeszt`, benne a szerver ellenőrzését utánzó invariáns |
 | **Címletszámláló** | Műszaknyitás leszámolással, műszak- és napzárás a felületről | `CimletbontasTeszt`; a vakzárás élesben, nyers válaszon ellenőrizve |
+| **Sztornó** | Tételtörlés, bizonylat-visszavonás, indokválasztó a szerver kódjaival | `SztornoVegpontTest` (9 eset); a teljes út élesben végigvíve |
 
 **Szerződés:** `kassza` v1.8.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
 **indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
@@ -862,13 +863,22 @@ trailer nélkül.**
 
 ### 7.3 A KÖVETKEZŐ TÉTEL
 
-1. **Sztornó a felületen** — a szerveroldal kész (`SztornoSzolgaltatasTest`), a
-   kassza „Sztornó" gombja jelenleg csak a kosarat üríti: egy már kiadott
-   bizonylatot nem tud visszavonni.
-2. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
+> ⚠️ **HÁROMSZOR FORDULT ELŐ UGYANAZ, tehát nem véletlen.** A belépés, a nap- és
+> műszaknyitás, majd a sztornó **mind készen állt a szolgáltatásrétegben, HTTP-
+> felület nélkül** — vagyis a kassza nem érte el őket, és semmi nem volt piros.
+> A szolgáltatásréteg tesztjei saját magukat hívják, nem a klienst. A védelem
+> nem több teszt, hanem **más fajta**: olyan, ami a kliens útján megy végig.
+> **Minden további szolgáltatásnál ezt kell először megnézni.**
+
+1. **Vezetői jóváhagyás a helyszínen** — a szerver ismeri (`felhatalmazas` mező),
+   a kassza még nem kínálja fel. Ma a jog nélküli kezelő csak elutasítást kap,
+   pedig a jóváhagyás pont azért van, hogy ne kelljen kilépnie.
+2. **Régebbi bizonylat sztornózása** — a kasszáról ma csak a legutóbbi vonható
+   vissza. A többihez bizonylatlista, keresés és saját képernyő kell.
+3. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
    Egy órákig élő, több kezelő által piszkált rendelés ezt nem bírja; az a
    szerveren tartott rendelést igényel.
-3. **Árfolyamforrás**, és utána a valutás fizetés. Enélkül a valuta nem
+4. **Árfolyamforrás**, és utána a valutás fizetés. Enélkül a valuta nem
    kínálható fel — lásd a 7.2 szakaszt.
 
 ### 7.4 Ami HARDVERRE vár

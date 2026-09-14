@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.12.0
+  version: 1.13.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1932,21 +1932,40 @@ components:
     MegosztasAllapot:
       title: MegosztasAllapot
       type: object
-      required: [mod, reszekSzama, fizetett]
+      required: [mod, reszekSzama, reszek]
       properties:
         mod:
           type: string
           enum: [EGYENLO, TETELES]
         reszekSzama:
           type: integer
-        fizetett:
+        reszek:
           type: array
-          description: |
-            Reszenkent, 1-tol sorrendben. A felulet ebbol tudja, melyik reszre
-            kinaljon fizetest - enelkul a kezelo a sajat emlekezetebol
-            dolgozna, es egy megszakadt muszak utan ket resznek is fizettetne.
+          description: 1-tol sorrendben.
           items:
-            type: boolean
+            $ref: '#/components/schemas/MegosztasAllapotResz'
+
+    MegosztasAllapotResz:
+      title: MegosztasAllapotResz
+      type: object
+      required: [sorszam, osszeg, fizetett]
+      properties:
+        sorszam:
+          type: integer
+          minimum: 1
+        osszeg:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: |
+            ⚠️ ENELKUL A MEGOSZTAS NEM FOLYTATHATO egy ujrainditas utan: a
+            kliens tudna, hany resz van es melyik fizetett - azt nem, hogy
+            mennyit kell kerni. Marpedig PONT EZ A MEGOSZTAS ERTELME: a
+            vendegek nem egyszerre fizetnek.
+
+            A rész SAJAT SORAIBOL adodik, nem tarolt vegosszegbol - igy nem tud
+            elcsuszni attol, amibol a bizonylat keszul.
+        fizetett:
+          type: boolean
 
     LezarasKeres:
       title: LezarasKeres

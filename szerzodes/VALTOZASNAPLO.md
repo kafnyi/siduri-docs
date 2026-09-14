@@ -424,3 +424,31 @@ kiadott bizonylat a vendég kezében van, és az nem érvénytelenedik attól, h
 **A `GET` nem kényelmi végpont:** megmondja, melyik rész fizetett már. Enélkül a
 felület a kezelő emlékezetéből dolgozna, és egy megszakadt műszak után **két
 résznek is fizettetne**.
+
+### v1.13.0 — 2026-09-14 — *a megosztás állapota a részek összegét is adja* ⚠️ `TÖRŐ, DE KIADÁS ELŐTT`
+
+**Változás:** a `GET /kassza/v1/rendelesek/{rendeles}/megosztas` válaszában a
+`fizetett: [bool]` tömb helyén `reszek: [{sorszam, osszeg, fizetett}]` áll.
+
+> ⚠️ **Ez a v1.12.0 hiányának pótlása, órákkal a v1.12.0 után** — ahogy a
+> v1.8.0 → v1.9.0-nál is. A v1.12.0 nem íródik át: két repó hordozza kimásolva,
+> lenyomatokkal.
+
+**A hiányt a kliens bekötése találta meg**, nem kódolvasás. A képernyő
+összeállt, aztán jött a kérdés: *mi történik, ha a kliens újraindul, miközben
+egy megosztott számla fele még nem fizetett?* A válasz az volt, hogy **semmi
+sem folytatható**: a kliens megtudta volna, hány rész van és melyik fizetett —
+azt nem, hogy **mennyit kell kérni**.
+
+**Márpedig pont ez a megosztás értelme:** a vendégek nem egyszerre fizetnek. Ha
+a folytatáshoz a kliens memóriájára lenne szükség, a megosztás csak addig
+működne, amíg senki nem zárja be az alkalmazást — és a pult mögött ez nem
+elfogadható feltétel.
+
+**Az összeg a rész saját soraiból adódik**, nem tárolt végösszegből: így nem tud
+elcsúszni attól, amiből a bizonylat készül.
+
+**Élesben végigpróbálva:** egy három soros, 4 350 Ft-os rendelés két részre
+osztva (a harmadik soron ketten osztoznak) → 1 575 + 2 775 = 4 350 Ft; az első
+rész fizet; **a kliens „újraindul"**; a maradék **kizárólag az állapot-végpontból**
+kifizethető volt.

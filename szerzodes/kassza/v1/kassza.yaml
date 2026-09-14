@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.11.0
+  version: 1.12.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -555,6 +555,208 @@ paths:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
+  /rendelesek/{rendelesAzonosito}/megosztas:
+    post:
+      operationId: rendelestMegoszt
+      summary: A rendeles megosztasa reszekre
+      description: |
+        ⚠️ KET LEPES, ES A SZETVALASZTAS SZANDEKOS. Eloszor megosztjuk a
+        rendelest - ekkor MEG SENKI NEM FIZETETT -, azutan a reszek egyenkent
+        fizetnek. Egy lepesben nem menne: az asztalnal a masodik vendeg akkor
+        is elmehet a mosdoba, amikor az elso mar fizetne.
+
+        A KETFELE MEGOSZTAS UGYANAZ A MUVELET, MAS SULYOKKAL. Az egyenlo osztas
+        nem kulon eljaras: minden tetelsort N reszre bontunk azonos sullyal; a
+        teteles osztasnal a sulyokat a kezelo adja meg. Ha ket kulon eljaras
+        lenne, elobb-utobb csak az egyikbe kerulne bele egy javitas.
+
+        MIERT NEM A VEGOSSZEGET OSZTJUK EL: mert az afa afakulcs-csoportonkent,
+        bizonylatszinten szamolodik vissza. Ha a 12 000 Ft-os vegosszeget
+        osztanank haromfele, minden resznel ujra kellene donteni, melyik
+        afakulcsba mennyi esik - es a dontes onkenyes lenne. SORONKENT OSZTVA A
+        KERDES FEL SEM MERUL.
+
+        ⚠️ A RESZEK AFAJANAK OSSZEGE NEM FELTETLENUL EGYEZIK az osztatlan
+        bizonylat afajaval. Nem hiba: a visszaszamolas bizonylatonkent kerekit,
+        es harom bizonylat haromszor kerekit. Az elteres afakulcsonkent es
+        reszenkent legfeljebb egy forint - de LETEZIK, es aki a napi
+        osszesitot nezi, talalkozni fog vele.
+
+        KIOSZTATLAN TETEL NEM MARADHAT. Ha maradhatna, a reszek osszege
+        kevesebb lenne, mint a rendeles, es a kulonbozet csendben eltunne.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+        - name: rendelesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MegosztasKeres'
+      responses:
+        '200':
+          description: A reszek, soronkenti bontassal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MegosztasValasz'
+        '403':
+          description: Nincs jogosultsag a szamlamegosztashoz.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          description: A rendeles mar meg van osztva, vagy mar nem nyitott.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          description: |
+            A megosztas nem lehetseges: kiosztatlan tetel maradt, egy reszre
+            nulla forint jutna, vagy ketto alatti reszszam.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+    get:
+      operationId: megosztasAllapota
+      summary: A megosztas allapota - melyik resz fizetett mar
+      description: |
+        A felulet ebbol tudja, melyik reszre kinaljon fizetest. Enelkul a
+        kezelo a sajat emlekezetebol dolgozna, es egy megszakadt muszak utan
+        ket resznek is fizettetne.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - name: rendelesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: A megosztas allapota
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MegosztasAllapot'
+        '404':
+          description: Ez a rendeles nincs megosztva.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+    delete:
+      operationId: megosztastVisszavon
+      summary: A megosztas visszavonasa
+      description: |
+        ⚠️ CSAK ADDIG, AMIG EGYETLEN RESZ SEM FIZETETT. Egy kiadott bizonylat a
+        vendeg kezeben van, es az nem ervenytelenedik attol, hogy mi
+        atrendeznenk a maradekot. Ilyenkor a SZTORNO az ut.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+        - name: rendelesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: A megosztas visszavonva
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [visszavonva]
+                properties:
+                  visszavonva:
+                    type: boolean
+        '404':
+          description: Ez a rendeles nincs megosztva.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          description: Mar van fizetett resz - innentol a sztorno az ut.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/megosztas/{reszSorszam}/lezaras:
+    post:
+      operationId: reszSzamlatLezar
+      summary: Egy resz fizetese
+      description: |
+        A resz a SAJAT SORAIBOL szamolja az afajat, ugyanazzal a szaballyal,
+        mint egy osztatlan bizonylat - es ugyanazon a kiallitasi utvonalon megy
+        at. A kerés alakja ezert azonos a rendeles lezarasaeval.
+
+        Minden resz sajat bizonylatot kap, sajat sorszammal. A tobbi resz
+        addig nyitva marad.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+        - name: rendelesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: reszSorszam
+          in: path
+          required: true
+          description: 1-tol indexelve, ahogy a megosztas valasza adja.
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LezarasKeres'
+      responses:
+        '201':
+          description: A resz bizonylata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bizonylat'
+        '404':
+          description: Ez a rendeles nincs megosztva.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          description: Ez a resz mar fizetett, vagy a rendeles mar nem nyitott.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          description: Nincs ilyen resz, vagy a fizetesek osszege nem egyezik.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
   /rendelesek/{rendelesAzonosito}/tetelek/{tetelsorAzonosito}/torles:
     post:
       operationId: tetelsortTorol
@@ -834,61 +1036,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [eszkozIdo, fizetesek]
-              properties:
-                eszkozIdo:
-                  $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
-                fizetesek:
-                  type: array
-                  minItems: 1
-                  items:
-                    $ref: '#/components/schemas/Fizetes'
-                kedvezmeny:
-                  $ref: '#/components/schemas/Kedvezmeny'
-                szervizdijSzazalek:
-                  type: string
-                  pattern: '^[0-9]{1,3}\.[0-9]{2}$'
-                  description: |
-                    SZOVEG, mert tizedes. A szervizdij ONALLO SOR, afakulcsonkent
-                    bontva - soha nem a termek teteleben, mert az adougyi
-                    gyujtokiosztasban sajat, afakulcsonkenti rekeszei vannak.
-
-                    Kemeny korlat: 100%. E felett bizonyosan mellenyulás.
-                    Puha megerosites: telephelyenkent allithato kuszob (alapbol
-                    15%) felett a "megerositve" jelzo kell. Kemeny 15%-os
-                    plafont SZANDEKOSAN nem teszunk: nincs jogszabalyi felso
-                    hatar, es egy rendezvenyhelyszin szerzodeses szervizdija
-                    lehet magasabb.
-                  examples: ["10.00"]
-                borravalo:
-                  allOf:
-                    - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
-                  description: |
-                    NINCS az afacsoportokban: a gyujtokiosztasban nincs
-                    borravalo-rekesz, mert a borravalo nem ellenertek egy
-                    szolgaltatasert. A vegosszeg viszont tartalmazza.
-
-                    A keszpenzes borravalo a fiokban marad, es a muszak vegen
-                    ONALLO, BIZONYLATOLT keszpenzmozgaskent kerul ki -
-                    soha nem nema fiokcsokkentessel.
-                kedvezmenyIndokKod:
-                  type: string
-                kedvezmenyIndokSzoveg:
-                  type: string
-                mod:
-                  allOf:
-                    - $ref: '#/components/schemas/BizonylatMod'
-                  description: >
-                    Elhagyhato; alapertelmezes ADOUGYI. SZAMLA modban a kliens
-                    SOHA nem hivja az adougyi eszkozt.
-                megerositve:
-                  type: boolean
-                  description: >
-                    A kezelo megerositette a szokatlanul magas szervizdijat. NEM
-                    az osszeget erositi meg, hanem a SZANDEKOT - ezert kulon
-                    mezo, es nem az ertek megismetlese.
-              additionalProperties: false
+              $ref: '#/components/schemas/LezarasKeres'
             examples:
               keszpenz:
                 summary: Tiszta keszpenz, ot forintra kerekitve
@@ -910,6 +1058,7 @@ paths:
                     - mod: KESZPENZ
                       osszeg: 235
                       kerekitesiKulonbozet: 1
+
       responses:
         '201':
           description: A bizonylat letrejott, nyomtatasra var
@@ -1684,6 +1833,184 @@ components:
           $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
       additionalProperties: false
 
+    MegosztasKeres:
+      title: MegosztasKeres
+      type: object
+      required: [mod, reszekSzama, eszkozIdo]
+      properties:
+        mod:
+          type: string
+          enum: [EGYENLO, TETELES]
+          description: |
+            Csak a SZANDEKOT rogziti - a szamolas mindkettonel ugyanaz. Azert
+            taroljuk megis, mert a riportban mas kerdes, hogy "hanyszor
+            osztottak egyenloen" es hogy "hanyszor osztottak tetelesen".
+        reszekSzama:
+          type: integer
+          minimum: 2
+          description: |
+            Legalabb ketto. Egy reszre osztani nem megosztas.
+        kiosztasok:
+          type: array
+          description: |
+            TETELES modnal kotelezo, EGYENLO-nel elhagyhato (ott minden tetel
+            minden reszre azonos sullyal kerul).
+
+            ⚠️ KIOSZTATLAN TETEL NEM MARADHAT. Ha maradhatna, a reszek osszege
+            kevesebb lenne, mint a rendeles, es a kulonbozet csendben eltunne.
+          items:
+            $ref: '#/components/schemas/Kiosztas'
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    Kiosztas:
+      title: Kiosztas
+      type: object
+      required: [sorAzonosito, resz, suly]
+      properties:
+        sorAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        resz:
+          type: integer
+          minimum: 1
+          description: 1-tol indexelve.
+        suly:
+          type: integer
+          format: int64
+          minimum: 0
+          description: |
+            NEM OSSZEG, HANEM ARANY. Egy harom adagos sorbol ket adag az egyik
+            vendegnek: suly = 2 es suly = 1. A forintra valtas a szerver dolga,
+            es MARADEK NELKUL tortenik.
+      additionalProperties: false
+
+    MegosztasValasz:
+      title: MegosztasValasz
+      type: object
+      required: [reszekSzama, reszek]
+      properties:
+        reszekSzama:
+          type: integer
+        reszek:
+          type: array
+          items:
+            $ref: '#/components/schemas/MegosztottResz'
+
+    MegosztottResz:
+      title: MegosztottResz
+      type: object
+      required: [sorszam, sorok, osszeg]
+      properties:
+        sorszam:
+          type: integer
+          minimum: 1
+        sorok:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reszsor'
+        osszeg:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: |
+            A resz vegosszege. ⚠️ A reszek AFAJANAK osszege nem feltetlenul
+            egyezik az osztatlan bizonylateval: a visszaszamolas
+            bizonylatonkent kerekit, es harom bizonylat haromszor kerekit.
+
+    Reszsor:
+      title: Reszsor
+      type: object
+      required: [sorAzonosito, afaKategoria, osszeg]
+      properties:
+        sorAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        afaKategoria:
+          type: string
+        osszeg:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+
+    MegosztasAllapot:
+      title: MegosztasAllapot
+      type: object
+      required: [mod, reszekSzama, fizetett]
+      properties:
+        mod:
+          type: string
+          enum: [EGYENLO, TETELES]
+        reszekSzama:
+          type: integer
+        fizetett:
+          type: array
+          description: |
+            Reszenkent, 1-tol sorrendben. A felulet ebbol tudja, melyik reszre
+            kinaljon fizetest - enelkul a kezelo a sajat emlekezetebol
+            dolgozna, es egy megszakadt muszak utan ket resznek is fizettetne.
+          items:
+            type: boolean
+
+    LezarasKeres:
+      title: LezarasKeres
+      description: |
+        A rendeles (vagy egy MEGOSZTOTT RESZ) lezarasanak kerese.
+
+        ⚠️ UGYANAZ AZ ALAK MINDKET UTON. A resz a sajat soraibol
+        szamolja az afajat, ugyanazzal a szaballyal, mint egy osztatlan
+        bizonylat - tehat a kedvezmeny, a szervizdij es a borravalo is
+        ugyanugy ertelmezett. Ket kulon alak ket helyen romlana el.
+      required: [eszkozIdo, fizetesek]
+      properties:
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+        fizetesek:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Fizetes'
+        kedvezmeny:
+          $ref: '#/components/schemas/Kedvezmeny'
+        szervizdijSzazalek:
+          type: string
+          pattern: '^[0-9]{1,3}\.[0-9]{2}$'
+          description: |
+            SZOVEG, mert tizedes. A szervizdij ONALLO SOR, afakulcsonkent
+            bontva - soha nem a termek teteleben, mert az adougyi
+            gyujtokiosztasban sajat, afakulcsonkenti rekeszei vannak.
+
+            Kemeny korlat: 100%. E felett bizonyosan mellenyulás.
+            Puha megerosites: telephelyenkent allithato kuszob (alapbol
+            15%) felett a "megerositve" jelzo kell. Kemeny 15%-os
+            plafont SZANDEKOSAN nem teszunk: nincs jogszabalyi felso
+            hatar, es egy rendezvenyhelyszin szerzodeses szervizdija
+            lehet magasabb.
+          examples: ["10.00"]
+        borravalo:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: |
+            NINCS az afacsoportokban: a gyujtokiosztasban nincs
+            borravalo-rekesz, mert a borravalo nem ellenertek egy
+            szolgaltatasert. A vegosszeg viszont tartalmazza.
+
+            A keszpenzes borravalo a fiokban marad, es a muszak vegen
+            ONALLO, BIZONYLATOLT keszpenzmozgaskent kerul ki -
+            soha nem nema fiokcsokkentessel.
+        kedvezmenyIndokKod:
+          type: string
+        kedvezmenyIndokSzoveg:
+          type: string
+        mod:
+          allOf:
+            - $ref: '#/components/schemas/BizonylatMod'
+          description: >
+            Elhagyhato; alapertelmezes ADOUGYI. SZAMLA modban a kliens
+            SOHA nem hivja az adougyi eszkozt.
+        megerositve:
+          type: boolean
+          description: >
+            A kezelo megerositette a szokatlanul magas szervizdijat. NEM
+            az osszeget erositi meg, hanem a SZANDEKOT - ezert kulon
+            mezo, es nem az ertek megismetlese.
+      additionalProperties: false
     Fizetes:
       title: Fizetes
       type: object

@@ -293,6 +293,22 @@ azt is ellenőrzi, hogy **legyen** eltérés: ha soha nem térne el, ez a
 figyelmeztetés fölösleges lenne, és akkor törölni kellene, nem meghagyni
 „biztos, ami biztos" alapon.
 
+**Kiegészítés (2026-09-14): a teljes HTTP-úton is megjelent, valódi
+bizonylatokkal.** Az eddigi mérés a magra futott; ez azt bizonyítja, hogy az
+eltérés **a kiadott bizonylatokban** is ott van, nem csak a számításban:
+
+| | |
+|---|---|
+| Rendelés | 1 200 Ft (27%) + 2 400 Ft (5%) + 750 Ft (27%) = **4 350 Ft** |
+| Osztatlan bizonylat áfája | **529 Ft** (5%: 114 · 27%: 415) |
+| Három rész áfájának összege | **528 Ft** (3 × 176) |
+| **Eltérés** | **−1 Ft** |
+
+A részek összege közben **pontosan kiadta** a rendelést (3 × 1 450 = 4 350 Ft) —
+vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosan ezt
+a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
+egyezzen, az áfa kerekedjen.
+
 ### `[~]` M25 — A PIN-lenyomatolás költsége `RÉSZBEN MÉRVE`
 
 **Kérdés:** hány iterációt bír el a PBKDF2 úgy, hogy a belépés a pult mögött ne

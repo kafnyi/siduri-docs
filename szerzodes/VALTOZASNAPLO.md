@@ -382,3 +382,45 @@ szám lehet. Így a kliens nem tud „negatív befizetést" küldeni, ami a vár
 kasszatartalmat csendben elrontaná. **A jog a mozgás típusához tartozik**, nem a
 „készpénzmozgás" fogalmához: a váltópénz betétele napi munka, a fölözés már a
 trezor felé mozgat pénzt.
+
+### v1.12.0 — 2026-09-14 — *számlamegosztás* `NEM TÖRŐ`
+
+**Új:** `POST`, `GET` és `DELETE` a
+`/kassza/v1/rendelesek/{rendeles}/megosztas` úton, valamint
+`POST /kassza/v1/rendelesek/{rendeles}/megosztas/{resz}/lezaras`.
+
+**A negyedik — és utolsó — rés**, amit a rendszeres átvizsgálás talált. A
+`MegosztasSzolgaltatas` készen állt, végpont nélkül.
+
+**Két lépés, és a szétválasztás szándékos.** Előbb megosztjuk a rendelést —
+ekkor még senki nem fizetett —, azután a részek egyenként fizetnek. Egy
+lépésben nem menne: az asztalnál a második vendég akkor is elmehet a mosdóba,
+amikor az első már fizetne.
+
+**A `LezarasKeres` séma kiemelve.** A rendelés lezárásának kérésalakja eddig
+**beágyazva** élt a végpontban; a részfizetésnek ugyanaz kell. Két helyre
+bemásolva biztosan szétcsúszott volna — most egy nevesített séma, amire
+mindkét út hivatkozik. *(A kiemelés a meglévő alakot bitre megtartotta: a
+kötelező mezők, az összes mező és az `additionalProperties: false` változatlan.)*
+
+> ⚠️ **A részek áfájának összege nem feltétlenül egyezik az osztatlan
+> bizonylatéval.** Nem hiba: a visszaszámolás bizonylatonként kerekít, és három
+> bizonylat háromszor kerekít. **Élesben megmérve** (`MERESEK.md`, M24): egy
+> 4 350 Ft-os rendelés osztatlan áfája 529 Ft, három részre osztva 528 Ft —
+> **−1 Ft**. A részek összege közben *pontosan* kiadta a rendelést.
+>
+> **Ezt a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a
+> pénz egyezzen, az áfa kerekedjen. Aki a napi összesítőben a kettőt
+> egyeztetni próbálja, forintokat fog keresni, amik nincsenek eltűnve.
+
+**Kiosztatlan tétel nem maradhat.** Ha maradhatna, a részek összege kevesebb
+lenne, mint a rendelés, és a különbözet csendben eltűnne. A szerver `422`-vel
+utasítja el.
+
+**A megosztás csak addig vonható vissza, amíg egyetlen rész sem fizetett.** Egy
+kiadott bizonylat a vendég kezében van, és az nem érvénytelenedik attól, hogy mi
+átrendeznénk a maradékot. Onnantól a sztornó az út.
+
+**A `GET` nem kényelmi végpont:** megmondja, melyik rész fizetett már. Enélkül a
+felület a kezelő emlékezetéből dolgozna, és egy megszakadt műszak után **két
+résznek is fizettetne**.

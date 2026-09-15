@@ -214,6 +214,29 @@ kiadásának ideje gyakorlatilag a fiskális eszköz válaszidejétől függ.
 szétrobbantott menüvel) bizonylat teljes ciklusa, a több parancsos küldés
 darabolásával együtt. Ebből derül ki, hány tétel felett lassul érezhetően.
 
+### `[ ]` M34 — **Kiolvasható és írható-e az eszköz valutaárfolyama?**
+
+A G5.6 előírja, hogy a gép saját valutaárfolyam-beállítását **ki kell írni és
+vissza kell olvasni**. A megvalósítás ezt feltételezi — **de a premissza
+igazolatlan**, ugyanúgy, mint a P1 (az eszköz szerver nélkül is sorszámoz).
+
+**Három dolog dőlhet el rosszul, és mindháromra más a válasz:**
+
+| Amit mérni kell | Ha nemleges |
+|-----------------|-------------|
+| **Kiolvasható-e** a beállított árfolyam | Az egyeztetés nem építhető meg; marad a **vak kiírás**, ami pont az, ami ellen a visszaolvasás véd. Ekkor valutát csak **külön kockázatvállalással** szabad engedni |
+| **Írható-e** programból | Az egyeztetés helyére **összevetés és tiltás** lép: olvasunk, és eltérésnél nem fogadunk el valutát. A beállítás a gép billentyűzetéről történik |
+| **Ugyanúgy kerekít-e**, ahogy mi | A nyugta és a bizonylat forintösszege 1–2 Ft-tal eltérhet. Ez **nem** elhanyagolható: az A2 elv szerint nem záródhat le csendben |
+
+**A visszaolvasás mindhárom esetben kell.** A „kiírtam, tehát beállt"
+feltételezés pontosan az a hiba, ami ellen ez az egész lépés véd — és a
+következménye nem hibaüzenet, hanem **egy rossz papír a vendég kezében**.
+
+**Mérés:** éles készüléken az árfolyam kiolvasása, beállítása, visszaolvasása,
+majd egy valutás nyugta kinyomtatása — és a nyomtatott árfolyam összevetése
+azzal, amit visszaolvastunk. Ugyanebben a menetben: mit csinál a gép, ha a
+valutaösszeg forintértéke **nem** egész szám, és hogyan jelöli a **visszajárót**.
+
 ### `[ ]` M18 — Az audit napló KÉT ágának tényleges mérete
 A becslés (G9.2): biztonsági ág ~150–300 rekord/nap/telephely, működési ág
 ~3000–5000. **A működési ág viszi a tárhelyet, nem a biztonsági.**
@@ -308,6 +331,67 @@ A részek összege közben **pontosan kiadta** a rendelést (3 × 1 450 = 4 350 
 vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosan ezt
 a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
 egyezzen, az áfa kerekedjen.
+
+### `[x]` M33 — Az eszköz árfolyama: a kiírás önmagában **nem bizonyíték** `MÉRVE, JAVÍTVA`
+
+**A kérdés, amit feltettem:** ha kiírjuk az árfolyamot az adóügyi eszközre, és a
+gép nem tiltakozik, honnan tudjuk, hogy beállt?
+
+**Sehonnan.** És ez nem elméleti: egy elutasított, egy csonkolt vagy egy másképp
+kerekített érték **pontosan úgy néz ki, mint egy sikeres** — amíg a nyugta ki nem
+jön. Akkor viszont már a vendég előtt állunk, egy olyan papírral, amin más
+árfolyam szerepel, mint a bizonylatunkon.
+
+**A mérés** hamis eszközzel készült, amit rá lehet venni a valós
+meghibásodásokra. Az egyeztetés **visszaolvasás nélküli** változatával:
+
+| Az eszköz viselkedése | Visszaolvasás nélkül | Visszaolvasással |
+|-----------------------|----------------------|------------------|
+| Elfogadja és beállítja | ✅ jó | ✅ jó |
+| **Elfogadja, de elnyeli** | ✅ „sikeres" — **hamis** | ❌ tiltja a valutát |
+| Nincs beállítva rajta semmi | ✅ „sikeres" — **hamis** | ✅ beállítja, ellenőrzi |
+| Nem válaszol | kivétel a fizetés közepén | ❌ tiltja a valutát, **a forintos eladást nem** |
+
+A visszaolvasást a kódból kivéve **két teszt azonnal pirosra vált** — vagyis nem
+díszlet.
+
+**Négy kimenet, négy teendő** (`ArfolyamSzinkron`): *egyezik* (nem írunk rá újra
+— egy fölösleges beállítás is beállítás, és a gép naplójába bekerül),
+*beállítva*, *eltér*, *nem használható*. Az utolsó kettőnél **valutát elfogadni
+tilos** — de **csak a valutát**: egy néma árfolyam-beállítás nem állíthatja meg
+a forintos eladást, mert a vendéglátóhely nem áll le, amiért az euró nem megy.
+
+**Két ponton fut le, és ez nem kettőzés:**
+
+| Hol | Mit véd | Miért nem elég a másik |
+|-----|---------|------------------------|
+| Az árfolyam betöltésekor | A **gomb** őszinteségét | A gép beállítását közben a saját billentyűzetéről is át lehet írni |
+| A lezárás **előtt**, mindent megelőzve | A **bizonylatot** | A gombnál még nem tudjuk, mikor és mivel fizet a vendég |
+
+**A sorrend a lényeg:** az egyeztetés a **legelső** lépés, még a szerveres
+lezárás előtt. Fordítva egy kiadott, de kinyomtathatatlan bizonylat maradna
+utána — bizonylatszámmal, a vendég előtt.
+
+**Amit a gép mondott, felmegy a szerverre** (`bizonylat.adougyi_arfolyam`).
+Enélkül utólag nem az lenne rögzítve, hogy a **gép** egyetértett, csak az, hogy
+**mi** hittük. Eltérésnél a szerver **nem utasítja el** a jelentést — a nyomtatás
+megtörtént, és az elutasítás azt jelentené, hogy a rendszer nem tud a papírról,
+ami a vendég kezében van —, hanem **biztonsági auditba** írja
+(`ADOUGYI_ARFOLYAM_ELTERES`). A **hiányzó** árfolyam ugyanolyan eltérés, mint a
+rossz: a „nem tudjuk" nem azonos az „egyetértett"-tel.
+
+> ⚠️ `[MÉRENDŐ]` **A premissza igazolatlan** — lásd M34. Feltételezzük, hogy az
+> eszköz árfolyam-beállítása kiolvasható és írható. Fizikai készülék nélkül ez
+> nem dönthető el.
+
+> **Amit ez a kör mellékesen kijavított:** az adóügyi port eddig a **WPF-es
+> kasszaprojektben** élt, tehát Linuxon futó tesztprojektből elérhetetlen volt —
+> vagyis a szabályai **nem voltak tesztelhetők**. Önálló, keretrendszer-független
+> projektbe került (`Siduri.Pos.Adougyi`). **ÁRA:** egy projekttel több.
+> **Cserébe:** a gyártóspecifikus illesztés is ide, egyetlen jól körülhatárolt
+> körbe kerül majd — ami nem csak tervezési, hanem **jogi** követelmény is.
+
+---
 
 ### `[x]` M32 — A valutás fizetést semmi nem kötötte valódi árfolyamhoz `MÉRVE, JAVÍTVA`
 

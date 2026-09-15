@@ -138,6 +138,12 @@ marad, hogy azóta hányszor változott az árfolyam.
 be lehetne állítani és elfelejteni, és akkor a kassza olyan árfolyammal
 számolna, amiről senki nem tud.
 
+**A bizonylat mellett KÉT árfolyam áll, és ez szándékos:** a `fizetes.arfolyam`
+az, **amivel a bizonylat készült**; a `bizonylat.adougyi_arfolyam` az, amit az
+**adóügyi eszköz** mondott a visszaolvasáskor. A nyugtát a gép írja, a saját
+beállításával — a második oszlop nélkül utólag nem az lenne rögzítve, hogy a
+**gép** egyetértett, csak az, hogy **mi** hittük.
+
 ---
 
 ## 3. Bérlő és telephely

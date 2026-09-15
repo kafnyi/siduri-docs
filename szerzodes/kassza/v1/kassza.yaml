@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.19.0
+  version: 1.20.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1482,6 +1482,10 @@ paths:
         Elfogadott kockazat: ha a kliens kinyomtat, majd meghal a jelzes elott,
         a gepben van egy lezart bizonylat, amirol a rendszer nem tud. Feloldas
         tamogatoi uton, az eszkoz sajat naplojabol.
+
+        ⚠️ VALUTAS BIZONYLATNAL AZ ESZKOZ ARFOLYAMA IS IDE JON (G5.6). Nem
+        diszites: a nyugtat a gep irja, a SAJAT beallitasaval, es enelkul utolag
+        csak az lenne rogzitve, hogy a kliens HITTE, hogy egyeznek.
       parameters:
         - $ref: '#/components/parameters/BizonylatAzonosito'
         - $ref: '#/components/parameters/Eszkoz'
@@ -1511,6 +1515,27 @@ paths:
                   type: string
                 hibaSzoveg:
                   type: string
+                eszkozArfolyam:
+                  allOf:
+                    - $ref: '../../kozos/penz.yaml#/components/schemas/Arfolyam'
+                  description: |
+                    Amit az ADOUGYI ESZKOZ mondott a VISSZAOLVASASKOR, valutas
+                    bizonylatnal. Ures, ha nem volt valutas sor.
+
+                    ⚠️ A NYUGTAT AZ ESZKOZ IRJA, A SAJAT BEALLITASAVAL. A
+                    bizonylat a mi arfolyamunkkal keszult; ha a gepe mas, KET
+                    ARFOLYAM KERUL KET PAPIRRA ugyanarra a fizetesre. A kliens
+                    ezert a nyomtatas ELOTT egyeztet (kiiras, majd
+                    VISSZAOLVASAS), es elteres eseten el sem inditja a lezarast.
+
+                    ⚠️ ENELKUL A MEZO NELKUL utolag nem az lenne rogzitve, hogy
+                    a GEP egyetertett, csak az, hogy a KLIENS hitte.
+
+                    Elteres eseten a szerver NEM utasitja el a jelentest: a
+                    nyomtatas mar megtortent, es az elutasitas azt jelentene,
+                    hogy a rendszer nem tud a papirrol, ami a vendeg kezeben
+                    van. Az elteres BIZTONSAGI AUDITBA kerul
+                    (ADOUGYI_ARFOLYAM_ELTERES).
               additionalProperties: false
       responses:
         '200':

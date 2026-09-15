@@ -855,17 +855,17 @@ trailer nélkül.**
 | **Készpénzmozgás képernyője** | Váltópénz, befizetés, kifizetés, fölözés — típusonkénti joggal | `KeszpenzmozgasTeszt`; az **előjel** élesben ellenőrizve |
 | **Árfolyamforrás** | Telephelyi **eseménynapló** (nem beállítás), saját magas kockázatú joggal; a régi árfolyam **figyelmeztet, de nem tilt** (G5.6) | `ValutasFizetesTest` (18 eset) |
 | **Valutás fizetés** | Az árfolyamot a szerver **összeveti** az érvényessel, és az átváltást **újraszámolja**; a visszajáró **negatív készpénzsor** | `valuta.json` közös vektorok (13 eset két nyelven) + **500 esetes differenciál-futtatás, nulla eltérés** |
+| **Az eszköz árfolyam-egyeztetése** | Kiírás, majd **kötelező visszaolvasás** (G5.6); eltérésnél **valuta tiltva, a forintos eladás nem**; a gép válasza a bizonylat mellé kerül | `ArfolyamSzinkronTeszt` (7 eset, hamis eszközzel); a visszaolvasást kivéve **két teszt azonnal piros** |
 
-**Szerződés:** `kassza` v1.19.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
+**Szerződés:** `kassza` v1.20.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
 **indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
 
 ### 7.2 Ami TUDATOSAN nincs kész — és nincs elrejtve
 
 | Hiányzik | Mi történik helyette | Miért nem baj MOST |
 |----------|---------------------|--------------------|
-| **Az adóügyi eszköz saját valutaárfolyama** | A rendszer árfolyamával számolunk, a gépébe **nem írjuk ki, és nem olvassuk vissza** | A G5.6 ezt külön előírja, és nem részlet: enélkül a nyugtán más árfolyam szerepelhet, mint a rendszerben — **két árfolyam két papíron**. Az adóügyi illesztő még nincs kész, tehát a hiány most nem *működő* utat ront el, hanem egy meg nem épültet. **Amint az illesztő épül, ez az első dolga** |
 | **Adóügyi készülék** | Naplózó eszköz, fájlba ír — **kifejezett kapcsolóra**, és enélkül **nincs fizetés** | Egy csendben „működő", de nem nyomtató kassza rosszabb, mint egy ki nem szolgált vendég |
-| **Asztalos rendelés** | Csak pultos eladás | A kosár helyben épül; egy órákig élő, több kezelő által piszkált rendelés ezt nem bírná |
+| **Gyártóspecifikus illesztő** | Ugyanaz a naplózó eszköz; a port viszont **kész és tesztelt** | ⚠️ **Az árfolyam-egyeztetés (G5.6) megépült, de a premisszája IGAZOLATLAN:** feltételezzük, hogy a gép árfolyam-beállítása kiolvasható és írható. Fizikai készülék nélkül ez nem dönthető el — `MERESEK.md` **M34** rögzíti, mit kell mérni, és mi a teendő mindhárom nemleges válaszra |
 | **Eszközregisztráció** | A fejlesztői adatok készen adják a két pénztárt | Éles telepítéshez kell — külön szerződéstétel |
 
 ### 7.3 A KÖVETKEZŐ TÉTEL
@@ -1026,7 +1026,34 @@ trailer nélkül.**
    ⚠️ **Ami NEM lett kész:** az adóügyi eszköz saját árfolyam-beállításának
    kiírása és visszaolvasása — lásd a 7.2 szakaszt.
 
-7. **A söprés következő köre.** A `eladas.fizetes.*` öttel csökkentette az
+7. ✅ **Az adóügyi eszköz árfolyam-kiírása (G5.6).** `kassza` v1.20.0. Az
+   `IAdougyiEszkoz` port — továbbra is **gyártófüggetlenül**, egyetlen
+   gyártói parancs, mezőnév vagy kódolás nélkül — megtanult árfolyamot olvasni
+   és írni, az `ArfolyamSzinkron` pedig hordozza a szabályt: **olvasás →
+   szükség esetén kiírás → KÖTELEZŐ VISSZAOLVASÁS → eltérésnél tiltás**.
+
+   ⚠️ **AMIT MÉRTEM: a kiírás önmagában nem bizonyíték.** Egy elutasított, egy
+   csonkolt vagy egy másképp kerekített érték **pontosan úgy néz ki, mint egy
+   sikeres** — amíg a nyugta ki nem jön. A visszaolvasást a kódból kivéve két
+   teszt azonnal pirosra vált. Részletesen: `MERESEK.md`, M33.
+
+   **ÁRA:** a valutás fizetés két eszközkörrel drágább lett (egy olvasás az
+   árfolyam betöltésekor, egy a lezárás előtt) — forintos bizonylatnál **nulla**,
+   ott nem nyúlunk a géphez. Ezen felül **egy projekttel több**: az adóügyi port
+   kikerült a WPF-es kasszaprojektből (`Siduri.Pos.Adougyi`), mert onnan a
+   szabályai **nem voltak tesztelhetők** — és ugyanide kerül majd a
+   gyártóspecifikus illesztés is, ami nem csak tervezési, hanem **jogi**
+   követelmény.
+
+   **A tiltás csak a valutára szól.** Egy néma árfolyam-beállítás nem állíthatja
+   meg a forintos eladást: a vendéglátóhely nem áll le, amiért az euró nem megy.
+
+   ⚠️ **A PREMISSZA IGAZOLATLAN** (a P1 mintájára): feltételezzük, hogy az
+   eszköz árfolyam-beállítása kiolvasható és írható. Fizikai készülék nélkül ez
+   nem dönthető el — **M34** rögzíti, mit kell mérni, és mi a teendő
+   mindhárom nemleges válaszra.
+
+8. **A söprés következő köre.** A `eladas.fizetes.*` öttel csökkentette az
    ellenőrizetlen kódok listáját. A következők, amik **élő kódútra** kerülnek:
    `kedvezmeny.tetel` és `ar.kezi_felulriras` — mindkettő akkor válik élessé,
    amikor a tételszintű kedvezmény és a kézi árfelülírás megépül. **A söprést

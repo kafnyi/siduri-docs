@@ -713,3 +713,39 @@ megállapodást ellenőriz a két végén.
 valutaárfolyam-beállítását ki kell írni és vissza kell olvasni. Az adóügyi
 illesztő még nincs kész, ezért ez hiányzik — és ez nem részlet: **két árfolyam
 két papíron**.
+
+---
+
+### v1.20.0 — 2026-09-15 — *az adóügyi eszköz árfolyama a bizonylat mellé* ⚠️ `NEM TÖRŐ`
+
+**A G5.6 maradék fele.** Az árfolyamforrás (v1.19.0) megmondja, mivel számol a
+rendszer — **a nyugtát viszont az eszköz írja, a SAJÁT beállításával**. Ha a
+kettő eltér, **két árfolyam kerül két papírra** ugyanarra a fizetésre, és utólag
+nem lehet megmondani, melyik volt az igaz.
+
+**Bővült:** a `POST /bizonylatok/{id}/adougyi-eredmeny` kérése egy opcionális
+`eszkozArfolyam` mezővel. Nem törő: a mező elhagyható.
+
+**⚠️ A KIÍRÁS ÖNMAGÁBAN NEM BIZONYÍTÉK.** A kliens a nyomtatás **előtt**
+egyezteti a gép árfolyamát — kiírás után **kötelező visszaolvasás** —, és
+eltéréskor **el sem indítja a lezárást**: bizonylat se szülessen, amit nem lehet
+kinyomtatni. Egy elutasított, egy csonkolt vagy egy másképp kerekített érték
+pontosan úgy néz ki, mint egy sikeres, amíg a nyugta ki nem jön.
+
+**Amit a mező hordoz:** amit a gép a **visszaolvasáskor** mondott. Enélkül
+utólag nem az lenne rögzítve, hogy a **gép** egyetértett, csak az, hogy a
+**kliens** hitte.
+
+**Eltérésnél a szerver NEM utasítja el a jelentést.** A nyomtatás megtörtént; az
+elutasítás azt jelentené, hogy a rendszer nem tud a papírról, ami a vendég
+kezében van — és a kliens örökké újrapróbálkozna. Az eltérés **biztonsági
+auditba** kerül (`ADOUGYI_ARFOLYAM_ELTERES`), a rögzítés pedig marad. A
+**hiányzó** árfolyam ugyanolyan eltérés, mint a rossz: a „nem tudjuk" nem azonos
+az „egyetértett"-tel.
+
+**A tiltás csak a valutára szól.** Egy néma árfolyam-beállítás nem állíthatja meg
+a forintos eladást.
+
+**⚠️ A premissza igazolatlan** (`MERESEK.md` M34): feltételezzük, hogy az eszköz
+árfolyam-beállítása kiolvasható és írható. Fizikai készülék nélkül ez nem
+dönthető el.

@@ -1,0 +1,124 @@
+{
+  "leiras": "Valutas fizetes. Az arak MINDIG forintban vannak; a valuta kizarolag a FIZETESNEL jelenik meg. Ket dolog dol el itt: mennyi forintot er a vendeg altal atadott valuta, es hogyan all elo ebbol a bizonylat fizetessorozata.",
+  "miert_kozos": "A kassza ES a szerver is szamolja. A kassza azert, mert a vendegnek a PULT ELOTT kell megmondania, mennyi a visszajaro; a szerver azert, mert arfolyamforras nelkul a valutas fizetes nem konyvelheto - a penztaros elvenne a husz eurot, a bizonylatra pedig az az osszeg kerulne, amit a kliens mondott. Ha a ket szamolas elter, a kulonbozet a fiokban jelentkezik.",
+  "atvaltas_szabalya": "valutaosszeg * arfolyam, KERESKEDOI kerekitessel (fel es afolott a nullatol el), EGESZ FORINTRA. Az arfolyam hat tizedes, a valutaosszeg ketto - a szorzat nyolc, es ezt kerekitjuk egyre sem tobbre: egesz forintra.",
+  "visszajaro_szabalya": "A VISSZAJARO FORINTBAN MEGY (G5.6), tehat a bizonylaton NEGATIV KESZPENZSORKENT all - ott megy ki a penz a fiokbol. Az ot forintra kerekites erre a keszpenzsorra vonatkozik, nem a valuta forintertekere: a valuta ertekét a papirpenz adja, azon nincs mit kerekiteni.",
+  "sorok_alakja": "A 'sorok' CSOVEL elvalasztva, 'mod:osszeg:kerekitesiKulonbozet' alakban, abban a sorrendben, ahogy a bizonylatra kerulnek. A 'bejegyzesek' azt mondja meg, mit utott be a penztaros: VALUTA-nal a ket tizedes valutaosszeg, egyebkent egesz forint; a KEREKITES bejegyzes az egy-ket forintos hatralek penzmozgas nelkuli lezarasa.",
+
+  "atvaltas": [
+    {
+      "nev": "Kerek eset - husz euro",
+      "penznem": "EUR",
+      "arfolyam": "395.500000",
+      "valuta": "20.00",
+      "forint": 7910,
+      "megjegyzes": "395,5 * 20 = 7910,00 pontosan. Kerekitesre nincs szukseg."
+    },
+    {
+      "nev": "EZ A LENYEG: fel forint FELFELE kerekedik",
+      "penznem": "EUR",
+      "arfolyam": "395.500000",
+      "valuta": "25.00",
+      "forint": 9888,
+      "megjegyzes": "395,5 * 25 = 9887,50. A kereskedoi kerekites a fel forintot a nullatol el viszi: 9888."
+    },
+    {
+      "nev": "Egy euro - ugyanaz a fel forint, kisebben",
+      "penznem": "EUR",
+      "arfolyam": "395.500000",
+      "valuta": "1.00",
+      "forint": 396,
+      "megjegyzes": "395,50 -> 396. Ha valaki lefele csonkolna, itt bukna ki."
+    },
+    {
+      "nev": "A legkisebb valutaosszeg",
+      "penznem": "EUR",
+      "arfolyam": "395.500000",
+      "valuta": "0.01",
+      "forint": 4,
+      "megjegyzes": "3,955 -> 4. Onmagaban nem eletszeru, de a kerekites hataran all."
+    },
+    {
+      "nev": "Hat tizedes arfolyam - a teljes pontossag szamit",
+      "penznem": "EUR",
+      "arfolyam": "398.123456",
+      "valuta": "33.33",
+      "forint": 13269,
+      "megjegyzes": "398,123456 * 33,33 = 13269,45478848 -> 13269. Ha barmelyik oldal lebegopontosan szamolna, itt csuszna el."
+    },
+    {
+      "nev": "Kerek arfolyam, nagy osszeg",
+      "penznem": "EUR",
+      "arfolyam": "410.000000",
+      "valuta": "50.00",
+      "forint": 20500,
+      "megjegyzes": "Egy otveneuros bankjegy - a leggyakoribb eset a gyakorlatban."
+    }
+  ],
+
+  "fizetesek": [
+    {
+      "nev": "Pontosan kifizeti valutaban",
+      "fizetendo": 7910,
+      "arfolyam": "395.500000",
+      "bejegyzesek": "VALUTA:20.00",
+      "sorok": "VALUTA:7910:0",
+      "visszajaro": 0,
+      "megjegyzes": "Nincs keszpenzsor: nem vettunk at forintot, es nem is adtunk vissza."
+    },
+    {
+      "nev": "EZ A LENYEG: tulfizetes - a visszajaro NEGATIV KESZPENZSOR",
+      "fizetendo": 7940,
+      "arfolyam": "395.500000",
+      "bejegyzesek": "VALUTA:25.00",
+      "sorok": "VALUTA:9888:0|KESZPENZ:-1950:-2",
+      "visszajaro": 1950,
+      "megjegyzes": "A husz-ot euro 9888 Ft-ot er, a szamla 7940. A kulonbozet 1948, otre kerekitve 1950, a kerekitesi kulonbozet -2. Az osszeg stimmel: 9888 + (-1950) = 7938 = 7940 + (-2). A fiokbol 1950 forint TENYLEG kimegy, ezert kell a negativ sor - enelkul a muszakelszamolas 1950-nel tobbet varna."
+    },
+    {
+      "nev": "Kevesebb valuta, a maradek forintban",
+      "fizetendo": 7940,
+      "arfolyam": "395.500000",
+      "bejegyzesek": "VALUTA:20.00|KESZPENZ:100",
+      "sorok": "VALUTA:7910:0|KESZPENZ:30:0",
+      "visszajaro": 70,
+      "megjegyzes": "7940 - 7910 = 30, ami mar ot forint tobbszorose: nincs kerekitesi kulonbozet. A vendeg szaz forintot ad, hetvenet kap vissza."
+    },
+    {
+      "nev": "A maradek forintos resze kerekedik, nem a valutae",
+      "fizetendo": 7940,
+      "arfolyam": "395.500000",
+      "bejegyzesek": "VALUTA:20.01|KESZPENZ:100",
+      "sorok": "VALUTA:7914:0|KESZPENZ:25:-1",
+      "visszajaro": 75,
+      "megjegyzes": "20,01 EUR = 7913,955 -> 7914. A hatralek 26, otre kerekitve 25, a kulonbozet -1. 7914 + 25 = 7939 = 7940 + (-1)."
+    },
+    {
+      "nev": "Vegyes: kartya es valuta, visszajaroval",
+      "fizetendo": 10000,
+      "arfolyam": "395.500000",
+      "bejegyzesek": "BANKKARTYA:5000|VALUTA:13.00",
+      "sorok": "BANKKARTYA:5000:0|VALUTA:5142:0|KESZPENZ:-140:2",
+      "visszajaro": 140,
+      "megjegyzes": "13 EUR = 5141,50 -> 5142. Tulfizetes 142, otre kerekitve 140, a kulonbozet +2. 5000 + 5142 + (-140) = 10002 = 10000 + 2. A kartya soha nem fizet tul, a valuta viszont igen - papirpenzt nem lehet felvagni."
+    },
+    {
+      "nev": "EZ A LENYEG: ket valutaatvetel EGY sorra vonodik ossze",
+      "fizetendo": 799,
+      "arfolyam": "395.500000",
+      "bejegyzesek": "VALUTA:1.01|VALUTA:1.01",
+      "sorok": "VALUTA:799:0",
+      "visszajaro": 0,
+      "megjegyzes": "AZ OSSZEVONAS NEM KOZOMBOS: 1,01 EUR kulon-kulon 399,455 -> 399, ketszer 798. Egyben 2,02 EUR = 798,91 -> 799. A fiokba 2,02 euro kerul, tehat az a szam az igazsag, es a bizonylat is ezt mondja - kulonben egy forint eltunne."
+    },
+    {
+      "nev": "Egy-ket forintos hatralek: kerekitessel lezarva, penzmozgas nelkul",
+      "fizetendo": 7912,
+      "arfolyam": "395.500000",
+      "bejegyzesek": "VALUTA:20.00|KEREKITES:0",
+      "sorok": "VALUTA:7910:0|KESZPENZ:0:-2",
+      "visszajaro": 0,
+      "megjegyzes": "A hatralek 2 forint, amit a vendeg nem tud odaadni: a legkisebb erme ot forint. A nulla forintos keszpenzsor furcsan nez ki, de nem elhagyhato - enelkul a fizetesek osszege nem erne el a vegosszeget, es a szerver elutasitana."
+    }
+  ]
+}

@@ -157,6 +157,7 @@ A pincér sztornózni akar, de nincs joga. **Nem az a megoldás, hogy kilép és
 | `kassza.folozes` | Kassza fölözése |
 | `kassza.fiok_nyitas_eladas_nelkul` ⚠️ | Fiókynyitás eladás nélkül |
 | `kassza.borravalo_kifizetes` | Borravaló kifizetése *(bizonylatolt készpénzmozgásként, §16.6)* |
+| `arfolyam.megadas` | **Valutaárfolyam megadása.** ⚠️ Magas kockázatú, és szándékosan **nem** az kapja meg, aki a valutát elfogadja (`eladas.fizetes.valuta`): aki beállíthatja az árfolyamot, az dönti el, mennyit ér a vendég húsz eurója |
 
 ### 4.8 Termékkatalógus
 

@@ -659,3 +659,57 @@ nemet mond.
 
 **A `rendeles.mas_pincer_asztala` és a `rendeles.vendegszam_modositas` is
 ellenőrzött** — újabb kettő a söprés listájáról.
+
+---
+
+### v1.19.0 — 2026-09-15 — *árfolyamforrás és valutás fizetés* ⚠️ `TÖRŐ, DE KIADÁS ELŐTT`
+
+**Mi hiányzott eddig:** nem a valuta, hanem a **forrása**. A `Fizetes` alak, a
+`ValutaOsszeg` és az `Arfolyam` séma kezdettől megvolt, az adatbázis-megszorítás
+ki is követelte őket — **árfolyamforrás viszont sehol nem volt a rendszerben**.
+Így a kliens bármilyen árfolyamot küldhetett, és a szerver elfogadta: a
+pénztáros elveszi a húsz eurót, a bizonylatra pedig az az összeg kerül, amit a
+kliens állított. **Az árfolyam a kasszavisszaélés legrövidebb útja — nem a pénzt
+kell eltüntetni, csak rosszul átváltani.**
+
+**Új végpontok:**
+
+| Végpont | Mire |
+|---------|------|
+| `GET /arfolyamok` | Az érvényes árfolyamok, a **régiség jelzésével** |
+| `POST /arfolyamok` | Árfolyam rögzítése — saját, **magas kockázatú** joggal (`arfolyam.megadas`) |
+
+**Új jogosultság:** `arfolyam.megadas`. **Szándékosan nem az kapja meg, aki a
+valutát elfogadja** (`eladas.fizetes.valuta`): aki beállíthatja az árfolyamot,
+az dönti el, mennyit ér a vendég húsz eurója.
+
+**⚠️ A lezárás mostantól a FIZETÉSI MÓDOK JOGAIT is megkérdezi.** Mind az öt
+`eladas.fizetes.*` kód ott állt a katalógusban, a szerep-sablonok helyesen
+osztották ki őket, és a kassza el is rejtette a gombot — a **szerver** viszont
+bármit elfogadott. **Egy elrejtett gomb nem jogosultság:** a kérést nem a gomb
+küldi el, hanem a kliens. Ez a törő rész: aki eddig minden módon fizettethetett,
+annak most a megfelelő jog kell hozzá.
+
+**⚠️ A valutás soron az árfolyam kötelező, és a szerver ÖSSZEVETI** a
+telephelyen érvényessel (`409 ARFOLYAM_ELTER`). **Csendben nem cserélünk
+árfolyamot:** a vendégnek már mondtak egy összeget. A forintösszegnek az
+átváltás eredményének kell lennie (`422 VALUTA_ATVALTAS_ELTER`), és
+valutaadat csak valutás soron állhat (`422 VALUTA_ADAT_NEM_VALUTAS_SORON`).
+
+**⚠️ A VISSZAJÁRÓ NEGATÍV KÉSZPÉNZSOR.** Forintban megy vissza (G5.6), tehát a
+bizonylaton ott áll, ahol a pénz ténylegesen kimegy a fiókból. Egy 7940 Ft-os
+számlára adott 25 EUR 395,50-es árfolyamon 9888 Ft; a visszajáró 1948, öt
+forintra kerekítve 1950 → a készpénzsor **−1950**, kerekítési különbözete −2.
+Az összeg így is stimmel: 9888 + (−1950) = 7938 = 7940 + (−2). **Enélkül a
+műszakelszámolás pont ennyivel többet várna a fiókban.** Ebből következik, hogy
+egy valutás fizetés két sort ad — de **nem lesz vegyes fizetés**: a vegyesség és
+a módonkénti jog csak a **pozitív** sorokból számolódik.
+
+**Új közös tesztvektor:** `valuta.json` — az átváltás és a fizetési terv. A
+kassza **előállítja** a sorokat, a szerver **elfogadja** őket; a vektor egy
+megállapodást ellenőriz a két végén.
+
+**Ami továbbra sem kész (G5.6):** az adóügyi eszköz **saját**
+valutaárfolyam-beállítását ki kell írni és vissza kell olvasni. Az adóügyi
+illesztő még nincs kész, ezért ez hiányzik — és ez nem részlet: **két árfolyam
+két papíron**.

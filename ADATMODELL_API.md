@@ -127,6 +127,17 @@ kódban, sem API-ban, sem JSON-ban. *(I1)*
 **Nincs többvalutás árlista.** Ha később kell, az új döntés lesz, nem
 mellékhatás.
 
+**Az árfolyam FORRÁSA külön tábla** (`siduri.arfolyam`), és **eseménynapló, nem
+beállítás**: minden rögzítés új sor, felülírás nincs. Egy felülírt sor nem tudná
+megválaszolni azt a kérdést, hogy **ki** állított be 300-at 395 helyett, és
+**mikor** — pedig pont ez a visszaélés útja. A tábla a **forrás**; a bizonylat
+melletti `arfolyam` oszlop a **bizonyíték**, és attól függetlenül olvasható
+marad, hogy azóta hányszor változott az árfolyam.
+
+**Az érvényesség kezdetét a szerver adja**, nem a hívó: egy jövőbeli árfolyamot
+be lehetne állítani és elfelejteni, és akkor a kassza olyan árfolyammal
+számolna, amiről senki nem tud.
+
 ---
 
 ## 3. Bérlő és telephely

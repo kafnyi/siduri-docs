@@ -845,7 +845,7 @@ trailer nélkül.**
 | **Eladás végpontjai** | Rendelés, tétel, lezárás, adóügyi eredmény — nap- és műszakvégpontokkal együtt | `EladasFolyamatTest`, `EgyTeljesNapTest` |
 | **POS belépőképernyő** | Kezelőlista, PIN-billentyűzet, kártyafelismerés a leütések ritmusából | Élesben kipróbálva |
 | **POS főképernyő** | Termékrács, kosár, végösszeg, nap- és műszaknyitás | Bekötve |
-| **Fizetőképernyő** | Vegyes fizetés, ötforintos kerekítés, visszajáró, címletgombok | `FizetestervTeszt`, benne a szerver ellenőrzését utánzó invariáns |
+| **Fizetőképernyő** | Vegyes fizetés, ötforintos kerekítés, visszajáró, címletgombok, **eurós címletsor az árfolyammal** | `FizetestervTeszt`, benne a szerver ellenőrzését utánzó invariáns |
 | **Címletszámláló** | Műszaknyitás leszámolással, műszak- és napzárás a felületről | `CimletbontasTeszt`; a vakzárás élesben, nyers válaszon ellenőrizve |
 | **Sztornó** | Tételtörlés, bizonylat-visszavonás, indokválasztó a szerver kódjaival | `SztornoVegpontTest` (9 eset); a teljes út élesben végigvíve |
 | **PIN-csere** | Kötelező csere belépés után, megkerülhetetlenül | `KezeloVegpontTest` |
@@ -853,15 +853,17 @@ trailer nélkül.**
 | **Készpénzmozgás** | Befizetés, kifizetés, fölözés, váltópénz — típusonkénti joggal | `KezeloVegpontTest` |
 | **Számlamegosztás** | Egyenlő és tételes osztás, részenkénti fizetés, **félbehagyás és folytatás** | `MegosztasVegpontTest` (7 eset); az újraindulás utáni folytatás élesben |
 | **Készpénzmozgás képernyője** | Váltópénz, befizetés, kifizetés, fölözés — típusonkénti joggal | `KeszpenzmozgasTeszt`; az **előjel** élesben ellenőrizve |
+| **Árfolyamforrás** | Telephelyi **eseménynapló** (nem beállítás), saját magas kockázatú joggal; a régi árfolyam **figyelmeztet, de nem tilt** (G5.6) | `ValutasFizetesTest` (18 eset) |
+| **Valutás fizetés** | Az árfolyamot a szerver **összeveti** az érvényessel, és az átváltást **újraszámolja**; a visszajáró **negatív készpénzsor** | `valuta.json` közös vektorok (13 eset két nyelven) + **500 esetes differenciál-futtatás, nulla eltérés** |
 
-**Szerződés:** `kassza` v1.8.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
+**Szerződés:** `kassza` v1.19.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
 **indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
 
 ### 7.2 Ami TUDATOSAN nincs kész — és nincs elrejtve
 
 | Hiányzik | Mi történik helyette | Miért nem baj MOST |
 |----------|---------------------|--------------------|
-| **Valutás fizetés** | Nincs felkínálva | A szerződés és az adatbázis ismeri, **árfolyamforrás viszont sehol nincs a rendszerben**. Árfolyam nélkül a valutás fizetés nem könyvelhető: a pénztáros elfogadná a pénzt, a bizonylat pedig hamis összeget mutatna |
+| **Az adóügyi eszköz saját valutaárfolyama** | A rendszer árfolyamával számolunk, a gépébe **nem írjuk ki, és nem olvassuk vissza** | A G5.6 ezt külön előírja, és nem részlet: enélkül a nyugtán más árfolyam szerepelhet, mint a rendszerben — **két árfolyam két papíron**. Az adóügyi illesztő még nincs kész, tehát a hiány most nem *működő* utat ront el, hanem egy meg nem épültet. **Amint az illesztő épül, ez az első dolga** |
 | **Adóügyi készülék** | Naplózó eszköz, fájlba ír — **kifejezett kapcsolóra**, és enélkül **nincs fizetés** | Egy csendben „működő", de nem nyomtató kassza rosszabb, mint egy ki nem szolgált vendég |
 | **Asztalos rendelés** | Csak pultos eladás | A kosár helyben épül; egy órákig élő, több kezelő által piszkált rendelés ezt nem bírná |
 | **Eszközregisztráció** | A fejlesztői adatok készen adják a két pénztárt | Éles telepítéshez kell — külön szerződéstétel |
@@ -998,7 +1000,37 @@ trailer nélkül.**
    egy tárgynapra **napi zárás után** beérkező rendelésösszesítőt. Egy 0–24-es
    helyen ez nem élhelyzet, hanem **mindennapos**. A szerkezet kész, a kérdés
    nyitva — és a beküldés (felhő/NTAK) még nem épült meg, tehát még nem sürget.
-6. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
+6. ✅ **Árfolyamforrás és valutás fizetés.** `kassza` v1.19.0: `GET/POST
+   /arfolyamok`, új `siduri.arfolyam` **eseménynapló** (nem beállítás: egy
+   felülírt sor nem tudná megmondani, **ki** állított be 300-at 395 helyett és
+   **mikor**), új `arfolyam.megadas` jog — **magas kockázatú, és szándékosan nem
+   az kapja meg, aki a valutát elfogadja**.
+
+   ⚠️ **AMI ITT KIDERÜLT, AZ NEM A HIÁNYZÓ FUNKCIÓ VOLT, HANEM A NYITVA HAGYOTT
+   KAPU.** A valuta alakja, sémája és adatbázis-megszorítása kezdettől megvolt —
+   **az árfolyamot viszont a kliens mondta meg, és a szerver elhitte.** Ezen
+   felül a lezárás **egyetlen** `eladas.fizetes.*` jogot sem kérdezett meg: mind
+   az öt kód ott állt a katalógusban, a szerep-sablonok helyesen osztották ki,
+   a kassza el is rejtette a gombot. **Egy elrejtett gomb nem jogosultság.**
+   Részletesen: `MERESEK.md`, M32.
+
+   **ÁRA:** ez **törő** változás a kliensek felé (aki eddig bármelyik módon
+   fizettethetett, annak most a megfelelő jog kell), és minden valutás lezárás
+   egy extra árfolyam-lekérdezéssel jár. Kiadás előtt vagyunk, tehát a törés
+   most ingyen van — egy hónap múlva nem lenne az.
+
+   **A visszajáró negatív készpénzsor**, mert forintban megy vissza, és a
+   fiókból tényleg kimegy. Új fogalom nem kellett hozzá; a meglévő invariáns
+   (fizetések összege = végösszeg + kerekítési különbözet) változatlanul áll.
+
+   ⚠️ **Ami NEM lett kész:** az adóügyi eszköz saját árfolyam-beállításának
+   kiírása és visszaolvasása — lásd a 7.2 szakaszt.
+
+7. **A söprés következő köre.** A `eladas.fizetes.*` öttel csökkentette az
+   ellenőrizetlen kódok listáját. A következők, amik **élő kódútra** kerülnek:
+   `kedvezmeny.tetel` és `ar.kezi_felulriras` — mindkettő akkor válik élessé,
+   amikor a tételszintű kedvezmény és a kézi árfelülírás megépül. **A söprést
+   minden körben újra kell futtatni**, nem egyszer.
 
 > ⚠️ **A KÖRNYEZET MEGVÁLTOZOTT: a C# kliens mostantól FORDÍTHATÓ ÉS
 > TESZTELHETŐ itt.** Eddig minden C# munka fordítás nélkül készült; a

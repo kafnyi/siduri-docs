@@ -309,6 +309,74 @@ vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosa
 a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
 egyezzen, az áfa kerekedjen.
 
+### `[x]` M32 — A valutás fizetést semmi nem kötötte valódi árfolyamhoz `MÉRVE, JAVÍTVA`
+
+**Amit kerestem:** hol van az árfolyam forrása. **Sehol.** A szerződés `Fizetes`
+alakja, a `ValutaOsszeg` és az `Arfolyam` séma kezdettől megvolt, a
+`siduri.fizetes` tábla `valutanal_arfolyam_kell` megszorítása ki is követelte
+őket — de **azt, hogy az árfolyam IGAZ-e, senki nem nézte meg**.
+
+**A mérés:** a lezárás fizetésellenőrzése (`fizeteseketEllenoriz`) három dolgot
+számolt — az összeg egyezését, a készpénzes kerekítést, és a több készpénzes sor
+tilalmát. A valutáról **egyetlen sort sem**. Vagyis:
+
+| Amit a kliens küldött | Amit a szerver csinált vele |
+|-----------------------|-----------------------------|
+| `arfolyam: 300,00` (a valós 395,50 helyett) | Elfogadta, a bizonylatra írta |
+| `osszeg: 7000` egy 20 EUR-s soron (a valós 7910 helyett) | Elfogadta, a bizonylatra írta |
+| `eladas.fizetes.valuta` jog nélkül | Elfogadta |
+
+**Ez nem elméleti rés.** Az árfolyam a kasszavisszaélés legrövidebb útja: nem a
+pénzt kell eltüntetni, csak rosszul átváltani. A jogosultság-katalógusban a
+`eladas.fizetes.valuta` kód ott állt, a szerep-sablon helyesen osztotta ki —
+**és a szerver soha nem kérdezte meg.** Ugyanaz a minta, mint a lezárás
+kedvezmény-jogainál (M28): *ami nincs ellenőrizve, az nincs.*
+
+**Amit a javítás után a szerver megkövetel:**
+
+| Ellenőrzés | Hiba | Miért |
+|------------|------|-------|
+| Van érvényes árfolyam | `409 ARFOLYAM_NINCS` | Árfolyam nélkül nincs mit a bizonylatra írni |
+| A kliens árfolyama **az** érvényes | `409 ARFOLYAM_ELTER` | Csendben nem cserélünk: a vendégnek már mondtak egy összeget |
+| A forintösszeg = az átváltás eredménye | `422 VALUTA_ATVALTAS_ELTER` | Ez tartja a pénzt a helyén |
+| Valutaadat csak valutás soron | `422 VALUTA_ADAT_NEM_VALUTAS_SORON` | Kártyás soron ott hagyott árfolyam vagy szándékos, vagy hiba |
+| **Mind az öt** `eladas.fizetes.*` jog | `403` | Az elrejtett gomb nem jogosultság |
+
+**A visszajáró mérése.** A valutás túlfizetés forintban megy vissza (G5.6), és
+ez a fiókból **tényleg kimegy**. Ha a bizonylat csak annyit mondana, hogy „a
+számlát valutából fizették", a `muszak_vart_keszpenz` ezzel az összeggel többet
+várna:
+
+| | Számla | Átvett | Bizonylatsorok | Fiók forintban |
+|---|---|---|---|---|
+| Naiv modell | 7 940 | 25 EUR | `VALUTA: 7 940` | 0 — **hamis** |
+| Amit építettünk | 7 940 | 25 EUR (= 9 888 Ft) | `VALUTA: 9 888` + `KÉSZPÉNZ: −1 950` (ker. −2) | **−1 950 — igaz** |
+
+A meglévő invariáns változatlanul áll: 9 888 + (−1 950) = 7 938 = 7 940 + (−2).
+**Új fogalom nem kellett hozzá** — a negatív készpénzsor pontosan az, ami:
+forint, ami elhagyja a fiókot.
+
+**Kettős megvalósítás, differenciál-futtatás.** Az átváltás két nyelven él (a
+kassza a pult előtt mondja meg a visszajárót, a szerver ellenőrzi). 500 azonos
+generátorral előállított véletlen eset — 1–999 forintos, hat tizedesig random
+árfolyam, két tizedes valutaösszeg — mindkét megvalósításon átfuttatva:
+**nulla eltérés**. Ezen felül hét kézzel írt fizetési terv a közös
+`valuta.json` vektorfájlban, amit a **kassza előállít** és a **szerver
+elfogad** — egy megállapodás, a két végén ellenőrizve.
+
+> ⚠️ `[NYITOTT]` **Az adóügyi eszköz saját árfolyam-beállítása.** A G5.6 azt is
+> előírja, hogy a gép valutaárfolyamát **ki kell írni és vissza kell olvasni**.
+> Az adóügyi illesztő még nincs kész, ezért ez **hiányzik** — és ez nem
+> részlet: enélkül a nyugtán más árfolyam szerepelhet, mint a rendszerben.
+> **Két árfolyam két papíron.**
+
+> ⚠️ `[TUDATOS KORLÁT]` **A kassza egész eurót vesz át, érmét nem.** A pénzmag
+> két tizedessel dolgozik, a *felület* kínál csak bankjegyet: a vendéglátóhelyek
+> jellemzően az eurócentet sem felváltani, sem bankba vinni nem tudják. Ha egy
+> hely mégis érmét fogad, az **felületi bővítés**, nem pénzszabály-változás.
+
+---
+
 ### `[x]` M31 — Az asztalos rendelés szerkezete `MEGÉPÍTVE, MÉRÉS NÉLKÜL`
 
 **Ez nem hibamérés**, hanem annak rögzítése, hogy az asztalos rendelés mely

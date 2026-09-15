@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.18.0
+  version: 1.19.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1010,6 +1010,90 @@ paths:
         '401':
           $ref: '#/components/responses/Hiba401'
 
+  /arfolyamok:
+    get:
+      tags: [torzsadat]
+      operationId: arfolyamok
+      summary: Az ervenyes valutaarfolyamok
+      description: |
+        ⚠️ ARFOLYAMFORRAS NELKUL A VALUTAS FIZETES NEM KONYVELHETO. A fizetes
+        alakja es az adatbazis eddig is ismerte a valutat, forras viszont sehol
+        nem volt a rendszerben: a kliens barmilyen arfolyamot kuldhetett, es a
+        szerver elfogadta. A penztaros elveszi a husz eurot, a bizonylatra pedig
+        az az osszeg kerul, amit a kliens mondott.
+
+        FELULIRASIG ERVENYES (G5.6). Nincs lejarat: ami utoljara be lett
+        allitva, az az ervenyes.
+
+        A "friss" jelzo azt mondja meg, hogy a NYITOTT UZLETI NAP megnyitasa ota
+        allitottak-e be. Ha nem, a feluletnek FELTUNOEN ki kell irnia a
+        figyelmeztetest - de a fizetes NEM tiltott. A blokkolastol a helyek
+        egyszeruen kikapcsolnak a valutaelfogadast.
+
+        NEM jogosultsaghoz kotott: aki valutat vesz at, annak latnia kell,
+        mennyivel szamol a kassza.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+      responses:
+        '200':
+          description: Penznemenkent egy sor; ures lista, ha nincs beallitva semmi
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArfolyamAllapot'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+
+    post:
+      tags: [torzsadat]
+      operationId: arfolyamot
+      summary: Arfolyam rogzitese
+      description: |
+        SAJAT, MAGAS KOCKAZATU JOG (arfolyam.megadas), es SZANDEKOSAN nem az
+        kapja meg, aki a valutat elfogadja (eladas.fizetes.valuta). Az arfolyam
+        a valutas fizetes egyetlen forrasa: aki beallithatja, az donti el,
+        mennyit er a vendeg husz euroja. A rossz arfolyam a kasszavisszaeles
+        legrovidebb utja, mert nem a penzt kell eltuntetni, csak rosszul
+        atvaltani.
+
+        ESEMENYNAPLO, NEM BEALLITAS: minden rogzites uj sor, es az ELOZO ertek
+        is bekerul az auditba. Egy "395,50 -> 300,00" sor onmagaban elmondja, mi
+        tortent; egy "300,00" sor nem.
+
+        AZ ERVENYESSEG KEZDETET A SZERVER ADJA, nem a hivo: jovobeli arfolyamot
+        be lehetne allitani es elfelejteni, es akkor a kassza egy olyan
+        arfolyammal szamolna, amirol senki nem tud.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArfolyamKeres'
+      responses:
+        '201':
+          description: A rogzitett arfolyam
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArfolyamAllapot'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+
   /termekek:
     get:
       tags: [torzsadat]
@@ -1273,17 +1357,32 @@ paths:
         jelenti, mi lett belole. A ketto kozott a bizonylat allapota
         NYOMTATASRA_VAR.
 
-        ⚠️ A LEZARAS JOGOSULTSAGAI - NEGY KULON FELTETEL. A sima lezarashoz nem
-        kell kulon jog; az alabbiak akkor lepnek eletbe, ha a keres tartalmazza
-        oket. A kliensnek ezt ELORE tudnia kell, mert a gombot ennek alapjan
-        kinalja fel:
+        ⚠️ A LEZARAS JOGOSULTSAGAI. A sima lezarashoz nincs kulon "lezaras" jog;
+        az alabbiak akkor lepnek eletbe, ha a keres tartalmazza oket. A
+        kliensnek ezt ELORE tudnia kell, mert a gombot ennek alapjan kinalja
+        fel:
 
         | Jog | Mikor kell | Miert |
         |-----|-----------|-------|
+        | eladas.fizetes.keszpenz | pozitiv keszpenzsornal | |
+        | eladas.fizetes.kartya | kartyas sornal | |
+        | eladas.fizetes.utalvany | utalvanysornal | |
+        | eladas.fizetes.valuta | valutas sornal | Az arfolyam a bizonylatra kerul |
+        | eladas.fizetes.vegyes | egynel tobb POZITIV fizetesi modnal | |
         | kedvezmeny.vegosszeg | barmilyen kedvezmenynel | Itt valhat szet a vendeg altal fizetett es a gepbe utott osszeg |
         | kedvezmeny.kuszob_felett | a telephelyi kuszob felett | A kuszob pont az a hatar, ami folott vezetonek kell latnia |
         | szervizdij.modositas | nem nulla szervizdijnal | A felszolgaloi jutalek alapja |
         | eladas.szamla_keres | SZAMLA modnal | Mas adougyi ut, mas bizonylat |
+
+        ⚠️ A FIZETESI MODOK JOGAIT A LEZARAS SOKAIG NEM KERDEZTE MEG. Az ot kod
+        ott allt a katalogusban, a szerep-sablonok helyesen osztottak ki oket,
+        es a kassza el is rejtette a gombot - a szerver viszont barmit
+        elfogadott. EGY ELREJTETT GOMB NEM JOGOSULTSAG: a kerest nem a gomb
+        kuldi el, hanem a kliens.
+
+        ⚠️ A NEGATIV ES A NULLA KESZPENZSOR NEM SZAMIT BELE. A valutabol adott
+        visszajaro negativ keszpenzsor, a kerekitessel lezart bizonylate nulla -
+        egyik sem keszpenzatvetel, es egyik sem tesz vegyesse egy fizetest.
 
         ⚠️ A KUSZOB A FIX OSSZEGU KEDVEZMENYRE IS VONATKOZIK. A fix osszeget a
         kedvezmeny elotti alaphoz aranyitjuk; enelkul a kuszob egyetlen
@@ -1325,6 +1424,26 @@ paths:
                     - mod: KESZPENZ
                       osszeg: 235
                       kerekitesiKulonbozet: 1
+              valuta:
+                summary: >
+                  7940 Ft-os szamlara 25 EUR, 395,50-es arfolyamon. A husz euro
+                  forintertekebol (9888) a szamla 7940; a kulonbozet FORINTBAN
+                  megy vissza, ezert negativ keszpenzsor. 9888 + (-1950) = 7938
+                  = 7940 + (-2).
+                value:
+                  eszkozIdo: "2026-08-25T19:41:07+02:00"
+                  fizetesek:
+                    - mod: VALUTA
+                      osszeg: 9888
+                      valutaOsszeg:
+                        penznem: EUR
+                        osszeg: "25.00"
+                      arfolyam:
+                        penznem: EUR
+                        forintPerEgyseg: "395.500000"
+                    - mod: KESZPENZ
+                      osszeg: -1950
+                      kerekitesiKulonbozet: -2
 
       responses:
         '201':
@@ -2443,6 +2562,29 @@ components:
       additionalProperties: false
     Fizetes:
       title: Fizetes
+      description: |
+        Egy fizetesi sor a bizonylaton.
+
+        ⚠️ A VALUTAS SORON AZ ARFOLYAM KOTELEZO, es a szerver OSSZEVETI a
+        telephelyen ervenyessel. Nem azert kerjuk el, hogy elhiggyuk: azert,
+        hogy ki lehessen deriteni, ha a kassza mast szamolt, mint a szerver.
+        Elteres eseten a lezaras 409-cel elbukik (ARFOLYAM_ELTER) - CSENDBEN
+        NEM cserelunk arfolyamot, mert a vendegnek mar mondtak egy osszeget.
+
+        ⚠️ A VALUTAS SOR OSSZEGE A VALUTAOSSZEG ATVALTASA, kereskedoi
+        kerekitessel, egesz forintra. A szerver ezt is ellenorzi
+        (VALUTA_ATVALTAS_ELTER): enelkul a penztaros elvehetne a husz eurot, a
+        bizonylatra pedig barmilyen osszeg kerulhetne.
+
+        ⚠️ A VISSZAJARO NEM KULON FOGALOM: forintban megy vissza (G5.6), tehat
+        NEGATIV KESZPENZSORKENT all a bizonylaton - ott megy ki a penz a
+        fiokbol. Egy 7940 Ft-os szamlara adott 25 EUR 395,50-es arfolyamon
+        9888 Ft; a visszajaro 1948, ot forintra kerekitve 1950, tehat a
+        keszpenzsor -1950, a kerekitesi kulonbozete -2. Az osszeg igy is
+        stimmel: 9888 + (-1950) = 7938 = 7940 + (-2).
+
+        Ebbol kovetkezik, hogy EGY VALUTAS FIZETES KET SORT AD, de nem lesz
+        vegyes fizetes: a vegyesseg csak a POZITIV sorokbol szamolodik.
       type: object
       required: [mod, osszeg]
       properties:
@@ -2452,7 +2594,9 @@ components:
         osszeg:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
-          description: A forintban konyvelt osszeg.
+          description: >
+            A forintban konyvelt osszeg. Keszpenzsoron NEGATIV is lehet: az a
+            valutabol adott visszajaro.
         kerekitesiKulonbozet:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
@@ -2460,9 +2604,69 @@ components:
             Csak keszpenznel. Onallo, konyvelheto tetel - ezert kulon mezo, es
             nem nyelodik el az osszegben.
         valutaOsszeg:
-          $ref: '../../kozos/penz.yaml#/components/schemas/ValutaOsszeg'
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/ValutaOsszeg'
+          description: >
+            CSAK VALUTAS soron, es ott kotelezo. Mas modon kuldve a lezaras
+            422-vel elbukik (VALUTA_ADAT_NEM_VALUTAS_SORON).
+        arfolyam:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Arfolyam'
+          description: >
+            CSAK VALUTAS soron, es ott kotelezo. A telephelyen ervenyes
+            arfolyamnak kell lennie - a /arfolyamok vegpont adja meg.
+      additionalProperties: false
+
+    ArfolyamAllapot:
+      title: ArfolyamAllapot
+      description: |
+        Egy ervenyes arfolyam es amit a feluletnek tudnia kell rola.
+
+        A "friss" jelzo nem naptari napot nez: a vendeglatohely uzleti napja
+        hajnali negykor is tarthat meg, es ott a tegnap delelott megadott
+        arfolyam NEM elavult. A merce a NYITOTT UZLETI NAP megnyitasa.
+      type: object
+      required: [arfolyam, ervenyesTol, friss]
+      properties:
         arfolyam:
           $ref: '../../kozos/penz.yaml#/components/schemas/Arfolyam'
+        ervenyesTol:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+        friss:
+          type: boolean
+          description: >
+            A nyitott uzleti nap megnyitasa ota allitottak-e be. Ha nincs
+            nyitott nap, igaz.
+        beallitotta:
+          type: string
+          nullable: true
+          description: >
+            Aki rogzitette. A visszaeles utolagos felderitesenek egyetlen
+            fogodzoja.
+        figyelmeztetes:
+          type: string
+          nullable: true
+          description: >
+            Emberi mondat, ha nem friss. A feluletnek FELTUNOEN ki kell irnia -
+            de nem tilthatja meg a fizetest (G5.6).
+      additionalProperties: false
+
+    ArfolyamKeres:
+      title: ArfolyamKeres
+      type: object
+      required: [penznem, forintPerEgyseg, eszkozIdo]
+      properties:
+        penznem:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Penznem'
+        forintPerEgyseg:
+          type: string
+          pattern: '^[0-9]{1,6}\.[0-9]{6}$'
+          description: >
+            Egy egyseg valuta forintban. SZOVEG, mert tizedes - ugyanaz a
+            szabaly, mint mindenhol, ahol tort ertek utazik a protokollon.
+          examples: ["395.500000"]
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
       additionalProperties: false
 
     BizonylatFejlec:

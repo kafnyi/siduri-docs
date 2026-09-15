@@ -589,3 +589,28 @@ vektorok az egyetlen dolog, ami a két megvalósítást együtt tartja.
 `*.yaml` szerepelt, tehát egy **kézzel átírt tesztvektor észrevétlen maradt**
 volna — pont az, ami a két nyelv egyezését bizonyítja. A kliens tesztje ezt
 mindvégig ellenőrizte; csak soha nem futott le *(lásd `MERESEK.md` M29)*.
+
+---
+
+### v1.17.0 — 2026-09-15 — *a kiosztások sorrendje kimondva* ⚠️ `NEM TÖRŐ`
+
+**Nincs új mező és nincs viselkedésváltozás** — egy **kimondatlan szabály**
+került a szerződésbe, mert kliensoldali hibát okozott.
+
+A `Kiosztas.suly` leírása mostantól kimondja: **a kiosztások sorrendje
+számít**. A maradék forint a legnagyobb súlyú részre kerül, holtversenynél a
+listában **korábbira** — tehát ugyanaz a terv más sorrendben más összeget ad.
+
+**Miért kellett ezt leírni:** a POS-kliens a kezelő **koppintási sorrendjében**
+küldte a kiosztásokat *(mérve: `MERESEK.md` M30)*. Ha a pincér a 3. részre
+koppintott először, a maradék oda került, nem az 1.-re — ugyanaz a felállás más
+kézmozdulattal más forintot adott. A kliens ezt javította; a szerződés eddig
+**nem figyelmeztetett rá**, tehát a készülő Dart vékonykliens pontosan
+ugyanabba futott volna bele.
+
+**A kliensnek soronként, rész szerint növekvően kell küldenie.**
+
+**Új közös tesztvektorok: `megosztas.json` (10 eset)** — súlyozott osztás,
+maradék a nagyobb súlyra, nulla súly, vegyes arányok több soron, nem bontható
+kategória. A megosztóképernyő mostantól **kiírja, ki mennyit fizet**, mielőtt a
+terv elmegy; a számot ugyanaz a szabály adja, amit a szerver futtat.

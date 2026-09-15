@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.16.0
+  version: 1.17.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2033,6 +2033,13 @@ components:
           format: int64
           minimum: 0
           description: |
+            ⚠️ A KIOSZTASOK SORRENDJE SZAMIT. A maradek forint a legnagyobb
+            sulyu reszre kerul, holtversenynel a listaban KORABBIRA - tehat
+            ugyanaz a terv mas sorrendben mas osszeget ad. A kliensnek
+            SORONKENT, RESZ SZERINT NOVEKVOEN kell kuldenie, kulonben a
+            kezelo koppintasi sorrendje befolyasolja, ki kapja a plusz
+            forintot.
+
             NEM OSSZEG, HANEM ARANY. Egy harom adagos sorbol ket adag az egyik
             vendegnek: suly = 2 es suly = 1. A forintra valtas a szerver dolga,
             es MARADEK NELKUL tortenik.

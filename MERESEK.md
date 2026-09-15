@@ -309,6 +309,61 @@ vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosa
 a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
 egyezzen, az áfa kerekedjen.
 
+### `[x]` M30 — A megosztás eredményét a KOPPINTÁSI SORREND befolyásolta `MÉRVE, JAVÍTVA`
+
+**A súlyozott megosztás felületének építése előtt** néztem meg, mit küld
+valójában a képernyő. A kiosztásokat egy `HashSet<int>`-ből olvasta ki,
+**bejárási sorrendben**.
+
+**Mérve, futtatva:**
+
+```
+csak hozzaadas:       1,2,3
+torles utan ujra:     1,2,3
+mas koppintassorrend: 3,1,2      ← a 3-ra koppintott eloszor
+```
+
+**Miért számít ez egyáltalán:** a maradék forint a **legnagyobb súlyú** részre
+kerül, holtversenynél a listában **korábbira**. Egy 1 000 Ft-os sor három
+részre osztva 334 / 333 / 333 — és hogy **ki kapja a 334-et**, azt az döntötte
+el, melyik gombra koppintott a pincér **először**.
+
+| | |
+|---|---|
+| Az eltérés mértéke | **1 Ft** részenként |
+| Amit megsért | *„ugyanaz a bizonylat kétszer számolva ugyanazt adja"* |
+| Kit érint | minden kliens, ami rendezetlenül küld — **a készülő Dart vékonyklienst is** |
+
+**A javítás nem a képernyőn van.** A rendezés a **magba** került
+(`Szamlamegosztas.Rendezve`), mert ez szabály, nem felületi részlet — és így
+tesztelhető is: a WPF-projektnek ezen a gépen nincs futtatható tesztkészlete
+(a `net8.0-windows` cél fordul Linuxon, de nem fut). A képernyő ugyanazt a
+rendezett listát használja a **kijelzéshez és a küldéshez**, tehát a kiírt szám
+és az elküldött terv nem tud elcsúszni egymástól.
+
+**És a szerződés eddig hallgatott róla.** A `Kiosztas.suly` leírása most már
+kimondja *(v1.17.0)*. Ez nem kozmetika: a szabály **megvolt a kódban**, de
+sehol nem volt leírva, tehát minden új kliens újra beleszaladt volna.
+
+**A megosztás a kliensen is megvan — 500 esetes differenciál-mérés.**
+
+A megosztóképernyő mostantól **kiírja, ki mennyit fizet**, mielőtt a terv
+elmegy. Súlyozott osztásnál ez nem kényelem: a „két adag neki, egy neked"
+önmagában elvont szám, és a vendégek a **forintot** vitatják meg egymás közt.
+
+| | |
+|---|---|
+| Véletlen esetek | **500** (2–5 rész, 1–5 sor, 0–5 súlyok) |
+| Összehasonlítva | részenkénti végösszeg **és az elutasítások** |
+| **Eltérés** | **0** — a 441 sikeres eset és mind az **59 elutasítás** is egyezik |
+
+A 10 kézzel írt vektor *(`megosztas.json`)* rögzíti a nehéz eseteket. **Az
+egyiket a vektor fogta meg, nem a kód:** a „súlyozás több soron egyszerre"
+esetnél elszámoltam a 2. részt (1 500-at írtam 2 000 helyett), és a
+megvalósítás mondta meg, hogy tévedek.
+
+---
+
 ### `[x]` M29 — A C# kliens SOHA nem fordult le, és a pénzszabályok egyezése feltevés volt `MÉRVE`
 
 **A környezet megváltozott, és ez a legfontosabb sor ebben a bejegyzésben:**

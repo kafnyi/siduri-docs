@@ -972,7 +972,12 @@ trailer nélkül.**
    /beallitasok` végpont a telephelyi küszöbökre, és a helyszíni jóváhagyás
    útja végig. A képernyő **előre megmondja**, mihez kell vezető — a pincér
    nem a vendég előtt tudja meg.
-4. **Súlyozott megosztás a felületen** — a szerződés és a szerver ismeri (két
+4. ✅ **Súlyozott megosztás a felületen** — **KÉSZ**. A rész gombjára
+   koppintva a súly nő (×2, ×3 …), és a képernyő **forintban** mutatja, kire
+   mennyi jut — soronként és részenként. A számítás a magban
+   (`Szamlamegosztas`), közös tesztvektorokkal. Közben kiderült, hogy a
+   kiosztásokat a **koppintási sorrend** vitte el *(`MERESEK.md` M30)*;
+   a rendezés a magba került, a szabály pedig a szerződésbe *(v1.17.0)*. — a szerződés és a szerver ismeri (két
    adag az egyiknek, egy a másiknak); a képernyő ma csak egyenlő osztozást kínál
    egy közös soron.
 5. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.

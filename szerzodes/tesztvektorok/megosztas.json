@@ -1,0 +1,88 @@
+{
+  "leiras": "Szamlamegosztas. A ketfele megosztas UGYANAZ a muvelet, mas sulyokkal: az egyenlo osztas minden sort N reszre bont azonos sullyal, a teteleset a kezelo sulyai iranyitjak. NEM a vegosszeget osztjuk el, hanem SORONKENT - igy az afa minden reszen a sajat tartalmabol jon, es nem kell onkenyesen eldonteni, melyik afakulcsba mennyi esik.",
+  "miert_kozos": "A megosztokepernyo MEGMUTATJA, ki mennyit fizet, mielott a kezelo elkuldi a tervet. Sulyozott osztasnal ez nem kenyelem: a 'ket adag neki, egy neked' onmagaban elvont szam, es a vendegek a FORINTOT vitatjak meg egymas kozt. Ha a kliens mast mutat, mint amit a szerver szamol, a vita a pult elott folytatodik.",
+  "alak": "A 'sorok' es a 'kiosztasok' CSOVEL elvalasztva. Sor: 'azonosito:kategoria:osszeg'. Kiosztas: 'azonosito:resz:suly'. Az azonosito egybetus roviditos (A, B, C), nem UUID - a vektor a SZABALYT rogziti, nem egy konkret rendelest.",
+  "sorrend_szamit": "A maradek forint a legnagyobb sulyu reszre kerul; holtversenynel a KORABBI kiosztas nyer. Ezert a 'kiosztasok' sorrendje RESZE a vektornak - ugyanaz a terv mas sorrendben mas eredmenyt adna, es ezt a kliensnek is pontosan igy kell kuldenie.",
+  "esetek": [
+    {
+      "nev": "Egyenlo osztas ket reszre, maradek nelkul",
+      "sorok": "A:C_27:4000|B:A_5:2000",
+      "reszekSzama": 2,
+      "kiosztasok": "A:1:1|A:2:1|B:1:1|B:2:1",
+      "reszek": "1:3000|2:3000",
+      "megjegyzes": "Soronkent osztunk: az 1. resz 2000 itala es 1000 etele, nem a 6000 fele."
+    },
+    {
+      "nev": "Egyenlo osztas HAROM reszre - a maradek a korabbira kerul",
+      "sorok": "A:C_27:1000",
+      "reszekSzama": 3,
+      "kiosztasok": "A:1:1|A:2:1|A:3:1",
+      "reszek": "1:334|2:333|3:333",
+      "megjegyzes": "1000/3 = 333,33 -> lefele 333; harom resz 999, a maradek 1 Ft. Azonos suly mellett a KORABBI kapja: az 1. resz."
+    },
+    {
+      "nev": "EZ A LENYEG: sulyozott osztas - ket adag az egyiknek, egy a masiknak",
+      "sorok": "A:C_27:4500",
+      "reszekSzama": 2,
+      "kiosztasok": "A:1:2|A:2:1",
+      "reszek": "1:3000|2:1500",
+      "megjegyzes": "A suly ARANY, nem osszeg. 4500 Ft 2:1 aranyban."
+    },
+    {
+      "nev": "Sulyozott osztas maradekkal - a NAGYOBB suly kapja",
+      "sorok": "A:C_27:1000",
+      "reszekSzama": 2,
+      "kiosztasok": "A:1:2|A:2:1",
+      "reszek": "1:667|2:333",
+      "megjegyzes": "1000 * 2/3 = 666,67 -> lefele 666; 1000 * 1/3 = 333,33 -> 333. Osszesen 999, a maradek 1 Ft a NAGYOBB sulyu reszre megy."
+    },
+    {
+      "nev": "Sulyozott osztas HAROM resz kozott, vegyes aranyokkal",
+      "sorok": "A:C_27:6000",
+      "reszekSzama": 3,
+      "kiosztasok": "A:1:3|A:2:2|A:3:1",
+      "reszek": "1:3000|2:2000|3:1000",
+      "megjegyzes": "3:2:1 arany, maradek nelkul."
+    },
+    {
+      "nev": "Teteles osztas: minden sor oda kerul, ahova tartozik",
+      "sorok": "A:C_27:2500|B:A_5:1800|C:C_27:900",
+      "reszekSzama": 2,
+      "kiosztasok": "A:1:1|B:2:1|C:1:1",
+      "reszek": "1:3400|2:1800",
+      "megjegyzes": "Aki nem kert a levesbol, nem is fizet erte. Ez a teteles osztas ertelme."
+    },
+    {
+      "nev": "Vegyes: van sajat tetel es van kozosen osztott is",
+      "sorok": "A:C_27:3000|B:C_27:1000",
+      "reszekSzama": 2,
+      "kiosztasok": "A:1:1|A:2:1|B:1:1",
+      "reszek": "1:2500|2:1500",
+      "megjegyzes": "Az uveg bor (A) kozos, a kave (B) csak az elsoe. A kozos sort EGYENLOEN osztjak, mert mindketto sulya 1."
+    },
+    {
+      "nev": "Nulla suly = nem kert belole",
+      "sorok": "A:C_27:1000|B:C_27:2000",
+      "reszekSzama": 2,
+      "kiosztasok": "A:1:1|A:2:0|B:1:0|B:2:1",
+      "reszek": "1:1000|2:2000",
+      "megjegyzes": "A nulla suly ervenyes: a resz nem kap a sorbol. A nulla forintos RESZSOR viszont kimarad - egy 0 Ft-os tetel a bizonylaton semmit nem jelentene."
+    },
+    {
+      "nev": "Sulyozas tobb soron egyszerre",
+      "sorok": "A:C_27:3000|B:A_5:1500",
+      "reszekSzama": 2,
+      "kiosztasok": "A:1:2|A:2:1|B:1:1|B:2:2",
+      "reszek": "1:2500|2:2000",
+      "megjegyzes": "A borbol tobbet ivott az elso, a levesbol tobbet evett a masodik. Az 1. resz 2000+500 = 2500, a 2. resz 1000+1000 = 2000. A ketto egyutt 4500, pontosan a rendeles."
+    },
+    {
+      "nev": "A nem bonthato kategoria is oszthato",
+      "sorok": "A:D_AJT:3000",
+      "reszekSzama": 3,
+      "kiosztasok": "A:1:1|A:2:1|A:3:1",
+      "reszek": "1:1000|2:1000|3:1000",
+      "megjegyzes": "Az adojegyes tetelt nem bontjuk afara - a megosztas ettol fuggetlen muvelet."
+    }
+  ]
+}

@@ -309,6 +309,35 @@ vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosa
 a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
 egyezzen, az áfa kerekedjen.
 
+### `[x]` M31 — Az asztalos rendelés szerkezete `MEGÉPÍTVE, MÉRÉS NÉLKÜL`
+
+**Ez nem hibamérés**, hanem annak rögzítése, hogy az asztalos rendelés mely
+döntései hol vannak kikényszerítve — és melyik kérdés maradt nyitva.
+
+| Szabály | Hol kényszerül ki | Miért ott |
+|---------|-------------------|-----------|
+| Egy asztalon **egy** nyitott rendelés | **Egyedi index** (V18) | Egy alkalmazási ágat ki lehet felejteni, egy indexet nem |
+| Két írás nem írja felül egymást | **Optimista zárolás** (`verzio`) | Két pincér egy asztalhoz nyúlhat; enélkül az egyik írása **csendben** veszne el |
+| 24 óránál tovább nincs nyitva (H6.5) | A szolgáltatás kapujában | A beküldéskor már késő: a vendég elment |
+| Más pincér asztala külön jog | `rendeles.mas_pincer_asztala` | Egy idegen asztalra ütött tétel **annak a pincérnek** az elszámolását rontja |
+
+**Amit a zárolás tesztje bizonyít:** kikapcsolva (a `verzio = ?` feltétel
+elhagyásával) a teszt **azonnal piros** — vagyis nem díszlet.
+
+> ⚠️ `[NYITOTT]` **J6 — a rendelés átlépi a munkanap-határt.** A rendelés a
+> **kezdő** üzleti naphoz tartozik, a bizonylat a **fizetés** napjára kerül. A
+> `NYITOTT_KERDESEK.md` J6 szerint **nem tisztázott**, elfogad-e az NTAK egy
+> tárgynapra napi zárás **után** beérkező rendelésösszesítőt. Egy 0–24-es
+> helyen ez **mindennapos**. A szerkezet ezt már most kiszolgálja; a kérdés a
+> beküldés megépítéséig halasztható, de **nem felejthető el**.
+
+> ⚠️ `[MÉRENDŐ]` **Az asztallista válaszideje.** A `GET /asztalok` a
+> vendéglátóhely leggyakoribb kérése — minden képernyőfrissítésnél lefut.
+> Egy lekérdezésből jön (nem N+1), de a **tényleges** válaszidőt húsz asztalnál,
+> J1900-as pultgépen kell megmérni *(F0.3 / M13 környéke)*.
+
+---
+
 ### `[x]` M30 — A megosztás eredményét a KOPPINTÁSI SORREND befolyásolta `MÉRVE, JAVÍTVA`
 
 **A súlyozott megosztás felületének építése előtt** néztem meg, mit küld

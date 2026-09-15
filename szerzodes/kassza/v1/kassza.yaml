@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.17.0
+  version: 1.18.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1061,6 +1061,100 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /asztalok:
+    get:
+      tags: [asztal]
+      operationId: asztalok
+      summary: Asztalok es a rajtuk allo nyitott rendelesek
+      description: |
+        ⚠️ EZ A VENDEGLATOHELY LEGGYAKORIBB KERESE - minden kepernyofrissitesnel
+        lefut, ezert EGY lekerdezesbol jon, nem asztalonkent kulon. Egy
+        huszasztalos helyen az N+1 husz kort jelentene, ami a J1900-as
+        pultgepen lathato akadas.
+
+        A szabad asztal SZABADKENT jon vissza (rendelesAzonosito = null), nem
+        hianyzo adatkent.
+
+        A valasz tartalmazza a FIGYELMEZTETEST is, ha egy rendeles kozelit a
+        24 oras korlathoz (H6.5): a korlatba beleutkozni a legrosszabb
+        pillanat - a vendeg fizetni akar, es a kassza nemet mond.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+      responses:
+        '200':
+          description: Az AKTIV asztalok, sorrend szerint
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Asztal'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+
+  /rendelesek/{rendelesAzonosito}:
+    get:
+      tags: [rendeles]
+      operationId: rendelestLekerdez
+      summary: Egy nyitott rendeles tartalma
+      description: |
+        ⚠️ ENELKUL AZ ASZTALOS RENDELES NEM FOLYTATHATO. A pincer egy masik
+        gepnel ul le, vagy a sajatja ujraindult; a rendeles a szerveren all, de
+        a kliens nem tudja, mi van rajta - es a VERZIOT sem, ami nelkul nem is
+        irhat ra.
+      parameters:
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+      responses:
+        '200':
+          $ref: '#/components/responses/Rendeles'
+        '404':
+          description: Nincs ilyen rendeles ezen a telephelyen.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/vendegszam:
+    post:
+      tags: [rendeles]
+      operationId: vendegszamot
+      summary: A vendegszam modositasa
+      description: |
+        SAJAT JOGOT IGENYEL (rendeles.vendegszam_modositas), mert
+        RIPORTALAPADAT: az egy vendegre juto kosarertek ebbol szamolodik. Aki
+        elirja, a helyi mutatot rontja el.
+
+        Asztalos rendelesnel a VERZIO kotelezo, mint minden irasnal.
+      parameters:
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendegszamKeres'
+      responses:
+        '200':
+          $ref: '#/components/responses/Rendeles'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          description: >
+            A rendeles kozben megvaltozott (RENDELES_MEGVALTOZOTT), vagy 24
+            oranal regebbi (RENDELES_TUL_REGI).
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
   /rendelesek:
     post:
       tags: [rendeles]
@@ -1084,7 +1178,27 @@ paths:
                 eszkozIdo:
                   $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
                 asztalAzonosito:
-                  $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+                  allOf:
+                    - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+                  description: |
+                    HA MEGVAN, ASZTALOS RENDELES. A ketto ket kulon folyamat, es
+                    a katalogusban ket kulon jog all rajtuk
+                    (eladas.gyorseladas, eladas.asztalra):
+
+                    - a pultos kosara a KLIENSNEL el, masodpercekig, egy kezelo
+                      nyul hozza - ha a gep meghal, a vendeg ujra elmondja;
+                    - az asztalon allo rendeles a SZERVEREN all, ORAKIG, tobb
+                      kezelo nyul hozza tobb geprol - a vendeg nincs ott, hogy
+                      ujra elmondja.
+
+                    Asztalos rendelesnel minden irashoz VERZIO kell, es egy
+                    asztalon egy nyitott rendeles lehet.
+                vendegszam:
+                  type: integer
+                  minimum: 1
+                  description: >
+                    Csak asztalosnal ertelmes. RIPORTALAPADAT: az egy vendegre
+                    juto kosarertek ebbol szamolodik.
                 teljesitesMod:
                   $ref: '#/components/schemas/TeljesitesMod'
               additionalProperties: false
@@ -1841,6 +1955,18 @@ components:
           allOf:
             - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
           description: A KISZERELES azonositoja, az ertekesitheto tetel listajabol.
+        verzio:
+          type: integer
+          format: int64
+          description: |
+            A rendeles verzioja, AHOGY A KLIENS LATTA. Asztalos rendelesnel
+            KOTELEZO: ket pincer ugyanahhoz az asztalhoz nyulhat egyszerre, es
+            enelkul az egyik irasa CSENDBEN felulirna a masiket.
+
+            Ha a szerveren azota valtozott, a valasz 409 RENDELES_MEGVALTOZOTT
+            - a kliensnek frissitenie kell, es meg kell mutatnia, mi kerult ra.
+
+            Gyorseladasnal elhagyhato: ott nincs mit utkoztetni.
         mennyiseg:
           $ref: '../../kozos/penz.yaml#/components/schemas/Mennyiseg'
         eszkozIdo:
@@ -1960,6 +2086,76 @@ components:
       enum: [HELYBEN, ELVITEL, KISZALLITAS]
       default: HELYBEN
 
+    Asztal:
+      title: Asztal
+      description: |
+        Egy asztal es ami rajta all. A ferohely TAJEKOZTATO, nem korlat: egy
+        negyszemelyes asztalhoz otet is leultetnek, es a kassza nem allhat
+        ennek utjaba.
+      type: object
+      required: [azonosito, szam, osszeg]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        szam:
+          type: string
+          description: >
+            A gyorsan beutheto azonosito ("12"). A megnevezes ezt NEM
+            helyettesiti: az a nev, amit a pincer mond ("Terasz 3").
+        megnevezes:
+          type: string
+        terulet:
+          type: string
+        ferohely:
+          type: integer
+        rendelesAzonosito:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: NULL, ha az asztal SZABAD. Nem hianyzo adat, hanem allapot.
+        vendegszam:
+          type: integer
+        verzio:
+          type: integer
+          format: int64
+          description: >
+            Az optimista zarolas alapja. A kliens ezt kuldi vissza a kovetkezo
+            iraskor; a lista is adja, hogy az asztalra koppintva azonnal lehessen
+            irni, kulon lekerdezes nelkul.
+        felhasznaloAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        felhasznaloNev:
+          type: string
+          description: AKI MEGNYITOTTA - a rendeles.mas_pincer_asztala jog ehhez merodik.
+        nyitasIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+        osszeg:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: A nyitott rendeles osszege; szabad asztalnal nulla.
+        figyelmeztetes:
+          type: string
+          description: >
+            A 24 oras korlat (H6.5) kozeledtérol, emberi mondatban. NULL, ha
+            nincs mire figyelmeztetni - a zaj elvenne a jelzes erejet.
+      additionalProperties: false
+
+    VendegszamKeres:
+      title: VendegszamKeres
+      type: object
+      required: [vendegszam, eszkozIdo]
+      properties:
+        vendegszam:
+          type: integer
+          minimum: 1
+          description: Legalabb egy. Nulla vendeg nincs.
+        verzio:
+          type: integer
+          format: int64
+          description: Asztalos rendelesnel KOTELEZO.
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
     Rendeles:
       title: Rendeles
       type: object
@@ -1974,6 +2170,14 @@ components:
           $ref: '#/components/schemas/TeljesitesMod'
         asztalAzonosito:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        vendegszam:
+          type: integer
+        verzio:
+          type: integer
+          format: int64
+          description: >
+            AZ OPTIMISTA ZAROLAS ALAPJA, es a valasz resze, nem extra. A kliens
+            ezt kuldi vissza a kovetkezo iraskor. Gyorseladasnal null.
         tetelek:
           type: array
           items:

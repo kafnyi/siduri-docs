@@ -980,8 +980,24 @@ trailer nélkül.**
    a rendezés a magba került, a szabály pedig a szerződésbe *(v1.17.0)*. — a szerződés és a szerver ismeri (két
    adag az egyiknek, egy a másiknak); a képernyő ma csak egyenlő osztozást kínál
    egy közös soron.
-5. **Asztalos rendelés** — a kosár jelenleg helyben él, és a fizetéskor megy el.
-   A megosztás már felküldi a rendelést; az asztalos folyamat ezt terjesztené ki.
+5. ✅ **Asztalos rendelés** — **KÉSZ** *(szerződés v1.18.0)*. Asztaltörzs,
+   asztalválasztó képernyő, a rendelés a **szerveren** áll, optimista zárolás,
+   24 órás korlát, és a `eladas.asztalra` / `rendeles.mas_pincer_asztala` /
+   `rendeles.vendegszam_modositas` jogok ellenőrizve.
+
+   ⚠️ **Ami az F4-ből NEM ebben van:** asztaltérkép-szerkesztő, asztal-szintű
+   kedvezmény, fogások, módosítók, menük, KDS, vékonykliens, előnyugta. Ezek az
+   F4 külön sorai — ez a tétel a *rendelést* tette asztalossá, nem a teljes
+   vendéglátás-fázist.
+
+   ⚠️ **NYITOTT KÉRDÉS, amit ez a tétel élessé tett — J6.** A rendelés a
+   **kezdő** üzleti naphoz tartozik (a `munkanap_id` a nyitáskor rögzül), a
+   bizonylat viszont a **fizetés napjára** kerül — ez összhangban van az M27
+   tanulságával (a bizonylat akkor keletkezik, amikor kiadják). **ÁRA / kockázat:**
+   a `NYITOTT_KERDESEK.md` J6 szerint nem tisztázott, hogy az NTAK elfogad-e
+   egy tárgynapra **napi zárás után** beérkező rendelésösszesítőt. Egy 0–24-es
+   helyen ez nem élhelyzet, hanem **mindennapos**. A szerkezet kész, a kérdés
+   nyitva — és a beküldés (felhő/NTAK) még nem épült meg, tehát még nem sürget.
 6. **Árfolyamforrás**, és utána a valutás fizetés — lásd a 7.2 szakaszt.
 
 > ⚠️ **A KÖRNYEZET MEGVÁLTOZOTT: a C# kliens mostantól FORDÍTHATÓ ÉS

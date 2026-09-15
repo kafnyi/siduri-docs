@@ -614,3 +614,48 @@ ugyanabba futott volna bele.
 maradék a nagyobb súlyra, nulla súly, vegyes arányok több soron, nem bontható
 kategória. A megosztóképernyő mostantól **kiírja, ki mennyit fizet**, mielőtt a
 terv elmegy; a számot ugyanaz a szabály adja, amit a szerver futtat.
+
+---
+
+### v1.18.0 — 2026-09-15 — *asztalos rendelés* ⚠️ `NEM TÖRŐ`
+
+**A gyorseladás és az asztalos rendelés két külön folyamat**, és a katalógusban
+két külön jog állt rajtuk (`eladas.gyorseladas`, `eladas.asztalra`) — csak
+eddig egyik sem volt megépítve. A különbség nem a felület:
+
+| | Gyorseladás (pult) | Asztalos rendelés |
+|---|---|---|
+| Hol él a kosár | a **kliensnél** | a **szerveren** |
+| Meddig | másodpercek | **órák** |
+| Ki nyúl hozzá | egy kezelő | **több kezelő, több gépről** |
+| Gépvesztéskor | a vendég újra elmondja | **a vendég nincs ott** |
+
+**Új végpontok:**
+
+| Végpont | Mire |
+|---------|------|
+| `GET /asztalok` | Az asztalok **és a rajtuk álló nyitott rendelés** — egy lekérdezésből |
+| `GET /rendelesek/{r}` | Egy nyitott rendelés tartalma **és a verziója** |
+| `POST /rendelesek/{r}/vendegszam` | A vendégszám módosítása |
+
+**Bővült:** `POST /rendelesek` (asztal, vendégszám), `POST .../tetelek`
+(**verzió**), és a `Rendeles` válasz (vendégszám, verzió).
+
+**⚠️ Optimista zárolás.** Két pincér ugyanahhoz az asztalhoz nyúlhat
+egyszerre; zárolás nélkül az egyik írása **csendben** felülírná a másikét. Az
+írás a látott **verzióval** megy; ha a szerveren azóta változott, a válasz
+`409 RENDELES_MEGVALTOZOTT` — a kliensnek frissítenie kell, és **meg kell
+mutatnia, mi került rá**.
+
+**⚠️ Egy asztalon egy nyitott rendelés.** Nem alkalmazási ellenőrzés, hanem
+**egyedi index**: egy ágat ki lehet felejteni, egy indexet nem. Két nyitott
+rendelés ugyanazon az asztalon azt jelentené, hogy a vendég két számlát kap ott,
+ahol egyet kért.
+
+**⚠️ A 24 órás korlát (H6.5) érvényesítve.** Efölött a rendelés nem bővíthető
+(`409 RENDELES_TUL_REGI`), és **22 óra fölött a válasz figyelmeztetést hoz** — a
+korlátba beleütközni a legrosszabb pillanat: a vendég fizetni akar, és a kassza
+nemet mond.
+
+**A `rendeles.mas_pincer_asztala` és a `rendeles.vendegszam_modositas` is
+ellenőrzött** — újabb kettő a söprés listájáról.

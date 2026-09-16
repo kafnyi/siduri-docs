@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.20.0
+  version: 1.21.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2481,7 +2481,8 @@ components:
         A telephely kuszobei. SZOVEGKENT, mert tizedesek - ugyanaz a szabaly,
         mint mindenhol, ahol tort ertek utazik a protokollon.
       type: object
-      required: [kedvezmenyIndokSzazalek, szervizdijMegerositesSzazalek]
+      required:
+        [kedvezmenyIndokSzazalek, szervizdijMegerositesSzazalek, automatikusNapzaras]
       properties:
         kedvezmenyIndokSzazalek:
           type: string
@@ -2501,6 +2502,19 @@ components:
             E FOLOTT a "megerositve" jelzo kell a lezarason. Nem az osszeget
             erositi meg, hanem a SZANDEKOT.
           examples: ["15.00"]
+        automatikusNapzaras:
+          type: boolean
+          description: |
+            Van-e a telephelyen TERVEZETT (automatikus) napzaras.
+
+            ⚠️ EBBOL DOL EL, HOGY A KEZI ZARAS KULON JOGOT IGENYEL-E. A
+            nap.kezi_zaras FELTETELES jog: csak ott kell, ahol automatikus
+            zaras is be van allitva - ott a nap vege nem a kezelo dontese, mert
+            aki korabban zar, a kovetkezo muszak beveteleet tolja at a masnapra.
+            Ahol NINCS tervezett zaras, ott a kezi zaras a rendes uzemmod, es a
+            muszakfelelosnek is mennie kell.
+
+            A felulet enelkul nem tudna eldonteni, felkinalja-e a gombot.
       additionalProperties: false
 
     LezarasKeres:

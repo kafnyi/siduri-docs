@@ -332,6 +332,90 @@ vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosa
 a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
 egyezzen, az áfa kerekedjen.
 
+### `[x]` M35 — A söprés, ami eddig kézzel ment, mostantól **teszt** `MÉRVE, JAVÍTVA`
+
+**Ez a negyedik kör volt ugyanabból a hibából.** A végösszeg-kedvezmény (M28), a
+fizetési módok (M32), az eszközárfolyam (M33) — és most a gyorseladás. A minta
+mindannyiszor azonos: **a katalógusban ott a kód, a szerep-sablon helyesen
+osztja ki, a kassza el is rejti a gombot, és a szerver soha nem kérdezi meg.**
+
+**A negyedik alkalommal már nem az a kérdés, hogy megtaláljuk-e a lyukat, hanem
+hogy eszünkbe jut-e keresni.** Ezért a söprés innentől teszt
+(`JogosultsagSoprasTest`): minden katalógusbeli kód vagy **ellenőrzött**, vagy
+rajta van egy **indokolt** kivétellistán. Új kód besorolás nélkül megbuktatja a
+fordítást.
+
+| Mérőszám | Érték |
+|----------|-------|
+| Katalógus | **92** kód |
+| Ellenőrzött | **32** |
+| Indokolt kivétel | **60** (egyenként megnevezett okkal) |
+| Besorolatlan | **0** — ezt a teszt tartja nullán |
+
+**⚠️ A teszt az első futásán talált egy kódot, amit a kézi söprés kihagyott.**
+A kézi lista 61 tételes volt, a gépi 62-t talált: a `beallitas.18plusz` azért
+maradt ki, mert a kézi kigyűjtés mintája nem engedett **számjegyet** a kódban.
+Nem elvi hiba, hanem pontosan az a fajta, ami ellen a gép véd.
+
+**⚠️ FORRÁSKÓDOT olvas, nem bájtkódot — és ez nem lustaság.** A
+`Jogosultsagkodok` mezői `static final String` konstansok, amiket a fordító
+**beéget** a hívás helyére; a bájtkódban nyoma sincs a mezőhivatkozásnak. Egy
+ArchUnit-szabály itt **némán** semmit nem találna, és zölden hagyná az egészet —
+vagyis pont úgy viselkedne, mint a hiba, amit keresünk.
+
+**Négy állítás, mert a lista maga is elromolhat:**
+
+| Állítás | Mit fog meg |
+|---------|-------------|
+| Minden kód besorolva | Új katalóguskód ellenőrzés nélkül |
+| A kivétellista nem avul | Ami már ellenőrzött, nincs helye a listán — *„valaki megnézte" látszatát kelti* |
+| A kivételek kódjai léteznek | Elgépelt kivétel a **valódi** kódot hagyja ellenőrizetlenül, a teszt meg zöld |
+| A hivatkozott kódok léteznek | Elgépelt ellenőrzés **mindig** „nincs jogod"-ot ad, és senki nem érti, miért |
+
+**Amit ez a kör javított — két élő lyuk:**
+
+**1. `eladas.gyorseladas` — soha nem volt megkérdezve.** A rendelésnyitás
+**mindkét úton** ugyanazt az egy jogot nézte (`rendeles.megnyitas`), pedig a
+sablonokban a pincér asztalra ad el, és a **pultos** az, aki ezen felül
+gyorseladhat. Vagyis **bármelyik pincér indíthatott pultos eladást** — asztal,
+felelős és nyom nélkül. A gyorseladás pont attól gyors, hogy nem hagy nyomot az
+asztalon; ezért nem mindegy, kinek van rá joga.
+
+**2. `nap.kezi_zaras` — soha nem volt megkérdezve**, pedig a katalógus pontosan
+megmondja, mikor kell: *„kézi napzárás, **ha automatikus van beállítva**"*. Aki
+az automatika elé vág, a következő műszak bevételét tolja át a másnapra.
+
+> ⚠️ **A jog FELTÉTELES, és ezt a felület korábban SZIGORÚBBAN vette, mint a
+> szerver.** A kassza minden napzárásnál megkövetelte a `nap.kezi_zaras`-t —
+> tehát pont a **kézzel záró** helyeken rejtette el a gombot a
+> műszakfelelőstől, akinek az a napi munkája. A szerződés ezért új mezőt kapott
+> (`Beallitasok.automatikusNapzaras`): a felület enélkül nem tudná eldönteni,
+> felkínálja-e a gombot. **A szigorúbb felület is hiba, nem óvatosság.**
+
+**Mindkét javítás bizonyítottan harap:** a két új kaput kivéve a kódból a
+megfelelő tesztek azonnal pirosra váltanak. A bizonyítás **kétirányú** — ugyanaz
+a művelet a joggal átmegy, jog nélkül elbukik —, mert a hibaüzenet szándékosan
+nem nevezi meg a hiányzó kódot, és az „elbukott" állítás önmagában bármelyik
+másik hibára is igaz lenne.
+
+**Amit megnéztem, és NEM volt lyuk:**
+
+| Kód | Miért nem |
+|-----|-----------|
+| `ar.kezi_felulriras` | Az árat a szerver a **katalógusból** veszi; a kliens nem is tud árat küldeni |
+| `tetel.mennyiseg_modositas` | Nincs módosító végpont — csak felvétel és törlés |
+| `kassza.fiok_nyitas_eladas_nelkul` | A készpénzmozgás-típusok között nincs fióknyitás |
+| `felhasznalo.jelszo_csere_mase` | A PIN-csere csak a **sajátot** írja, és a jelenlegi PIN-t is kéri |
+| `rendeles.nem_fizetett_lezaras` | Nulla végösszeg csak 100%-os kedvezménnyel áll elő — azt a küszöbjog **és** a kötelező indok fogja meg |
+
+**Amit megnéztem, és tudatosan NEM kötök joghoz** (`GET /termekek`,
+`GET /asztalok`, `GET /rendelesek/{r}`): ezek a **működő nézet**, nem riport. Aki
+egyáltalán ki tud szolgálni, annak látnia kell a termékeket és a saját
+munkaterületét. Az érzékeny rész — a **történet** és a **forgalom** — külön
+joggal védett (`riport.*`), és az is van ellenőrizve.
+
+---
+
 ### `[x]` M33 — Az eszköz árfolyama: a kiírás önmagában **nem bizonyíték** `MÉRVE, JAVÍTVA`
 
 **A kérdés, amit feltettem:** ha kiírjuk az árfolyamot az adóügyi eszközre, és a

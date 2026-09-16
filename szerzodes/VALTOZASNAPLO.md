@@ -749,3 +749,23 @@ a forintos eladást.
 **⚠️ A premissza igazolatlan** (`MERESEK.md` M34): feltételezzük, hogy az eszköz
 árfolyam-beállítása kiolvasható és írható. Fizikai készülék nélkül ez nem
 dönthető el.
+
+---
+
+### v1.21.0 — 2026-09-16 — *a napzárás automatikája kiderül a kasszának* ⚠️ `NEM TÖRŐ`
+
+**Bővült:** a `Beallitasok` alak egy `automatikusNapzaras` jelzővel.
+
+**Miért kell.** A `nap.kezi_zaras` **feltételes** jog: a katalógus pontosan azt
+mondja, hogy „kézi napzárás, **ha automatikus van beállítva**". Ahol nincs
+tervezett zárás, ott a kézi zárás a **rendes üzemmód**, és a műszakfelelősnek is
+mennie kell.
+
+**⚠️ A felület ezt eddig SZIGORÚBBAN vette, mint a szerver** — minden
+napzárásnál megkövetelte a `nap.kezi_zaras`-t, tehát pont a **kézzel záró**
+helyeken rejtette el a gombot attól, akinek az a napi munkája. A szerver
+viszont egyáltalán nem kérdezte. **Mindkét oldal rosszul csinálta, ellentétes
+irányban.** A jelző nélkül a kassza nem tudja eldönteni, melyik eset áll fenn.
+
+**A szigorúbb felület is hiba, nem óvatosság:** egy szótlanul hiányzó gomb azt
+üzeni a kezelőnek, hogy ő rontott el valamit.

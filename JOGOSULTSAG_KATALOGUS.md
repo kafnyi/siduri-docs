@@ -80,7 +80,7 @@ A pincér sztornózni akar, de nincs joga. **Nem az a megoldás, hogy kilép és
 
 | Kód | Mit enged |
 |-----|-----------|
-| `eladas.gyorseladas` | Gyorseladás (asztal nélkül) |
+| `eladas.gyorseladas` | **Gyorseladás (asztal nélkül).** ⚠️ Nem ugyanaz, mint a `rendeles.megnyitas`: a gyorseladás pont attól gyors, hogy **nem hagy nyomot az asztalon** — ezért nem mindegy, kinek van rá joga |
 | `eladas.asztalra` | Eladás asztalra |
 | `eladas.fizetes.keszpenz` | Készpénzes fizetés |
 | `eladas.fizetes.kartya` | Kártyás fizetés |
@@ -136,7 +136,7 @@ A pincér sztornózni akar, de nincs joga. **Nem az a megoldás, hogy kilép és
 |-----|-----------|
 | `nap.nyitas` | Munkanap nyitása |
 | `nap.zaras` | Munkanap zárása |
-| `nap.kezi_zaras` | **Kézi** napzárás, ha automatikus van beállítva |
+| `nap.kezi_zaras` | **Kézi** napzárás, ha automatikus van beállítva. ⚠️ **FELTÉTELES jog:** ahol nincs tervezett zárás, ott a kézi zárás a rendes üzemmód, és a `nap.zaras` elég. A kassza a `Beallitasok.automatikusNapzaras` mezőből tudja, melyik eset áll fenn |
 | `muszak.nyitas` / `muszak.zaras` | Saját műszak |
 | `muszak.atadas` | Műszakátadás |
 | `muszak.mas_felhasznaloe` | **Más felhasználó** műszakának zárása |

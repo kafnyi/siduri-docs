@@ -856,8 +856,9 @@ trailer nélkül.**
 | **Árfolyamforrás** | Telephelyi **eseménynapló** (nem beállítás), saját magas kockázatú joggal; a régi árfolyam **figyelmeztet, de nem tilt** (G5.6) | `ValutasFizetesTest` (18 eset) |
 | **Valutás fizetés** | Az árfolyamot a szerver **összeveti** az érvényessel, és az átváltást **újraszámolja**; a visszajáró **negatív készpénzsor** | `valuta.json` közös vektorok (13 eset két nyelven) + **500 esetes differenciál-futtatás, nulla eltérés** |
 | **Az eszköz árfolyam-egyeztetése** | Kiírás, majd **kötelező visszaolvasás** (G5.6); eltérésnél **valuta tiltva, a forintos eladás nem**; a gép válasza a bizonylat mellé kerül | `ArfolyamSzinkronTeszt` (7 eset, hamis eszközzel); a visszaolvasást kivéve **két teszt azonnal piros** |
+| **Jogosultság-söprés** | A katalógus **92** kódjából **32 ellenőrzött**, **60 indokolt kivétel**, **0 besorolatlan** — és ezt teszt tartja | `JogosultsagSoprasTest` (4 állítás); az **első futásán** talált egy kódot, amit a kézi söprés kihagyott |
 
-**Szerződés:** `kassza` v1.20.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
+**Szerződés:** `kassza` v1.21.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
 **indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
 
 ### 7.2 Ami TUDATOSAN nincs kész — és nincs elrejtve
@@ -1053,11 +1054,43 @@ trailer nélkül.**
    nem dönthető el — **M34** rögzíti, mit kell mérni, és mi a teendő
    mindhárom nemleges válaszra.
 
-8. **A söprés következő köre.** A `eladas.fizetes.*` öttel csökkentette az
-   ellenőrizetlen kódok listáját. A következők, amik **élő kódútra** kerülnek:
-   `kedvezmeny.tetel` és `ar.kezi_felulriras` — mindkettő akkor válik élessé,
-   amikor a tételszintű kedvezmény és a kézi árfelülírás megépül. **A söprést
-   minden körben újra kell futtatni**, nem egyszer.
+8. ✅ **A söprési kör — és a söprés MEGISMÉTELHETŐVÉ tétele.** `kassza`
+   v1.21.0.
+
+   ⚠️ **EZ A NEGYEDIK KÖR VOLT UGYANABBÓL A HIBÁBÓL** (végösszeg-kedvezmény,
+   fizetési módok, eszközárfolyam — és most a gyorseladás). A negyedik
+   alkalommal már nem az a kérdés, hogy megtaláljuk-e a lyukat, hanem hogy
+   **eszünkbe jut-e keresni**. Ezért a söprés innentől **teszt**
+   (`JogosultsagSoprasTest`): minden katalógusbeli kód vagy ellenőrzött, vagy
+   rajta van egy **indokolt** kivétellistán; besorolatlan kód megbuktatja a
+   fordítást. **Katalógus 92 · ellenőrzött 32 · indokolt kivétel 60 ·
+   besorolatlan 0.**
+
+   **A teszt az első futásán talált egy kódot, amit a kézi söprés kihagyott**
+   (`beallitas.18plusz` — a kézi minta nem engedett számjegyet a kódban).
+
+   **Két élő lyuk javítva:**
+   - `eladas.gyorseladas`: a rendelésnyitás **mindkét úton** ugyanazt az egy
+     jogot nézte, pedig a sablonok szerint a pincér asztalra ad el, és a
+     **pultos** az, aki gyorseladhat. Bármelyik pincér indíthatott pultos
+     eladást — asztal, felelős és nyom nélkül.
+   - `nap.kezi_zaras`: **feltételes** jog („kézi zárás, *ha automatikus van
+     beállítva*"), amit a szerver soha nem kérdezett meg — a **kassza viszont
+     mindig**, tehát pont a kézzel záró helyeken rejtette el a gombot a
+     műszakfelelőstől. Ezért kapott a szerződés egy
+     `Beallitasok.automatikusNapzaras` mezőt: a felület enélkül nem tudja
+     eldönteni, felkínálja-e. **A szigorúbb felület is hiba, nem óvatosság.**
+
+   **ÁRA:** a kivétellista **tartozás, nem tárolóhely** — hatvan kód vár arra,
+   hogy a mögöttük lévő funkció megépüljön, és akkor mindegyiket ki kell venni
+   onnan. A teszt ezt nem tudja kikényszeríteni (egy meg nem épült funkciót nem
+   lát), csak azt, hogy a lista **ne avuljon el csendben**. Részletesen:
+   `MERESEK.md`, M35.
+
+9. **A következő tétel a felhasználó döntése.** A F4 maradéka
+   (asztaltérkép-szerkesztő, asztal-szintű kedvezmény, fogások, módosítók,
+   menük, KDS, vékonykliens, előnyugta), vagy a webes admin, ami a hatvan
+   kivételből egy csapásra sokat élessé tenne.
 
 > ⚠️ **A KÖRNYEZET MEGVÁLTOZOTT: a C# kliens mostantól FORDÍTHATÓ ÉS
 > TESZTELHETŐ itt.** Eddig minden C# munka fordítás nélkül készült; a

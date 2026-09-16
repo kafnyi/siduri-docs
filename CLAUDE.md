@@ -54,6 +54,42 @@ Pull requestet **csak kifejezett kérésre** nyiss.
 
 ---
 
+## 3/a. GitHub Actions — a perc pénz
+
+> ⚠️ **Az ingyenes keret (2000 perc) már egyszer elfogyott**, ezért a fiók Pro-ra
+> váltott. **A Siduri nem volt benne:** 2026-09-16-án mérve a hat Siduri-repóban
+> **nulla** workflow és **nulla** futás volt. A perceket más projektek vitték el
+> (a legtöbbet egy-egy repó 200–450 futással). Vagyis ez a szabály **megelőzés**:
+> itt még semmi nem ég, és így is kell maradnia.
+
+**Amit biztosan tudunk** (a GitHub dokumentációjából, 2026-09-16):
+
+* Privát repóban **minden futás a fiók perckeretéből megy**.
+* A nem Linuxos futtatókra **percszorzó** vonatkozik — és a feladatonkénti
+  „billable time" nézet **ezt nem mutatja**. Ami ott olcsónak látszik, a
+  számlán többszöröse lehet. A pontos értéket a fiók számlázási oldala mondja
+  meg, nem a futás nézete.
+
+**Szabályok:**
+
+| # | Szabály | Miért |
+|---|---------|-------|
+| 1 | **Workflow csak a felhasználó kifejezett döntésével** kerül repóba — a várható percköltség becslésével együtt | Egy `on: push` workflow hat repóban, sűrű pusholással, napok alatt elviszi a keretet |
+| 2 | **Előbb helyben.** A teljes tesztcsomag lefut a gépen, mielőtt push lenne. **A CI soha nem az első tesztfuttatás** | Ami helyben megbukik, az a CI-ban percet éget, és ugyanazt mondja |
+| 3 | **Tilos pusholni „hátha átmegy a CI"**, üres committal CI-t indítani, vagy PR-t lezárni–újranyitni futtatás kedvéért | Mindhárom perc, és egyik sem ad új információt |
+| 4 | **Csak `ubuntu-latest`.** Windows- vagy macOS-futtató csak külön döntéssel | Percszorzó. **A WPF-es kassza épp ezért helyben fordul, nem a CI-ban** |
+| 5 | Minden workflowban: **`concurrency` + `cancel-in-progress: true`** | Egy újabb push lelövi a már értelmetlen régi futást |
+| 6 | Minden jobon: **`timeout-minutes`** | Egy beragadt job alapértelmezésben órákig futhat |
+| 7 | **`paths` szűrő** — dokumentáció-módosítás ne futtassa a Java-tesztcsomagot | A `siduri-docs` markdown-változása nem ok 489 tesztre |
+| 8 | Indító: **`pull_request`** és/vagy **`workflow_dispatch`** — ne minden ágra minden push | A munkaágra sűrűn megy push |
+| 9 | **`schedule`/cron és mátrix-szétosztás csak külön döntéssel** | Az ütemezett futás akkor is éget, ha senki nem dolgozik |
+| 10 | **Függőség-gyorsítótár** (Maven, NuGet) | A letöltés perc |
+
+**Ha a CI mégis elbukik:** előbb **helyben** reprodukáld. Csak akkor pusholj
+javítást, ha a hiba helyben megvan és el is tűnt.
+
+---
+
 ## 4. Szerződés-először
 
 Az API-szerződés itt él: `szerzodes/kassza/v1/kassza.yaml` (és a `kozos/`

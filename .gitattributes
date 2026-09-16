@@ -1,0 +1,8 @@
+# A szerzodes BAJTRA pontos: a fogyaszto repokba masolt peldanyokrol SHA-256
+# lenyomat keszul (LENYOMATOK.txt).
+#
+# ⚠️ EZ AZ EREDETI, tehat itt a legfontosabb. A Git for Windows rendszerszinten
+# core.autocrlf=true-val jon: ha innen CRLF-es peldanyt masol at valaki
+# Windowson, es arrol general lenyomatot, akkor a lenyomat a CRLF-es bajtokra
+# keszul - es minden Linuxos gepen (es kesobb a CI-ban) elbukik a teszt.
+szerzodes/** text eol=lf

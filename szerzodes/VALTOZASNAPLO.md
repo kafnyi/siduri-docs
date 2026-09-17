@@ -769,3 +769,27 @@ irányban.** A jelző nélkül a kassza nem tudja eldönteni, melyik eset áll f
 
 **A szigorúbb felület is hiba, nem óvatosság:** egy szótlanul hiányzó gomb azt
 üzeni a kezelőnek, hogy ő rontott el valamit.
+
+---
+
+### v1.22.0 — 2026-09-17 — *a `csakFaliora` végre azt jelenti, amit mond* ⚠️ `NEM TÖRŐ`
+
+**Az alak nem változott**, a `NapAllapot.csakFaliora` **jelentése** igen — ezért
+verzióemelés.
+
+**Mi volt a baj.** A leírás eddig azt állította, hogy a mérés „szerver-újraindítás
+után" esik vissza a fali órára. **Ez nem volt igaz.** A szerver a monoton
+számlálók nyers különbségét mérésnek hitte, ha a mostani érték nem volt kisebb a
+nyitáskorinál — azt viszont nem nézte, hogy **ugyanaz az óra** mérte-e a kettőt.
+Egy újraindítás után ezért a jelzés **tévesen elmaradhatott**; egy tartalék
+szerver vagy másik gép nagyobb számlálójával pedig egy nyolcórás nap napokig
+tartónak látszott, és a vészfék **szolgálat közben** zárt.
+
+**Mostantól** a mező akkor igaz, ha a nap nyitását **más monoton óra** mérte,
+mint ami most fut: újraindult szerver, másik gép, tartalék szerver.
+
+**⚠️ Ami a felületen látszani fog:** a figyelmeztetés **gyakrabban** jelenik meg —
+minden szerver-újraindulás után, a nyitott nap hátralévő részében. Ez nem
+regresszió, hanem az, amit a mező mindig is állított magáról. Egy elvesztett, de
+érvényes mérés a fali órára esik vissza, és ezt jelezzük; egy tévesen elhitt
+mérés viszont hamis vészzárást okozhat, és azt senki nem jelezné.

@@ -332,6 +332,67 @@ vagyis a pénz nem tűnt el, csak az áfabontás kerekedett másképp. **Pontosa
 a kettőt nem lehet egyszerre megtartani**, és a választás tudatos: a pénz
 egyezzen, az áfa kerekedjen.
 
+### `[x]` M36 — A monoton számláló értéke önmagában **nem mérés** `MÉRVE, JAVÍTVA`
+
+**Honnan jött:** egy tesztbukásból a Windowsos fejlesztőgépen. A
+`NapzarasUtemezoTest` konstans `0`-t írt a nyitáskori monoton álláshoz, és egy 39
+órája futó gépen minden tervezett zárásból vészfék lett. A tesztet javítottuk — de
+**ugyanez a mechanizmus a termelési kódban is ott volt**, és semmi nem védett
+ellene.
+
+**A hiba:** a munkanap hossza két mérés közül a nagyobbik. A monoton mérés két
+nyers szám különbsége volt — a nyitáskor tárolt `nyitas_monoton`, és amit a
+zárást végző folyamat **éppen** mond. Az egyetlen ellenőrzés: a második nem
+kisebb. Azt, hogy **ugyanaz az óra** mérte-e a kettőt, semmi nem nézte.
+
+A feltevés, amire ez épült (*„szerver-újraindulás nullázza a számlálót"*), nem
+tartható: a `System.nanoTime()` kezdőpontja a Java szerint tetszőleges, nem a
+folyamat indulása. Windowson mérve a rendszerindítás — a 39 órája futó gépen 39
+órát mutatott.
+
+**A bizonyítás a javítás ELŐTT, a régi kódon:** tervezett zárás 04:00, a nap
+20:00-kor nyílt (fali órán 8 óra), a nyitáskori számláló egy idegen óra szerint
+„három nappal korábbi". Eredmény: **`KENYSZER` `AUTOMATIKUS` helyett** — vagyis a
+vészfék szolgálat közben zárta volna le a napot.
+
+| Mikor | Régi viselkedés | Súlyosság |
+|-------|-----------------|-----------|
+| **Átvétel a tartalék szerverre** (F6) | Ha a tartalék régebben fut, mint a fő gép a nyitáskor: napokban mért „hossz" → **vészzárás szolgálat közben** | Súlyos |
+| **Adatbázis másik gépen** (hardvercsere, visszaállítás) | Ugyanez | Súlyos, ma is előfordulhat |
+| **Ugyanannak a gépnek az újraindítása** | Hamis, kicsi „monoton" érték. A vészfék jól dönt (a fali óra a nagyobb), de a „csak fali órával mértünk" jelzés **tévesen elmarad** | Közepes |
+
+**A javítás:** a monoton érték soha nem utazik egyedül — vele megy **az óra
+azonosítója** (`MonotonAllas`), és különbséget csak azonos azonosítójú állások
+között szabad képezni. Új oszlop: `munkanap.nyitas_monoton_ora` (V21). A
+**meglévő sorok** azonosító nélkül maradnak: ez „ismeretlen óra", tehát nem
+támaszkodunk rájuk — a becsületes állapot, nem utólag kitalált adat.
+
+**Az azonosító a PÉLDÁNY létrehozásakor születik, nem statikusan.** Egy
+`static final` mező natív képben fordításkor is kiértékelődhet, és akkor minden
+folyamat, sőt minden gép ugyanazt az azonosítót kapná ugyanabból a binárisból —
+a védelem csendben hatástalan lenne.
+
+**ÁRA, kimondva:** egy szerver-újraindulás után a **nyitott** nap elveszíti a
+monoton mérését, és a nap hátralévő részében a felület kiírja a „csak fali óra"
+figyelmeztetést — akkor is, ha a számláló valójában túlélte. Ez szándékos: egy
+elvesztett, de érvényes mérés a fali órára esik vissza, **és ezt jelezzük**. Egy
+tévesen elhitt mérés viszont hamis vészzárást okozhat, és **azt senki nem
+jelezné**.
+
+**Ami megmaradt:** azonos órán a monoton mérés továbbra is dönt — ez védi a
+visszaállított fali órát (lemerült CMOS-elem, kézi állítás). Ezt külön teszt
+tartja: fali órán 8 óra, ugyanazon az órán 3 nap → `KENYSZER`.
+
+**Harap-e:** az óra-azonosság feltételét kivéve **öt teszt bukik** (három a
+magban, kettő a szerveren). A javítás előtt piros teszt **változatlan bemenettel**
+zöld lett.
+
+> **Mellékhatás, ami jó irányú:** a tesztekben hét helyen konstans
+> `nyitas_monoton = 0` áll. Ezek óra-azonosítót nem írnak, tehát „ismeretlen
+> órás" sorok — a mérés rájuk már nem támaszkodik, az akna hatástalan.
+
+---
+
 ### `[x]` M35 — A söprés, ami eddig kézzel ment, mostantól **teszt** `MÉRVE, JAVÍTVA`
 
 **Ez a negyedik kör volt ugyanabból a hibából.** A végösszeg-kedvezmény (M28), a

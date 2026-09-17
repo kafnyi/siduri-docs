@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.21.0
+  version: 1.22.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -95,8 +95,9 @@ paths:
       summary: A nyitott munkanap allapota
       description: |
         A felulet ebbol irja ki a figyelmeztetest. A csakFaliora jelzest KI KELL
-        IRNI: szerver-ujrainditas utan a meresunk visszaesik a fali orara, es
-        egy orajavitas eszrevetlenul elmozdithatja.
+        IRNI: ha a nap nyitasat MAS ora merte (ujraindult szerver, masik gep,
+        tartalek szerver), a meresunk visszaesik a fali orara, es egy
+        orajavitas eszrevetlenul elmozdithatja.
       parameters:
         - $ref: '#/components/parameters/Eszkoz'
       responses:
@@ -1949,8 +1950,16 @@ components:
         csakFaliora:
           type: boolean
           description: |
-            ⚠️ KI KELL IRNI. Szerver-ujrainditas utan a meres visszaesik a fali
-            orara, es egy orajavitas eszrevetlenul elmozdithatja.
+            ⚠️ KI KELL IRNI. Igaz, ha a nap nyitasat MAS monoton ora merte, mint
+            ami most fut: ujraindult szerver, masik gep, tartalek szerver. Ilyenkor
+            a meres visszaesik a fali orara, es egy orajavitas eszrevetlenul
+            elmozdithatja.
+
+            ⚠️ 1.22.0 OTA GYAKRABBAN IGAZ. Korabban a szerver egy MASIK ora
+            szamlalojat is valodi meresnek hitte, ha az nem volt kisebb a
+            mostaninal - ilyenkor a jelzes tevesen elmaradt, sot egy idegen,
+            nagyobb szamlalo hamis veszzarast okozhatott. Most minden szerver-
+            ujrainditas utan igaz, amig a nap le nem zarul.
 
     Kezelo:
       type: object

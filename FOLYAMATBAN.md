@@ -857,6 +857,7 @@ trailer nélkül.**
 | **Valutás fizetés** | Az árfolyamot a szerver **összeveti** az érvényessel, és az átváltást **újraszámolja**; a visszajáró **negatív készpénzsor** | `valuta.json` közös vektorok (13 eset két nyelven) + **500 esetes differenciál-futtatás, nulla eltérés** |
 | **Az eszköz árfolyam-egyeztetése** | Kiírás, majd **kötelező visszaolvasás** (G5.6); eltérésnél **valuta tiltva, a forintos eladás nem**; a gép válasza a bizonylat mellé kerül | `ArfolyamSzinkronTeszt` (7 eset, hamis eszközzel); a visszaolvasást kivéve **két teszt azonnal piros** |
 | **Jogosultság-söprés** | A katalógus **92** kódjából **32 ellenőrzött**, **60 indokolt kivétel**, **0 besorolatlan** — és ezt teszt tartja | `JogosultsagSoprasTest` (4 állítás); az **első futásán** talált egy kódot, amit a kézi söprés kihagyott |
+| **A munkanap hossza másik óra mellett** | A monoton mérés csak **azonos óra** állásai között létezik; idegen vagy ismeretlen óránál a fali óra dönt, és ezt jelezzük | `MunkanapHosszTest`, `NapzarasUtemezoTest`, `NapSzolgaltatasTest`; a javítás előtt **piros**, az azonosság-feltételt kivéve **öt teszt bukik** |
 
 **Szerződés:** `kassza` v1.21.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
 **indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
@@ -1087,10 +1088,24 @@ trailer nélkül.**
    lát), csak azt, hogy a lista **ne avuljon el csendben**. Részletesen:
    `MERESEK.md`, M35.
 
-9. **A következő tétel a felhasználó döntése.** A F4 maradéka
-   (asztaltérkép-szerkesztő, asztal-szintű kedvezmény, fogások, módosítók,
-   menük, KDS, vékonykliens, előnyugta), vagy a webes admin, ami a hatvan
-   kivételből egy csapásra sokat élessé tenne.
+9. ✅ **A monoton óra azonosítója.** `kassza` v1.22.0, V21 migráció.
+
+   ⚠️ **CSENDES HIBA VOLT, AMI SZOLGÁLAT KÖZBEN ZÁRTA VOLNA LE A NAPOT.** A
+   munkanap hosszát két órán mérjük, és a nagyobbik dönt. A monoton mérés két
+   nyers számláló-érték különbsége volt, és semmi nem nézte, hogy **ugyanaz az
+   óra** mérte-e őket. Egy tartalék szerver vagy másik gép számlálójával egy
+   nyolcórás nap „napokig tartónak" látszott → vészzárás. A javítás előtt
+   teszttel bizonyítva. Részletesen: `MERESEK.md`, M36.
+
+   **ÁRA:** egy szerver-újraindulás után a nyitott nap a hátralévő részében csak a
+   fali órára támaszkodik, és a felület ezt kiírja — szándékosan óvatos döntés.
+
+10. **A következő tétel a felhasználó döntése.** A F4 maradéka
+    (asztaltérkép-szerkesztő, asztal-szintű kedvezmény, fogások, módosítók,
+    menük, KDS, vékonykliens, előnyugta), vagy a webes admin, ami a hatvan
+    kivételből egy csapásra sokat élessé tenne. **Nyitott döntés mellette:** a
+    felhő API nyelve — a specifikáció szerint „Java vagy Node.js", a
+    szerződés-dokumentum már Java-t ír.
 
 > ⚠️ **A KÖRNYEZET MEGVÁLTOZOTT: a C# kliens mostantól FORDÍTHATÓ ÉS
 > TESZTELHETŐ itt.** Eddig minden C# munka fordítás nélkül készült; a

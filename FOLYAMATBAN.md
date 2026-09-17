@@ -241,9 +241,15 @@ domaint.** A Siduri ne ismételje meg:
 
 | Réteg | Névtér |
 |-------|--------|
-| Java (backend, felhő) | `com.mythsystem.siduri.*` |
-| C# (POS, updater) | `MythSystem.Siduri.*` |
+| Java (backend, felhő) | ~~`com.mythsystem.siduri.*`~~ → **`hu.mythsystem.siduri.*`** |
+| C# (POS, updater) | `MythSystem.Siduri.*` — ⚠️ **a kész kassza `Siduri.Pos.*`-t használ; nincs eldöntve** (`NYITOTT_KERDESEK.md` O1/c) |
 | Dart / Flutter | `siduri_*` csomagnevek |
+
+> ⚠️ **HELYESBÍTÉS (2026-09-17):** ez a szabály és a kód **ellentmondott
+> egymásnak** — a kész backend az első committól `hu.mythsystem.siduri.*`-val
+> épült. **A szabály igazodott a kódhoz** (`NYITOTT_KERDESEK.md` O1/a). Ára:
+> eltér a cégszintű `mythsystem.com` névtől; cserébe egyetlen Java-fájl sem
+> nevezendő át.
 
 **Ezt az első committól így kell írni.** Egy Java-csomag átnevezése később
 mechanikus, de **mindent érint és beszennyezi a git-történetet** — pont az a
@@ -1103,9 +1109,13 @@ trailer nélkül.**
 10. **A következő tétel a felhasználó döntése.** A F4 maradéka
     (asztaltérkép-szerkesztő, asztal-szintű kedvezmény, fogások, módosítók,
     menük, KDS, vékonykliens, előnyugta), vagy a webes admin, ami a hatvan
-    kivételből egy csapásra sokat élessé tenne. **Nyitott döntés mellette:** a
-    felhő API nyelve — a specifikáció szerint „Java vagy Node.js", a
-    szerződés-dokumentum már Java-t ír.
+    kivételből egy csapásra sokat élessé tenne.
+
+    ✅ **A felhő API nyelve eldöntve: Java / Spring Boot**, a Java-csomagnév
+    `hu.mythsystem.siduri.*` (`NYITOTT_KERDESEK.md` O1). **Nyitva maradt, és a
+    felhő első kódsora ELŐTT kell:** hogyan jut el a `siduri-mag` a felhőhöz
+    (O1/b — privát Maven-csomag, submodule vagy monorepo, mindegyiknek más az
+    ára).
 
 > ⚠️ **A KÖRNYEZET MEGVÁLTOZOTT: a C# kliens mostantól FORDÍTHATÓ ÉS
 > TESZTELHETŐ itt.** Eddig minden C# munka fordítás nélkül készült; a

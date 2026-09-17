@@ -36,6 +36,11 @@
 > eredménye, a B12 jogi kérdése, a B1/c R2–R5 kitöltése.
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
 >
+> **ÚJ (2026-09-17):** **O1 — a felhő API nyelve eldöntve: Java / Spring Boot**, és a Java-csomagnév
+> `hu.mythsystem.siduri.*` (a szabály igazodott a kész kódhoz). Nyitva maradt: **O1/b** — hogyan
+> jut el a `siduri-mag` a felhőhöz (a felhő első kódsora előtt kell), és **O1/c** — ugyanez az
+> ellentmondás a C#-névtérnél.
+>
 > **ÚJ (tizenhetedik kör):** **`[!]` C11/a — MTÜ-IGAZOLÁS KELL az NTAK-adatszolgáltatáshoz**
 > (igazolt lelet; a célpiac NTAK-köteles, tehát ez belépési feltétel — de az
 > interfész-leírás nyilvános, tehát azonnal elkezdhető). **HELYESBÍTÉS: a felhasználó
@@ -5448,3 +5453,78 @@ fő szerver SSD-je**, a köztes napok adata elvész.
 | N9.d | **Csak napzáráskor menteni durva felbontás** egy 4 napos fesztiválon: akár egy teljes nap veszhet. Gyakoribb mentés viszont J1900-on terhelés. **Napzárás + állítható időköz**, és `[MÉRENDŐ]` a dump ideje |
 | N9.e | **A visszatöltési utat is tesztelni kell**, nem csak a mentést. A nem tesztelt visszaállítás mítosz |
 | N9.f | **Prioritás: `v2`**, kivéve ha kifejezetten fesztivál/rendezvény célpiacot célzunk — akkor `v1` |
+
+---
+
+## O) A felhő
+
+### `[ELDÖNTVE — Java / Spring Boot; Java-csomagnév: hu.mythsystem.siduri]` O1 — A felhő API nyelve (2026-09-17)
+
+**A kérdés:** a `siduri_spec_hu.md` §4.1 szerint a felhő „Java vagy Node.js" — a
+`SZERZODES.md` §5.2 viszont már Java-t írt a `siduri-cloud-api`-hoz. **Ellentmondás
+volt, nem árnyalat.** A döntés a felhasználóé; az alábbi összevetés alapján hozta.
+
+**Ami eldöntötte: a felhő feladatai — és hol él még ugyanez a logika.**
+
+| Feladat | Hol él még | Java-val | Node-dal |
+|---------|-----------|----------|----------|
+| **Webes admin kiszolgálása (K2)** | A telephelyi Java-szerveren — **két megvalósítás, ugyanazzal a szerződésteszttel** (`SZERZODES.md` §1.1) | Az üzleti szabályok **egy kódként**, két helyről kiszolgálva | **Kétszer** megírva; a szerződésteszt csak az **alakot** fogja meg, a viselkedést nem |
+| **NTAK-küldés zárva tartáskor** (§11.7/e, F7.7) | A telephelyi szerver küldi, amíg él | Közös kliens és üzenetépítés | Kétszer |
+| **Audit hash-horgonyzás** (F7.2) | `AuditLanc` a magban, bájtra pontos kanonikus formával | Közvetlen újrahasznosítás | Harmadik megvalósítás, közös vektorokkal |
+| **Szinkron (K3)** | A telephely a másik vége; a **legszigorúbb** szerződés | Közös modell | Két szerializáló |
+| **Pénz, áfa, jogosultságkódok** | `siduri-mag`, a lebegőpont-tilalmat **teszt** kényszeríti | Függőségként azonnal | Újra kell írni; a nyelv alap számtípusa lebegőpontos, az I1 invariánst csak saját lint tartaná |
+
+Ez pontosan az, amitől a **B16.7** óv: *„két felület, két repó, két nyelv, semmilyen
+fordító nem köti össze őket — garantáltan szétcsúszik."*
+
+**Ami NEM volt érv, bár annak látszott:**
+
+* **Közös TypeScript-típusok az admin és a felhő között.** Az adminnak a **Java-os
+  telephelyi szerverrel** is beszélnie kell (K2), tehát a típusok úgyis az
+  OpenAPI-szerződésből generálódnak, nem a backend kódjából.
+* **A Hermes Node-os.** A Hermeshez HTTP-n integrálunk (FOLYAMATBAN §0.3.3) — ez
+  nyelvfüggetlen.
+
+**ÁRA:**
+
+* **Nagyobb futásidejű memória** a felhőben, mint Node-dal. A felhőben viszont
+  **nincs J1900-korlát**, ezért ott a **GraalVM natív kép nem kényszer** — a
+  §4.1-ben az a telephelyi szerverre vonatkozik.
+* **Kell egy megosztási mód a `siduri-mag` számára** — lásd O1/b. A nyelvválasztás
+  önmagában még nem ad újrahasznosítást.
+
+**A házi illeszkedés:** a Garm backendje ugyanez a stack (Java Spring Boot +
+PostgreSQL). A helyi fejlesztői környezet (JDK 21, Maven Wrapper, a JDK-kapu) már
+kész.
+
+#### `[ELDÖNTVE]` O1/a — A Java-csomagnév: `hu.mythsystem.siduri.*`
+
+A FOLYAMATBAN §0.3.3 **„az első committól"** `com.mythsystem.siduri.*`-t írt elő,
+a kész backend viszont `hu.mythsystem.siduri.*`-t használ. **A szabály igazodik a
+kódhoz**, és a felhő is `hu.*`-val indul.
+
+**ÁRA:** eltér a cégszintű (`mythsystem.com`) névtől. **Cserébe:** a backend
+érintetlen — az átnevezés minden Java-fájlt érintett volna, és tele írta volna a
+git-történetet, amit maga a szabály is el akart kerülni.
+
+#### `[ ]` O1/b — Hogyan jut el a `siduri-mag` a felhőhöz?
+
+**Az első felhős kódsor ELŐTT dönteni kell**, különben a felhő a saját
+példányával indul, és az már az első napon eltér.
+
+| Mód | Ára |
+|-----|-----|
+| **Privát Maven-csomag** (GitHub Packages) | Minden fogyasztónál hitelesítés (token, CI-titok); a tárhely a fiók csomagkeretéből megy; CI-ból közzétéve **Actions-perc** (lásd `CLAUDE.md` 3/a), helyből nem |
+| **Git submodule** | Nincs tárhely- és hitelesítési költség; cserébe ismert kényelmetlenség: az elfelejtett frissítés csendben régi magot hagy |
+| **Monorepo** (backend és felhő egy repóban) | A legerősebb együtt-tartás; ára a repó-átszervezés, és a `FAZISTERV.md` sávokra bontott repófelosztásának felülvizsgálata |
+| ~~Kódmásolás~~ | **Nem opció:** két példány szétcsúszik — pont az, amit ez a döntés el akar kerülni |
+
+#### `[ ]` O1/c — Ugyanez az ellentmondás a C#-névtérnél
+
+A §0.3.3 `MythSystem.Siduri.*`-t ír elő, a kész kassza `Siduri.Pos.*`-t használ.
+**Nincs eldöntve** — az O1/a csak a Java-névtérről szólt.
+
+**Következmény — elvégzendő** *(elvégezve 2026-09-17):* `siduri_spec_hu.md` §4.1 ·
+`siduri_superprompt_en.md` §4.1 · `SZERZODES.md` §5.2 hivatkozás ·
+`FOLYAMATBAN.md` §0.3.3 és §7.3 · `gemini_cloud_spec_en.md` egyeztetés R8 ·
+`siduri-cloud-api/CLAUDE.md`.

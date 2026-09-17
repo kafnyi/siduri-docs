@@ -64,6 +64,7 @@ The `siduri-cloud-api` acts as the ultimate gatekeeper for the software.
 
 ## 7. Tech Stack Directives
 * **Cloud Backend:** Node.js or Java (Spring Boot) handling REST/GraphQL endpoints for the Web UI.
+  * `[DECIDED — Java (Spring Boot). See reconciliation §R8 below.]`
 * **Web Frontend:** Recommended to use Flutter Web (to share models with the PDA/KDS apps) OR a robust React/Vue/Angular dashboard.
 * **Database:** Cloud PostgreSQL holding multi-tenant data, safely isolating each restaurant's backups and analytics.
 
@@ -187,3 +188,20 @@ question, not a J1900 question.
 The stated benefit — sharing models with the PDA/KDS Flutter apps — is real and
 points the other way. **Genuine trade-off; decide with the phase plan (`E1`),
 not now.**
+
+
+## R8 `[DECIDED]` Cloud backend language — Java (Spring Boot) (§7)
+
+§7 left it open ("Node.js or Java"). **Decided: Java (Spring Boot)** — see
+`NYITOTT_KERDESEK.md` O1 for the full comparison.
+
+The deciding fact is one this document already hints at in §2: the web admin is
+served from **both** the cloud and the local Java server. The admin protocol (K2)
+therefore has **two implementations** that must pass the same contract test. In
+the same language the business rules are one codebase served twice; in two
+languages they are written twice, and a contract test only catches divergence in
+**shape**, not in behaviour. The NTAK fallback sender, the audit hash anchoring and
+the money rules repeat the same argument.
+
+The cloud has no J1900 memory limit, so **GraalVM Native Image is not a
+constraint there** — it applies to the on-site server.

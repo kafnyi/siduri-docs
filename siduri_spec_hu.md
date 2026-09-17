@@ -146,7 +146,7 @@ Ezek nem stílusszabályok. Minden konkrét döntés visszavezethető rájuk, é
 | **POS kliens** | C# / WPF, .NET 8+ | **Kizárólag Windows 10 IoT Enterprise (LTSC).** A Linux-támogatás törölve |
 | **Mobil / vékonykliens** | Flutter | PDA, KDS, rendeléskijelző, standoló |
 | **Frissítő** | C# önálló segédprogram | A Windows fájlzárolási problémáit kerüli meg |
-| **Felhő** | Java vagy Node.js | Licenc, archívum, webes admin |
+| **Felhő** | Java (Spring Boot) | Licenc, archívum, webes admin, NTAK-tartalék. **Itt nincs GraalVM-kényszer** — a felhőben nincs J1900-korlát. *Döntés és indoklás: `NYITOTT_KERDESEK.md` O1* |
 
 **Miért nem Avalonia:** megvizsgáltuk és elvetettük. A WPF nem fut Linuxon, de
 nem is lesz Linuxos POS, tehát a váltás költsége nem térülne meg.

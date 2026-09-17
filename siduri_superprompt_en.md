@@ -147,7 +147,7 @@ break ties.
 | **POS client** | C# / WPF, .NET 8+ | **Windows 10 IoT Enterprise (LTSC) only.** Linux support REMOVED |
 | **Mobile / thin client** | Flutter | PDA, KDS, order board, inventory app |
 | **Updater** | C# standalone utility | Works around Windows file-lock problems |
-| **Cloud** | Java or Node.js | Licensing, archive, web admin |
+| **Cloud** | Java (Spring Boot) | Licensing, archive, web admin, NTAK fallback. **No GraalVM constraint here** — the cloud has no J1900 memory limit. *Decision and rationale: `NYITOTT_KERDESEK.md` O1* |
 
 **Avalonia was evaluated and rejected:** WPF does not run on Linux, but no Linux
 POS will ship, so the migration cost would never be recovered.

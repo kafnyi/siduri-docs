@@ -532,7 +532,7 @@ rossz: a „nem tudjuk" nem azonos az „egyetértett"-tel.
 > **Amit ez a kör mellékesen kijavított:** az adóügyi port eddig a **WPF-es
 > kasszaprojektben** élt, tehát Linuxon futó tesztprojektből elérhetetlen volt —
 > vagyis a szabályai **nem voltak tesztelhetők**. Önálló, keretrendszer-független
-> projektbe került (`Siduri.Pos.Adougyi`). **ÁRA:** egy projekttel több.
+> projektbe került (`MythSystem.Siduri.Pos.Adougyi`). **ÁRA:** egy projekttel több.
 > **Cserébe:** a gyártóspecifikus illesztés is ide, egyetlen jól körülhatárolt
 > körbe kerül majd — ami nem csak tervezési, hanem **jogi** követelmény is.
 

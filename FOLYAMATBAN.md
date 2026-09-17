@@ -242,7 +242,7 @@ domaint.** A Siduri ne ismételje meg:
 | Réteg | Névtér |
 |-------|--------|
 | Java (backend, felhő) | ~~`com.mythsystem.siduri.*`~~ → **`hu.mythsystem.siduri.*`** |
-| C# (POS, updater) | `MythSystem.Siduri.*` — ⚠️ **a kész kassza `Siduri.Pos.*`-t használ; nincs eldöntve** (`NYITOTT_KERDESEK.md` O1/c) |
+| C# (POS, updater) | **`MythSystem.Siduri.*`** — a kassza `MythSystem.Siduri.Pos.*`, a frissítő `MythSystem.Siduri.Updater.*` *(2026-09-17: a kassza átnevezve a szabályhoz, `NYITOTT_KERDESEK.md` O1/c)* |
 | Dart / Flutter | `siduri_*` csomagnevek |
 
 > ⚠️ **HELYESBÍTÉS (2026-09-17):** ez a szabály és a kód **ellentmondott
@@ -1048,7 +1048,7 @@ trailer nélkül.**
    **ÁRA:** a valutás fizetés két eszközkörrel drágább lett (egy olvasás az
    árfolyam betöltésekor, egy a lezárás előtt) — forintos bizonylatnál **nulla**,
    ott nem nyúlunk a géphez. Ezen felül **egy projekttel több**: az adóügyi port
-   kikerült a WPF-es kasszaprojektből (`Siduri.Pos.Adougyi`), mert onnan a
+   kikerült a WPF-es kasszaprojektből (`MythSystem.Siduri.Pos.Adougyi`), mert onnan a
    szabályai **nem voltak tesztelhetők** — és ugyanide kerül majd a
    gyártóspecifikus illesztés is, ami nem csak tervezési, hanem **jogi**
    követelmény.
@@ -1127,8 +1127,8 @@ trailer nélkül.**
 > ```
 > curl -sSL -o dotnet-install.sh https://dot.net/v1/dotnet-install.sh
 > ./dotnet-install.sh --channel 8.0 --install-dir /opt/dotnet
-> dotnet test tesztek/Siduri.Pos.Mag.Tesztek/Siduri.Pos.Mag.Tesztek.csproj
-> dotnet build src/Siduri.Pos.Kliens -p:EnableWindowsTargeting=true   # WPF Linuxon
+> dotnet test tesztek/MythSystem.Siduri.Pos.Mag.Tesztek/MythSystem.Siduri.Pos.Mag.Tesztek.csproj
+> dotnet build src/MythSystem.Siduri.Pos.Kliens -p:EnableWindowsTargeting=true   # WPF Linuxon
 > ```
 >
 > **Az első fordítás azonnal két hibát adott ki** — mindkettő csak fordítóval

@@ -39,7 +39,8 @@
 > **ÚJ (2026-09-17):** **O1 — a felhő API nyelve eldöntve: Java / Spring Boot**, és a Java-csomagnév
 > `hu.mythsystem.siduri.*` (a szabály igazodott a kész kódhoz). **O1/b eldöntve: monorepo** — a
 > felhő a `siduri-backend-server` repó `felho/` modulja lesz, a `siduri-cloud-api` repóba nem
-> kerül kód. Nyitva maradt: **O1/c** — ugyanez az ellentmondás a C#-névtérnél.
+> kerül kód. **O1/c eldöntve: a C#-névtér `MythSystem.Siduri.*`** — itt a kód igazodott a
+> szabályhoz, a kassza átnevezve.
 >
 > **ÚJ (tizenhetedik kör):** **`[!]` C11/a — MTÜ-IGAZOLÁS KELL az NTAK-adatszolgáltatáshoz**
 > (igazolt lelet; a célpiac NTAK-köteles, tehát ez belépési feltétel — de az
@@ -5554,10 +5555,32 @@ nem a saját repójában él); a kiadásokat szét kell választani; a helyi bui
 **Cserébe:** a mag és a K2-logika egy példányban, egy fordításban él a két
 fogyasztójával.
 
-#### `[ ]` O1/c — Ugyanez az ellentmondás a C#-névtérnél
+#### `[ELDÖNTVE — MythSystem.Siduri.*; a kód igazodott]` O1/c — Ugyanez az ellentmondás a C#-névtérnél (2026-09-17)
 
-A §0.3.3 `MythSystem.Siduri.*`-t ír elő, a kész kassza `Siduri.Pos.*`-t használ.
-**Nincs eldöntve** — az O1/a csak a Java-névtérről szólt.
+A §0.3.3 `MythSystem.Siduri.*`-t írt elő, a kész kassza `Siduri.Pos.*`-t használt.
+
+**A döntés: a kód igazodik a szabályhoz** — fordítva, mint a Java-nál (O1/a). A kassza
+projektjei, mappái, a solution és minden névtér `MythSystem.Siduri.Pos.*` lett; a
+frissítő `MythSystem.Siduri.Updater.*`-ral indul.
+
+**Miért itt más, mint a Java-nál — tények:**
+
+* **A lenyomat kisebb:** 97 fájl, 241 előfordulás (a Java-backendben minden fájl
+  érintett lett volna).
+* **Névtérhez kötött tárolt állapot nincs:** se típusnév-alapú szerializálás, se
+  beállításfájl, se `pack://` erőforrás-hivatkozás; a helyi adatmappa neve szó szerint
+  `Siduri`, a névtértől független. **Telepített kassza még nincs** — az átnevezés most
+  a legolcsóbb, amikor valaha lesz.
+
+**ÁRA:** egy nagy átnevező commit; a `git blame` az átnevezésen át csak `-M`/`--follow`
+mellett követ; a fejlesztői IDE-ben a régi `Siduri.Pos.sln` helyett a
+`MythSystem.Siduri.Pos.sln`-t kell megnyitni. **Funkcionális haszna nincs** — a nyereség
+a cégnév a névtérben és a szabállyal való egyezés.
+
+**Ellenőrizve:** teljes fordítás 0 hibával és 0 figyelmeztetéssel (tiszta `bin`/`obj`-ról),
+153 teszt zöld, a lefordított XAML az új névtérben, és a kassza elindul a belépő
+képernyőig. **Megmaradt eltérés:** a Java `hu.mythsystem.siduri`, a C# `MythSystem.Siduri`
+— a két nyelv konvenciója eltér, ez szándékos.
 
 **Következmény — elvégzendő** *(elvégezve 2026-09-17):* `siduri_spec_hu.md` §4.1 ·
 `siduri_superprompt_en.md` §4.1 · `SZERZODES.md` §5.2 hivatkozás ·

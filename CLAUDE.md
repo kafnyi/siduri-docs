@@ -29,7 +29,7 @@ tölts fel semmit külső szolgáltatásba.
 > nem lehet egyetlen gyártóspecifikus parancs, mezőnév vagy kódolás sem** — még
 > „példaként" sem, még átfogalmazva sem.
 >
-> Az adóügyi eszköz felé menő alak (`Siduri.Pos.Adougyi`) ezért szándékosan
+> Az adóügyi eszköz felé menő alak (`MythSystem.Siduri.Pos.Adougyi`) ezért szándékosan
 > **általános**: tételek, fizetések, összegek, árfolyam. Az illesztés részletei
 > majd egyetlen, jól körülhatárolt megvalósításban élnek, és onnan nem
 > szivároghatnak ki.

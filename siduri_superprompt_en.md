@@ -2067,7 +2067,7 @@ cloud archive.)*
 | 2 | `siduri-pos-client` | C# / WPF — POS client, fiscal and hardware integrations |
 | 3 | `siduri-flutter-clients` | Flutter workspace — PDA, KDS, order board, inventory app |
 | 4 | `siduri-updater` | C# — standalone offline patcher |
-| 5 | `siduri-cloud-api` | Cloud: licensing, archive, web admin, NTAK backup |
+| 5 | `siduri-cloud-api` | Cloud: licensing, archive, web admin, NTAK backup — **the code lives in the `felho/` module of `siduri-backend-server`** (NYITOTT_KERDESEK O1/b) |
 | 6 | `siduri-docs` | **Documentation — code NEVER goes here** |
 
 **The repositories always stay private** (§10.2).

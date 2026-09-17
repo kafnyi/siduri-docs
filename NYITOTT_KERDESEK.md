@@ -37,9 +37,9 @@
 > **A FÁZISTERV (E1) MOST MÁR MEGÍRHATÓ.**
 >
 > **ÚJ (2026-09-17):** **O1 — a felhő API nyelve eldöntve: Java / Spring Boot**, és a Java-csomagnév
-> `hu.mythsystem.siduri.*` (a szabály igazodott a kész kódhoz). Nyitva maradt: **O1/b** — hogyan
-> jut el a `siduri-mag` a felhőhöz (a felhő első kódsora előtt kell), és **O1/c** — ugyanez az
-> ellentmondás a C#-névtérnél.
+> `hu.mythsystem.siduri.*` (a szabály igazodott a kész kódhoz). **O1/b eldöntve: monorepo** — a
+> felhő a `siduri-backend-server` repó `felho/` modulja lesz, a `siduri-cloud-api` repóba nem
+> kerül kód. Nyitva maradt: **O1/c** — ugyanez az ellentmondás a C#-névtérnél.
 >
 > **ÚJ (tizenhetedik kör):** **`[!]` C11/a — MTÜ-IGAZOLÁS KELL az NTAK-adatszolgáltatáshoz**
 > (igazolt lelet; a célpiac NTAK-köteles, tehát ez belépési feltétel — de az
@@ -5507,17 +5507,52 @@ kódhoz**, és a felhő is `hu.*`-val indul.
 érintetlen — az átnevezés minden Java-fájlt érintett volna, és tele írta volna a
 git-történetet, amit maga a szabály is el akart kerülni.
 
-#### `[ ]` O1/b — Hogyan jut el a `siduri-mag` a felhőhöz?
+#### `[ELDÖNTVE — monorepo: a felhő a siduri-backend-server repó modulja]` O1/b — Hogyan jut el a `siduri-mag` a felhőhöz? (2026-09-17)
 
-**Az első felhős kódsor ELŐTT dönteni kell**, különben a felhő a saját
-példányával indul, és az már az első napon eltér.
+**A döntés:** a felhő **új Maven-modulként** (`felho/`) a `siduri-backend-server`
+repóba kerül, a `mag` és a `szerver` mellé. A `siduri-cloud-api` repóba **nem kerül
+kód**; egy mutató-README és a `marka/` marad benne.
 
-| Mód | Ára |
-|-----|-----|
-| **Privát Maven-csomag** (GitHub Packages) | Minden fogyasztónál hitelesítés (token, CI-titok); a tárhely a fiók csomagkeretéből megy; CI-ból közzétéve **Actions-perc** (lásd `CLAUDE.md` 3/a), helyből nem |
-| **Git submodule** | Nincs tárhely- és hitelesítési költség; cserébe ismert kényelmetlenség: az elfelejtett frissítés csendben régi magot hagy |
-| **Monorepo** (backend és felhő egy repóban) | A legerősebb együtt-tartás; ára a repó-átszervezés, és a `FAZISTERV.md` sávokra bontott repófelosztásának felülvizsgálata |
-| ~~Kódmásolás~~ | **Nem opció:** két példány szétcsúszik — pont az, amit ez a döntés el akar kerülni |
+**Az előkészítés közben kiderült három tény — ezek döntöttek:**
+
+1. **Nem csak a magot kell megosztani.** A mag (pénz, áfa, kedvezmény, audit-lánc,
+   jogosultságkódok) keretrendszer-független és futásidejű függőség nélküli. Az O1
+   döntő érve viszont a **K2 üzleti logikája**, és az a Spring-es rétegben él
+   (végpontok, kézzel írt SQL). Bármelyik mód hamarosan egy **második, Spring-függő
+   közös modult** is szállít — csomaggal ez egy második közzétett csomag.
+2. **A submodule-t a projekt egyszer már elutasította**, ugyanezzel az indokkal
+   (`SZERZODES.md` §5.1: az almodul-mutató frissítését ugyanolyan könnyű
+   elfelejteni, csak nehezebb észrevenni). Ráadásul a mag a backend szülő-pomjára
+   épül, és a tesztvektorokat a repó gyökeréből olvassa — submodule-ként az
+   **egész backend repó** bekerült volna.
+3. **Egyik mód sem szünteti meg a verziócsúszást élesben.** A telephelyek nem
+   egyszerre frissülnek, a felhő mindegyiket kiszolgálja: ott a **K3 szerződés**
+   tartja a kompatibilitást. A közös kód azt adja, hogy **fordításkor** nincs két
+   eltérő szabálykészlet.
+
+| Mód | Ára | |
+|-----|-----|---|
+| **Monorepo** | Hosszabb helyi teljes build (`-pl felho -am`-mel szűkíthető); a telephelyi és a felhős kiadás **külön címkét** kap; a `FAZISTERV.md` B sávjának repó-oszlopa módosul; a `backend-server` név pontatlanná válik | ✅ **Választva** — nincs token, tárhely, Actions-perc, és nincs elfelejthető frissítés |
+| Privát Maven-csomag (GitHub Packages) | Token minden fejlesztői gépen és a felhő buildjében; a távoli SNAPSHOT nem reprodukálható → minden magváltozás verzióemelés + kézi `deploy` (vagy Actions-perc); a K2-logika második csomag; a tárhely a fiók keretéből, azon túl fizetős *(ingyenes csomagon 500 MB — a GitHub dokumentációja szerint; a Pro kerete nincs ellenőrizve)* | Elvetve |
+| Git submodule | Lásd 2. — ellentmondana a `SZERZODES.md` §5.1-nek | Elvetve |
+| ~~Kódmásolás~~ | **Nem opció:** két példány szétcsúszik | — |
+
+**A modulhatár szabálya — ettől monorepo, és nem egy összefolyt alkalmazás:**
+
+| Modul | Függhet tőle | Nem függhet tőle |
+|-------|--------------|------------------|
+| `mag` | — | semmitől (ma is így) |
+| `szerver` (telephely) | `mag`, a később közös K2-modul | **`felho`** |
+| `felho` | `mag`, a később közös K2-modul | **`szerver`** |
+
+A közös K2-modul akkor jön létre, amikor az első admin-végpont épül — **előre
+nem** (üres modul nem kell). A határt az első `felho`-kóddal együtt **ArchUnit-teszt**
+kényszeríti ki, ahogy a mag keretrendszer-függetlenségét is.
+
+**ÁRA — összefoglalva:** a repófelosztás eltér a §30 hat repójától (a felhő kódja
+nem a saját repójában él); a kiadásokat szét kell választani; a helyi build hosszabb.
+**Cserébe:** a mag és a K2-logika egy példányban, egy fordításban él a két
+fogyasztójával.
 
 #### `[ ]` O1/c — Ugyanez az ellentmondás a C#-névtérnél
 

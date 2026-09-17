@@ -217,7 +217,7 @@ lenyomatát.**
 | Repó | Nyelv | Mit generálunk |
 |------|-------|----------------|
 | `siduri-backend-server` | Java | ⚠️ **Kiszolgáló-oldali illesztő** — a szerződésből, nem fordítva |
-| `siduri-cloud-api` | Java *(eldöntve: `NYITOTT_KERDESEK.md` O1)* | Ugyanaz, a K2 és K3 rá eső részére |
+| felhő (`siduri-backend-server`, `felho/` modul) | Java *(eldöntve: `NYITOTT_KERDESEK.md` O1, O1/b)* | Ugyanaz, a K2 és K3 rá eső részére |
 | `siduri-pos-client` | C# | Kliens |
 | `siduri-flutter-clients` | Dart | Kliens |
 | *webes admin* | TypeScript | Kliens |

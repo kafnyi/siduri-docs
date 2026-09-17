@@ -2180,7 +2180,7 @@ KDS + rendeléskijelző).
 | 2 | `siduri-pos-client` | C# / WPF — POS kliens, fiskális és hardveres integrációk |
 | 3 | `siduri-flutter-clients` | Flutter workspace — PDA, KDS, rendeléskijelző, standoló |
 | 4 | `siduri-updater` | C# — önálló offline patcher |
-| 5 | `siduri-cloud-api` | Felhő: licenc, archívum, webes admin, NTAK-tartalék |
+| 5 | `siduri-cloud-api` | Felhő: licenc, archívum, webes admin, NTAK-tartalék — **a kód a `siduri-backend-server` `felho/` moduljában él** (NYITOTT_KERDESEK O1/b) |
 | 6 | `siduri-docs` | **Dokumentáció — kód SOHA nem kerül bele** |
 
 **A repók MINDIG privátok maradnak** (§10.2).

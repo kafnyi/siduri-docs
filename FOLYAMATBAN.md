@@ -1112,10 +1112,12 @@ trailer nélkül.**
     kivételből egy csapásra sokat élessé tenne.
 
     ✅ **A felhő API nyelve eldöntve: Java / Spring Boot**, a Java-csomagnév
-    `hu.mythsystem.siduri.*` (`NYITOTT_KERDESEK.md` O1). **Nyitva maradt, és a
-    felhő első kódsora ELŐTT kell:** hogyan jut el a `siduri-mag` a felhőhöz
-    (O1/b — privát Maven-csomag, submodule vagy monorepo, mindegyiknek más az
-    ára).
+    `hu.mythsystem.siduri.*` (`NYITOTT_KERDESEK.md` O1).
+
+    ✅ **A mag megosztása eldöntve: monorepo** (O1/b). A felhő a
+    `siduri-backend-server` repó **`felho/` modulja** lesz; a `szerver` és a
+    `felho` nem függhet egymástól, a határt az első felhős kóddal ArchUnit
+    kényszeríti. A `siduri-cloud-api` repóba nem kerül kód.
 
 > ⚠️ **A KÖRNYEZET MEGVÁLTOZOTT: a C# kliens mostantól FORDÍTHATÓ ÉS
 > TESZTELHETŐ itt.** Eddig minden C# munka fordítás nélkül készült; a

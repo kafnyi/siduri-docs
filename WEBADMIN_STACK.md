@@ -1,8 +1,16 @@
 # A webes admin technológiai választása — döntéselőkészítés
 
-**Utolsó frissítés:** 2026-08-23
+**Utolsó frissítés:** 2026-09-19
 **Fázis:** F1 — mert az API-szerződés fogyasztója lesz
-**Állapot:** `[JAVASLAT — DÖNTÉSRE VÁR]`
+**Állapot:** `[ELDÖNTVE — 2026-09-19: Vue 3 + TypeScript + Vite]`
+
+> **A döntés a felhasználóé, a §11 javaslata alapján; a kód helye a
+> `siduri-cloud-api` repó** (`NYITOTT_KERDESEK.md` **O2**, **O2/a**).
+> A dokumentum további része **döntéselőkészítés**, és úgy is olvasandó — két
+> önhelyesbítéssel együtt (§4.1, §13), amik közül a második az egész indoklást
+> lecserélte. **Nyitva maradt: W1** (az adatrács kipróbálása), **W3** (offline
+> törzsadat-szerkesztés igazságforrása — az írás ezen áll vagy bukik) és **W4**
+> (a felhő rendelkezésre állási vállalása).
 
 ---
 

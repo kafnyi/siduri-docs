@@ -1106,10 +1106,21 @@ trailer nélkül.**
    **ÁRA:** egy szerver-újraindulás után a nyitott nap a hátralévő részében csak a
    fali órára támaszkodik, és a felület ezt kiírja — szándékosan óvatos döntés.
 
-10. **A következő tétel a felhasználó döntése.** A F4 maradéka
-    (asztaltérkép-szerkesztő, asztal-szintű kedvezmény, fogások, módosítók,
-    menük, KDS, vékonykliens, előnyugta), vagy a webes admin, ami a hatvan
-    kivételből egy csapásra sokat élessé tenne.
+10. **A webes admin elindult** *(2026-09-19)*. A felhasználó ezt választotta a F4
+    maradéka (asztaltérkép-szerkesztő, asztal-szintű kedvezmény, fogások,
+    módosítók, menük, KDS, vékonykliens, előnyugta) helyett.
+
+    ✅ **Eldöntve:** a felület **Vue 3 + TypeScript + Vite** (O2), a kódja a
+    **`siduri-cloud-api` repóban** él (O2/a), és az első szelet **csak olvasó**.
+
+    ✅ **Kiadva a K2 szerződés `admin/1.0.0`**: kategóriafa, termeklista
+    kurzoros lapozással, egy termék a kiszereléseivel. Írás nincs benne — az a
+    **W3** kérdésen áll (offline telephely mellett melyik az igazság forrása).
+
+    **Hátravan az első szeletből:** a telephelyi szerver K2-végpontjai +
+    szerződésteszt, majd a Vue-váz a generált TypeScript-klienssel és egy
+    képernyővel. **A felhős második megvalósítás később jön** — addig a
+    szerződésteszt egy megvalósításon fut, és ez ki van mondva.
 
     ✅ **A felhő API nyelve eldöntve: Java / Spring Boot**, a Java-csomagnév
     `hu.mythsystem.siduri.*` (`NYITOTT_KERDESEK.md` O1).

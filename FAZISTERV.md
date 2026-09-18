@@ -70,7 +70,7 @@ A fázisok sorrendje **nem a funkciók fontossága szerint** áll, hanem aszerin
 | Sáv | Mi | Repó |
 |-----|-----|------|
 | **A — Telephelyi mag** | Backend + POS kliens | `siduri-backend-server`, `siduri-pos-client` |
-| **B — Felhő** | Licenc, archívum, webes admin, statisztikák | `siduri-backend-server`, `felho/` modul *(O1/b: monorepo — a `siduri-cloud-api` repóba nem kerül kód)* |
+| **B — Felhő** | Licenc, archívum, webes admin, statisztikák | Háttér: `siduri-backend-server`, `felho/` modul *(O1/b)* · Webes admin felület: `siduri-cloud-api` *(O2/a — Vue 3 + TypeScript)* |
 | **C — Vékonykliensek** | PDA, KDS, rendeléskijelző, standoló | `siduri-flutter-clients` |
 | **D — Telepítés és üzemeltetés** | Frissítő, telepítő, ellenőrzőlista | `siduri-updater` |
 | **E — Kapuk** | Gyártó, MTÜ/NTAK, hardver, könyvelő | *(nem fejlesztés)* |

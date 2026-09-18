@@ -5586,3 +5586,31 @@ képernyőig. **Megmaradt eltérés:** a Java `hu.mythsystem.siduri`, a C# `Myth
 `siduri_superprompt_en.md` §4.1 · `SZERZODES.md` §5.2 hivatkozás ·
 `FOLYAMATBAN.md` §0.3.3 és §7.3 · `gemini_cloud_spec_en.md` egyeztetés R8 ·
 `siduri-cloud-api/CLAUDE.md`.
+
+### `[ELDÖNTVE — Vue 3 + TypeScript + Vite]` O2 — A webes admin technológiája (2026-09-19)
+
+**A teljes döntéselőkészítés:** `WEBADMIN_STACK.md`. A választás a §11 javaslata,
+két önhelyesbítés után: az admin **nem a mi vasunkon futó kezelőpanel**, hanem
+**irodai webalkalmazás valaki más laptopján** — ott pedig a böngésző natív
+viselkedése (szövegkijelölés, Ctrl+F, nyomtatás, jelszókezelő, két lap
+egymás mellett) **nem részletkérdés, hanem maga a termék.** A Flutter Webből ez
+az öt tulajdonság **szerkezetileg** hiányzik, nem hangolással.
+
+**ÁRA:** negyedik nyelv a Java, C# és Dart mellé; Node build-lánc, ellátási lánc
+kockázattal és offline csomagolási feladattal (**semmilyen külső hívás
+futásidőben** — se CDN, se Google Fonts); két frontend-nyelv (Dart a
+vékonyklienseknek, TypeScript az adminnak) két komponenskészlettel.
+
+#### `[ELDÖNTVE — a siduri-cloud-api repó]` O2/a — Hol lakjon a webes admin kódja? (2026-09-19)
+
+**A hat repó közül egyiknek sem volt TypeScript-otthona**, a `siduri-cloud-api`
+pedig az O1/b után kód nélkül maradt. **Ez a repó lesz a webes admin
+(frontend) otthona** — backend-kód továbbra sem kerül bele, az a
+`siduri-backend-server` `felho/` modulja.
+
+**ÁRA:** a repó neve (`cloud-api`) félrevezetővé vált — a tartalma nem API,
+hanem a felületi alkalmazás. **Cserébe:** marad hat repó (a `SZERZODES.md` §2.1
+a hetediket kifejezetten elvetette), és a Node build-lánc nem kerül be a
+Maven-repóba.
+
+`siduri-cloud-api/CLAUDE.md`.

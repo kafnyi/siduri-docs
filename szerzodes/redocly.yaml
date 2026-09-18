@@ -6,6 +6,8 @@
 apis:
   kassza@v1:
     root: ./kassza/v1/kassza.yaml
+  admin@v1:
+    root: ./admin/v1/admin.yaml
 
 extends:
   - recommended

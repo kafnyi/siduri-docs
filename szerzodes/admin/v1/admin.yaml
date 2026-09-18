@@ -1,0 +1,500 @@
+openapi: 3.1.0
+
+info:
+  title: Siduri adminprotokoll (K2)
+  version: 1.0.0
+  summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
+  license:
+    name: Zart - Myth System tulajdona
+    identifier: LicenseRef-MythSystem-Zart
+  description: |
+    A K2 szerzodes: EGY webes admin alkalmazas, KET helyrol kiszolgalva - a
+    felhobol, es internetkimaradas eseten a telephely sajat szervererol
+    (spec §22.2).
+
+    ⚠️ KET MEGVALOSITASA VAN, ES UGYANAZ A SZERZODESTESZT FUT MINDKETTON.
+    Ez teszi a "egy admin, ket helyrol kiszolgalva" igeretet gepi kenyszerre.
+    Amig csak az egyik megvalositas letezik, a teszt egy oldalon fut - ezt
+    kimondjuk, nem takarjuk el.
+
+    EZ AZ ELSO SZELET: CSAK OLVASAS. Kategoriafa es termeklista, lapozassal.
+    Iras nincs benne, mert az elobb egy nyitott kerdest igenyel: ha a tulajdonos
+    a felhoben ir at egy arat, mikozben a telephely internete all, melyik az
+    igazsag forrasa es mi tortenik utkozesnel (WEBADMIN_STACK §14, W3).
+    Szerkeszto vegpont ezert addig nem kerul ide.
+
+    AMIT EZ A SZELET SZERKEZETILEG ROGZIT, mert utolag nem teheto bele:
+      - a telephely megnevezese MINDEN keresen (spec §22.3: tobb telephely)
+      - a valaszban LATSZIK, melyik oldal szolgalt ki (felho vagy telephely)
+      - kurzoros lapozas: a lista noni fog, es az eltolas-alapu lapozas
+        beszuras kozben sorokat ismetel vagy ejt
+      - penz egesz forintban (I1), afakulcs masolatkent, nem hivatkozaskent
+
+    HIANYOK, KIMONDVA - egyik sem feledekenyseg:
+      - BEJELENTKEZES ES MUNKAMENET: a token megszerzese a K2 kesobbi szelete.
+        Ez a szelet mar hitelesitett allapotbol indul.
+      - EXPORT ES IMPORT: a K2 resze lesz, egyetlen kozos szolgaltataskent
+        minden listas nezethez (EXPORT_IMPORT §2.1) - nem kepernyonkent.
+        Azert nincs meg benne, mert a konyvtarvalasztas nyitott: az Apache POI
+        es a GraalVM nativ forditas utkozik (EXPORT_IMPORT §6.1).
+      - CSAK HELYI FUNKCIOK (eszkozszerep, nyomtato-atiranyitas, integracio
+        ideiglenes tiltasa): kulon utvonalcsoportba kerulnek, mert ezeknek a
+        felhoben NINCS parjuk, es offline is mukodniuk kell (WEBADMIN_STACK
+        §13.4). Ures csoportot nem adunk ki.
+      - IDOKORLATOS LISTAK: a telephelyrol kiszolgalt admin 30 napnal regebbi
+        adatot nem tud mutatni, es ezt a valaszban meg kell mondania (spec
+        §22.2). Ebben a szeletben NINCS idokorlatos adat - a torzsadat nem az -,
+        ezert nincs ilyen mezo. A kimutatasoknal kotelezo lesz.
+
+servers:
+  - url: https://{felho}/admin/v1
+    description: A felho - a napi adminisztracio helye
+    variables:
+      felho:
+        default: admin.sidurisystems.hu
+  - url: https://{telephelyiSzerver}/admin/v1
+    description: A telephelyi szerver - offline tartalek es helyi beallitasok
+    variables:
+      telephelyiSzerver:
+        default: siduri.helyi
+
+security:
+  - MunkamenetToken: []
+
+tags:
+  - name: torzsadat
+    description: Kategoria es termek - amit a tulajdonos karbantart
+
+paths:
+
+  /kategoriak:
+    get:
+      tags: [torzsadat]
+      operationId: kategoriak
+      summary: A kategoriafa
+      description: |
+        A teljes fa egyben, lapozas nelkul: a kategoriak szama legfeljebb
+        szazas nagysagrendu, es a fat darabokban megjeleniteni rosszabb, mint
+        egyben lekerni.
+
+        A fa LEGFELJEBB NEGY SZINT MELY - ezt az adatbazis kenyszeriti ki, nem
+        az alkalmazas jomodora.
+
+        Az afakulcs barmely szinten megadhato, es LEFELE oroklodik. A valasz azt
+        adja vissza, ami az adott szinten ALL - nem a kiszamolt orokolt erteket.
+        A kettot osszekeverni csendes hiba: az oroklodes a mentesnel dol el.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: aktiv
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: >
+            Ha hianyzik, az aktiv ES az inaktiv kategoriak is jonnek. Az
+            inaktivakat a felulet halvanyitva mutatja - torles nincs, mert a
+            regi bizonylatok hivatkoznak rajuk.
+      responses:
+        '200':
+          description: A kategoriafa
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [kategoriak]
+                properties:
+                  kategoriak:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Kategoria'
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /termekek:
+    get:
+      tags: [torzsadat]
+      operationId: termekek
+      summary: Termeklista, lapozva
+      description: |
+        A LAPOZAS KURZOROS, nem eltolas-alapu. Egy 400 tetelt gorgeto listaban
+        az eltolas-alapu lapozas kozben beszurt sor miatt a felhasznalo egy
+        sort ketszer lat, egy masikat pedig soha - es ezt sosem jelenti be
+        hibakent, mert nem veszi eszre.
+
+        Az OSSZESEN a szurt eredmeny teljes darabszama, nem az oldale. Azert
+        kell, mert az export a TELJES szurt eredmenyt adja majd, es ezt a
+        feluletnek elore ki kell irnia (EXPORT_IMPORT §2.2).
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - $ref: '#/components/parameters/Kurzor'
+        - $ref: '#/components/parameters/Limit'
+        - name: kategoriaId
+          in: query
+          required: false
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: >
+            Csak az adott kategoria termekei - a kategoria LESZARMAZOTTAIVAL
+            egyutt. Az a felhasznaloi elvaras, hogy az "Italok" alatt a
+            "Uditok" is ott legyen.
+        - name: kereses
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+          description: >
+            Reszlet a megnevezesben vagy a vonalkodban, kis- es nagybetu
+            kulonbsege nelkul.
+        - name: aktiv
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Ha hianyzik, mindketto jon.
+      responses:
+        '200':
+          description: Egy oldalnyi termek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [termekek, osszesen]
+                properties:
+                  termekek:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TermekSor'
+                  osszesen:
+                    type: integer
+                    format: int64
+                    description: A szurt eredmeny teljes darabszama.
+                    examples: [4312]
+                  kovetkezoKurzor:
+                    type: string
+                    description: >
+                      A kovetkezo oldal kurzora. HIANYZIK, ha nincs tobb oldal -
+                      nem ures szoveg, mert az "van meg, csak ures" jelentessel
+                      keveredne.
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /termekek/{termekAzonosito}:
+    get:
+      tags: [torzsadat]
+      operationId: termek
+      summary: Egy termek, a kiszerelesekkel
+      description: |
+        A termek a NEVET, a KATEGORIAT es az AFAKULCSOKAT hordozza; az ar es a
+        vonalkod a KISZERELESEN all. A 0,5 l es a 0,3 l csapolt sor ket kulon
+        ertekesitheto egyseg, sajat arral - a rendszer nem szamol aranyos arat.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: termekAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: A termek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Termek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+components:
+
+  securitySchemes:
+
+    MunkamenetToken:
+      type: http
+      scheme: bearer
+      description: |
+        A BEJELENTKEZETT ADMIN FELHASZNALO munkamenete. Bongeszobol erkezik,
+        ezert itt NINCS eszkoztanusitvany - az a K1 sajatja, ahol a gep maga is
+        azonossag.
+
+        A token megszerzese a K2 kesobbi szelete. EZ HIANY, KIMONDVA.
+
+  headers:
+
+    SiduriSzerzodes:
+      description: >
+        Melyik szerzodessel szolgaltak ki. Egy "neha maskepp viselkedik"
+        hibabejelentesnel ez az elso kerdes - ha nem latszik, orakba kerul.
+      required: true
+      schema:
+        type: string
+        examples: ["admin/1.0.0"]
+
+    SiduriKiszolgalo:
+      description: |
+        MELYIK OLDAL SZOLGALT KI. Ket megvalositas van, es a felhasznalo nem
+        feltetlenul tudja, melyikhez ert el: az offline tartalek eseten a
+        bongeszo ugyanazt az alkalmazast mutatja. Ha a valasz nem mondja meg,
+        akkor egy "nem latom a tegnapi valtoztatasomat" bejelentesnel senki nem
+        tudja, hol kezdje.
+      required: true
+      schema:
+        type: string
+        enum: [felho, telephely]
+
+  parameters:
+
+    Telephely:
+      name: Siduri-Telephely
+      in: header
+      required: true
+      schema:
+        $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      description: >
+        MELYIK TELEPHELY adatait keri. A tobb telephely alapmodell, nem
+        franchise-funkcio (spec §22.3), ezert ez MINDEN keresen kotelezo - a
+        felho tobb telephelyet szolgal ki, a telephelyi szerver pedig sajat
+        maga azonositojat varja, es masra 403-mal valaszol.
+
+    Kurzor:
+      name: kurzor
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 200
+      description: >
+        Az elozo valasz kovetkezoKurzor erteke. A tartalma a kiszolgalo dolga,
+        a kliens nem ertelmezi. Ervenytelen kurzorra 422 jon, nem csendes elso
+        oldal.
+
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+      description: >
+        Egy oldal merete. A felso hatar nem kenyelmi korlat: a telephelyi
+        szerver egy J1900, ami kozben kasszat is kiszolgal.
+
+  responses:
+
+    Hiba:
+      description: Hiba
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+    Hiba401:
+      description: Nincs ervenyes munkamenet.
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+    Hiba403:
+      description: >
+        Nincs jogosultsag, VAGY a kert telephely nem ezen a kiszolgalon van.
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+    Hiba404:
+      description: Nincs ilyen termek ezen a telephelyen.
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+    Hiba422:
+      description: Ertelmezhetetlen parameter - peldaul ervenytelen kurzor.
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  schemas:
+
+    Kategoria:
+      title: Kategoria
+      description: >
+        A fa egy csomopontja. A fat a szuloId koti ossze; a lapos lista es a
+        szint egyutt eleg a felepitesehez, es lapos listat lapozni, szurni es
+        exportalni is lehet - beagyazott fat nem.
+      type: object
+      required: [azonosito, nev, szint, aktiv]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        szuloId:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: Hianyzik a gyokerszintu kategorianal.
+        nev:
+          type: string
+        szint:
+          type: integer
+          minimum: 1
+          maximum: 4
+          description: >
+            1-tol 4-ig. A negy szintes korlatot az adatbazis tartja, nem az
+            alkalmazas.
+        afaHelyben:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+          description: >
+            AMI EZEN A SZINTEN ALL, nem a kiszamolt orokolt ertek. Hianyzik, ha
+            ez a szint nem mond rola semmit - olyankor a szulotol oroklodik.
+        afaElvitel:
+          $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+        ntakFokategoria:
+          type: string
+        ntakAlkategoria:
+          type: string
+        sorrend:
+          type: integer
+        aktiv:
+          type: boolean
+      additionalProperties: false
+
+    TermekSor:
+      title: Termek egy listasorban
+      description: >
+        Amit a tablazat mutat. A kiszerelesek NINCSENEK benne - egy 400 soros
+        listaban minden termek minden kiszerelesenek kikuldese sokszorosara
+        novelne a valaszt azert, amit a felhasznalo nem lat.
+      type: object
+      required: [azonosito, megnevezes, afaHelyben, afaElvitel, mennyisegiEgyseg, aktiv, kiszerelesSzam]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        megnevezes:
+          type: string
+        kategoriaId:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: >
+            Hianyozhat: NTAK-koteles helyen a termek kategoria nelkul nem
+            mentheto, de a nem NTAK-koteles telephelyen igen.
+        afaHelyben:
+          $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+        afaElvitel:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+          description: >
+            MASOLAT, nem hivatkozas. Ha hivatkozas lenne, a helyben fogyasztas
+            kulcsanak csokkentese csendben lecsokkentene ezt is - ami komoly
+            jogsertes.
+        mennyisegiEgyseg:
+          type: string
+          examples: ["DARAB", "KILOGRAMM", "LITER"]
+        aktiv:
+          type: boolean
+        kiszerelesSzam:
+          type: integer
+          description: Hany ertekesitheto kiszerelese van. A reszletek a termek lapjan.
+        legolcsobbBruttoAr:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: >
+            A kiszerelesek legolcsobbja, TAJEKOZTATASUL a listaban. Hianyzik,
+            ha nincs aktiv kiszereles. NEM ebbol kell arat szamolni.
+      additionalProperties: false
+
+    Termek:
+      title: Termek
+      type: object
+      required: [azonosito, megnevezes, afaHelyben, afaElvitel, mennyisegiEgyseg, aktiv, kiszerelesek]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        megnevezes:
+          type: string
+        megnevezesEn:
+          type: string
+        kategoriaId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        afaHelyben:
+          $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+        afaElvitel:
+          $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+        mennyisegiEgyseg:
+          type: string
+        korhatarosJelzes:
+          type: boolean
+          description: Piktogram a tetelsoron, SOHA nem felugro ablak (I46).
+        aktiv:
+          type: boolean
+        kiszerelesek:
+          type: array
+          items:
+            $ref: '#/components/schemas/Kiszereles'
+      additionalProperties: false
+
+    Kiszereles:
+      title: Kiszereles
+      description: >
+        Az ERTEKESITHETO egyseg: ezen all az ar es a vonalkod. A 0,3 l nem a
+        0,5 l aranyos resze, hanem amennyit az ugyfel mond.
+      type: object
+      required: [azonosito, nev, bruttoAr, aktiv]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+          examples: ["Alap", "0,3 l"]
+        bruttoAr:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: EGESZ FORINT (I1). Lebegopontos ertek itt sem fordul elo.
+        vonalkodok:
+          type: array
+          items:
+            type: string
+        aktiv:
+          type: boolean
+      additionalProperties: false

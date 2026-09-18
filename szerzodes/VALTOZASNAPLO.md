@@ -40,9 +40,32 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 
 ## `admin` (K2)
 
-*Még nincs kiadva.* A K2-nek **két megvalósítása lesz** — a felhő és a
-telephelyi szerver —, és a szerződésteszt mindkettőn ugyanaz fut. Ez teszi a
-§22.2 ígéretét gépi kényszerré.
+A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
+szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
+
+### v1.0.0 — 2026-09-19 — *első kiadás: csak olvasó törzsadat*
+
+**Végpontok:** kategóriafa, termeklista (kurzoros lapozás, szűrés, keresés), egy
+termék a kiszereléseivel. **Írás nincs benne.**
+
+**Amit szerkezetileg rögzít, mert utólag nem tehető bele:**
+
+| Mi | Miért az első kiadásban |
+|----|------------------------|
+| `Siduri-Telephely` fejléc **minden** kérésen | A több telephely alapmodell (§22.3). Utólag felvenni minden hívót érintene |
+| `Siduri-Kiszolgalo` fejléc **minden** válaszban (`felho` / `telephely`) | Két megvalósítás van, és a böngészőben ugyanaz az alkalmazás látszik. Enélkül egy „nem látom a tegnapi változtatásomat” bejelentésnél senki nem tudja, hol kezdje |
+| **Kurzoros** lapozás, nem eltolás-alapú | Eltolással a beszúrás közbeni lapozás sorokat ismétel vagy ejt — és ezt a felhasználó nem jelenti be, mert észre sem veszi |
+| `osszesen` a listaválaszban | Az export a **teljes szűrt eredményt** adja majd, és ezt a felületnek előre ki kell írnia (`EXPORT_IMPORT.md` §2.2) |
+| Bruttó ár **egész forint**, áfakulcs **másolat**, nem hivatkozás | Az I1 invariáns a protokollon is érvényes; a hivatkozott áfakulcs csendes jogsértést okozna |
+
+**Kimondott hiányok, nem elfeledett részek:**
+
+| Hiány | Miért nincs benne |
+|-------|-------------------|
+| **Bejelentkezés és munkamenet** — a szelet hitelesített állapotból indul | A K2 későbbi szelete |
+| **Írás** (ár, láthatóság, termék) | Előbb a `WEBADMIN_STACK.md` **W3** kérdését kell eldönteni: offline telephely mellett melyik az igazság forrása |
+| **Export és import** — egyetlen közös szolgáltatásként minden listás nézethez | A könyvtárválasztás nyitott: az Apache POI és a GraalVM natív fordítás ütközik (`EXPORT_IMPORT.md` §6.1) |
+| **Csak helyi funkciók** külön útvonalcsoportban | Még nincs ilyen végpont — **üres csoportot nem adunk ki** |
 
 ---
 

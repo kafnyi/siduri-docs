@@ -1117,10 +1117,20 @@ trailer nélkül.**
     kurzoros lapozással, egy termék a kiszereléseivel. Írás nincs benne — az a
     **W3** kérdésen áll (offline telephely mellett melyik az igazság forrása).
 
-    **Hátravan az első szeletből:** a telephelyi szerver K2-végpontjai +
-    szerződésteszt, majd a Vue-váz a generált TypeScript-klienssel és egy
-    képernyővel. **A felhős második megvalósítás később jön** — addig a
-    szerződésteszt egy megvalósításon fut, és ez ki van mondva.
+    ✅ **Az első szelet megvan, végig** *(2026-09-19)*: a telephelyi szerver
+    K2-végpontjai (`AdminVezerlo`, `TorzsadatTar`, 15 új teszt, összesen
+    **196 mag + 319 szerver** zöld), és a Vue-váz terméklista-képernyővel
+    (9 teszt zöld, a köteg 157 kB). **Élő próba:** a fejlesztői profilú
+    szerverrel a lista, a lapozás, a jogosultság-kapu és a telephely-ellenőrzés
+    valódi HTTP-hívásokon is működik.
+
+    **Amit az élő próba talált, és a teszt nem:** hiányzó `Authorization`
+    fejlécre 400 ment ki 401 helyett, és a hibaválasz minden útvonalon a kassza
+    szerződésverzióját írta ki. Mindkettő javítva, mindkettőre teszt.
+
+    **Hátravan:** a felület böngészős átnézése (kézi), a felhős második
+    megvalósítás, a bejelentkezés, az export/import, és az írás — az utóbbi a
+    **W3** döntésen áll.
 
     ✅ **A felhő API nyelve eldöntve: Java / Spring Boot**, a Java-csomagnév
     `hu.mythsystem.siduri.*` (`NYITOTT_KERDESEK.md` O1).

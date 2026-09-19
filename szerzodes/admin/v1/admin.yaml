@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.1.0
+  version: 1.2.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -34,6 +34,16 @@ info:
 
     A mennyisegi, futo allapotra (keszlet, forgalom, kassza) ez NEM vonatkozik -
     az kizarolag telephely-autoritativ.
+
+    ⚠️ A ZAROLAS NEM UTKOZES, HANEM HATASKOR (B16.3). Egy magasabb szinten
+    (lanc/franchise kozpont) zarolt ertek IDOBELYEGTOL FUGGETLENUL nyer: a
+    telephely nem irhatja at. Ezert:
+
+      - a zarolt mezo mellett megy a ZAROLAS a valaszban. A felulet enelkul csak
+        annyit tudna, hogy az iras elbukott - a menedzser pedig ujra es ujra
+        probalkozna, es azt hinne, elromlott a rendszer;
+      - a felulet MONDJA MEG, hogy zarolt, es ne csak visszautasitsa;
+      - a kikenyszerites NEM a feluleten mulik: a kiszolgalo utasitja el.
 
     AMIT EZ A SZELET SZERKEZETILEG ROGZIT, mert utolag nem teheto bele:
       - a telephely megnevezese MINDEN keresen (spec §22.3: tobb telephely)
@@ -597,6 +607,30 @@ components:
             egyetlen dolog, ami valaszol.
       additionalProperties: false
 
+    Zarolas:
+      title: Zarolas
+      description: |
+        A mezo egy MAGASABB SZINTEN zarolva van, tehat a telephelyrol nem
+        irhato at - idobelyegtol fuggetlenul (B16.3).
+
+        ⚠️ AZERT MEGY KI A DROTON, MERT A FELULETNEK MEG KELL MONDANIA. Ha csak
+        elrejtene a szerkesztest, a menedzser nem ertene, miert nem sikerul; ha
+        csak visszautasitana, ugyanugy nem. "Ar: 1200 Ft - a kozpont allitotta
+        be, zarolva" - ez a kulonbseg.
+      type: object
+      required: [szint]
+      properties:
+        szint:
+          type: string
+          enum: [lanc]
+          description: >
+            Melyik szint zarolta. Ma csak a lanc/franchise kozpont zarolhat; ha
+            tobb szint lesz, ez a felsorolas bovul.
+        zarolva:
+          type: string
+          format: date-time
+      additionalProperties: false
+
     Mezoeredet:
       title: Mezoeredet
       description: |
@@ -644,6 +678,12 @@ components:
             Hianyzik, ha az arat meg SOHA nem irta at senki ezen a rendszeren
             (peldaul importbol vagy telepiteskor keletkezett). A hianya tehat
             informacio, nem hiba.
+        arZarolas:
+          allOf:
+            - $ref: '#/components/schemas/Zarolas'
+          description: >
+            Hianyzik, ha az ar NINCS zarolva - vagyis a telephelyrol
+            szerkesztheto. Ha jelen van, az armodositas 403-at ad.
         vonalkodok:
           type: array
           items:

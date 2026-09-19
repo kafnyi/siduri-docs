@@ -43,6 +43,22 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.2.0 — 2026-09-19 — *a zárolás láthatóvá válik* `NEM TÖRŐ`
+
+**Új mező** minden kiszerelésen: `arZarolas` — ha jelen van, az árat egy
+**magasabb szint** (lánc/franchise központ) zárolta, és a telephelyről nem
+írható át. A 403-as válasz ezt eddig is tartalmazta *(1.1.0)*; ami hiányzott, az
+a **read oldal**.
+
+**Miért nem elég a 403:** a felület enélkül csak annyit tudna, hogy az írás
+elbukott. A menedzser újra és újra próbálkozna, és azt hinné, elromlott a
+rendszer. **„Ár: 1200 Ft — a központ állította be, zárolva"** — ez a különbség
+(`NYITOTT_KERDESEK.md` **B16.3**).
+
+**Amit a szerződés szövege is kimond:** a zárolás **nem ütközés, hanem
+hatáskör** — időbélyegtől függetlenül nyer, tehát az O3 időbélyeg-szabálya
+**nem alkalmazható rá**.
+
 ### v1.1.0 — 2026-09-19 — *az első írás: a kiszerelés ára* `NEM TÖRŐ`
 
 **Új végpont:** `PUT /termekek/{id}/kiszerelesek/{id}/ar`. **Új mező** minden

@@ -43,6 +43,26 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.1.0 — 2026-09-19 — *az első írás: a kiszerelés ára* `NEM TÖRŐ`
+
+**Új végpont:** `PUT /termekek/{id}/kiszerelesek/{id}/ar`. **Új mező** minden
+kiszerelésen: `arEredet` — *mikor* és *melyik oldalról* (felhő/telephely) kapta
+az árat. Additív változás, a meglévő olvasó hívókat nem töri.
+
+**Amit a szerződés szövege is hordoz** (`NYITOTT_KERDESEK.md` **O3**):
+
+| Mi | Miért így |
+|----|-----------|
+| **Mezőeredet minden írható mezőn** | Az ütközést mezőnkénti időbélyeg oldja fel, a későbbi írás nyer. Enélkül a felület nem tudná megmutatni, hogy egy változtatás **már nem érvényes** |
+| **`PUT`, nem `PATCH`, és nincs idempotencia-kulcs** | A kérés a **teljes új értéket** adja meg, tehát a megismétlése ugyanoda vezet. Összeadódó műveletnél („emeld 10%-kal") ez nem állna, és ott kulcs kellene |
+| **A nulla érvényes, a negatív nem** | Ingyenes tétel létezik; **az ár nem sztornó** |
+| **A zárolt érték 403** | A lánc-zárolás **nem ütközés, hanem hatáskör** — időbélyegtől függetlenül nyer (B16.3) |
+
+**A megtartott kockázat, kimondva:** a sorrendet **két gép fali órája** dönti el.
+Ha a telephelyi gép órája siet, egy korábbi helyi írás legyőzhet egy későbbi
+felhőset. A vesztes érték az **audit-láncban** marad, tehát látható — de a
+felülírás automatikus.
+
 ### v1.0.0 — 2026-09-19 — *első kiadás: csak olvasó törzsadat*
 
 **Végpontok:** kategóriafa, termeklista (kurzoros lapozás, szűrés, keresés), egy

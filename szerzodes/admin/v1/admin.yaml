@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.0.0
+  version: 1.1.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -17,11 +17,23 @@ info:
     Amig csak az egyik megvalositas letezik, a teszt egy oldalon fut - ezt
     kimondjuk, nem takarjuk el.
 
-    EZ AZ ELSO SZELET: CSAK OLVASAS. Kategoriafa es termeklista, lapozassal.
-    Iras nincs benne, mert az elobb egy nyitott kerdest igenyel: ha a tulajdonos
-    a felhoben ir at egy arat, mikozben a telephely internete all, melyik az
-    igazsag forrasa es mi tortenik utkozesnel (WEBADMIN_STACK §14, W3).
-    Szerkeszto vegpont ezert addig nem kerul ide.
+    AZ 1.0.0 CSAK OLVASAS VOLT. Az 1.1.0 hozza az ELSO IRAST: a kiszereles
+    brutto ara.
+
+    ⚠️ AZ IRAS FELOLDASI SZABALYA (NYITOTT_KERDESEK O3, korabban W3): a
+    torzsadatot a felho ES a telephely is irhatja, es az utkozest MEZONKENTI
+    IDOBELYEG oldja fel - a kesobbi iras nyer, emberi feloldas nincs. Ezert:
+
+      - minden irhato mezo mellett megy a MEZOEREDET (mikor, es melyik oldalrol
+        kapta a mostani erteket). A felulet enelkul nem tudna megmutatni, hogy
+        egy valtoztatas elveszett;
+      - a vesztes iras NEM tunik el, csak nem ervenyes: az audit-lancba kerul;
+      - a sorrendet ket gep FALI ORAJA donti el. Ez ismert kockazat, kimondva:
+        ha a telephelyi gep oraja siet, egy korabbi helyi iras legyozhet egy
+        kesobbi felhoset.
+
+    A mennyisegi, futo allapotra (keszlet, forgalom, kassza) ez NEM vonatkozik -
+    az kizarolag telephely-autoritativ.
 
     AMIT EZ A SZELET SZERKEZETILEG ROGZIT, mert utolag nem teheto bele:
       - a telephely megnevezese MINDEN keresen (spec §22.3: tobb telephely)
@@ -239,6 +251,80 @@ paths:
           $ref: '#/components/responses/Hiba404'
         '422':
           $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /termekek/{termekAzonosito}/kiszerelesek/{kiszerelesAzonosito}/ar:
+    put:
+      tags: [torzsadat]
+      operationId: aratModosit
+      summary: A kiszereles brutto aranak modositasa
+      description: |
+        AZ AR A KISZERELESEN ALL, nem a termeken - ezert modosul itt.
+
+        PUT, nem PATCH, es NINCS idempotencia-kulcs: a keres a TELJES uj erteket
+        adja meg, tehat a megismetlese ugyanoda vezet. Egy osszeadodo muveletnel
+        (peldaul "emeld 10%-kal") ez nem igaz lenne, es ott kellene kulcs.
+
+        ⚠️ A REGI AR NEM VESZ EL: az artortenetbe kerul, ervenyessegi
+        idoszakkal. Ezt a kiszolgalo oldalan adatbazis-szintu szabaly
+        kenyszeriti ki, nem az alkalmazas jomodora - egy elfelejtett bejegyzes
+        utolag nem potolhato.
+
+        ⚠️ A VALASZ MEGMONDJA, MIKOR ES HONNAN kapta a mezo az erteket
+        (arEredet). Utkozes eseten - ha a masik oldal kesobbi irasa nyer - a
+        felulet ebbol latja, hogy a sajat valtoztatas mar nem ervenyes.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: termekAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: kiszerelesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArKeres'
+      responses:
+        '200':
+          description: A modositott kiszereles
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kiszereles'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          description: |
+            Nincs jogosultsag az armodositashoz, VAGY a kert telephely nem ezen
+            a kiszolgalon van, VAGY az ertek ZAROLT egy magasabb szinten (lanc).
+            A zarolas nem utkozes, hanem hataskor: idobelyegtol fuggetlenul nyer.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          description: |
+            Ertelmezhetetlen ertek - peldaul negativ ar. A nulla ERVENYES
+            (ingyenes tetel letezik), a negativ nem: az ar nem sztorno.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -474,6 +560,50 @@ components:
             $ref: '#/components/schemas/Kiszereles'
       additionalProperties: false
 
+    ArKeres:
+      title: Armodositas
+      type: object
+      required: [bruttoAr]
+      properties:
+        bruttoAr:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: >
+            AZ UJ TELJES AR, egesz forintban - nem kulonbozet es nem szazalek.
+            A nulla ervenyes, a negativ nem.
+          minimum: 0
+        indok:
+          type: string
+          maxLength: 500
+          description: >
+            Szabad szoveges indoklas. Nem kotelezo, de az audit-bejegyzesbe
+            bekerul, es egy "miert lett dragabb a marciusi ar" kerdesnel ez az
+            egyetlen dolog, ami valaszol.
+      additionalProperties: false
+
+    Mezoeredet:
+      title: Mezoeredet
+      description: |
+        MIKOR es MELYIK OLDALROL kapta a mezo a mostani erteket.
+
+        Azert van a szerzodesben, mert az utkozest mezonkenti idobelyeg oldja
+        fel (O3): a kesobbi iras nyer. A felulet enelkul nem tudna megmutatni,
+        hogy egy valtoztatas mar nem ervenyes - a tulajdonos a szamlan
+        szembesulne vele.
+      type: object
+      required: [modositva, forras]
+      properties:
+        modositva:
+          type: string
+          format: date-time
+          description: >
+            A modositast ELFOGADO kiszolgalo oraja szerint - nem a bongeszoe.
+          examples: ["2026-09-19T08:12:04Z"]
+        forras:
+          type: string
+          enum: [felho, telephely]
+      additionalProperties: false
+
     Kiszereles:
       title: Kiszereles
       description: >
@@ -491,6 +621,13 @@ components:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
           description: EGESZ FORINT (I1). Lebegopontos ertek itt sem fordul elo.
+        arEredet:
+          allOf:
+            - $ref: '#/components/schemas/Mezoeredet'
+          description: >
+            Hianyzik, ha az arat meg SOHA nem irta at senki ezen a rendszeren
+            (peldaul importbol vagy telepiteskor keletkezett). A hianya tehat
+            informacio, nem hiba.
         vonalkodok:
           type: array
           items:

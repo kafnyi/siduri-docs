@@ -1146,9 +1146,20 @@ trailer nélkül.**
     változatlan marad; a pultos 403-at kap; és mindez a felület fejlesztői
     kiszolgálóján át is ugyanígy működik.
 
+    ✅ **A zárolás kikényszerítve** *(2026-09-19, `admin/1.2.0`, B16.3)*, **két
+    rétegben**: adatbázis-trigger (`V23`) minden írási útra — ez fogja meg az
+    importálást és a közvetlen SQL-írást is —, plusz alkalmazás-szintű
+    ellenőrzés a 403-ért és a megmondott okért. A zárolás **mezőre szól**, az
+    olvasó válasz hordozza, és a felület kiírja. **196 mag + 330 szerver** zöld.
+
+    **Élő próbával:** a végpont 403, a közvetlen `update` adatbázishiba, az ár
+    mindkettő után változatlan. **Bizonyítottan harap mindkét réteg:** az
+    alkalmazás-ellenőrzés nélkül a trigger fogja meg (422 lesz 403 helyett), a
+    trigger nélkül a közvetlen írás átmegy.
+
     **Hátravan:** a felület böngészős átnézése (kézi), a név/áfa/inaktiválás
-    írása, a **zárolás** kikényszerítése (B16.3 — a helye már meg van jelölve a
-    kódban), a bejelentkezés, a felhős második megvalósítás és az export/import.
+    írása, a zárolás **leküldése** a felhőből (K3 — ma csak kézi adatbázis-sor),
+    a bejelentkezés, a felhős második megvalósítás és az export/import.
 
     ✅ **A felhő API nyelve eldöntve: Java / Spring Boot**, a Java-csomagnév
     `hu.mythsystem.siduri.*` (`NYITOTT_KERDESEK.md` O1).

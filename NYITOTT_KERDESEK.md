@@ -2123,6 +2123,28 @@ a felhőnek. Ha csak a felhő felülete rejti el, akkor a helyi admin felület, 
 importálás vagy egy közvetlen adatbázis-írás megkerüli. Ez a terv máshol már
 lefektetett szabálya (a UI-elrejtés nem kikényszerítés, B6/F7) — itt is él.
 
+> ✅ **MEGÉPÍTVE (2026-09-19), a kiszerelés árára** — `admin/1.2.0`.
+> **Két rétegben**, mert a fenti mondat az importálást és a közvetlen SQL-írást
+> is megnevezi:
+>
+> | Réteg | Mit véd | Mit ad |
+> |-------|---------|--------|
+> | **Adatbázis-trigger** (`V23`, `SI040`) | **Minden** írási utat: alkalmazás, importálás, kézi SQL | A garancia |
+> | **Alkalmazás-ellenőrzés** (`TorzsadatIro`) | A K2 végpontot | A **403** és a megmondott ok |
+>
+> **A zárolás MEZŐRE szól, nem rekordra:** zárolt ár mellett a kiszerelés neve
+> javítható. **Az olvasó válasz hordozza** (`arZarolas`), és a felület kiírja:
+> *„a központ állította be, zárolva"* — mert a puszta visszautasításból a
+> menedzser azt hinné, elromlott a rendszer.
+>
+> **Élő próbával ellenőrizve:** a végpont 403-at ad, a közvetlen `update`
+> adatbázishibát, és az ár mindkettő után változatlan.
+>
+> **Ami még hiányzik:** a zárolás-sorokat ma **nincs mi leküldje** — a felhő és
+> a K3 szinkron még nincs megépítve, tehát a zárolás jelenleg csak akkor él, ha
+> a sort valaki beírja a telephelyi adatbázisba. A **kikényszerítés** viszont
+> kész, és ez volt a kockázatos rész.
+
 #### B16.4 `[!]` A LEGFONTOSABB HATÁROVONAL: BEÁLLÍTÁS vs. MENNYISÉGI ÁLLAPOT
 
 **Ez az az egy dolog, amit szerintem MOST kell eldönteni, mert utólag

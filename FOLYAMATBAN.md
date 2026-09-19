@@ -1134,9 +1134,21 @@ trailer nélkül.**
     és a felületen **látható marad**, és a telephely óraeltérését figyelni kell.
     **Ez oldja fel a K2 írás-szeletét.**
 
-    **Hátravan:** a felület böngészős átnézése (kézi), az írás (`admin/1.1.0` —
-    a szerződésnek hordoznia kell, melyik mező mikor és honnan kapta az értékét),
-    a bejelentkezés, a felhős második megvalósítás és az export/import.
+    ✅ **Az írás első szelete kész** *(2026-09-19, `admin/1.1.0`)*: a **kiszerelés
+    ára** módosítható. A feloldás az O3 szerint mezőnkénti időbélyeg; az új
+    `mezo_eredet` tábla (V22) tartja, mikor és honnan kapta a mező az értékét.
+    **A vesztes írás 409-et kap és bekerül a biztonsági audit-ágba** — nem
+    csendes siker. A `termek.ar_modositas` lekerült a söprési kivétellistáról.
+    **196 mag + 325 szerver** zöld, a felületen 9.
+
+    **Élő próbával ellenőrizve:** az ár módosul, az ártörténet lezárja a régi
+    sort, az audit rögzíti az indokot; későbbi érték mellett 409 jön és az érték
+    változatlan marad; a pultos 403-at kap; és mindez a felület fejlesztői
+    kiszolgálóján át is ugyanígy működik.
+
+    **Hátravan:** a felület böngészős átnézése (kézi), a név/áfa/inaktiválás
+    írása, a **zárolás** kikényszerítése (B16.3 — a helye már meg van jelölve a
+    kódban), a bejelentkezés, a felhős második megvalósítás és az export/import.
 
     ✅ **A felhő API nyelve eldöntve: Java / Spring Boot**, a Java-csomagnév
     `hu.mythsystem.siduri.*` (`NYITOTT_KERDESEK.md` O1).

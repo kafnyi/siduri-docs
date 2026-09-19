@@ -57,6 +57,7 @@ az árat. Additív változás, a meglévő olvasó hívókat nem töri.
 | **`PUT`, nem `PATCH`, és nincs idempotencia-kulcs** | A kérés a **teljes új értéket** adja meg, tehát a megismétlése ugyanoda vezet. Összeadódó műveletnél („emeld 10%-kal") ez nem állna, és ott kulcs kellene |
 | **A nulla érvényes, a negatív nem** | Ingyenes tétel létezik; **az ár nem sztornó** |
 | **A zárolt érték 403** | A lánc-zárolás **nem ütközés, hanem hatáskör** — időbélyegtől függetlenül nyer (B16.3) |
+| **A vesztes írás 409, nem csendes 200** | A felhasználó beírt egy árat, és az nem lett érvényes. Sikeres válasszal azt hinné, megtörtént — és a következő számlán szembesülne az ellenkezőjével. *(A kiadás napján, még a megvalósítás előtt egészült ki ezzel; fogyasztó addig nem épült rá.)* |
 
 **A megtartott kockázat, kimondva:** a sorrendet **két gép fali órája** dönti el.
 Ha a telephelyi gép órája siet, egy korábbi helyi írás legyőzhet egy későbbi

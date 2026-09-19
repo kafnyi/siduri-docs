@@ -317,6 +317,22 @@ paths:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
         '404':
           $ref: '#/components/responses/Hiba404'
+        '409':
+          description: |
+            AZ IRAS VESZTETT: a mezon mar KESOBBI ertek all, tehat az O3 szabaly
+            szerint az nyer, es ez a keres nem jutott ervenyre.
+
+            ⚠️ AZERT KULON ALLAPOTKOD, ES NEM CSENDES 200: a felhasznalo beirt
+            egy arat, es az nem lett ervenyes. Ha erre sikeres valaszt kapna,
+            pontosan azt hinne, hogy megtortent - es a kovetkezo szamlan
+            szembesulne az ellenkezojevel.
+
+            A valasz torzse a HIBA alak; a jelenlegi ervenyes erteket a
+            termek lekerdezesevel kell ujraolvasni.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
         '422':
           description: |
             Ertelmezhetetlen ertek - peldaul negativ ar. A nulla ERVENYES

@@ -1128,9 +1128,15 @@ trailer nélkül.**
     fejlécre 400 ment ki 401 helyett, és a hibaválasz minden útvonalon a kassza
     szerződésverzióját írta ki. Mindkettő javítva, mindkettőre teszt.
 
-    **Hátravan:** a felület böngészős átnézése (kézi), a felhős második
-    megvalósítás, a bejelentkezés, az export/import, és az írás — az utóbbi a
-    **W3** döntésen áll.
+    ✅ **A W3 eldöntve** *(2026-09-19, `NYITOTT_KERDESEK.md` O3)*: a
+    törzsadat-ütközést **mezőnkénti időbélyeg** oldja fel, a későbbi írás nyer.
+    Három kikötéssel: mezőnként (nem rekordonként), a vesztes érték az auditban
+    és a felületen **látható marad**, és a telephely óraeltérését figyelni kell.
+    **Ez oldja fel a K2 írás-szeletét.**
+
+    **Hátravan:** a felület böngészős átnézése (kézi), az írás (`admin/1.1.0` —
+    a szerződésnek hordoznia kell, melyik mező mikor és honnan kapta az értékét),
+    a bejelentkezés, a felhős második megvalósítás és az export/import.
 
     ✅ **A felhő API nyelve eldöntve: Java / Spring Boot**, a Java-csomagnév
     `hu.mythsystem.siduri.*` (`NYITOTT_KERDESEK.md` O1).

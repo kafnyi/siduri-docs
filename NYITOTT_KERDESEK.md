@@ -42,6 +42,11 @@
 > kerül kód. **O1/c eldöntve: a C#-névtér `MythSystem.Siduri.*`** — itt a kód igazodott a
 > szabályhoz, a kassza átnevezve.
 >
+> **ÚJ (2026-09-19):** **O2 — a webes admin: Vue 3 + TypeScript + Vite**, a kódja a
+> `siduri-cloud-api` repóban (**O2/a**). **O3 — a törzsadat-ütközés feloldása: mezőnkénti
+> időbélyeg, a későbbi írás nyer**, három kikötéssel; a vesztes érték az auditban és a
+> felületen látható marad. Ez oldotta fel a K2 írás-szeletét.
+>
 > **ÚJ (tizenhetedik kör):** **`[!]` C11/a — MTÜ-IGAZOLÁS KELL az NTAK-adatszolgáltatáshoz**
 > (igazolt lelet; a célpiac NTAK-köteles, tehát ez belépési feltétel — de az
 > interfész-leírás nyilvános, tehát azonnal elkezdhető). **HELYESBÍTÉS: a felhasználó
@@ -2161,12 +2166,14 @@ A felhasználó kérése helyes és §5-konform. Amit hozzáteszek:
   és még a régi árral dolgozik.
 - **Offline telephelynél a felhő NE mutassa elvégzettnek.** Ez a §5 néma kudarca,
   a felhasználó felé fordítva: a felület olyat mutatna késznek, ami nem történt meg.
-- **`[ ]` Meddig él a sorbaállított változtatás?** Ha egy telephely három hétig
-  offline (szezonális zárás), és közben háromszor módosult ugyanaz az ár —
-  **mind a három lemenjen sorban, vagy csak a végállapot?** A végállapot a
-  helyes, de akkor **az audit naplóban a köztes lépéseknek meg kell maradniuk.**
-- **`[ ]` Mi van, ha közben HELYBEN is módosult** egy nem zárolt érték? Ez az
-  ütközés, amire szabály kell.
+- **`[ELDÖNTVE 2026-09-19]` Meddig él a sorbaállított változtatás?** Hosszú
+  offline után **csak a végállapot megy le**, a köztes lépések **az audit-naplóban
+  maradnak**. Ára: a telephelyi ártörténet hiányos a kimaradás idejére — a teljes
+  történet a felhőben áll. *(Lásd `O3`.)*
+- **`[ELDÖNTVE 2026-09-19]` Mi van, ha közben HELYBEN is módosult** egy nem
+  zárolt érték? **Mezőnkénti időbélyeg, a későbbi írás nyer**, a vesztes érték
+  pedig az auditban és a felületen **látható marad**. *(A teljes döntés és az
+  ára: `O3`.)*
 
 #### B16.6 `[ELFOGADVA + FONTOS KORLÁT]` Eszköz-láthatóság a felhőben
 
@@ -5612,5 +5619,45 @@ pedig az O1/b után kód nélkül maradt. **Ez a repó lesz a webes admin
 hanem a felületi alkalmazás. **Cserébe:** marad hat repó (a `SZERZODES.md` §2.1
 a hetediket kifejezetten elvetette), és a Node build-lánc nem kerül be a
 Maven-repóba.
+
+### `[ELDÖNTVE — mezőnkénti időbélyeg, a későbbi írás nyer]` O3 — Törzsadat-ütközés offline telephely mellett (2026-09-19)
+
+Ez a `WEBADMIN_STACK.md` **W3** kérdése: a tulajdonos otthonról, a felhőben ír át
+egy árat, miközben az étterem internete áll — és közben a telephelyen is
+módosulhat ugyanaz. **A döntés a felhasználóé**, három lehetőség közül.
+
+**A DÖNTÉS:** **mindkét hely írhat, és az ütközést az időbélyeg oldja fel
+automatikusan — a későbbi írás nyer.** Nincs emberi feloldási lépés.
+
+**A három kikötés, ami nélkül ez a döntés nem áll:**
+
+| # | Kikötés | Miért |
+|---|---------|-------|
+| a | **Mezőnként, nem rekordonként** | Ha a felhőben a nevet írják át, a telephelyen az árat, mindkettő megmarad. Rekordszintű feloldásnál az egyik ok nélkül elveszne |
+| b | **A vesztes írás nem tűnik el, csak nem érvényes** | Bekerül az audit-láncba, és a felület kiírja a történetet (`1200 → 1400, a felhőből, ekkor`). A tulajdonos így **látja**, hogy a változtatása elveszett — nem a számlán szembesül vele |
+| c | **Óraeltérés-figyelés** | A telephely minden szinkronnál elküldi a saját óraállását; a küszöb fölötti eltérést a felhő **jelzi**. Enélkül a sorrendezés vakon fut |
+
+**ÁRA — kimondva, mert ezt a kockázatot a döntés megtartja:** a sorrendet **két
+gép fali órája** dönti el, és a telephelyi gép egy J1900. **Ha a telephely órája
+siet, egy korábbi helyi írás legyőz egy későbbi felhőset.** Ez ugyanaz a
+hibaosztály, amit az M36-ban már egyszer megfogtunk: **egy óraérték önmagában nem
+mérés.** A (b) kikötés ezt nem szünteti meg, csak **láthatóvá** teszi; a (c) pedig
+korlátozza a mértékét. **Az elvetett „helyi felülírás + emberi feloldás" ezt a
+kockázatot megszüntette volna** — az ára mezőszintű eredet-nyilvántartás,
+ütközésfeloldó felület és K3-üzenetek lettek volna, az F5/F7 előtt.
+
+**Amit ez a döntés NEM érint:**
+
+* **A mennyiségi, futó állapot** (készlet, forgalom, kassza) továbbra is
+  **kizárólag telephely-autoritatív**, és csak felfelé áramlik (B16.4). Az
+  időbélyeges feloldás **csak értékekre** vonatkozik, egyenlegekre soha.
+* **A lánc által ZÁROLT érték mindig nyer**, időbélyegtől függetlenül (B16.3) —
+  a zárolás nem ütközés, hanem hatáskör.
+
+**Ami ezzel lezárult a B16.5-ből:** hosszú offline után **a végállapot megy le**,
+nem a köztes lépések sorozata *(a köztesek az audit-naplóban maradnak)*; és a
+„mi van, ha közben helyben is módosult" kérdésre ez a szabály a válasz.
+
+**Ez oldja fel a K2 írás-szeletét** — az írás eddig ezen a döntésen állt.
 
 `siduri-cloud-api/CLAUDE.md`.

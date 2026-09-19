@@ -3,9 +3,14 @@
 **Kiadva: 2026-09-19.** A fájl: [`admin.yaml`](admin.yaml).
 
 Az első szelet **kategóriafa + termeklista + egy termék a kiszerelésekkel**,
-**írás nélkül.** Az írás egy nyitott kérdést igényel (`WEBADMIN_STACK.md` W3):
-ha a tulajdonos a felhőben ír át egy árat, miközben a telephely internete áll,
-**melyik az igazság forrása és mi történik ütközésnél.**
+**írás nélkül.**
+
+> ✅ **Az írást blokkoló kérdés 2026-09-19-én eldőlt** (`NYITOTT_KERDESEK.md`
+> **O3**): mindkét hely írhat, az ütközést **mezőnkénti időbélyeg** oldja fel, a
+> későbbi írás nyer, és a **vesztes érték az auditban és a felületen látható
+> marad**. Az írás így a **következő szelet** (`admin/1.1.0`), aminek ezt a
+> szabályt már a szerződésben is hordoznia kell: a válaszban benne kell lennie,
+> **melyik mező mikor és honnan kapta az értékét**.
 
 **A négy kikötés, amivel ez a szerződés megíródott — és hogy hol áll mindegyik:**
 

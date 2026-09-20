@@ -42,6 +42,11 @@
 > kerül kód. **O1/c eldöntve: a C#-névtér `MythSystem.Siduri.*`** — itt a kód igazodott a
 > szabályhoz, a kassza átnevezve.
 >
+> **ÚJ (2026-09-21) — harmadik kör, a magas rendelkezésre állás:** **B11** tanú-séma
+> **jóváhagyva** *(ezzel az R1 és R2 is lezárult)* · **R3** monoton órán mért,
+> konfigurálható, **lejáró** ajánlat · **R4–R5** idempotens átvétel **és kliens-oldali
+> fencing** · **B16.4** a beállítás/mennyiségi állapot határvonal formálisan rögzítve.
+>
 > **ÚJ (2026-09-21) — második kör:** **K1** a folyószám dátumonkénti indulása *(a kódban
 > már teljesült)* · **F4/K2** a négyrétegű munkanap-összefésülés **jóváhagyva** *(a 2. réteg
 > a még jóvá nem hagyott `B11`-re épül)* · **B14.7** monotonitás-szabály, 30 napos határral ·
@@ -645,7 +650,7 @@ A döntés iránya megvan, de hat olyan részlet van, ami nélkül nem
 implementálható, és mindegyik önállóan tud csendben elromlani. Ezek nem a
 döntés újranyitása, hanem a kitöltése.
 
-**R1 `[ ]` — Ki számít „tanúnak", és mit jelent, hogy „a tanúk nem érik el"?**
+**R1 `[LEZÁRVA — a B11 tanú-séma válaszol rá, 2026-09-21]` — Ki számít „tanúnak", és mit jelent, hogy „a tanúk nem érik el"?**
 A megfogalmazás többes számú. Tisztázandó: minden pénztárgép tanú, vagy kijelölt
 halmaz? Kell-e mindegyik egyetértése, többség, vagy elég N darab?
 **Kritikus alesetek, amikre külön szabály kell:**
@@ -658,7 +663,7 @@ halmaz? Kell-e mindegyik egyetértése, többség, vagy elég N darab?
   Ha a kettő összemosódik, egy éjszakára lekapcsolt pénztárgép „szavazatként"
   fog számítani. Ez a §5 néma kudarca: a jelzés hiánya nem bizonyíték.
 
-**R2 `[ ]` — MIBŐL ismeri fel a pénztárgép, hogy Ő esett ki?**
+**R2 `[LEZÁRVA — a B11.1/Q1 válaszol rá, 2026-09-21]` — MIBŐL ismeri fel a pénztárgép, hogy Ő esett ki?**
 A felhasználó követelménye világos, a mechanizmus nem magától értetődő: egy
 izolált gép definíció szerint nem tud senkitől megkérdezni semmit.
 Rendelkezésre álló jelek, növekvő értékben:
@@ -675,7 +680,7 @@ elérhetőség-vizsgálathoz a pénztárgépeknek **egymást is látniuk kell**.
 van: felderítés (mDNS már tervben van) ÉS kölcsönös hitelesítés, mert a LAN nem
 megbízható (B6). Ezt a fázistervben nevesíteni kell.
 
-**R3 `[ ]` — Az 5 perc: mihez képest, milyen órán, és lejár-e az ajánlat?**
+**R3 `[ELDÖNTVE — 2026-09-21: monoton órán, konfigurálható, lejáró ajánlat]` — Az 5 perc: mihez képest, milyen órán, és lejár-e az ajánlat?**
 - **Milyen órán:** a szerver elérhetetlen, tehát a pénztárgép saját óráján. Ezért
   **monoton időmérő** kell, nem fali óra — különben egy óraállítás vagy egy
   időzóna-váltás átugorja vagy befagyasztja a visszaszámlálást (§8, D4).
@@ -690,13 +695,13 @@ megbízható (B6). Ezt a fázistervben nevesíteni kell.
   vissza kell vonulnia**. Enélkül valaki 20 perccel később, egy már egészséges
   rendszeren nyomja meg, és fölöslegesen kikényszerít egy failovert. §5.
 
-**R4 `[ ]` — Több gépen jelenik meg a gomb. Mi van, ha többen nyomják meg?**
+**R4 `[ELDÖNTVE — 2026-09-21: idempotens átvétel]` — Több gépen jelenik meg a gomb. Mi van, ha többen nyomják meg?**
 Ha három pénztárgép mutatja az ajánlatot, három ember nyomhat rá. **Az átvételnek
 idempotensnek kell lennie:** az első nyer, a többi „már átkapcsolva" választ kap,
 nem hibát és nem második átvételt. Ez a F1 (idempotencia) mintája, itt vezérlési
 műveletre alkalmazva.
 
-**R5 `[ ]` — Mi van, ha a fő szerver ÉL, csak a pénztárgépek nem érik el?**
+**R5 `[ELDÖNTVE — 2026-09-21: a fencinget a KLIENS is kikényszeríti]` — Mi van, ha a fő szerver ÉL, csak a pénztárgépek nem érik el?**
 Ez a legkellemetlenebb ág: a tartalékot arra kérjük, vegye át a szolgálatot,
 miközben a fő szerver él, és nyitott rendelések vannak nála.
 - Az átvétel előtt a tartalék **próbálja meg megmondani a főnek, hogy álljon le.**
@@ -709,7 +714,7 @@ miközben a fő szerver él, és nyitott rendelések vannak nála.
   ha csak a szerver oldalon van fencing, a régi master a hozzá visszacsatlakozó
   klienseket még kiszolgálja.
 
-**R6 `[ ]` — Ne ajánljuk fel azt, ami nem fog menni.**
+**R6 `[MEGERŐSÍTVE — a prioritástábla szerint is; a jelölés elavult volt, javítva 2026-09-21]` — Ne ajánljuk fel azt, ami nem fog menni.**
 Ha a **tartalék szerver maga sem elérhető vagy nem egészséges**, akkor
 átkapcsolást **felajánlani sem szabad** — helyette azt kell kiírni, hogy mindkét
 szerver elérhetetlen, és a csökkentett mód folytatódik. §5: „a felület ne kínáljon
@@ -2228,7 +2233,16 @@ lefektetett szabálya (a UI-elrejtés nem kikényszerítés, B6/F7) — itt is �
 > a sort valaki beírja a telephelyi adatbázisba. A **kikényszerítés** viszont
 > kész, és ez volt a kockázatos rész.
 
-#### B16.4 `[!]` A LEGFONTOSABB HATÁROVONAL: BEÁLLÍTÁS vs. MENNYISÉGI ÁLLAPOT
+#### B16.4 `[ELDÖNTVE — 2026-09-21]` A LEGFONTOSABB HATÁROVONAL: BEÁLLÍTÁS vs. MENNYISÉGI ÁLLAPOT
+
+> ✅ **Formálisan rögzítve.** A lenti „javasolt szabály" innentől **döntés**:
+> a törzsadat és a beállítás lehet **felhő-autoritatív**; a **mennyiségi, futó
+> állapot** (készlet, forgalom, kassza) **kizárólag telephely-autoritatív**, és
+> **csak felfelé** áramlik. **A felhő küldhet „vegyél fel 20 darabot"-ot, de soha
+> nem „a készlet mostantól 40"-et.**
+>
+> **Nincs új munka:** a K2 írás-szelete már e szerint épült (`O3`), a készlet
+> (F5) pedig erre fog.
 
 **Ez az az egy dolog, amit szerintem MOST kell eldönteni, mert utólag
 katasztrofális.**
@@ -2490,7 +2504,20 @@ erre való a `B16.7` egységes beállítás-séma + paritás-őr.
 
 ---
 
-### `[JAVASLAT — JÓVÁHAGYÁSRA VÁR]` B11 — A TANÚ-SÉMA részletes terve
+### `[ELDÖNTVE — 2026-09-21: a teljes terv JÓVÁHAGYVA]` B11 — A TANÚ-SÉMA részletes terve
+
+> ✅ **Elfogadva úgy, ahogy áll.** Ezzel **lezárul a `B1/c` R1 és R2 is**: a tanú
+> fogalmát (`B11.2`) és a „ki esett ki" felismerést (`B11.1/Q1`) ez a terv adja.
+>
+> **A két szabály, amit a megvalósításnak szó szerint tartania kell:**
+> 1. **A séma SOHA nem dönt** — csak bizonyítékot gyűjt annak az embernek, aki
+>    átkapcsol. Ezért nem kell hozzá konszenzus-protokoll.
+> 2. **A némaság NEM szavazat.** Egy nem válaszoló tanú **semmit nem ér** —
+>    lehet lekapcsolva, vagy ugyanazon szakadás mögött.
+>
+> **ÁRA:** minden tanú-eszközre kód kerül (POS, tartalék szerver, KDS,
+> rendeléskijelző); telepítéskor be kell állítani, **ki a tanú**; és a tanúk
+> között **kölcsönös hitelesítés** kell (`B11.7`) — a belső hálózat nem megbízható.
 
 > **Státusz:** a felhasználó kérte, hogy írjam le a tervet, majd elolvassa és
 > jóváhagyja. **Amíg nincs jóváhagyva, erre építeni nem szabad.**

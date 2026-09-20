@@ -471,4 +471,4 @@ amit ki kell mondani, mielőtt ígéretet teszünk rá.
 | **W1** | Az adatrács végleges kiválasztása — PrimeVue DataTable, érintésbarát sormagassággal, a mi tokenjeinkkel, **kipróbálás után** |
 | ~~**W2**~~ | ~~A közös token-fájl formátuma a Flutter és a Vue felé~~ → lezárva, `MARKA.md` §7 |
 | ~~**W3**~~ | ~~Törzsadat-szerkesztés offline telephely mellett~~ → **ELDÖNTVE (2026-09-19): mezőnkénti időbélyeg, a későbbi írás nyer**, három kikötéssel. A teljes döntés és az ára: `NYITOTT_KERDESEK.md` **O3** |
-| **W4** | **`[ÚJ]` A felhő rendelkezésre állási vállalása** a törzsadat-karbantartásra *(13.5)* |
+| **W4** | **A felhő rendelkezésre állási vállalása** a törzsadat-karbantartásra *(13.5)*. **Bemenet megvan (2026-09-21, `NYITOTT_KERDESEK.md` B17/b): két gép, vállaltan aszinkron** — tehát **kimaradás nincs, de failovernél néhány másodperc írás elveszhet**, és ezt a vállalásnak ki kell mondania. A veszteségablak **mérendő** (`M5`) |

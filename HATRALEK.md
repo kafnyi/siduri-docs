@@ -136,9 +136,14 @@ mechanizmus nem: `F6.1`–`F6.8`.
 A `felho/` Maven-modul **nem létezik**; a K3 szerződés **nincs kiadva**.
 `F7.1`–`F7.9`.
 
-**Előtte:** **`B7` + `B17` együtt** (multi-tenancy és bővíthetőség) ·
-**`B17/d` — a felhő MENTÉSE** *(kimondott hézag: a 8 éves archívumnak nincs
-második példánya)* · `B17/b` · `B17/e` · **`B16.7`** (beállítás-paritás őre).
+**Az adatmodell 2026-09-21-én ELDŐLT** *(az E-kör első batchje)*:
+
+| Tétel | Döntés | Ami vállalt kockázat maradt |
+|---|---|---|
+| `B7` | **Bérlőnként külön séma** | A migráció N sémán fut; a sémaváltás egyetlen belépési ponton, teszttel |
+| `B17/b` | **Két gép, vállaltan aszinkron** | **Failovernél néhány másodperc írás elveszhet** — a `W4` vállalásnak ezt ki kell mondania; a veszteségablak `M5`-ként mérendő |
+| `B17/d`, `B17/e` | **Külön mentési rendszer, magyar adatközpontban** | **Országos szintű esemény mindkét helyet érheti** — újranyitandó, ha nő az ügyfélkör |
+| `B16.7` | **Egy beállítás-regiszter + padlós paritás-őr** | Minden új beállítás a regiszterbe kerül, nem a kódba |
 
 ---
 
@@ -154,8 +159,10 @@ lefuttatása** · `F8.6` **átállási terv**.
 
 ### 10.1 Döntések — kb. 95 nyitott tétel
 A saját prioritástábla szerinti legsürgősebbek: `C11/a` · fiskális
-engedélykérdés · `B17/d` · `F4/K2` · `C3/c` · `B14.7` · `B16.4` · `B16.7` ·
-`B7` + lánc-szint · `B14.5` · `B11` · `B10` (TPM) · `B12` · `B1/c R1–R5` · `E1`.
+engedélykérdés · ~~`B17/d`~~ · `F4/K2` · `C3/c` · `B14.7` · `B16.4` · ~~`B16.7`~~ ·
+~~`B7`~~ + lánc-szint · `B14.5` · `B11` · `B10` (TPM) · `B12` · `B1/c R1–R5` · `E1`.
+
+*(Az áthúzottak 2026-09-21-én eldőltek — lásd a 8. pontot.)*
 
 ### 10.2 Nyolc igazolatlan premissza — ezekre építeni TILOS
 `A2` · `A3` · `C10` · `C12` · `B12` · **`B14.5`** *(ha egyetlen sorozat kell, a

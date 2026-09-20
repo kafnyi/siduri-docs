@@ -42,6 +42,12 @@
 > kerül kód. **O1/c eldöntve: a C#-névtér `MythSystem.Siduri.*`** — itt a kód igazodott a
 > szabályhoz, a kassza átnevezve.
 >
+> **ÚJ (2026-09-21) — a felhő adatmodellje eldőlt:** **B7 — bérlőnként külön séma** ·
+> **B17/b — két gép, vállaltan aszinkron** *(failovernél néhány másodperc írás elveszhet;
+> a „nincs kimaradás" cél csak részben teljesül)* · **B17/d–e — külön mentési rendszer a
+> 8 éves archívumnak, magyar adatközpontban** *(az országos szintű esemény kockázata
+> vállalt, nem megoldott)* · **B16.7 — egy beállítás-regiszter + padlós paritás-őr**.
+>
 > **ÚJ (2026-09-19):** **O2 — a webes admin: Vue 3 + TypeScript + Vite**, a kódja a
 > `siduri-cloud-api` repóban (**O2/a**). **O3 — a törzsadat-ütközés feloldása: mezőnkénti
 > időbélyeg, a későbbi írás nyer**, három kikötéssel; a vesztes érték az auditban és a
@@ -1244,19 +1250,83 @@ elrontott migráció mindkettőt viszi egyszerre.**
 mentés **hol legyen** — a két magyar adatközpont valamelyikében, vagy
 (a fenti országos kockázat miatt) **egy harmadik, EU-n belüli helyen?**
 
-#### `[ ]` Ami még nyitva marad
+#### `[ELDÖNTVE — 2026-09-21]` A felhő rendelkezésre állása és mentése
 
-| Tétel | Kérdés |
+| Tétel | Döntés |
 |-------|--------|
 | **B17/a** | `[ELFOGADVA]` Írás egy helyen, automatikus átvétellel; olvasás megosztva. |
-| **B17/b** | **2 gép aszinkronnal, vagy 3 gép szinkronnal?** (javaslat: 3) |
+| **B17/b** | **`[ELDÖNTVE]` KÉT gép, VÁLLALTAN ASZINKRON.** A háromcsomópontos, többségi javaslatot a felhasználó elvetette |
 | **B17/c** | Két/három **EU-n belüli, közeli** adatközpont — **ne egy szobában.** |
-| **B17/d** | A mentés négy követelménye + **bérlőnkénti visszaállítás**. |
-| **B17/e** | **Külön mentési rendszer a 8 éves jogi archívumnak?** (javaslat: igen) |
+| **B17/d** | **`[ELDÖNTVE]` A négy mentési követelmény + bérlőnkénti visszaállítás ÉRVÉNYES** |
+| **B17/e** | **`[ELDÖNTVE]` IGEN, külön mentési rendszer a 8 éves archívumnak — a két MAGYAR adatközpont egyikében** |
 
-### `[ ]` B7 — Multi-tenancy a felhőben
-Nincs specifikálva: schema-per-tenant / DB-per-tenant / row-level. GDPR: adatexport,
-törlési igény, hol tárolunk (EU).
+##### `[!]` B17/b ÁRA — kimondva, mert ezt a döntés megtartja
+
+> **Failovernél néhány másodpercnyi írás elveszhet.** A felhasználó ezt vállalta,
+> cserébe a második gép kiesése nem állítja meg az elsődlegest.
+
+* **A kitűzött cél — *„ne lehessen a mi oldalunkról kimaradás"* — ezzel CSAK
+  RÉSZBEN teljesül:** kimaradás nincs, **adatvesztés-ablak van.**
+* **Az ügyfél felé ezt ki kell mondani**, nem elhallgatni — ez a **W4**
+  (rendelkezésre állási vállalás) bemenete.
+* ⚠️ **A néma átváltás továbbra is TILOS.** „Szinkron, ami baj esetén
+  automatikusan aszinkronra vált" nem épülhet meg: az a legrosszabb változat,
+  mert akkor írsz védtelenül, amikor azt hiszed, védve vagy.
+* **A veszteségablak MÉRENDŐ**, nem becsülendő — ugyanaz a tétel, mint a
+  telephelyen (`M5`).
+
+##### `[!]` B17/e MEGMARADÓ KOCKÁZAT — kimondva
+
+A mentés **a két magyar adatközpont egyikébe** kerül, nem egy harmadik, EU-n
+belüli helyre.
+
+> **Egy országos szintű esemény (áramellátás, hálózat, joghatósági intézkedés,
+> természeti kár) elvileg MINDKÉT helyet érintheti** — és a 8 éves jogi archívum
+> az egyetlen adat az egész rendszerben, **aminek a felhőn kívül nincs második
+> példánya.**
+
+**Ez a kockázat vállalt, nem megoldott.** Amit cserébe kötelezően teljesíteni
+kell, különben a mentés látszat:
+
+| # | Követelmény |
+|---|-------------|
+| a | **Időbeli visszaállítási pontok** (point-in-time), nem csak „a tegnapi állapot" |
+| b | **Más hozzáférési út, más jogosultság** — ami a szervereket kezeli, ne tudja törölni a mentést |
+| c | **Módosíthatatlan (írás-egyszer) megőrzés** egy ideig |
+| d | **Rendszeres visszaállítási próba** — *amiből még soha nem állítottunk vissza, az nem mentés, hanem remény* |
+| e | **Bérlőnkénti visszaállítás** — a valós igény nem a teljes felhő, hanem hogy „az egyik étterem menedzsere letörölte a terméklistát" |
+
+**Újranyitási feltétel:** ha az ügyfélkör nő, vagy a jogi archívum értéke nő, a
+**harmadik, országon kívüli (EU-n belüli) példány kérdését újra elő kell venni.**
+
+### `[ELDÖNTVE — bérlőnként külön séma]` B7 — Multi-tenancy a felhőben (2026-09-21)
+
+**A döntés:** egy adatbázis, **bérlőnként külön séma** (`schema-per-tenant`).
+
+**Miért ez, és nem a másik kettő:**
+
+| Követelmény | Hogyan teljesül |
+|---|---|
+| **Bérlőnkénti visszaállítás** (`B17/d`) | Séma-szinten menthető és visszaállítható — **nem kell sorokat válogatni** |
+| **Lánc-szintű összesített lekérdezés** (`B16.11`) | **Egy lánc = egy bérlő**, tehát az összesítés **sémán belül** marad |
+| **Bérlő szerinti szétosztás** (`B17` bővíthetőség) | A séma **átmozgatható** egy másik szerverre |
+| **GDPR export és törlés** | A bérlő adata egy helyen van, nem szétszórva |
+
+**ÁRA:**
+
+* **A migrációkat N sémán kell végigfuttatni.** Sok bérlőnél ez idő, és a
+  részlegesen sikerült migráció **vegyes állapotot** hagy — a migrációs futásnak
+  ezért sémánként naplóznia kell, és megszakadásnál folytathatónak kell lennie.
+* **A kapcsolatkezelés kérésenként sémát vált** (`search_path`). ⚠️ **Egy
+  elrontott sémaváltás idegen bérlő adatát mutatja** — ezért ezt **egyetlen
+  belépési ponton** kell megvalósítani, és **teszttel kikényszeríteni**, nem
+  minden lekérdezésben újra megírni.
+* A Siduri-szintű (bérlők feletti) lekérdezések — licenc, eszköz-láthatóság —
+  **külön, közös sémába** kerülnek.
+
+**Következmény a kódra:** a felhős `felho/` modul **ezzel a modellel indul**; a
+telephelyi szerver változatlanul sorszintű elhatárolást használ, mert ott **egy
+telepítés egy telephelyet** szolgál ki.
 
 ### `[ ]` B8 — Hol él az API-szerződés?
 Három nyelv (Java / C# / Dart) fogyasztja ugyanazt az API-t. Kézzel szinkronban
@@ -2216,7 +2286,21 @@ különben rendszeresen félrevezet:**
 értelmezést** (rendben / késik / nem elérhető), a várt életjel-gyakoriság
 alapján — ne a felhasználóra hagyjuk a fejszámolást.
 
-#### B16.7 `[!]` PARITÁS-KÖVETELMÉNY — ez a §6 varrat-hibaosztálya, és GARANTÁLTAN elromlik
+#### B16.7 `[ELDÖNTVE — 2026-09-21: egy beállítás-regiszter + paritás-őr]` PARITÁS-KÖVETELMÉNY
+
+> **A döntés:** a beállítások **EGY helyen** vannak definiálva — egy nevesített
+> regiszterben (azonosító, típus, szint, zárolható-e, alapérték, érvényességi
+> szabály) —, és **mindkét felület ebből épül**. Mellé **automatikus paritás-őr**,
+> ami **padlós**: ha nulla beállítást vizsgált, az **HIBA**, nem siker.
+>
+> **ÁRA:** a regisztert meg kell írni, és **minden új beállítás oda kerül**, nem
+> közvetlenül a kódba. Ez fegyelem — cserébe a szétcsúszás **szerkezetileg**
+> lehetetlen, nem „figyelünk rá".
+>
+> **Ez élesíti a `B8`-at** (hol él a szerződés): a regiszter ugyanolyan
+> szerződés-jellegű adat, mint az OpenAPI-fájlok.
+
+**Az alábbi indoklás változatlanul érvényes — ezért kellett dönteni:**
 
 *„A felhőn minden beállításnak elérhetőnek kell lennie, aminek a POS-on is."*
 

@@ -3291,22 +3291,38 @@ megsemmisül (tűz, lopás)?
 Hogyan települ a lokális szerver? Windows Service? Docker (J1900-on újabb
 memória-teher)? Egy helyszíni telepítés hány óra, és mennyi belőle automatizálható?
 
-### `[ ]` D3 — Verziókompatibilitás
-POS v1.2 + szerver v1.4 → mi történik? Kell API-verziózás és „kötelező frissítés"
-policy. A `siduri-updater` a *mechanizmust* adja, de a *szabályt* nem.
+### `[ELDÖNTVE — 2026-09-21: szerződés-verzió + türési ablak]` D3 — Verziókompatibilitás
 
-### `[ ]` D4 — Óraszinkron
-Fiskális bizonylatnál kritikus. NTP honnan, ha nincs net? (A lokális szerver mint
-időforrás + drift-figyelés.) Kapcsolódik a MERNOKISAROKKOVEK §8-hoz.
+**A kompatibilitást a SZERZŐDÉS verziója dönti el, nem a szoftveré.** A szerver a
+**jelenlegi és az előző főverziót** szolgálja ki; ezen kívül **„kötelező
+frissítés"** válasz megy, nem csendes hiba.
 
-### `[ ]` D5 — Hardver-szimulátorok
+**Amire épül:** a válaszok már ma hordozzák a `Siduri-Szerzodes` fejlécet, és a
+változásnapló minden emelést megindokol.
+
+**ÁRA:** a régi szerződésalakot egy ideig **karban kell tartani és tesztelni** —
+ez a türési ablak valódi költsége. **Cserébe** az F8.3 (a szerepet vivő gépek nem
+frissülnek egyszerre) teljesíthető marad; szigorú verzióegyezéssel nem lenne az.
+
+*A `siduri-updater` a mechanizmust adja; a szabály innentől ez.*
+
+### `[ELDÖNTVE — 2026-09-21: a telephelyi szerver az időforrás]` D4 — Óraszinkron
+
+A szerver külső NTP-re szinkronizál, **amikor van net**, és **ő az időforrás** a
+telephely többi gépének; a saját elcsúszását (drift) **figyeli és jelzi**.
+
+⚠️ **ÁRA, kimondva:** a szerver órájának hibája **minden gépre átterjed**. Ezért
+kötelező a drift-figyelés — és ezért marad érvényben a **B14.7 monotonitás-kapu**,
+ami a visszafelé lépést akkor is megfogja, ha az időforrás téved.
+
+### `[ELDÖNTVE — 2026-09-21: lépésenként, az épülő integrációhoz igazítva]` D5 — Hardver-szimulátorok
 Fiskális nyomtató, bankterminál, NTAK, ESC/POS — mind külső rendszer. **Ezek nélkül
 nem lehet CI-t és automata tesztet építeni** (§1: az őr annyit ér, amennyit mér).
 
 Ez egy komoly, külön betervezendő tétel (mock/simulator harness), ami egyik
 doksiban sem szerepel.
 
-### `[ ]` D6 — Licenc-lejárat viselkedése
+### `[ELDÖNTVE — 2026-09-21: fokozatos degradáció, az eladás sosem áll le]` D6 — Licenc-lejárat viselkedése
 10 nap grace után **mi történik?** (19. pont nem mondja meg.) Ha leáll a kassza, az
 üzletileg és jogilag is vállalhatatlan: a vendéglős a mi hibánkból nem tud
 bizonylatot adni.

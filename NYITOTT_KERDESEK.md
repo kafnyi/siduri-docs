@@ -42,6 +42,11 @@
 > kerül kód. **O1/c eldöntve: a C#-névtér `MythSystem.Siduri.*`** — itt a kód igazodott a
 > szabályhoz, a kassza átnevezve.
 >
+> **ÚJ (2026-09-21) — második kör:** **K1** a folyószám dátumonkénti indulása *(a kódban
+> már teljesült)* · **F4/K2** a négyrétegű munkanap-összefésülés **jóváhagyva** *(a 2. réteg
+> a még jóvá nem hagyott `B11`-re épül)* · **B14.7** monotonitás-szabály, 30 napos határral ·
+> **C3/c** a kategória-áfakulcs **másolás**, nem élő hivatkozás.
+>
 > **ÚJ (2026-09-21) — a felhő adatmodellje eldőlt:** **B7 — bérlőnként külön séma** ·
 > **B17/b — két gép, vállaltan aszinkron** *(failovernél néhány másodperc írás elveszhet;
 > a „nincs kimaradás" cél csak részben teljesül)* · **B17/d–e — külön mentési rendszer a
@@ -1836,7 +1841,15 @@ adatbázisát a kiesett gép adataival.**
    eszközt váltja fel"), ne automatikus felismerés. Különben egy idegen gép
    pusztán azzal, hogy 003-nak vallja magát, **letöltheti a teljes előzményt.**
 
-#### `[RÉSZBEN ELFOGADVA — a szabály módosítást igényel]` B14.7 — ÜZLETI NAP NYITÁSA OFFLINE, óra-ellenőrzéssel
+#### `[ELDÖNTVE — 2026-09-21: három ág, 30 napos határral]` B14.7 — ÜZLETI NAP NYITÁSA OFFLINE, óra-ellenőrzéssel
+
+> ✅ **Jóváhagyva az alábbi monotonitás-szabály, 30 napos határral.** A „+1 nap"
+> eredeti javaslat elvetve, mert minden zárvatartási nap után tévesen riasztana.
+>
+> **Megépítve: semmi.** Kell hozzá: a **gépen tárolt „valaha használt legmagasabb
+> üzleti nap"** (ez teszi az órát becsaphatatlanná), és a három ág kezelése a
+> napnyitásban. ⚠️ **Gépcsere után a tárolt érték nullázódik** — ilyenkor az első
+> napnyitás a szerverrel (vagy tanúval) egyeztessen.
 
 **A felhasználó felvetése (2026-08-22):** ha a szerver nem elérhető, és úgy
 nyitnának üzleti napot az egyik gépen, akkor a kliens **az utolsó lezárt üzleti
@@ -2934,7 +2947,17 @@ gondolkodás nélküli mentésre. **Javaslom az előre kitöltést**, mert a kap
   ott nincs mit fixen tartani. Ezt a szabályt ki kell mondani, különben a
   megvalósítás egy nem létező esetre készül.
 
-### `[JAVASLAT — támogatom, két kikötéssel]` C3/c — TERMÉKKATEGÓRIÁK és öröklött adó-alapértékek
+### `[ELDÖNTVE — 2026-09-21: másolás, nem élő hivatkozás]` C3/c — TERMÉKKATEGÓRIÁK és öröklött adó-alapértékek
+
+> ✅ **Jóváhagyva:** a kategória adókulcsa **alapértelmezés a létrehozás
+> pillanatában**, onnantól a termék saját értéke. Kategória-változáskor a rendszer
+> **semmit nem ír át magától**, hanem **felajánl egy átnézett tömeges frissítést**,
+> egyenkénti kipipálással.
+>
+> **Állapot a kódban:** a *másolás-szemantika* már a sémában él (a termék saját
+> áfamezőket hordoz, az „ugyanaz" jelölő a másolás pillanatában másol). **Nincs
+> megépítve** a termék-létrehozás (nincs hozzá végpont) és a **tömeges frissítő
+> felület** — mindkettő a webes adminé.
 
 **A felhasználó felvetése (2026-08-22):** a termékeket **kötelező főkategóriába
 sorolni**, az **alkategória (vagy alkategóriák) opcionális**; és **a fő- és
@@ -3443,9 +3466,29 @@ kiadja a `26082200300001`-et** → **duplikált bizonylatszám.**
 > érték nem alkalmas állapot-felismerésre.)
 
 **Ez a legkisebb változtatás, ami a problémát megszünteti** — nem szabállyal
-kezeli, hanem **nem engedi keletkezni.** `[ ]` **Jóváhagyásra vár.**
+kezeli, hanem **nem engedi keletkezni.**
 
-##### `[ELDÖNTVE + TERV]` K2 — A MUNKANAP OFFLINE NYITÁSA ÉS ÖSSZEFÉSÜLÉSE
+> ✅ **`[ELDÖNTVE — 2026-09-21]` Jóváhagyva: a folyószám DÁTUMONKÉNT indul újra.**
+>
+> **És ez a kódban MÁR TELJESÜL**, nem kell hozzá változtatás: a
+> `bizonylat_szamlalo` kulcsa `(telephely_id, eszkoz_szam, uzleti_nap)`, ahol az
+> `uzleti_nap` **dátum** — nem munkanap-azonosító. A `Sorszamado` is a dátummal
+> hív. A bizonylat munkanaphoz tartozását **külön mező** hordozza
+> (`rendeles.munkanap_id`).
+>
+> **Vagyis a K1 döntés itt egy meglévő szerkezet megerősítése**, nem új munka.
+
+##### `[ELDÖNTVE + TERV — a négyrétegű terv JÓVÁHAGYVA 2026-09-21]` K2 — A MUNKANAP OFFLINE NYITÁSA ÉS ÖSSZEFÉSÜLÉSE
+
+> ✅ **Jóváhagyva mind a négy réteg** (előre kiosztott azonosító · tanú-lekérdezés ·
+> automatikus átsorolás · emberi feloldás).
+>
+> ⚠️ **FÜGGŐSÉG, kimondva:** a **2. réteg a tanú-sémára (`B11`) épül, ami még
+> NINCS jóváhagyva.** Ha a `B11` másképp dől el, ez a réteg átalakul — a másik
+> három akkor is áll.
+>
+> **Megépítve: semmi.** A munkanap offline nyitása ma nem létezik; ez az F6
+> (HA) munkája.
 
 **A felhasználó pontosítása (2026-08-22):** a Munkanapot **bármelyik gépen meg
 lehet nyitni**, de **a szerver tartja számon**, és **ő kommunikálja a kliensek

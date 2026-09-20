@@ -158,11 +158,25 @@ lefuttatása** · `F8.6` **átállási terv**.
 ## 10. Kereszttételek
 
 ### 10.1 Döntések — kb. 95 nyitott tétel
-A saját prioritástábla szerinti legsürgősebbek: `C11/a` · fiskális
-engedélykérdés · ~~`B17/d`~~ · `F4/K2` · `C3/c` · `B14.7` · `B16.4` · ~~`B16.7`~~ ·
-~~`B7`~~ + lánc-szint · `B14.5` · `B11` · `B10` (TPM) · `B12` · `B1/c R1–R5` · `E1`.
+**A 2026-09-21-i döntési kör (E) tizenhat tételt zárt le:**
 
-*(Az áthúzottak 2026-09-21-én eldőltek — lásd a 8. pontot.)*
+| Kör | Eldöntve |
+|---|---|
+| 1. — a felhő adatmodellje | `B7` · `B17/b` · `B17/d` · `B17/e` · `B16.7` |
+| 2. — munkanap és számozás | `K1` *(már teljesült a kódban)* · `F4/K2` · `B14.7` · `C3/c` |
+| 3. — magas rendelkezésre állás | `B11` *(ezzel `R1`, `R2` is)* · `R3` · `R4` · `R5` · `B16.4` |
+| 4. — üzemeltetés | `D3` · `D4` · `D5` · `D6` |
+
+**A prioritástáblából NYITVA maradt — de ezek egyike sem a mi döntésünk:**
+
+| Tétel | Kinek a kérdése |
+|---|---|
+| `C11/a` | **MTÜ** — az RMS Interfész v1.06 beszerzése, és hogy minden szoftververzió után kell-e újravalidálni |
+| fiskális engedélykérdés | **NAV / gyártó** — kell-e engedély a mi szoftverünknek |
+| `B14.5` | **Könyvelő / jogász** — megfelel-e az eszközönkénti számtartomány a folyamatos sorszámozásnak. **Ha nem, a bizonylatszámozás megdől** |
+| `B12` | **Jogász** — mit ér az érintőképernyős aláírás |
+| `B10` (TPM) | **A felhasználó** — van-e TPM a meglévő gépeken |
+| `E1` | Elavult jelölés: a fázisterv **megvan**, a `[ ]` a hibás |
 
 ### 10.2 Nyolc igazolatlan premissza — ezekre építeni TILOS
 `A2` · `A3` · `C10` · `C12` · `B12` · **`B14.5`** *(ha egyetlen sorozat kell, a

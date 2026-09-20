@@ -42,6 +42,7 @@ Az állapotot a **7. szakasz** vezeti (mi épült meg, mi hiányzik, mi blokkolt
 | **`ELLENORZES_2_ADVERZARIALIS.md`** | **A 2. ellenőrző kör** — szkeptikus átvizsgálás; a feladat a CÁFOLAT volt | Élő; **hat teendő, egy súlyos strukturális lelet** |
 | **`FISKALIS_UZEMMODOK.md`** | A három fiskális üzemmód + az e-pénztárgépes integráció utánajárása | Élő; **hat kérdés a NAV/gyártó felé** |
 | **`ELLENORZES_1_TELJESSEG_JOGI.md`** | **Az 1. ellenőrző kör jelentése** — jogi megfelelés forrásokkal + teljességi vizsgálat | Élő; **négy lelet DÖNTÉST igényel** |
+| **`HATRALEK.md`** | **Pillanatkép arról, mi van hátra**, fázisokra bontva (2026-09-20) | **Nem igazságforrás** — ütközésnél a `NYITOTT_KERDESEK.md`, a `FAZISTERV.md` és a `MERESEK.md` nyer |
 | **`MERESEK.md`** | **A mérendő tételek egységes nyilvántartása.** A felhasználó kiemelt utasítása: az első éles tesztnél MINDENT meg kell mérni | Élő — kötelezően frissítendő |
 | `UiUX/` (mappa) | UI/UX skill-készlet (7 skill, köztük WPF és Flutter stack-adatok) | Eszköz, a design-fázisban használandó — lásd 0.2 |
 

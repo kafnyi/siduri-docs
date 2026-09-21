@@ -1158,9 +1158,17 @@ trailer nélkül.**
     alkalmazás-ellenőrzés nélkül a trigger fogja meg (422 lesz 403 helyett), a
     trigger nélkül a közvetlen írás átmegy.
 
+    ✅ **A K2 MÁSODIK MEGVALÓSÍTÁSA MEGVAN** *(2026-09-21)*: új `felho/` modul
+    (bérlőnkénti séma, B7) és új **közös `k2` modul** — a drótra menő alakok, a
+    lapozási kurzor és a **közös szerződésteszt**. Mindkét oldal ugyanabból az
+    osztályból származtat. **Bizonyítottan harap:** a felhős lapozást elrontva a
+    közös teszt azonnal elbukott. A modulhatárt ArchUnit őrzi.
+    **196 mag + 4 k2 + 11 felhő + 339 szerver** zöld.
+
     **Hátravan:** a felület böngészős átnézése (kézi), a név/áfa/inaktiválás
     írása, a zárolás **leküldése** a felhőből (K3 — ma csak kézi adatbázis-sor),
-    a bejelentkezés, a felhős második megvalósítás és az export/import.
+    a bejelentkezés, a felhő **jogosultság-ellenőrzése** (ma nincs, a telephelyi
+    oldalon van — kimondott paritás-hiány), és az export/import.
 
     ✅ **A felhő API nyelve eldöntve: Java / Spring Boot**, a Java-csomagnév
     `hu.mythsystem.siduri.*` (`NYITOTT_KERDESEK.md` O1).

@@ -131,10 +131,22 @@ mechanizmus nem: `F6.1`–`F6.8`.
 
 ---
 
-## 8. F7 — Felhő *(0 kód)*
+## 8. F7 — Felhő *(elindult)*
 
-A `felho/` Maven-modul **nem létezik**; a K3 szerződés **nincs kiadva**.
-`F7.1`–`F7.9`.
+✅ **A `felho/` modul megvan** *(2026-09-21)*: a **K2 második megvalósítása**,
+bérlőnkénti sémával (B7), és egy **közös `k2` modul**, amiből mindkét oldal
+ugyanazokat az alakokat és ugyanazt a **szerződéstesztet** használja. A
+modulhatárt ArchUnit őrzi.
+
+**Amit ez megold:** a „egy admin, két helyről kiszolgálva" eddig **állítás**
+volt; mostantól **gépi kényszer** — a közös teszt bizonyítottan elbukik, ha a
+két oldal viselkedése eltér.
+
+**Ami ebből még hiányzik a felhőben:** jogosultság-ellenőrzés *(a telephelyi
+oldal megköveteli a `termek.megtekintes` jogot, a felhő még nem — F7.4)* · írás ·
+és **az adatot semmi nem tölti fel**, mert a K3 szinkron nincs megépítve.
+
+**Hátra:** `F7.1`–`F7.9` többi része; a K3 szerződés **nincs kiadva**.
 
 **Az adatmodell 2026-09-21-én ELDŐLT** *(az E-kör első batchje)*:
 

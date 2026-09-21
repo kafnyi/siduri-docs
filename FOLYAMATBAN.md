@@ -1165,8 +1165,15 @@ trailer nélkül.**
     közös teszt azonnal elbukott. A modulhatárt ArchUnit őrzi.
     **196 mag + 4 k2 + 11 felhő + 339 szerver** zöld.
 
+    ✅ **A K3 SZINKRON MEGVAN** *(2026-09-21, `szinkron/1.0.0`)*: a felhő
+    változás-sora, a telephelyi húzó kliens, a validálás és a nyugtázás.
+    **Élő próbán:** a felhőbe tett árváltozás a telephelyen landolt, a felhő
+    `ALKALMAZTA` nyugtát kapott, a mezőeredet a felhőt mondja, és a leérkezett
+    zárolás után a közvetlen SQL-írás is elbukik. **196 + 4 + 18 + 346** zöld.
+
     **Hátravan:** a felület böngészős átnézése (kézi), a név/áfa/inaktiválás
-    írása, a zárolás **leküldése** a felhőből (K3 — ma csak kézi adatbázis-sor),
+    írása, a szinkron **kölcsönös TLS-e** (ma nincs — nem tehető ki a nyílt
+    internetre),
     a bejelentkezés, a felhő **jogosultság-ellenőrzése** (ma nincs, a telephelyi
     oldalon van — kimondott paritás-hiány), és az export/import.
 

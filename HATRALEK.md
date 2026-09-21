@@ -146,12 +146,18 @@ két oldal viselkedése eltér.
 oldal megköveteli a `termek.megtekintes` jogot, a felhő még nem — F7.4)* · írás ·
 és **az adatot semmi nem tölti fel**, mert a K3 szinkron nincs megépítve.
 
-✅ **A K3 szerződés kiadva** *(2026-09-21, `szinkron/1.0.0`)*: lefelé törzsadat
-és zárolás, felfelé nyugta és állapot. A telephely húz, időzítve, **alkalmazkodó
-ütemmel** — nincs nyitva tartott kapcsolat. **Megvalósítás: még nincs.**
+✅ **A K3 szerződés kiadva ÉS megvalósítva** *(2026-09-21, `szinkron/1.0.0`)*:
+lefelé törzsadat és zárolás, felfelé nyugta és állapot.
 
-**Hátra:** a K3 megvalósítása mindkét oldalon · `F7.1`–`F7.9` többi része · az
-eladási adatok felküldése (8 éves archívum) · a felhő jogosultság-ellenőrzése.
+**Élő próbán végigvitt út:** a felhőbe tett árváltozás a telephelyi
+adatbázisban landolt (2400 → 2650 → 2790), a felhő **ALKALMAZTA** nyugtát
+kapott, a mezőeredet a **felhőt** mondja, az ártörténet lezárta a régi sort, és
+a leérkezett **zárolás után a közvetlen SQL-írás is elbukik** a telephelyen.
+
+**Hátra:** a **kölcsönös TLS** (ma nincs — a szinkron nem tehető ki a nyílt
+internetre) · az aláírás bekapcsolása (a mező már a szerződésben) · az eladási
+adatok felküldése (8 éves archívum) · a felhő jogosultság-ellenőrzése ·
+`F7.1`–`F7.9` többi része.
 
 **Az adatmodell 2026-09-21-én ELDŐLT** *(az E-kör első batchje)*:
 

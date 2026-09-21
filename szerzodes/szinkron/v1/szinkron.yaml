@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.0.0
+  version: 1.1.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -166,6 +166,64 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /regisztracio:
+    post:
+      tags: [szinkron]
+      operationId: telephelyetRegisztral
+      summary: Egy uj telephely tanusitvanyt ker, egyszer hasznalhato jeggyel
+      # ⚠️ EZ AZ EGYETLEN VEGPONT KOLCSONOS TLS NELKUL - es ez nem kivetel a
+      # szabaly alol, hanem a tyuk-tojas feloldasa: a telephelynek MEG NINCS
+      # tanusitvanya, eppen itt kapja meg.
+      security: []
+      description: |
+        A telephely a SAJAT GEPEN general kulcsparat, es csak a NYILVANOS reszt
+        kuldi fel, PKCS#10 tanusitvanykeres (CSR) formajaban. A MAGANKULCS SOHA
+        NEM HAGYJA EL A TELEPHELYET - meg a telepito sem latja.
+
+        A JEGY EGYSZER HASZNALHATO, es lejar. Ha ugyanazzal a jeggyel masodszor
+        probalkoznak, a valasz 403: egy kiszivargott jegybol igy legfeljebb EGY
+        tanusitvany szuletik, es az elso hasznalat lathato.
+
+        ⚠️ A JEGY ES A CSR EGYUTT SEM BIZONYITJA, hogy a jogos telepito all a
+        vonal masik vegen - csak azt, hogy a jegy nala van. A jegy atadasa ezert
+        a telepitesi eljaras resze (kulon csatornan, rovid lejarattal). ARA: ez
+        emberi fegyelem, nem gepi kenyszer; a kockazatot a rovid lejarat es az
+        egyszeri felhasznalas korlatozza, nem szunteti meg.
+
+        UJRAKIADAS ugyanezen a vegponton tortenik, uj jeggyel. A regi
+        tanusitvanyt a felho NEM vonja vissza automatikusan: egy elvesztett gep
+        es egy ujratelepitett gep kivulrol egyforma, es a csendes visszavonas
+        eppen a mukodo telephelyet vagna el. A visszavonas kulon, tudatos lepes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisztracioKeres'
+      responses:
+        '200':
+          description: A kiallitott tanusitvany
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisztracioValasz'
+        '403':
+          description: |
+            A jegy ismeretlen, lejart, vagy MAR HASZNALTAK. A harom eset
+            szandekosan EGY valaszt ad kifele: kulonben a vegpont megmondana,
+            melyik jegy letezik.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
 components:
 
   securitySchemes:
@@ -175,6 +233,25 @@ components:
       description: |
         A TELEPHELY azonossaga, kolcsonos TLS-sel. A telephelyi szerver sajat
         tanusitvannyal jelentkezik be, es a felho tanusitvanyat is ellenorzi.
+
+        ⚠️ A TELEPHELY AZONOSSAGAT A TANUSITVANY ADJA, NEM A KERES TESTE. A
+        felho a felmutatott tanusitvany SHA-256 ujjlenyomatat keresi ki egy
+        nyilvantartasbol, es abbol jon a telephely azonositoja. Ha a keres
+        testeben mas telephely all, a valasz 403 - nem valasztunk a ketto kozul,
+        hanem ELUTASITJUK. Enelkul barmelyik ervenyes telephely irhatna a tobbi
+        adatat.
+
+        A VISSZAVONAS A NYILVANTARTASBAN TORTENIK, nem visszavonasi listaval: egy
+        sor megjelolese azonnal hat. ARA: a felho nyilvantartasa a hitelesseg
+        egyetlen forrasa - ha az nem elerheto, egyetlen telephely sem tud
+        szinkronizalni. Ezt vallaltan igy valasztottuk, mert egy visszavonasi
+        lista frissessege egy offline telephely mellett amugy sem garantalhato.
+
+        A HITELESITO (CA) A MIENK. A telephelyi tanusitvanyokat mi adjuk ki; a
+        felho szinkron-allomasnevenek kiszolgaloi tanusitvanya SZINTEN a mi
+        hitelesitonktol szarmazik, es a hitelesito tanusitvanya a telepitokeszlet
+        resze. A bongeszos admin allomasneve ezzel szemben NYILVANOS hitelesitot
+        hasznal - egy bongeszo a mi hitelesitonket nem ismeri.
 
         ⚠️ A CSATORNA HITELESITESE ONMAGABAN NEM ELEG a lefele meno parancsokra:
         aki a kiszolgalot vagy a kulcsot megszerzi, tetszoleges parancsot
@@ -188,7 +265,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["szinkron/1.0.0"]
+        examples: ["szinkron/1.1.0"]
 
   responses:
 
@@ -221,6 +298,53 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+
+    RegisztracioKeres:
+      title: Regisztracios keres
+      type: object
+      required: [jegy, tanusitvanykeres]
+      properties:
+        jegy:
+          type: string
+          description: |
+            Az egyszer hasznalhato regisztracios jegy, ahogy a telepito kapta. A
+            felho NEM magat a jegyet tarolja, hanem a LENYOMATAT - egy
+            adatbazis-mentesbol igy nem esik ki hasznalhato jegy.
+          minLength: 16
+          maxLength: 200
+        tanusitvanykeres:
+          type: string
+          description: |
+            PKCS#10 tanusitvanykeres (CSR), PEM alakban, a szokasos
+            BEGIN CERTIFICATE REQUEST hataroloval. A benne levo alanynevet a
+            felho FIGYELMEN KIVUL HAGYJA: az alanynevet a jegyhez tartozo
+            telephely adja, nem a kerelmezo - kulonben a kerelmezo irna sajat
+            maganak az azonossagat.
+          maxLength: 8000
+
+    RegisztracioValasz:
+      title: Regisztracios valasz
+      type: object
+      required: [telephely, tanusitvany, hitelesito, lejar]
+      properties:
+        telephely:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tanusitvany:
+          type: string
+          description: A kiallitott telephelyi tanusitvany, PEM alakban.
+        hitelesito:
+          type: string
+          description: |
+            A hitelesito (CA) tanusitvanya, PEM alakban. A telephely EZZEL
+            ellenorzi a felho szinkron-allomasnevet - nem a gep gyari
+            tanusitvanytarabol. Igy a bizalom kore zart marad.
+        lejar:
+          type: string
+          format: date-time
+          description: |
+            A tanusitvany lejarata. A telephely ezt ELORE latja, es idoben
+            ujrakerhet - egy lejart tanusitvany ugyanolyan nemanak tunik, mint
+            egy szakadt halozat, es azt senki nem keresne itt.
 
     LekerdezesKeres:
       title: Lekerdezes
@@ -265,7 +389,7 @@ components:
         szerzodesVerzio:
           type: string
           description: Melyik K3-verziot beszeli a telephely.
-          examples: ["szinkron/1.0.0"]
+          examples: ["szinkron/1.1.0"]
         alkalmazasVerzio:
           type: string
           description: A telephelyi szerver kiadasi verzioja.

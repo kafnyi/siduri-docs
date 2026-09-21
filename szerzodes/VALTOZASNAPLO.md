@@ -112,6 +112,30 @@ A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a tel
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
 
+### v1.1.0 — 2026-09-21 — *a kölcsönös TLS megvalósul: regisztrációs végpont* `NEM TÖRŐ`
+
+**Egy új végpont:** `POST /regisztracio` — egyszer használható, lejáró **jeggyel**
+kér tanúsítványt a telephely. Ez az **egyetlen** végpont kölcsönös TLS nélkül, és
+nem kivétel a szabály alól, hanem a tyúk-tojás feloldása: a telephelynek még
+nincs tanúsítványa, éppen itt kapja meg.
+
+| Mi | Döntés | Ára |
+|----|--------|-----|
+| **Ki hitelesít** | **Saját hitelesítő (CA)**, és a felhő **ujjlenyomat-nyilvántartásból** oldja fel a telephelyet | A CA magánkulcsának őrzése a mi felelősségünk; aki megszerzi, tetszőleges telephelynek adhat ki tanúsítványt |
+| **Visszavonás** | **A nyilvántartásban**, egy sor megjelölésével — azonnal hat | Ha a felhő adatbázisa nem elérhető, **egyetlen telephely sem tud szinkronizálni**. Vállalt: egy visszavonási lista (CRL/OCSP) frissessége offline telephely mellett amúgy sem garantálható |
+| **Az azonosság forrása** | **A tanúsítvány, nem a kérés teste.** Ha a kettő eltér: **403** | A `telephely` mező a testben marad, de már csak **ellenőrzésre** szolgál |
+| **Kiosztás** | **Automatikus regisztráció**: a kulcspár a telephelyen születik, csak a PKCS#10 kérés megy fel | A jegy átadása emberi fegyelem: a jegy **nem bizonyítja**, hogy a jogos telepítő áll a vonal másik végén — csak azt, hogy nála van |
+| **Hol fut** | **Egy port (443), két állomásnév**: `admin.*` nyilvános hitelesítővel, kliens-tanúsítvány nélkül; `szinkron.*` a saját hitelesítőnkkel | A böngésző soha nem kap tanúsítvány-választó ablakot, és a telephelynek nem kell a 443-tól eltérő kimenő port — szigorú céges tűzfal mögött ez döntő. Cserébe kézzel írt Tomcat-konfiguráció, és egy elé kerülő fordított proxynak **át kell engednie** a TLS-t |
+
+⚠️ **Amit a kölcsönös TLS NEM old meg:** egy TLS-t felbontó céges tűzfal
+(SSL-inspection) mögött a kapcsolat **eltörik** — a proxy nem tudja felmutatni a
+telephely kliens-tanúsítványát. Ilyen helyen kivételt kell kérni a
+szinkron-állomásnévre. Ez a **telepítési ellenőrzőlistára** tartozik.
+
+⚠️ **És amit a csatorna hitelesítése önmagában sem old meg:** aki a felhőt vagy a
+kulcsot megszerzi, tetszőleges parancsot küldhet. Ezért marad a `alairas` mező a
+szerződésben — a bekapcsolása külön szelet, kulcskezeléssel.
+
 ### v1.0.0 — 2026-09-21 — *első kiadás: lefelé törzsadat és zárolás, felfelé nyugta*
 
 **Két végpont:** `POST /lekerdezes` *(változások + szívverés + óraállás)* és

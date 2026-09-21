@@ -154,10 +154,29 @@ adatbázisban landolt (2400 → 2650 → 2790), a felhő **ALKALMAZTA** nyugtát
 kapott, a mezőeredet a **felhőt** mondja, az ártörténet lezárta a régi sort, és
 a leérkezett **zárolás után a közvetlen SQL-írás is elbukik** a telephelyen.
 
-**Hátra:** a **kölcsönös TLS** (ma nincs — a szinkron nem tehető ki a nyílt
-internetre) · az aláírás bekapcsolása (a mező már a szerződésben) · az eladási
-adatok felküldése (8 éves archívum) · a felhő jogosultság-ellenőrzése ·
+✅ **A kölcsönös TLS megvalósult** *(2026-09-21, `szinkron/1.1.0`)*: saját
+hitelesítő, ujjlenyomat-nyilvántartás azonnali visszavonással, automatikus
+regisztráció egyszer használható jeggyel, **egy port — két állomásnév**.
+
+**Élő próbán végigvitt út:** valódi (openssl-lel készült) hitelesítő → jegy → CSR
+→ kiállított tanúsítvány *(az alanynév a **jegyé**, nem a kérelmezőé)* → valódi TLS
+1.3 kézfogás → `200`. **Ugyanazzal a tanúsítvánnyal, idegen telephellyel a
+testben: `403`.** Tanúsítvány nélkül `401`, a jegy másodszorra `403`. Az
+`admin.*` állomásnév ugyanazon a porton **nem kér** kliens-tanúsítványt.
+
+**Hátra:** az aláírás bekapcsolása (a mező már a szerződésben, kulcskezelés kell
+hozzá) · a tanúsítvány **megújítása** (ma kézi: új jegy kell; a szerver 30 nappal
+a lejárat előtt figyelmeztet) · a jegyek **kiadási felülete** (ma SQL-sor) · az
+eladási adatok felküldése (8 éves archívum) · a felhő jogosultság-ellenőrzése ·
 `F7.1`–`F7.9` többi része.
+
+> ⚠️ **Menet közben előkerült rés, nem ehhez a szelethez tartozik:** egy **új
+> bérlői migráció nem ér el a MÁR LÉTEZŐ bérlői sémákhoz** — a sémamigráció csak a
+> bérlő létrehozásakor fut. A teszt-adatbázisban ez úgy jelentkezett, hogy egy
+> régebbi bérlő sémájából hiányzott a `valtozas` tábla, és a szinkron **500**-zal
+> állt meg. Élesben ez azt jelentené, hogy egy frissítés után a régi bérlők
+> csendben kiesnek. **Induláskor végig kell futtatni a bérlői migrációkat minden
+> sémán** — külön szelet, a `felho` modulban.
 
 **Az adatmodell 2026-09-21-én ELDŐLT** *(az E-kör első batchje)*:
 

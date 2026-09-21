@@ -42,6 +42,19 @@
 > kerül kód. **O1/c eldöntve: a C#-névtér `MythSystem.Siduri.*`** — itt a kód igazodott a
 > szabályhoz, a kassza átnevezve.
 >
+> **ÚJ (2026-09-21) — a kölcsönös TLS megvalósult (`szinkron/1.1.0`):** a telephely
+> azonosságát **a kliens-tanúsítvány** adja, nem a kérés teste *(eltérés → 403)* ·
+> **saját hitelesítő (CA)**, a visszavonás **ujjlenyomat-nyilvántartásban**, azonnali
+> hatállyal *(ára: a felhő adatbázisa nélkül senki nem szinkronizál — vállalt, mert egy
+> visszavonási lista frissessége offline telephely mellett úgysem garantálható)* ·
+> **automatikus regisztráció** egyszer használható, lejáró jeggyel, a magánkulcs a
+> telephelyen születik és ott is marad · **egy port (443), két állomásnév** — a
+> telephelynek így **semmilyen portot nem kell nyitnia**, és kimenő irányban sem kell
+> a 443-tól eltérni; a böngésző pedig soha nem kap tanúsítvány-választó ablakot.
+> ⚠️ **Megmaradó kockázat:** TLS-t felbontó céges tűzfal mögött a kapcsolat eltörik
+> (kivétel kérendő, telepítési ellenőrzőlista), és a jegy nem bizonyítja, hogy a jogos
+> telepítő váltja be — csak azt, hogy nála van.
+>
 > **ÚJ (2026-09-21) — a K3 szerződés kiadva (`szinkron/1.0.0`):** a **telephely húz,
 > időzítve, alkalmazkodó ütemmel** *(az ütemet a felhő mondja meg; nincs nyitva tartott
 > kapcsolat)* · **S3: a tömeges átvitel ugyanaz a végpont, kurzor nélkül** · **B16.8/5:

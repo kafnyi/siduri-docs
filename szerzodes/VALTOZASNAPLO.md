@@ -108,8 +108,34 @@ termék a kiszereléseivel. **Írás nincs benne.**
 
 ## `szinkron` (K3)
 
-*Még nincs kiadva.* A **legszigorúbb kompatibilitási kényszerű** szerződés: a
-felhő és a telephely soha nem frissül egyszerre.
+A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
+soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
+kompatibilitás.
+
+### v1.0.0 — 2026-09-21 — *első kiadás: lefelé törzsadat és zárolás, felfelé nyugta*
+
+**Két végpont:** `POST /lekerdezes` *(változások + szívverés + óraállás)* és
+`POST /nyugta`.
+
+**A döntések, amiket ez a kiadás rögzít:**
+
+| Mi | Döntés | Miért így |
+|----|--------|-----------|
+| **Ki kezdeményez** | **A telephely húz, időzítve, alkalmazkodó ütemmel** | A telephelyen nem kell bejövő portot nyitni. Az ütemet a **felhő** mondja meg (`kovetkezoLekerdezesMp`): amíg van több változás, **nulla** — így egy csomóban érkező szerkesztés másodpercek alatt leér, **nyitva tartott kapcsolat nélkül** |
+| **A tömeges átvitel** (`S3`) | **Ugyanaz a végpont, lapozva** | Kurzor nélkül kérdezni = teljes újraszinkron. **Nincs második formátum**, mert egy ritkán futó kódút évekig észrevétlenül romolhatna el |
+| **Nagy hatókörű árművelet** (`B16.8/5`) | **Késleltetett élesítés** (`ervenyesTol`) | Egy feltört felhő-fiók így nem tud egy pillanat alatt kinullázni egy franchise-t — marad idő észrevenni |
+| **Hitelesítés** | **Kölcsönös TLS most; `alairas` mező már a szerződésben** | A bekapcsolása később **nem törő változás** — ebben a szerződésben az a legdrágább fajta |
+| **Ismeretlen típus** | **`ELUTASITVA` + `ISMERETLEN_TIPUS`** | Nem áll le, és nem is hallgat: a felhő megtudja, hogy a telephely régebbi |
+| **Nyugta** | **Három állapot**: `ATVETTE` / `ALKALMAZTA` / `ELUTASITVA` | Enélkül a felhő elvégzettnek mutatná azt, ami nem történt meg (`B16.5`) |
+
+**Az óraállás nem kényelmi adat:** a törzsadat-ütközést mezőnkénti időbélyeg
+oldja fel (`O3`), és a sorrendet **két gép fali órája** dönti el. A telephely
+minden lekérdezésnél jelenti az óraállását, a felhő pedig visszaadja az eltérést
+(`oraElteresMp`) — enélkül a feloldás **vakon futna**.
+
+**Ami nincs benne, kimondva:** az eladási adatok felküldése (8 éves archívum), a
+mennyiségi állapot (az kizárólag telephely-autoritatív, `B16.4`), és a
+megvalósítás — ez egyelőre **csak szerződés**.
 
 ### v1.1.0 — 2026-08-26 — *eseménycsatorna borítéka* `NEM TÖRŐ`
 

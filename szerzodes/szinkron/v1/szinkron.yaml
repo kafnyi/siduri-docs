@@ -1,0 +1,466 @@
+openapi: 3.1.0
+
+info:
+  title: Siduri szinkronprotokoll (K3)
+  version: 1.0.0
+  summary: A telephelyi szerver es a felho kozotti szinkron
+  license:
+    name: Zart - Myth System tulajdona
+    identifier: LicenseRef-MythSystem-Zart
+  description: |
+    A K3 szerzodes: a telephelyi szerver es a felho kozott. Gep-gep, emberi
+    felulet nelkul.
+
+    ⚠️ EZ A LEGSZIGORUBB KOMPATIBILITASI KENYSZERU SZERZODES, mert A FELHO ES A
+    TELEPHELY SOHA NEM FRISSUL EGYSZERRE. Legalabb KET kiadasi ciklusnyi
+    visszafele kompatibilitas kell. Ebbol harom kotelezo szabaly kovetkezik:
+
+      1. ISMERETLEN MEZOT FIGYELMEN KIVUL KELL HAGYNI, nem hibanak tekinteni.
+      2. ISMERETLEN VALTOZAS-TIPUST A TELEPHELY NEM ALKALMAZ, hanem
+         ELUTASITVA nyugtat (ISMERETLEN_TIPUS kodzal). Nem all le, es nem is
+         ugorja at csendben: a felho igy megtudja, hogy a telephely regebbi.
+      3. A SORSZAM MONOTON es telephelyenkenti. Egy mar alkalmazott sorszam
+         ujbóli megerkezese NEM alkalmazodik ujra (idempotencia).
+
+    AZ IRANY ES AZ UTEM (2026-09-21 dontes): A TELEPHELY HUZ, IDOZITVE,
+    ALKALMAZKODO UTEMMEL.
+
+      - A telephelynek nem kell bejovo portot nyitnia - egy vendeglatohely
+        halozatan ez donto.
+      - Az ures lekerdezes NEM pazarlas: ez egyben a SZIVVERES (licenc-eletjel,
+        eszkoz-lathatosag), es ez hozza a telephely oraallasat is.
+      - A valasz megmondja, MIKOR jojjon vissza (kovetkezoLekerdezesMp). Amig van
+        tobb valtozas, ez nulla - igy egy tiz arat erinto szerkesztes
+        masodpercek alatt leer, nyitva tartott kapcsolat nelkul.
+
+    A LEFELE MENO IRANY PARANCS, NEM KERES: a telephely emberi jovahagyas nelkul
+    alkalmazza. Ezert:
+
+      - a csatorna KOLCSONOS TLS-sel vedett;
+      - minden valtozas hordozhat ALAIRAST (alairas mezo). A telephely ma meg
+        nem koveteli meg - a mezo azert van itt MOST, mert kesobb bekapcsolni
+        toro valtozas lenne, es EBBEN a szerzodesben az a legdragabb;
+      - ⚠️ A TELEPHELY VALIDAL, NEM VAKON ALKALMAZ (B16.8/3). Egy olyan
+        afakulcs, ami a datumozott adokulcs-tablaban nem szerepel, ELUTASITANDO.
+        A bizalom nem mentesit az ellenorzes alol.
+
+    AMI EBBEN A SZELETBEN NINCS BENNE, kimondva:
+
+      - AZ ELADASI ADATOK FELKULDESE (archivum, 8 ev) - kesobbi szelet.
+      - A MENNYISEGI, FUTO ALLAPOT (keszlet, forgalom, kassza) kizarolag
+        telephely-autoritativ, es csak FELFELE aramlik (B16.4). A felho
+        kuldhet "vegyel fel 20 darabot"-ot, de soha nem "a keszlet mostantol
+        40"-et - ez a kesobbi keszlet-szelet dolga.
+
+servers:
+  - url: https://{felho}/szinkron/v1
+    description: A felho. A telephely MINDIG a felhot hivja.
+    variables:
+      felho:
+        default: szinkron.sidurisystems.hu
+
+security:
+  - TelephelyTanusitvany: []
+
+tags:
+  - name: szinkron
+    description: Valtozasok lekerese es nyugtazasa
+
+paths:
+
+  /lekerdezes:
+    post:
+      tags: [szinkron]
+      operationId: valtozasokatLekerdez
+      summary: A telephely lekeri a ra varo valtozasokat - es jelenti az allapotat
+      description: |
+        EZ EGYSZERRE HAROM DOLOG, es ezert nincs belole harom vegpont:
+
+          1. a ra varo valtozasok lekerese,
+          2. a SZIVVERES (a felho ebbol tudja, el-e a telephely),
+          3. az ORAALLAS jelentese.
+
+        ⚠️ AZ ORAALLAS NEM KENYELMI ADAT. A torzsadat-utkozest mezonkenti
+        idobelyeg oldja fel (O3), es a sorrendet ket gep FALI ORAJA donti el. Ha
+        a telephely oraja siet, egy korabbi helyi iras legyozhet egy kesobbi
+        felhoset. A felho ezert osszeveti a jelentett orat a sajatjaval, es a
+        kuszob folotti eltérést JELZI (oraElteresMp).
+
+        A TOMEGES ATVITEL UGYANEZ A VEGPONT (S3 dontes): az elso feltoltes vagy
+        egy teljes ujraszinkron annyit jelent, hogy a telephely kurzor nelkul
+        (vagy nulla kurzorral) kerdez. NINCS masodik, kulon formatum - egy ritkan
+        futo masodik kodut evekig eszrevetlenul romolhatna el.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LekerdezesKeres'
+      responses:
+        '200':
+          description: A varakozo valtozasok (lehet ures)
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LekerdezesValasz'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          description: |
+            A KURZOR MAR NEM ERVENYES - a felho tulsagosan regi allapotot kerne
+            ujra. Ilyenkor a telephely kurzor nelkul kerdez ujra: teljes
+            ujraszinkron indul, ugyanezen a vegponton.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /nyugta:
+    post:
+      tags: [szinkron]
+      operationId: valtozasokatNyugtaz
+      summary: A telephely visszaigazolja, mit alkalmazott es mit utasitott el
+      description: |
+        ⚠️ ENELKUL A FELHO ELVEGZETTNEK MUTATNA AZT, AMI NEM TORTENT MEG (B16.5).
+        Offline telephelynel ez a legkonnyebb csendes hazugsag: a felhasznalo
+        beirta az arat, a felhoben "kesz", a telephelyen semmi.
+
+        HAROM ALLAPOT VAN, NEM KETTO:
+          - ATVETTE: a telephelyi szerver megkapta;
+          - ALKALMAZTA: ervenyre is jutott a telephelyi adatokban;
+          - ⚠️ az "OSSZES ERINTETT ESZKOZ ALKALMAZTA" harmadik allapot a K1
+            oldalan dol el (egy penztargep lehet offline, es meg a regi arral
+            dolgozik) - ez KESOBBI SZELET, de a fogalmat itt rogzitjuk, hogy a
+            felulet ne kettot mutasson harom helyett.
+
+        AZ ELUTASITAS NEM HIBA, HANEM VALASZ. A telephely validal (B16.8/3), es
+        ha egy ertek nala ervenytelen, azt megmondja - nem alkalmazza, es nem is
+        hallgat rola.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NyugtaKeres'
+      responses:
+        '204':
+          description: A nyugta rogzitve
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+components:
+
+  securitySchemes:
+
+    TelephelyTanusitvany:
+      type: mutualTLS
+      description: |
+        A TELEPHELY azonossaga, kolcsonos TLS-sel. A telephelyi szerver sajat
+        tanusitvannyal jelentkezik be, es a felho tanusitvanyat is ellenorzi.
+
+        ⚠️ A CSATORNA HITELESITESE ONMAGABAN NEM ELEG a lefele meno parancsokra:
+        aki a kiszolgalot vagy a kulcsot megszerzi, tetszoleges parancsot
+        kuldhet. Ezert hordoz minden valtozas egy (ma meg nem kotelezo)
+        ALAIRAST - lasd a Valtozas semat.
+
+  headers:
+
+    SiduriSzerzodes:
+      description: Melyik szerzodessel szolgaltak ki.
+      required: true
+      schema:
+        type: string
+        examples: ["szinkron/1.0.0"]
+
+  responses:
+
+    Hiba:
+      description: Hiba
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+    Hiba401:
+      description: A telephely nem hitelesitett.
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+    Hiba403:
+      description: Ez a tanusitvany nem ehhez a telephelyhez tartozik.
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+    Hiba422:
+      description: Ertelmezhetetlen keres.
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  schemas:
+
+    LekerdezesKeres:
+      title: Lekerdezes
+      type: object
+      required: [telephely, allapot]
+      properties:
+        telephely:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        kurzor:
+          type: string
+          maxLength: 200
+          description: >
+            Az elozo valasz kovetkezoKurzor erteke. HIANYZIK az elso
+            lekerdezesnel es a teljes ujraszinkronnal - ez a ketto ugyanaz a
+            muvelet.
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 100
+          description: >
+            Egy koteg merete. A felso hatar nem kenyelmi korlat: a telephelyi
+            szerver egy J1900, ami kozben kasszat is kiszolgal.
+        allapot:
+          $ref: '#/components/schemas/TelephelyAllapot'
+      additionalProperties: false
+
+    TelephelyAllapot:
+      title: A telephely allapota
+      description: >
+        A szivveres tartalma. Ez teszi az ures lekerdezest is hasznossa.
+      type: object
+      required: [oraAllas, szerzodesVerzio, alkalmazasVerzio]
+      properties:
+        oraAllas:
+          type: string
+          format: date-time
+          description: >
+            A TELEPHELY fali oraja, a keres pillanataban. A felho osszeveti a
+            sajatjaval - az elteres a torzsadat-utkozes feloldasat (O3) teszi
+            megbizhatova vagy megbizhatatlanna.
+        szerzodesVerzio:
+          type: string
+          description: Melyik K3-verziot beszeli a telephely.
+          examples: ["szinkron/1.0.0"]
+        alkalmazasVerzio:
+          type: string
+          description: A telephelyi szerver kiadasi verzioja.
+        utolsoAlkalmazottSorszam:
+          type: integer
+          format: int64
+          description: >
+            A legmagasabb sorszam, ami a telephelyen MAR ERVENYRE JUTOTT. A
+            felho ebbol latja, hol tart valojaban - a kurzor csak azt mondja
+            meg, meddig OLVASOTT.
+      additionalProperties: false
+
+    LekerdezesValasz:
+      title: Lekerdezes valasza
+      type: object
+      required: [valtozasok, kovetkezoLekerdezesMp]
+      properties:
+        valtozasok:
+          type: array
+          items:
+            $ref: '#/components/schemas/Valtozas'
+        kovetkezoKurzor:
+          type: string
+          description: >
+            A kovetkezo lekerdezes kurzora. HIANYZIK, ha nem valtozott semmi -
+            ilyenkor a telephely az elozovel kerdez ujra.
+        vanTobb:
+          type: boolean
+          description: Van-e meg varakozo valtozas a kotegen tul.
+        kovetkezoLekerdezesMp:
+          type: integer
+          minimum: 0
+          description: |
+            HANY MASODPERC MULVA JOJJON VISSZA A TELEPHELY.
+
+            NULLA, amig van tobb valtozas - igy egy csomoban erkezo szerkesztes
+            masodpercek alatt leer. Egyebkent a beallitott alapütem. AZ UTEMET A
+            FELHO MONDJA MEG, nem a telephely talalja ki: igy egy terheles alatt
+            levo felho vissza tud venni a gyakorisagbol.
+          examples: [0, 60]
+        oraElteresMp:
+          type: integer
+          description: |
+            A telephely es a felho oraja kozotti elteres, masodpercben (pozitiv,
+            ha a telephely SIET).
+
+            ⚠️ A KUSZOB FOLOTTI ELTERES JELZENDO a felulet fele. Enelkul a
+            mezonkenti idobelyeg-feloldas (O3) vakon fut: a sorrendet ket gep
+            fali oraja donti el.
+        figyelmeztetes:
+          type: string
+          description: >
+            Emberi mondat, ha van megjegyezni valo (pl. nagy oraelteres). A
+            kliens NEM erre agazik el - arra a gepi mezok valok.
+      additionalProperties: false
+
+    Valtozas:
+      title: Egy valtozas
+      description: |
+        EGY LEFELE MENO PARANCS. A telephely emberi jovahagyas nelkul alkalmazza
+        - ha atmegy a sajat validalasan.
+
+        ⚠️ A FELHO A VEGALLAPOTOT KULDI, nem a lepessorozatot (B16.5). Ha egy
+        telephely harom hetig offline volt, es kozben ugyanaz az ar haromszor
+        valtozott, EGY valtozas erkezik: a mai ervenyes ertek. A koztes lepesek
+        az AUDIT-naploban maradnak, a felhoben.
+      type: object
+      required: [sorszam, tipus, telephely, tabla, rekordId, mezo]
+      properties:
+        sorszam:
+          type: integer
+          format: int64
+          description: >
+            Telephelyenkent MONOTON novekvo. Ez adja az idempotenciat: egy mar
+            alkalmazott sorszam ujbol megerkezese nem alkalmazodik ujra.
+        tipus:
+          type: string
+          description: |
+            ⚠️ ISMERETLEN TIPUST A TELEPHELY NEM ALKALMAZ, hanem ELUTASITVA
+            nyugtaz (ISMERETLEN_TIPUS). Ez a ket kiadasi ciklusnyi
+            visszafele kompatibilitas ara es eszkoze egyszerre: a felho igy
+            megtudja, hogy a telephely regebbi, es nem hiszi alkalmazottnak.
+          enum: [MEZO_ERTEK, ZAROLAS, ZAROLAS_FELOLDAS]
+        telephely:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tabla:
+          type: string
+          description: Melyik entitas. Ma egyetlen ertek ervenyes.
+          enum: [kiszereles]
+        rekordId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        mezo:
+          type: string
+          description: Melyik mezo. Ma egyetlen ertek ervenyes.
+          enum: [brutto_ar]
+        egeszErtek:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: >
+            A MEZO_ERTEK tipusnal az uj ertek, egesz forintban (I1). A
+            ZAROLAS tipusnal hianyzik.
+        mezoeredet:
+          allOf:
+            - $ref: '#/components/schemas/Mezoeredet'
+          description: >
+            MIKOR es HONNAN kapta a mezo ezt az erteket. A telephely ebbol donti
+            el, hogy a sajat erteke kesobbi-e (O3): ha igen, a sajatja nyer, es
+            ezt ELUTASITVA nyugtazza (KESOBBI_HELYI_ERTEK).
+        zarolasSzint:
+          type: string
+          enum: [lanc]
+          description: A ZAROLAS tipusnal, hogy melyik szint zarolta.
+        ervenyesTol:
+          type: string
+          format: date-time
+          description: |
+            KESLELTETETT ELESITES (B16.8/5). Ha jelen van, a telephely a
+            valtozast ELTARTJA, es csak ekkor alkalmazza.
+
+            ⚠️ Ezert kapja a lanc-szintu, sok telephelyet erinto armuvelet: egy
+            feltort felho-fiok igy nem tudja EGY pillanat alatt kinullazni egy
+            franchise osszes arat - marad ido eszrevenni.
+        alairas:
+          type: string
+          description: |
+            A valtozas alairasa. A TELEPHELY MA MEG NEM KOVETELI MEG.
+
+            ⚠️ Azert van a szerzodesben MOST, mert kesobb bevezetni TORO
+            valtozas lenne - es ebben a szerzodesben az a legdragabb fajta,
+            mert a ket oldal soha nem frissul egyszerre.
+
+            Amit majd ad: a telephely a parancs EREDETET ellenorzi, nem csak a
+            csatornat. Amit NEM ad: vedelem, ha az alairo kulcs ugyanazon a
+            gepen van, amit feltortek.
+      additionalProperties: false
+
+    Mezoeredet:
+      title: Mezoeredet
+      type: object
+      required: [modositva, forras]
+      properties:
+        modositva:
+          type: string
+          format: date-time
+        forras:
+          type: string
+          enum: [felho, telephely]
+      additionalProperties: false
+
+    NyugtaKeres:
+      title: Nyugta
+      type: object
+      required: [telephely, nyugtak]
+      properties:
+        telephely:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nyugtak:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Nyugta'
+      additionalProperties: false
+
+    Nyugta:
+      title: Egy valtozas nyugtaja
+      type: object
+      required: [sorszam, allapot]
+      properties:
+        sorszam:
+          type: integer
+          format: int64
+        allapot:
+          type: string
+          description: |
+            ATVETTE: megerkezett, de meg nem ervenyes (pl. kesleltetett
+            elesites miatt var).
+            ALKALMAZTA: ervenyre jutott a telephelyi adatokban.
+            ELUTASITVA: a telephely NEM alkalmazta - az okot a kod mondja meg.
+          enum: [ATVETTE, ALKALMAZTA, ELUTASITVA]
+        kod:
+          type: string
+          description: |
+            Az elutasitas gepi oka. ERRE agazik el a felho, soha nem a szovegre.
+          pattern: '^[A-Z][A-Z0-9_]{2,63}$'
+          examples:
+            - "ISMERETLEN_TIPUS"
+            - "KESOBBI_HELYI_ERTEK"
+            - "ERVENYTELEN_AFAKULCS"
+            - "ZAROLT_ERTEK"
+            - "NINCS_ILYEN_REKORD"
+        uzenet:
+          type: string
+          description: Magyar szoveg a naplonak es a feluletnek.
+        idopont:
+          type: string
+          format: date-time
+          description: Mikor allt elo ez az allapot, a telephely oraja szerint.
+      additionalProperties: false

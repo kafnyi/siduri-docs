@@ -42,6 +42,12 @@
 > kerül kód. **O1/c eldöntve: a C#-névtér `MythSystem.Siduri.*`** — itt a kód igazodott a
 > szabályhoz, a kassza átnevezve.
 >
+> **ÚJ (2026-09-21) — a K3 szerződés kiadva (`szinkron/1.0.0`):** a **telephely húz,
+> időzítve, alkalmazkodó ütemmel** *(az ütemet a felhő mondja meg; nincs nyitva tartott
+> kapcsolat)* · **S3: a tömeges átvitel ugyanaz a végpont, kurzor nélkül** · **B16.8/5:
+> késleltetett élesítés** a lánc-szintű árműveletre · **kölcsönös TLS most, `alairas`
+> mező már a szerződésben** *(a későbbi bekapcsolás így nem törő változás)*.
+>
 > **ÚJ (2026-09-21) — harmadik kör, a magas rendelkezésre állás:** **B11** tanú-séma
 > **jóváhagyva** *(ezzel az R1 és R2 is lezárult)* · **R3** monoton órán mért,
 > konfigurálható, **lejáró** ajánlat · **R4–R5** idempotens átvétel **és kliens-oldali
@@ -2367,10 +2373,19 @@ támadási felülete. Amit a tervbe javaslok:
    ellenőrzés alól.
 4. **Teljes audit:** ki, mikor, mit írt át távolról, melyik telephelyre.
    Ez F5 és F7 hatálya.
-5. **`[ ]` Nagy hatókörű változtatás külön védelmet érdemel.** Egy feltört
-   felhő-fiók **egy egész franchise árait nullázhatja.** Megfontolandó:
-   négy szem elve lánc-szintű ár-műveletnél, vagy késleltetett/értesített
-   élesítés. **Eldöntendő.**
+5. **`[ELDÖNTVE — 2026-09-21: KÉSLELTETETT ÉLESÍTÉS]` Nagy hatókörű változtatás
+   külön védelmet érdemel.** Egy feltört felhő-fiók **egy egész franchise árait
+   nullázhatja.**
+
+   > **A döntés:** a lánc-szintű árművelet **nem azonnal él** — a K3 szerződés
+   > minden változáson hordoz egy `ervenyesTol` mezőt, és a telephely addig
+   > eltartja. **Marad idő észrevenni.** A négy szem elve elvetve: a felhőben
+   > jóváhagyási folyamatot kellett volna építeni, és egyszemélyes láncnál
+   > útban lenne.
+   >
+   > **ÁRA, kimondva:** a **sürgős** árjavítás is várna. Ezért kell majd egy
+   > **azonnali útvonal is, külön joggal** — az még nincs megépítve, és amíg
+   > nincs, a késleltetés minden lánc-szintű műveletre vonatkozik.
 
 #### B16.9 `[!]` Következmény a FÁZISTERVRE (E1)
 

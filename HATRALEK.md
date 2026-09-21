@@ -146,7 +146,12 @@ két oldal viselkedése eltér.
 oldal megköveteli a `termek.megtekintes` jogot, a felhő még nem — F7.4)* · írás ·
 és **az adatot semmi nem tölti fel**, mert a K3 szinkron nincs megépítve.
 
-**Hátra:** `F7.1`–`F7.9` többi része; a K3 szerződés **nincs kiadva**.
+✅ **A K3 szerződés kiadva** *(2026-09-21, `szinkron/1.0.0`)*: lefelé törzsadat
+és zárolás, felfelé nyugta és állapot. A telephely húz, időzítve, **alkalmazkodó
+ütemmel** — nincs nyitva tartott kapcsolat. **Megvalósítás: még nincs.**
+
+**Hátra:** a K3 megvalósítása mindkét oldalon · `F7.1`–`F7.9` többi része · az
+eladási adatok felküldése (8 éves archívum) · a felhő jogosultság-ellenőrzése.
 
 **Az adatmodell 2026-09-21-én ELDŐLT** *(az E-kör első batchje)*:
 

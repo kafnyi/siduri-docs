@@ -170,13 +170,20 @@ a lejárat előtt figyelmeztet) · a jegyek **kiadási felülete** (ma SQL-sor) 
 eladási adatok felküldése (8 éves archívum) · a felhő jogosultság-ellenőrzése ·
 `F7.1`–`F7.9` többi része.
 
-> ⚠️ **Menet közben előkerült rés, nem ehhez a szelethez tartozik:** egy **új
-> bérlői migráció nem ér el a MÁR LÉTEZŐ bérlői sémákhoz** — a sémamigráció csak a
-> bérlő létrehozásakor fut. A teszt-adatbázisban ez úgy jelentkezett, hogy egy
-> régebbi bérlő sémájából hiányzott a `valtozas` tábla, és a szinkron **500**-zal
-> állt meg. Élesben ez azt jelentené, hogy egy frissítés után a régi bérlők
-> csendben kiesnek. **Induláskor végig kell futtatni a bérlői migrációkat minden
-> sémán** — külön szelet, a `felho` modulban.
+✅ **A bérlői migrációs rés bezárva** *(2026-09-22)*. A rés: egy **új bérlői
+migráció nem ért el a MÁR LÉTEZŐ bérlői sémákhoz**, mert a sémamigráció csak a
+bérlő létrehozásakor futott. Élesben ez azt jelentette volna, hogy egy frissítés
+után a **régi** bérlők csendben kiesnek, az újak meg működnek — elő is jött: egy
+régebbi bérlő sémájából hiányzott a `valtozas` tábla, és a szinkron **500**-zal
+állt meg.
+
+**Mostantól induláskor minden nyilvántartott sémán lefut a migráció.** Egy bérlő
+hibája nem állítja meg a többit — de azt a bérlőt **nem szolgáljuk ki** (`503`),
+mert egy félig migrált séma vagy értelmetlen hibával áll meg, vagy lefut és
+**hiányos adatot ad**.
+
+**Ára:** az indulás lassul, mérve **kb. 50 ms bérlőnként**. Ma ez nem számít; ezer
+bérlőnél percekben mérhető lesz, és akkor a már naprakész sémákat át kell ugrani.
 
 **Az adatmodell 2026-09-21-én ELDŐLT** *(az E-kör első batchje)*:
 

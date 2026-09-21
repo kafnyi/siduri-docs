@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.22.0
+  version: 1.22.1
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2686,17 +2686,19 @@ components:
             A nyitott uzleti nap megnyitasa ota allitottak-e be. Ha nincs
             nyitott nap, igaz.
         beallitotta:
-          type: string
-          nullable: true
+          # ⚠️ NEM `nullable: true`. Az az OpenAPI 3.0 alakja, es a 3.1-ben NEM
+          # LETEZIK: az ellenorzok es a generatorok CSENDBEN ELDOBJAK. A generalt
+          # kliens igy nem nullazhatonak hinne a mezot, mikozben a szerver
+          # null-t kuld - a hiba a kliensnel, futasidoben jonne elo.
+          type: [string, "null"]
           description: >
             Aki rogzitette. A visszaeles utolagos felderitesenek egyetlen
-            fogodzoja.
+            fogodzoja. NULL, ha nem emberi beallitasbol szarmazik.
         figyelmeztetes:
-          type: string
-          nullable: true
+          type: [string, "null"]
           description: >
             Emberi mondat, ha nem friss. A feluletnek FELTUNOEN ki kell irnia -
-            de nem tilthatja meg a fizetest (G5.6).
+            de nem tilthatja meg a fizetest (G5.6). NULL, ha nincs mit jelezni.
       additionalProperties: false
 
     ArfolyamKeres:

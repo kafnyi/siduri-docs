@@ -1,0 +1,39 @@
+# Nevesitett, INDOKOLT kivetelek a szerzodes-ellenorzo ala.
+#
+# ⚠️ EZ A FAJL TARTOZAS, NEM TAROLOHELY. Ami ide kerul, arrol valaki azt
+# allitotta, hogy tudja, miert van ott. Ha egy tetel indoka megszunik, a
+# tetelnek KI KELL KERULNIE.
+#
+# Miert nem a szabalyt kapcsoljuk ki: a `redocly.yaml` szerint a folyamatos
+# beepitesnek NULLA figyelmeztetessel kell atmennie - "ha a figyelmeztetes
+# megszokott latvany, akkor a kovetkezo valodi hibat sem veszi eszre senki".
+# A szabaly kikapcsolasa viszont a JOVOBELI, valodi utkozeseket is elrejtene.
+# Ezert tetelesen kivetelezunk, nem globalisan.
+#
+# ---------------------------------------------------------------------------
+# no-ambiguous-paths - ket utvonal a kassza-szerzodesben (2026-09-21)
+# ---------------------------------------------------------------------------
+#
+# Az ellenorzo szerint a `/bizonylatok/szam/{siduriBizonylatszam}` es a
+# `/bizonylatok/{bizonylatAzonosito}/sztorno` (illetve `.../adougyi-eredmeny`)
+# tobbertelmu: a `/bizonylatok/szam/sztorno` keres mindkettore illene.
+#
+# MIERT VALLALHATO:
+#   - a `{bizonylatAzonosito}` UUID (kozos/azonosito.yaml), a "szam" nem az,
+#     tehat egy jol formalt keres soha nem esik a ket minta koze;
+#   - a masodik szegmensnek ezen felul szo szerint "sztorno"-nak vagy
+#     "adougyi-eredmeny"-nek kellene lennie.
+#
+# MI AZ ARA, KIMONDVA: ha egy kiszolgalo a mintakat az UUID-alak ellenorzese
+# NELKUL illesztene, a `/bizonylatok/szam/sztorno` keres rossz vegpontra
+# kerulhetne. A megvalositasunk a `{bizonylatAzonosito}`-t UUID-kent koti, tehat
+# ez nem all elo - de egy masik nyelvu kliens vagy egy kozbeiktatott atjaro
+# maskepp dolgozhat.
+#
+# A JAVITAS ARA (ezert nem most): az utvonal atnevezese TORO valtozas a K1-ben,
+# amit a kassza mar megvalositott es tesztel. Egy elmeleti utvonal-utkozesert
+# nem torunk el egy mukodo szerzodest.
+kassza/v1/kassza.yaml:
+  no-ambiguous-paths:
+    - '#/paths/~1bizonylatok~1{bizonylatAzonosito}~1sztorno'
+    - '#/paths/~1bizonylatok~1{bizonylatAzonosito}~1adougyi-eredmeny'

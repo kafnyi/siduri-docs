@@ -858,6 +858,30 @@ irányban.** A jelző nélkül a kassza nem tudja eldönteni, melyik eset áll f
 
 ---
 
+### v1.22.1 — 2026-09-21 — *a `nullable` javítása: 3.0-ás alak egy 3.1-es szerződésben* `NEM TÖRŐ`
+
+**Két mező** (`ArfolyamAllapot.beallitotta`, `ArfolyamAllapot.figyelmeztetes`)
+`nullable: true`-val volt jelölve. **Ez az OpenAPI 3.0 alakja, és a 3.1-ben nem
+létezik** — a szerződés viszont `openapi: 3.1.0`.
+
+> ⚠️ **Miért nem kozmetika:** az ellenőrzők és a generátorok a `nullable`-t
+> 3.1-ben **csendben eldobják**. A generált kliens így **nem nullázhatónak**
+> hitte volna a mezőt, miközben a szerver `null`-t küld — a hiba **a kliensnél,
+> futásidőben** jött volna elő, és nem a szerződésben látszott volna.
+
+**A javítás:** `type: [string, "null"]`. **Az alak nem változott** — a szerver
+eddig is `null`-t küldött ezekre a mezőkre; csak eddig **nem volt leírva**, hogy
+szabad.
+
+**Hogyan derült ki:** a K3 szerződés kiadásakor futott le először a teljes
+szerződés-ellenőrzés mindhárom fájlra. **Addig a hiba benne volt, és semmi nem
+szólt** — a K1 ellenőrzését soha nem futtatta senki, mert folyamatos beépítés
+nincs *(`CLAUDE.md` 3/a: az Actions perce pénz)*.
+
+**Ezzel együtt:** két `no-ambiguous-paths` figyelmeztetés **nevesített
+kivételre** került (`.redocly.lint-ignore.yaml`), indoklással és a vállalt
+kockázattal — nem a szabály kikapcsolásával.
+
 ### v1.22.0 — 2026-09-17 — *a `csakFaliora` végre azt jelenti, amit mond* ⚠️ `NEM TÖRŐ`
 
 **Az alak nem változott**, a `NapAllapot.csakFaliora` **jelentése** igen — ezért

@@ -43,6 +43,31 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.3.0 — 2026-09-22 — *a hibaválasz is megmondja, melyik oldal felelt* `NEM TÖRŐ`
+
+A `Siduri-Szerzodes` és a `Siduri-Kiszolgalo` fejléc eddig csak a **sikeres**
+válaszokon volt előírva. Mostantól a **hibaválaszokon is** (401, 403, 404, 422
+és az általános hiba).
+
+⚠️ **Ez a 403-nál nem kényelmi kérdés.** A két megvalósítás **külön
+hozzáférés-nyilvántartásból** dolgozik *(2026-09-22 döntés)*, tehát ugyanaz a
+felhasználó az egyik oldalon jogosult lehet, a másikon nem. A böngészőben a két
+kiszolgálás **ugyanúgy néz ki** — a kiszolgáló megnevezése nélkül egy „nekem
+ehhez van jogom" bejelentés megfejthetetlen.
+
+A 403 leírása ezen kívül **kimondja a két gépi kód különbségét**:
+`NINCS_JOGOSULTSAG` *(a felhasználónak kell jogot kapnia)* és `MASIK_TELEPHELY`
+*(beállítási hiba — ezen semmilyen jogosultság nem segít)*. A kettő összevonása a
+második esetben a **rossz helyre** küldi a keresést.
+
+**Amit ez a kiadás javított még:** a `Siduri-Szerzodes` példája `admin/1.0.0`-n
+állt, két kiadással a valóság mögött.
+
+**Törő-e:** nem. Új válaszfejléc hozzáadása — a régi kliensek figyelmen kívül
+hagyják. ÁRA: a **telephelyi** oldal eddig nem küldte a `Siduri-Kiszolgalo`-t a
+hibaválaszokon; ezt pótolni kellett, és a **közös szerződésteszt mostantól
+meg is követeli** mindkét megvalósításon.
+
 ### v1.2.0 — 2026-09-19 — *a zárolás láthatóvá válik* `NEM TÖRŐ`
 
 **Új mező** minden kiszerelésen: `arZarolas` — ha jelen van, az árat egy

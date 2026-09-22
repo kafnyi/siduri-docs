@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.2.0
+  version: 1.3.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -377,7 +377,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.0.0"]
+        examples: ["admin/1.3.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -434,6 +434,11 @@ components:
 
     Hiba:
       description: Hiba
+      headers:
+        Siduri-Szerzodes:
+          $ref: '#/components/headers/SiduriSzerzodes'
+        Siduri-Kiszolgalo:
+          $ref: '#/components/headers/SiduriKiszolgalo'
       content:
         application/json:
           schema:
@@ -441,14 +446,32 @@ components:
 
     Hiba401:
       description: Nincs ervenyes munkamenet.
+      headers:
+        Siduri-Szerzodes:
+          $ref: '#/components/headers/SiduriSzerzodes'
+        Siduri-Kiszolgalo:
+          $ref: '#/components/headers/SiduriKiszolgalo'
       content:
         application/json:
           schema:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
     Hiba403:
-      description: >
-        Nincs jogosultsag, VAGY a kert telephely nem ezen a kiszolgalon van.
+      description: |
+        Nincs jogosultsag, VAGY a kert telephely nem ezen a kiszolgalon van. A
+        kettot a gepi KOD kulonbozteti meg: NINCS_JOGOSULTSAG, illetve
+        MASIK_TELEPHELY.
+
+        ⚠️ A VALASZ MEGMONDJA, MELYIK OLDAL UTASITOTTA EL. Ez nem kenyelmi adat:
+        a ket megvalositas KULON hozzaferes-nyilvantartasbol dolgozik, tehat
+        ugyanaz a felhasznalo az egyik oldalon jogosult lehet, a masikon nem. A
+        kiszolgalo megnevezese nelkul egy "nekem ehhez van jogom" bejelentes
+        megfejthetetlen.
+      headers:
+        Siduri-Szerzodes:
+          $ref: '#/components/headers/SiduriSzerzodes'
+        Siduri-Kiszolgalo:
+          $ref: '#/components/headers/SiduriKiszolgalo'
       content:
         application/json:
           schema:
@@ -456,6 +479,11 @@ components:
 
     Hiba404:
       description: Nincs ilyen termek ezen a telephelyen.
+      headers:
+        Siduri-Szerzodes:
+          $ref: '#/components/headers/SiduriSzerzodes'
+        Siduri-Kiszolgalo:
+          $ref: '#/components/headers/SiduriKiszolgalo'
       content:
         application/json:
           schema:
@@ -463,6 +491,11 @@ components:
 
     Hiba422:
       description: Ertelmezhetetlen parameter - peldaul ervenytelen kurzor.
+      headers:
+        Siduri-Szerzodes:
+          $ref: '#/components/headers/SiduriSzerzodes'
+        Siduri-Kiszolgalo:
+          $ref: '#/components/headers/SiduriKiszolgalo'
       content:
         application/json:
           schema:

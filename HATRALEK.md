@@ -158,9 +158,25 @@ tulajdonos, akinek **egyáltalán nincs** telephelyi fiókja.
 oldalon él) · **felhasználókezelő felület** (ma SQL-sor) · bejelentkezés (ma
 fejlesztői kapcsoló, alapértelmezésben **minden kérés 401**) · egyedi kivétel és
 egyszeri vezetői felhatalmazás *(a telephelyi modellben van, ide az olvasó
-kapuhoz nem kellett — bővítés lesz, nem törő változás)* · a webes adminban a 403
-**saját képernyője** *(ma a hibakódot és az üzenetet írja ki, tehát nem törik el,
-de nem is segít)*.
+kapuhoz nem kellett — bővítés lesz, nem törő változás)* · a webes admin **böngészős átnézése** *(még
+soha nem történt meg)*.
+
+✅ **A 403 saját képernyőt kapott a webes adminban** *(2026-09-22)*. Két
+különböző 403 van, és a képernyő **szétválasztja** őket: `NINCS_JOGOSULTSAG`
+*(a felhasználónak kell jogot kapnia)* és `MASIK_TELEPHELY` *(beállítási hiba —
+ezen semmilyen jogosultság nem segít)*.
+
+A képernyő **kimondja, melyik kiszolgáló utasította el**, és azt is, hogy a két
+oldal külön nyilvántartásból dolgozik — ennélkül a felhasználó azt hinné, hogy
+a jogosultsága „eltűnt". Ehhez a **szerződést is bővíteni kellett**
+(`admin/1.3.0`: a `Siduri-Kiszolgalo` fejléc mostantól a **hibaválaszokon is**
+kötelező), és a telephelyi oldalon pótolni, mert eddig nem küldte. A közös
+szerződésteszt mindkét megvalósításon megköveteli.
+
+⚠️ **Amit ez a szelet NEM old meg:** a képernyő **böngészőben nincs
+megnézve** — a döntési logikát teszt fedi, a típusok fordulnak, a kiszolgáló
+oldala élőben ellenőrzött, de a **megjelenés** nem. A felhasználókezelő felület
+és a 401 (bejelentkezés) saját képernyője továbbra is hátra van.
 
 ✅ **A K3 szerződés kiadva ÉS megvalósítva** *(2026-09-21, `szinkron/1.0.0`)*:
 lefelé törzsadat és zárolás, felfelé nyugta és állapot.

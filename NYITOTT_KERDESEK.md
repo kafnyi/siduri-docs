@@ -42,7 +42,71 @@
 > kerül kód. **O1/c eldöntve: a C#-névtér `MythSystem.Siduri.*`** — itt a kód igazodott a
 > szabályhoz, a kassza átnevezve.
 >
-> **ÚJ (2026-09-22) — a felhő hozzáférési modellje eldőlt:** a webes admin
+> **ÚJ (2026-09-23) — A HOZZÁFÉRÉSI MODELL TELJES EGÉSZÉBEN ELDŐLT.** A részletes
+> leírás: **`HOZZAFERES.md`** — az alábbi csak a döntések jegyzéke.
+>
+> **A termék neve:** a webes admin felület **`Ziggurat`** *(angol írásmód a hivatalos,
+> a magyar `zikkurat` átirányítás)*.
+>
+> **HÁROM populáció van, nem kettő:** ① pultos felhasználók · ② bérlői
+> Ziggurat-fiókok · ③ Siduri kollégafiókok *(a bérlőkön kívül)*.
+>
+> **A pultos nyilvántartás gazdája a FELHŐ**, a telephelyen csak a saját üzlet
+> felhasználói élnek másolatként *(offline belépéshez)*. ⚠️ **A megvonás mindig nyer**
+> — a jogosultságra NEM a mezőnkénti időbélyeg (`O3`) vonatkozik, mert óraeltérés
+> miatt egy visszavont jog „feltámadhatna”.
+>
+> **A pultban HIERARCHIA van** *(szám alapú szintek, egy szinten több szerep;
+> 0 = Siduri, 1 = tulaj, 2 = üzletvezető, …)*, **a bérlői Zigguratban NINCS** — ott
+> felhasználónkénti jog + **sablon** *(egyszeri másolat, „visszaállítás sablon
+> szerint” gombbal)*. A belső kollégafiókoknál **jogkör** *(ÉLŐ kapcsolat: amit a
+> jogkör ad, egyedileg nem vehető el)*.
+>
+> **A burok:** csak azt adhatod és csak azt veheted el, amid van — **hatókörönként**
+> mérve, a művelet pillanatában. A szintnél tovább: felfelé semmi nem megengedő,
+> azonos szinten igen, maga fölé senkit nem emelhet. **A jelszóváltoztatás is
+> hierarchikus.** Kivétel: az **abszolút jogosultságkezelés** *(a 0. szint adja; az 1.
+> alapból megkapja, kikapcsolható; magának senki nem kapcsolhatja be)* — a viselője
+> **korona-jelölést** kap.
+>
+> **Öröklés felfelé:** ha egy szint új jogot kap, minden felette álló is megkapja —
+> **levezetve, nem másolva**, és a felületen láthatóan „örökölt”ként.
+> ⚠️ **KÖVETKEZMÉNY:** nem lehet olyan jog, ami egy alacsonyabb szintnek megvan, a
+> magasabbnak nem — a feladatelválasztás (jóváhagyó ≠ rögzítő) útját ezzel lezártuk.
+>
+> **A hatókör típus + azonosító:** telephely / **raktár** / globális — már most, hogy a
+> raktár később **adat** legyen, ne adatmodell-műtét.
+>
+> **Raktár és Pult:** a **Pult logikai csoport** *(több géppel)*, nem azonos az
+> eszközzel. A **raktár gép nélküli**, adminisztratív elem. ⚠️ **A több telephelyet
+> kiszolgáló raktár FELOSZTOTT ALRAKTÁRAKRA bomlik** — különben két gazdája lenne egy
+> futó egyenlegnek, ami a `B16.4` döntést sértené. Ára: a felosztast valakinek
+> intéznie kell.
+>
+> **Siduri-hozzáférés a pulthoz:** **7 számjegy = 4 forgó (globális, havonta, az előző
+> havi is érvényes) + 3 személyes (kollégánként állandó, a naplóban ez azonosít)**.
+> Rejtett, **néma** belépés *(3 érintés a logón 5 mp-en belül, semmi visszajelzés,
+> 10 mp-es ablak, enter nélkül indul)*. Zárolás helyett **növekvő várakozás**
+> 1→256 mp-ig. A bérlő **nem tilthatja le**, de **látja**. Láncolt, helyben írt és
+> felküldött napló, Zigguratban monitorozva.
+> ⚠️ **VÁLLALT KOCKÁZAT:** egy kód nyit minden ügyfelet az érvényességi ablakon belül
+> *(két hónap)*; a személyes rész nem forog; és az attribúcó **visszafelé is működik**
+> — ellesett személyes számjegyekkel egy idegen tette a kolléga nevén látszik.
+> ⚠️ **A rejtett belépést a SZERZŐDÉSBEN le kell írni**, különben egy biztonsági
+> átvizsgáláson **hátsó kapunak** minősül.
+>
+> **Bejelentkezés a Zigguratba:** felhasználónév + jelszó, a név **bérlői előtaggal**
+> *(`kiskocsma.Pista`)*, **e-mailes meghívóval**. ⚠️ A belső kollégafiókokhoz
+> **egyelőre NINCS második tényező** — vállalt kockázat, újra elő kell venni, mielőtt
+> élő bérlői adat kerül a felhőbe.
+>
+> **Négy szem elv:** kettőnél kevesebb Manager nem lehet; egy Managert másik Manager
+> csak egy harmadik beleegyezésével törölhet. **Szuperadmint csak adatbázisba írva**
+> lehet adni, a felületről soha.
+>
+> **Törlés nincs, sehol** — a „törlés” mindenhol **letiltást** jelent.
+>
+> > **ÚJ (2026-09-22) — a felhő hozzáférési modellje eldőlt:** a webes admin
 > hozzáféréséről **a felhő saját nyilvántartása** dönt, nem a telephelyiről
 > leszinkronizált felhasználók — hogy létezhessen olyan központi felelős vagy
 > tulajdonos, akinek **nincs** telephelyi fiókja (a telephelyi felhasználók

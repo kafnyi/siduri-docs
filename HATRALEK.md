@@ -155,11 +155,42 @@ helynek szerepelnie kell. Cserébe létezhet olyan központi kategóriafelelős 
 tulajdonos, akinek **egyáltalán nincs** telephelyi fiókja.
 
 **Ami ebből még hiányzik a felhőben:** írás (az ármódosítás ma csak a telephelyi
-oldalon él) · **felhasználókezelő felület** (ma SQL-sor) · bejelentkezés (ma
-fejlesztői kapcsoló, alapértelmezésben **minden kérés 401**) · egyedi kivétel és
-egyszeri vezetői felhatalmazás *(a telephelyi modellben van, ide az olvasó
-kapuhoz nem kellett — bővítés lesz, nem törő változás)* · a webes admin **böngészős átnézése** *(még
-soha nem történt meg)*.
+oldalon él) · bejelentkezés (ma fejlesztői kapcsoló, alapértelmezésben **minden
+kérés 401**) · a webes admin **böngészős átnézése** *(még soha nem történt meg)*.
+A **felhasználókezelés** külön fejezet lett — lásd lentebb.
+
+### A hozzáférési modell — megtervezve, még nem megépítve *(2026-09-23)*
+
+⚠️ **A teljes leírás: `HOZZAFERES.md`.** Ez itt csak a munkadarabok listája.
+
+A döntések megszülettek: **három populáció** *(pultos · bérlői Ziggurat · Siduri
+kolléga)*, a pultos nyilvántartás **gazdája a felhő**, a pultban **szintezett
+hierarchia**, a bérlői Zigguratban **felhasználónkénti jog + sablon**, a hatókör
+**típus + azonosító**, és a **burok** mindkét irányban *(csak azt adhatod és veheted
+el, amid van)*.
+
+⚠️ **A 2026-09-22-én megépített felhős táblák átszabásra szorulnak**: a bérlői
+oldalra szerepkör-alapú modellt építettem, a döntés viszont felhasználónkénti
+jogokat mond. Adatvesztés nincs *(sehol nem éles)*, de új migráció kell — a
+Flyway a lefutott migrációt nem engedi visszamenőleg átírni. Ez a menet közbeni
+döntéshozatal szokásos ára.
+
+**A darabok, sorrendben:**
+
+| # | Darab | Állapot |
+|---|---|---|
+| 1 | **A hozzáférési modell a felhőben** — szintek, hierarchia, burok, személyre szabott eltérés, 0. szint, típus+azonosító hatókör | hátra |
+| 2 | **Bérlői Ziggurat-fiókok kezelése** — jogok, sablonok, sablon-visszaállítás | hátra |
+| 3 | **A pultos nyilvántartás átköltöztetése** a felhő gazdasága alá, telephelyi másolattal | hátra |
+| 4 | **Pultos fiókok kezelése a Zigguratról** + a két fiók összekapcsolása | hátra |
+| 5 | **Globális pultos szerkesztés a pultból** — hálózatellenőrzéssel, kiemelt oldalon | hátra |
+| 6 | **A Siduri-hozzáférés** — forgó kód, néma belépés, növekvő várakozás, láncolt napló | hátra |
+| 7 | **Belső kollégafiókok** — jogkörök, kapcsolók, négy szem elv | hátra |
+
+**Amit ez a kör ELHALASZTOTT, kimondva:** második tényező a belső fiókokhoz
+*(vállalt kockázat: egy kiszivargó kollégajelszó = minden bérlő minden adata)* ·
+a raktár mint **entitás** *(csak a hatókör dőlt el)* · a készletkezelés egésze ·
+RFID/fizikai kulcs a Siduri-fiókhoz.
 
 ✅ **A 403 saját képernyőt kapott a webes adminban** *(2026-09-22)*. Két
 különböző 403 van, és a képernyő **szétválasztja** őket: `NINCS_JOGOSULTSAG`

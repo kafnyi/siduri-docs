@@ -72,6 +72,37 @@ kezelni, és nem lehet egy üzlet gépéből globálisan intézkedni (§7).
   NYER**, időbélyegtől függetlenül — ugyanaz az elv, mint a zárolásnál
   (`B16.3`).
 
+### 2.1/a Hogyan jut le — PILLANATKÉPKÉNT
+
+A telephely a `POST /hozzaferes` végponton kéri le a saját pultos
+felhasználóit *(`szinkron/1.2.0`)*. **Nem változásfolyam**, pedig a K3 többi
+része az — mert egy elmaradt növekmény itt azt jelentené, hogy egy **visszavont
+jog megmarad**.
+
+* A telephely elküldi, milyen **verziót** ismer *(a tartalom lenyomatát)*; ha
+  egyezik, nem jön adat.
+* A **szerepek jogai már kibontva** érkeznek *(a szint szerinti örökléssel)* —
+  a szabály **egy helyen**, a felhőben él.
+* ⚠️ **A PIN nem megy le.** A felhő a személyt és a jogait tartja nyilván; a
+  hitelesítés helyi marad.
+* ⚠️ **A helyben létrehozott sorokhoz nem nyúlunk.** A telephelyi táblákon
+  jelölés van *(`felho_gazdaju`)*; a szinkron csak a saját sorait kezeli.
+  Ennélkül az első szinkron kitörölné a telepítéskor felvett felhasználókat —
+  vagyis **kizárná a telephelyet saját magából**.
+* ⚠️ **Aki kikerül a pillanatképből: LETILTVA, nem törölve.**
+* ⚠️ **Ismeretlen jogosultságkód** *(régebbi telephely)*: a jog nem kerül be
+  *(fehérlista)*, de a napló **kiírja** — különben a „nincs jogosultságod”
+  válasz sehova nem mutatna.
+* A telephely tárolja, **mikor frissült utoljára**. Egy néma másolat ugyanolyan
+  „rendben” képet mutatna, mint egy friss — pedig lehet, hogy hetek óta nem
+  frissült, és egy kilépett dolgozó még mindig be tud lépni a pult mögött.
+
+**Az egyediség populációnként:** a telephelyi szerepnév és felhasználó-azonosító
+eddig telephelyenként volt egyedi. A felhőből lejövő szerepek ugyanazokat a
+bevett neveket hozzák *(„Pultos”, „Üzletvezető”)*, mint a helyben, sablonból
+létrehozottak — ezért az egyediség **két körre** bomlott: a helyiek egymás
+között, a felhősek egymás között.
+
 ### 2.2 A szintek
 
 A pultos szerepek **erősségi sorba** rendezettek. A szint **szám**, és **egy
@@ -514,8 +545,8 @@ pult; **nincs közös raktár** → csak átvételezéssel lehet áttolni.)*
    személyre szabott eltérés, 0. szint, típus+azonosító hatókör.
 2. **Bérlői Ziggurat-fiókok kezelése** — felhasználónkénti jogok, sablonok,
    sablon-visszaállítás.
-3. **A pultos nyilvántartás átköltöztetése** a felhő gazdasága alá, telephelyi
-   másolattal.
+3. ✅ **A pultos nyilvántartás átköltöztetése** a felhő gazdasága alá, telephelyi
+   másolattal — **kész** *(2026-09-23)*, lásd §2.1/a.
 4. **Pultos fiókok kezelése a Zigguratról**, és az összekapcsolás (§6).
 5. **Globális pultos szerkesztés a pultból** (§7.1).
 6. **A Siduri-hozzáférés** (§8).

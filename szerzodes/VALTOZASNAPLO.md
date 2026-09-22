@@ -137,6 +137,31 @@ A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a tel
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
 
+### v1.2.0 — 2026-09-23 — *a pultos hozzáférés — PILLANATKÉPKÉNT* `NEM TÖRŐ`
+
+**Egy új végpont:** `POST /hozzaferes`. A telephely lekéri a saját pultos
+felhasználóit és a jogaikat.
+
+⚠️ **SZÁNDÉKOSAN NEM VÁLTOZÁSFOLYAM**, pedig a K3 többi része az. Három okból:
+
+| # | Ok |
+|---|---|
+| 1 | **Nincs összefésülés, tehát nincs mit elrontani.** Egy elmaradt vagy rosszul sorrendezett növekmény azt jelentené, hogy egy **visszavont jog megmarad**. A törzsadatnál ez ár-hiba; itt **biztonsági hiba** |
+| 2 | **A megvonás mindig nyer** — ez a pillanatképből ingyen jön. A mezőnkénti időbélyeg (`O3`) itt **nem érvényes**: két gép fali órája dönthet arról, melyik ár nyer, de arról nem, ki mit láthat |
+| 3 | **Kicsi.** Néhány tucat felhasználó és szerep; a teljes halmaz átvitele olcsóbb, mint a növekményes gépezet |
+
+**A telephely elküldi, milyen verziót ismer** *(a tartalom lenyomatát)*; ha az
+egyezik, a válasz `valtozott: false`, és nem visszünk át semmit.
+
+⚠️ **A PIN SOHA NEM SZEREPEL BENNE.** A felhő a **személyt** és a **jogait**
+tartja nyilván; a hitelesítés helyi marad. Egy interneten áthaladó PIN-nek nem
+lenne mit keresnie ebben a rendszerben.
+
+⚠️ **A SZEREPEK JOGAI MÁR KIBONTVA ÉRKEZNEK** — a szint szerinti örökléssel
+együtt. A kibontást a **felhő** végzi, egy helyen: különben a két oldal ugyanazt
+a szabályt számolná külön, és az eltérés **csendes** lenne — mindkettő
+„működik”, csak mást enged.
+
 ### v1.1.0 — 2026-09-21 — *a kölcsönös TLS megvalósul: regisztrációs végpont* `NEM TÖRŐ`
 
 **Egy új végpont:** `POST /regisztracio` — egyszer használható, lejáró **jeggyel**

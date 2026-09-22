@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.1.0
+  version: 1.2.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -166,6 +166,60 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /hozzaferes:
+    post:
+      tags: [szinkron]
+      operationId: hozzaferestLekerdez
+      summary: A telephely pultos felhasznaloi es jogaik - PILLANATKEPKENT
+      description: |
+        ⚠️ **PILLANATKEP, NEM VALTOZASFOLYAM.** A tobbi szinkron novekmenyes; ez
+        SZANDEKOSAN nem az. Harom okbol:
+
+          1. **Nincs osszefesules, tehat nincs mit elrontani.** A jogosultsagnal
+             egy elmaradt vagy rosszul sorrendezett novekmeny azt jelentene, hogy
+             egy VISSZAVONT jog megmarad. A torzsadatnal ez ar-hiba; itt
+             biztonsagi hiba.
+          2. **A MEGVONAS MINDIG NYER** - ez a pillanatkepbol ingyen jon. A
+             mezonkenti idobelyeg (O3) itt NEM ervenyes: ket gep falioraja
+             donthet arrol, melyik ar nyer, de arrol nem, hogy ki mit lathat.
+          3. **Kicsi.** Egy telephely nehany tucat felhasznaloja es szerepe; a
+             teljes halmaz atvitele olcsobb, mint a novekmenyes gepezet.
+
+        A telephely elkuldi, milyen verziot ismer; ha az egyezik, a valasz
+        `valtozott: false`, es nem kuldunk adatot.
+
+        ⚠️ **A PIN SOHA NEM SZEREPEL ITT.** A hitelesites helyi marad: a felho a
+        SZEMELYT es a JOGAIT tartja nyilvan, a PIN-t a telephelyi szerver. Egy
+        interneten athalado PIN-nek nem lenne mit keresnie ebben a rendszerben.
+
+        ⚠️ **A SZEREPEK JOGAI MAR KIBONTVA ERKEZNEK** (a szint szerinti oroklessel
+        egyutt). A kibontast a FELHO vegzi, EGY helyen - kulonben a ket oldal
+        kulon szamolna ugyanazt a szabalyt, es elobb-utobb maskepp.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HozzaferesKeres'
+      responses:
+        '200':
+          description: A hozzaferes pillanatkepe - vagy a jelzes, hogy nem valtozott
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HozzaferesValasz'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /regisztracio:
     post:
       tags: [szinkron]
@@ -265,7 +319,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["szinkron/1.1.0"]
+        examples: ["szinkron/1.2.0"]
 
   responses:
 
@@ -298,6 +352,111 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+
+    HozzaferesKeres:
+      title: Hozzaferes-lekerdezes
+      type: object
+      required: [telephely]
+      properties:
+        telephely:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        ismertVerzio:
+          type: [string, "null"]
+          description: >
+            Amit a telephely mar alkalmazott. Ha egyezik a mostanival, a valasz
+            nem hoz adatot. Elso lekerdezesnel ures.
+          maxLength: 128
+
+    HozzaferesValasz:
+      title: Hozzaferes-pillanatkep
+      type: object
+      required: [verzio, valtozott]
+      properties:
+        verzio:
+          type: string
+          description: >
+            A pillanatkep tartalmanak lenyomata. A telephely EZT tarolja el, es
+            ezt kuldi vissza legkozelebb.
+          maxLength: 128
+        valtozott:
+          type: boolean
+          description: >
+            Hamis: a telephely allapota naprakesz, es a tobbi mezo ures. Igy egy
+            valtozatlan hozzaferes nem visz at semmit.
+        szerepek:
+          type: array
+          items:
+            $ref: '#/components/schemas/SzinkronSzerep'
+        felhasznalok:
+          type: array
+          items:
+            $ref: '#/components/schemas/SzinkronFelhasznalo'
+
+    SzinkronSzerep:
+      title: Szerep
+      type: object
+      required: [azonosito, kod, nev, szint, jogosultsagok]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        kod:
+          type: string
+        nev:
+          type: string
+        szint:
+          type: integer
+          minimum: 0
+          description: >
+            Kisebb szam = erosebb. A 0. szint a Siduri rendszergazdae. A
+            telephely ezt a hierarchia-szabalyokhoz hasznalja.
+        jogosultsagok:
+          type: array
+          description: >
+            ⚠️ MAR KIBONTVA: a sajat jogok ES a gyengebb szintektol OROKOLTEK
+            egyutt. A kibontast a felho vegzi, hogy a szabaly EGY helyen legyen.
+          items:
+            type: string
+
+    SzinkronFelhasznalo:
+      title: Pultos felhasznalo
+      type: object
+      required: [azonosito, nev, kulsoAzonosito, aktiv, szerepek, elteresek]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        kulsoAzonosito:
+          type: string
+          description: A bejelentkezeshez hasznalt azonosito a pult mogott.
+        aktiv:
+          type: boolean
+          description: >
+            Hamis: LETILTVA. Torles nincs - a telephely a sajat masolataban is
+            letiltja, nem torli.
+        szerepek:
+          type: array
+          description: A felhasznalo szerepei EZEN a telephelyen (a globalisakkal egyutt).
+          items:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        elteresek:
+          type: array
+          description: Szemelyre szabott elteres a szereptol, mindket iranyba.
+          items:
+            $ref: '#/components/schemas/SzinkronElteres'
+
+    SzinkronElteres:
+      title: Szemelyre szabott elteres
+      type: object
+      required: [kod, engedve]
+      properties:
+        kod:
+          type: string
+        engedve:
+          type: boolean
+          description: >
+            Igaz: a szerepen felul megkapja. Hamis: a szerep ellenere elvesszuk.
+            A tiltas eros.
 
     RegisztracioKeres:
       title: Regisztracios keres
@@ -389,7 +548,7 @@ components:
         szerzodesVerzio:
           type: string
           description: Melyik K3-verziot beszeli a telephely.
-          examples: ["szinkron/1.1.0"]
+          examples: ["szinkron/1.2.0"]
         alkalmazasVerzio:
           type: string
           description: A telephelyi szerver kiadasi verzioja.

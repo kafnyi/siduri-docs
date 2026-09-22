@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.3.0
+  version: 1.4.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -86,6 +86,18 @@ security:
 tags:
   - name: torzsadat
     description: Kategoria es termek - amit a tulajdonos karbantart
+  - name: hozzaferes
+    description: |
+      Ziggurat-felhasznalok es a jogosultsagaik.
+
+      ⚠️ **EZEKET A VEGPONTOKAT CSAK A FELHO VALOSITJA MEG.** A telephelyi
+      szerver hatarozott **501**-et ad (`CSAK_A_FELHOBEN` kod), nem veletlen
+      404-et. A hozzaferes gazdaja a felho (HOZZAFERES.md), es a telephelyi
+      szerver sajat maga nem dontheti el, ki lephet be a Zigguratba.
+
+      Ezzel a szerzodes igerete ("egy admin, ket helyrol") **reszben serul**: van
+      benne olyan resz, amit csak az egyik oldal tud. Ezt inkabb KIMONDJUK, mint
+      hogy egy kulon szerzodest verziozzunk ugyanezert.
 
 paths:
 
@@ -354,6 +366,286 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /felhasznalok:
+    get:
+      tags: [hozzaferes]
+      operationId: felhasznalok
+      summary: A berlo Ziggurat-felhasznaloi
+      description: |
+        A letiltottak is szerepelnek - **torles nincs**, csak letiltas, es a
+        letiltott embert is latni kell (peldaul hogy vissza lehessen kapcsolni).
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: fajta
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ZIGGURAT, PULTOS]
+          description: >
+            Melyik populacio. Alapertelmezesben a ZIGGURAT-fiokok. A pultos
+            fiokok kezelese kesobbi szelet; a szuro azert van MOST itt, hogy a
+            felveteleuk ne legyen toro valtozas.
+      responses:
+        '200':
+          description: A felhasznalok
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [felhasznalok]
+                properties:
+                  felhasznalok:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Felhasznalo'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    post:
+      tags: [hozzaferes]
+      operationId: felhasznalotLetrehoz
+      summary: Uj Ziggurat-felhasznalo
+      description: |
+        A felhasznalo **e-mailes meghivot** kap; a bejelentkezes azonositoja a
+        berlo rovid neve es az itt megadott azonosito egyutt (pl.
+        `kiskocsma.Pista`).
+
+        ⚠️ A **jogosultsagokat NEM itt adjuk meg**: a felvetel utan kulon
+        hivassal allnak be, mert a burok ellenorzese ott tortenik, es egy
+        felig sikerult felvetel rosszabb, mint ket lepes.
+
+        ⚠️ **AMI MA MEG NEM TORTENIK MEG, KIMONDVA:** a meghivo **kikuldese** a
+        bejelentkezes-szelettel keszul el. Addig a fiok LETREJON, de levelet nem
+        kuldunk - a valaszban visszaadott adat ezert nem jelenti azt, hogy a
+        felhasznalo be is tud lepni.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FelhasznaloKeres'
+      responses:
+        '201':
+          description: A letrehozott felhasznalo
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Felhasznalo'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          description: Ez az azonosito mar foglalt ennel a berlonel.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /felhasznalok/{felhasznaloAzonosito}:
+    get:
+      tags: [hozzaferes]
+      operationId: felhasznalo
+      summary: Egy felhasznalo, a jogosultsagaival
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - $ref: '#/components/parameters/FelhasznaloAzonosito'
+      responses:
+        '200':
+          description: A felhasznalo
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FelhasznaloReszletek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    patch:
+      tags: [hozzaferes]
+      operationId: felhasznalotModosit
+      summary: Nev es allapot
+      description: |
+        ⚠️ **A LETILTAS NEM TORLES.** Az `aktiv: false` letiltja a fiokot; az
+        adat, a naplo es a korabbi bejegyzesek erintetlenek maradnak.
+
+        ⚠️ **HA VAN KAPCSOLT PULTOS FIOK**, a valasz `kapcsoltFigyelmeztetes`
+        mezoje megmondja - a felulet ebbol kerdezi meg a felhasznalot, hogy a
+        masikat is tiltsa-e. **A rendszer nem dont helyette, de nem is hallgat.**
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - $ref: '#/components/parameters/FelhasznaloAzonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FelhasznaloModositas'
+      responses:
+        '200':
+          description: A modositott felhasznalo
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FelhasznaloReszletek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          description: |
+            Nincs jogosultsag, VAGY a **burok**: csak olyan jogot/szerepet lehet
+            adni es elvenni, amivel a muveletet vegzo maga is rendelkezik
+            (`BUROK` kod), VAGY a cel **erosebb szinten** all (`EROSEBB_SZINT`),
+            VAGY a **kizaras elleni vedelem** fogott (`KIZARAS` kod).
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /felhasznalok/{felhasznaloAzonosito}/jogosultsagok:
+    put:
+      tags: [hozzaferes]
+      operationId: jogosultsagokatBeallit
+      summary: A felhasznalo jogai EGY hatokorben
+      description: |
+        A megadott hatokorre vonatkozo **teljes** halmazt allitja be: ami nincs
+        a listaban, az elkerul. Igy a felulet mindig azt kuldi, amit a
+        kepernyon lat, es nincs "hozzaad/elvesz" parositas, ami kicsuszhat.
+
+        ⚠️ **A BUROK MINDKET IRANYBAN ALL:** a hozzaadott ES az elvett jogoknak
+        is meg kell lenniuk a muveletet vegzonel. Az elvetes korlatja a
+        gyakrabban elfelejtett, es nem tobb joggal sul el, hanem **benitassal**:
+        enelkul egy szuk jogu adminisztrator kizarhatna a lanc vezetojet.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - $ref: '#/components/parameters/FelhasznaloAzonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JogosultsagKeres'
+      responses:
+        '200':
+          description: A felhasznalo, a modositott jogokkal
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FelhasznaloReszletek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          description: |
+            Nincs jogosultsag, VAGY a **burok** fogott (`BUROK`), VAGY a cel
+            erosebb szinten all (`EROSEBB_SZINT`), VAGY a **kizaras elleni
+            vedelem** (`KIZARAS`): magadat nem tilthatod ki, es az utolso
+            felhasznalokezelot sem.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /sablonok:
+    get:
+      tags: [hozzaferes]
+      operationId: sablonok
+      summary: A jogosultsagi sablonok
+      description: |
+        ⚠️ **A SABLON NEM SZEREPKOR.** Egyszer masolodik a felhasznalora,
+        onnantol a ketto **fuggetlen**: a sablon kesobbi atirasa a **meglevo**
+        felhasznalokat nem valtoztatja. A feluleten ezt ki kell irni, kulonben
+        mindenki azt hiszi, hogy visszamenoleg hat.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A sablonok
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sablonok]
+                properties:
+                  sablonok:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sablon'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
 components:
 
   securitySchemes:
@@ -377,7 +669,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.3.0"]
+        examples: ["admin/1.4.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -404,6 +696,13 @@ components:
         franchise-funkcio (spec §22.3), ezert ez MINDEN keresen kotelezo - a
         felho tobb telephelyet szolgal ki, a telephelyi szerver pedig sajat
         maga azonositojat varja, es masra 403-mal valaszol.
+
+    FelhasznaloAzonosito:
+      name: felhasznaloAzonosito
+      in: path
+      required: true
+      schema:
+        $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
 
     Kurzor:
       name: kurzor
@@ -489,6 +788,24 @@ components:
           schema:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
+    Hiba501:
+      description: |
+        ⚠️ **EZT A VEGPONTOT CSAK A FELHO VALOSITJA MEG** (`CSAK_A_FELHOBEN`).
+
+        A telephelyi szerver hatarozottan elutasitja, nem veletlen 404-gyel: a
+        hozzaferes gazdaja a felho, es a telephelyi szerver sajat maga nem
+        dontheti el, ki lephet be a Zigguratba. A felulet ebbol tudja, hogy a
+        menüpontot el kell rejtenie, ha eppen a telephely szolgal ki.
+      headers:
+        Siduri-Szerzodes:
+          $ref: '#/components/headers/SiduriSzerzodes'
+        Siduri-Kiszolgalo:
+          $ref: '#/components/headers/SiduriKiszolgalo'
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
     Hiba422:
       description: Ertelmezhetetlen parameter - peldaul ervenytelen kurzor.
       headers:
@@ -502,6 +819,150 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+
+    Felhasznalo:
+      title: Felhasznalo
+      type: object
+      required: [azonosito, fajta, nev, aktiv, abszolutJog]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        fajta:
+          type: string
+          enum: [ZIGGURAT, PULTOS]
+        nev:
+          type: string
+        bejelentkezesiNev:
+          type: string
+          description: >
+            A berlo rovid neve es az azonosito egyutt (pl. kiskocsma.Pista). A
+            ZIGGURAT-fiokoknal van csak ertelme.
+        email:
+          type: [string, "null"]
+        aktiv:
+          type: boolean
+          description: >
+            Hamis: LETILTVA. Torles nincs - a letiltott ember is latszik, hogy
+            vissza lehessen kapcsolni.
+        abszolutJog:
+          type: boolean
+          description: |
+            Az **abszolut jogosultsagkezeles**: felmentes a burok ala. A felulet
+            ezt **koronaval** jelzi - ez az egyetlen vizualis jel arrol, kinel
+            van a fokulcs.
+        kapcsoltAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      additionalProperties: false
+
+    FelhasznaloReszletek:
+      title: Felhasznalo reszletei
+      type: object
+      required: [felhasznalo, hatokorok]
+      properties:
+        felhasznalo:
+          $ref: '#/components/schemas/Felhasznalo'
+        hatokorok:
+          type: array
+          description: Hatokoronkent, amire van beallitott joga.
+          items:
+            $ref: '#/components/schemas/HatokoriJogok'
+        kapcsoltFigyelmeztetes:
+          type: [string, "null"]
+          description: |
+            ⚠️ Ha van kapcsolt pultos fiok, itt all a figyelmeztetes szovege. A
+            felulet ebbol kerdezi meg, hogy a masikat is tiltsa-e. **A rendszer
+            nem dont helyette, de nem is hallgat.**
+      additionalProperties: false
+
+    HatokoriJogok:
+      title: Jogok egy hatokorben
+      type: object
+      required: [hatokorTipus, jogosultsagok]
+      properties:
+        hatokorTipus:
+          type: string
+          enum: [TELEPHELY, RAKTAR, GLOBALIS]
+        hatokorAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        hatokorNev:
+          type: [string, "null"]
+        jogosultsagok:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+
+    FelhasznaloKeres:
+      title: Uj felhasznalo
+      type: object
+      required: [nev, azonosito, email]
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 200
+        azonosito:
+          type: string
+          description: >
+            A bejelentkezesi nev berlo utani resze. Kisbetu, szam, pont es
+            alulvonas - hogy a teljes nev (berlo.azonosito) egyertelmuen
+            olvashato legyen.
+          pattern: '^[a-z0-9][a-z0-9._-]{1,63}$'
+        email:
+          type: string
+          format: email
+          description: Ide megy a regisztracios meghivo.
+      additionalProperties: false
+
+    FelhasznaloModositas:
+      title: Felhasznalo modositasa
+      type: object
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 200
+        aktiv:
+          type: boolean
+          description: Hamis = LETILTAS. Torles nincs.
+      additionalProperties: false
+
+    JogosultsagKeres:
+      title: Jogosultsagok egy hatokorben
+      type: object
+      required: [hatokorTipus, jogosultsagok]
+      properties:
+        hatokorTipus:
+          type: string
+          enum: [TELEPHELY, RAKTAR, GLOBALIS]
+        hatokorAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        jogosultsagok:
+          type: array
+          description: >
+            A TELJES halmaz erre a hatokorre. Ami nincs benne, az elkerul.
+          items:
+            type: string
+      additionalProperties: false
+
+    Sablon:
+      title: Jogosultsagi sablon
+      type: object
+      required: [azonosito, kod, nev, jogosultsagok]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        kod:
+          type: string
+        nev:
+          type: string
+        leiras:
+          type: [string, "null"]
+        jogosultsagok:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
 
     Kategoria:
       title: Kategoria

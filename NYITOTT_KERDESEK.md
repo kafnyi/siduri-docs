@@ -42,7 +42,19 @@
 > kerül kód. **O1/c eldöntve: a C#-névtér `MythSystem.Siduri.*`** — itt a kód igazodott a
 > szabályhoz, a kassza átnevezve.
 >
-> **ÚJ (2026-09-21) — a kölcsönös TLS megvalósult (`szinkron/1.1.0`):** a telephely
+> **ÚJ (2026-09-22) — a felhő hozzáférési modellje eldőlt:** a webes admin
+> hozzáféréséről **a felhő saját nyilvántartása** dönt, nem a telephelyiről
+> leszinkronizált felhasználók — hogy létezhessen olyan központi felelős vagy
+> tulajdonos, akinek **nincs** telephelyi fiókja (a telephelyi felhasználók
+> pultos kezelők, PIN-nel). A kiosztás **telephelyenként** szól, hogy egy
+> franchise-partnernek a saját két egységét lehessen megmutatni a negyvenből.
+> ⚠️ **ÁRA: két felhasználó-nyilvántartás, két kiléptető lépés.** Akit a
+> telephelyen letiltanak, annak a felhős hozzáférése megmarad, amíg ott is le nem
+> tiltják — ezt eljárással kell lefedni, nem kóddal. A jogosultság-kapu
+> válasza (`NINCS_JOGOSULTSAG`, 403) **a közös szerződéstesztbe került**, tehát a
+> két megvalósítás eltérése mostantól elbuktatja a build-et.
+>
+> > **ÚJ (2026-09-21) — a kölcsönös TLS megvalósult (`szinkron/1.1.0`):** a telephely
 > azonosságát **a kliens-tanúsítvány** adja, nem a kérés teste *(eltérés → 403)* ·
 > **saját hitelesítő (CA)**, a visszavonás **ujjlenyomat-nyilvántartásban**, azonnali
 > hatállyal *(ára: a felhő adatbázisa nélkül senki nem szinkronizál — vállalt, mert egy

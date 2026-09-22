@@ -142,9 +142,25 @@ modulhatárt ArchUnit őrzi.
 volt; mostantól **gépi kényszer** — a közös teszt bizonyítottan elbukik, ha a
 két oldal viselkedése eltér.
 
-**Ami ebből még hiányzik a felhőben:** jogosultság-ellenőrzés *(a telephelyi
-oldal megköveteli a `termek.megtekintes` jogot, a felhő még nem — F7.4)* · írás ·
-és **az adatot semmi nem tölti fel**, mert a K3 szinkron nincs megépítve.
+✅ **A felhő jogosultság-ellenőrzése megvan** *(2026-09-22)*. A felhő a **saját**
+hozzáférés-nyilvántartásából dolgozik, **telephelyenkénti kiosztással**, és a válasz
+ugyanaz, mint a telephelyi oldalon (`NINCS_JOGOSULTSAG`, 403). **A közös
+szerződésteszt mostantól ezt is kérdezi mindkét megvalósításon** — a kapu tehát
+gépi kényszer, nem szándék.
+
+**Ára, kimondva:** **két felhasználó-nyilvántartás**. Akit a telephelyen
+kirúgnak és ott letiltanak, annak a felhős hozzáférése **megmarad**, amíg ott is
+le nem tiltják. Ez eljárási feladat, nem kódé: a kiléptető listán mindkét
+helynek szerepelnie kell. Cserébe létezhet olyan központi kategóriafelelős vagy
+tulajdonos, akinek **egyáltalán nincs** telephelyi fiókja.
+
+**Ami ebből még hiányzik a felhőben:** írás (az ármódosítás ma csak a telephelyi
+oldalon él) · **felhasználókezelő felület** (ma SQL-sor) · bejelentkezés (ma
+fejlesztői kapcsoló, alapértelmezésben **minden kérés 401**) · egyedi kivétel és
+egyszeri vezetői felhatalmazás *(a telephelyi modellben van, ide az olvasó
+kapuhoz nem kellett — bővítés lesz, nem törő változás)* · a webes adminban a 403
+**saját képernyője** *(ma a hibakódot és az üzenetet írja ki, tehát nem törik el,
+de nem is segít)*.
 
 ✅ **A K3 szerződés kiadva ÉS megvalósítva** *(2026-09-21, `szinkron/1.0.0`)*:
 lefelé törzsadat és zárolás, felfelé nyugta és állapot.

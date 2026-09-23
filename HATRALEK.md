@@ -183,7 +183,9 @@ döntéshozatal szokásos ára.
 | 2 | **Bérlői Ziggurat-fiókok kezelése** — jogok, sablonok, sablon-visszaállítás | ✅ **kész** *(`admin/1.4.0`)* |
 | 3 | **A pultos nyilvántartás átköltöztetése** a felhő gazdasága alá, telephelyi másolattal | ✅ **kész** *(`szinkron/1.2.0`)* |
 | 4 | **Pultos fiókok kezelése a Zigguratról** + a két fiók összekapcsolása | ✅ **kész** *(`admin/1.5.0`)* |
-| 5 | **Globális pultos szerkesztés a pultból** — hálózatellenőrzéssel, kiemelt oldalon | hátra |
+| 5/a | **A felhő oldala** — globális kiértékelés ✅, jogosultság-napló ✅, offline elbírálás hátra | **részben kész** |
+| 5/b | **A telephelyi szerver és a szerződések** — pulti felhasználókezelés, offline átfedő tábla, felküldés | hátra |
+| 5/c | **A pult képernyője** — WPF, helyi lista és globális fül | hátra |
 | 6 | **A Siduri-hozzáférés** — forgó kód, néma belépés, növekvő várakozás, láncolt napló | hátra |
 | 7 | **Belső kollégafiókok** — jogkörök, kapcsolók, négy szem elv | hátra |
 

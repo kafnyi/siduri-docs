@@ -362,6 +362,125 @@ bérlő minden kiosztását érintené.
 * **A leggyengébb szint számít:** globálisan csak azt teheti meg, amit **minden
   érintett üzletben** megtehetne.
 
+### 7.2 Offline szerkesztés — helyi érvény, felhős elbírálás
+
+⚠️ **DÖNTÉS (2026-09-23).** A 3. darab óta a pultos nyilvántartás gazdája a
+felhő, a telephelyi példány másolat. Ebből az következne, hogy a pultnál
+**minden** felhasználó-szerkesztés hálózatot igényel — a globális is, a saját
+üzletbeli is. **Ezt elvetettük.**
+
+**Miért:** az egész rendszer alapígérete, hogy a telephely net nélkül is
+dolgozik. A kassza megy, az eladás megy, a napzárás megy. Ha pont a
+felhasználókezelés esik ki, akkor az a dolog romlik el, amit a legkevésbé
+terveztünk elromlani hagyni. A valós eset: a pultfőnök **most** akar sztornó-jogot
+adni egy alkalmazottnak, mert a műszakban kelleni fog — és a gép lehet, hogy csak
+másnap lesz újra online.
+
+**Amit NEM csinálunk: összefésülést.** A jogosultságon az összefésülés pont az,
+amit a 3. darabnál jó okkal utasítottunk el: mezőnkénti időbélyeg mellett egy
+visszavont jog **feléledhet**, és ez csendben történik. Helyette:
+
+| Lépés | Mi történik |
+|---|---|
+| 1. | A változtatás **helyben azonnal él** — a műszak megy tovább |
+| 2. | **Külön táblába** kerül, nem a pillanatkép soraiba. A pillanatkép-alkalmazó marad, ami ma: letöröl és újraír, óvatoskodás nélkül. A helyi változtatás **ráfekszik** a pillanatképre, amíg el nem bírálják |
+| 3. | Kapcsolódáskor **felmegy**, és a felhő bírálja el |
+| 4. | Elfogadva → felhős igazsággá válik. Elutasítva → helyben visszavonjuk, és **kiírjuk, kinél, mit, miért** |
+
+⚠️ **Ez nem összefésülés, hanem jóváhagyásra váró kérés.** Az összefésülés egy
+soron két értéket ütköztet; itt egyetlen kérés vár elbírálásra. A második nem
+igényel algoritmust — és nincs benne az a hiba, hogy a helyi írás csendben
+felülír egy központi megvonást.
+
+**Hol él:** ⚠️ **a telephelyi szerveren, nem a pultban.** „Offline" azt jelenti,
+hogy a **boltnak** nincs internete; a pult és a telephelyi szerver között megy a
+hálózat, különben a kassza sem működne. A pultban tehát **nulla offline gépezet**
+kell. Mellékhaszon: ugyanez jár a **telephelyről kiszolgált Zigguratnak** is,
+ingyen.
+
+#### A szabály két fele
+
+⚠️ **A „legfrissebb döntés nyer" önmagában lyukas**, és pont az offline-ban
+maradás lenne a kiskapu: aki offline van, a **saját jogának megvonását** is
+felülírhatná azzal, hogy később cselekszik. Ezért:
+
+| Mit | Ki dönt | Miért |
+|---|---|---|
+| **A jogosultság ÉRTÉKE** *(van-e X-nek sztornó-joga)* | **a legfrissebb döntés** | Két írás ütközik ugyanarra; a későbbi tud többet |
+| **A CSELEKVŐ joga** *(oszthatta-e egyáltalán)* | **a felhő, a változtatás IDŐPONTJÁRA nézve** | Késleltetéssel jogot szerezni nem lehet |
+
+A második nem szigorúbb, hanem **igazságosabb**: ha a pultfőnök 09:00-kor
+osztott, és a központ 10:00-kor vette el a jogát, a 09:00-s osztás **érvényes
+marad**. Csak a 10:00 **utáni** cselekvés bukik el. Ehhez kell a §7.3 naplója.
+
+#### Három aszimmetria, ami korlátban tartja
+
+1. ⚠️ **Kifelé mindig, befelé soha.** Letiltani offline **mindig** lehet, és
+   azonnal él. **Visszaengedni offline nem lehet:** ha a pillanatkép szerint
+   valaki le van tiltva, azt helyben nem lehet feloldani. Szándékosan nem
+   szimmetrikus — kijuttatni valakit sürgős lehet, beengedni sosem az.
+2. ⚠️ **A hatalmi jogok offline nem oszthatók.** Az üzleti jogok mehetnek
+   (sztornó, árengedmény, napzárás); a rendszer **fölötti** hatalom nem:
+   `jogosultsag.kiosztas`, `szerep.kezeles`, `felhasznalo.globalis`. Enélkül a
+   rés **ki tudja tágítani önmagát**: aki offline kap jogosztási jogot, az
+   onnantól bármit adhat. *(Javaslat, még nem hagytad jóvá: a
+   `felhasznalo.jelszo_csere_mase` is ide tartozik — más jelszavának átírása egy
+   út befelé, nem üzleti művelet.)*
+3. **Elévülés NINCS** — kimondott döntés. A licenc **10 napos offline türelmi
+   ideje** már korlátozza az ablakot; egy második, szűkebb korlát csak annyit
+   érne el, hogy a 8. napon a képernyő érthetetlenül megtagadná a munkát. *(A
+   dokumentum egyébként is tiltja az ilyen számok összecsatolását — lásd
+   `NYITOTT_KERDESEK.md` B10/b.)*
+
+#### ⚠️ Amit ez NEM old meg — és kód nem is fogja
+
+> Kedden 10:00-kor a központ elveszi Kovács sztornó-jogát, mert gyanús. A bolt
+> kedd óta offline. Kedden 14:00-kor a pultfőnök — aki **nem tudhat** a központ
+> döntéséről — visszaadja neki. Kovács kedd délutántól szerda reggelig
+> **sztornóz**. Szerdán a gép online lesz, a felhő elutasítja a változtatást, a
+> jog eltűnik. **A sztornók viszont megtörténtek.**
+
+Ez a maradékkockázat, és **kizárólag az offline ablak hosszával** csökkenthető.
+Az audit-lánc rögzíti őket, tehát **észrevehető** — csak nem megelőzhető.
+Vállaljuk, kimondva.
+
+---
+
+### 7.3 A jogosultság-napló — ki, mikor, kinek, mit
+
+✅ **Megépült** *(2026-09-23)*.
+
+⚠️ **Eddig erre a kérdésre senki nem tudott válaszolni.** A megvonás egyszerűen
+egy törölt sor volt: se időbélyeg, se nyom. Egy olyan rendszerben, aminek a
+lényege, hogy megmondja, mi történt, a jogosultság-nyilvántartás volt az
+egyetlen hely **történet nélkül**. Ezért az O3 mezőeredet-kötelezettség *(„látszania
+kell, mikor és honnan kapta a mostani értékét")* a jogosultságokra
+**teljesíthetetlen** volt.
+
+⚠️ **A TÉNYLEGES HATÁST naplózzuk, nem a táblaműveletet.** Egy szerep kiosztása
+egyetlen sor, de az örökléssel tíz jogosultságot hozhat magával — és a kérdés
+sosem az, hogy melyik sor változott, hanem hogy **mit tud mostantól**. A
+táblaműveletet naplózva minden kérdésnél újra ki kellene számolni az öröklést a
+**múltbeli** állapotra; így egy indexelt keresés elég.
+
+* Ebből következik, hogy egy **letiltás az összes jogot elvesztettként**
+  naplózza. Ez nem zaj, hanem a valóság: a letiltott halmaza üres. Cserébe az
+  elbírálónak **nincs külön ága** a letiltásra.
+* A **hatástalan művelet nem kerül bele.** Egy „mentés" gomb, ami ugyanazt menti
+  újra, nem történés — és ha bekerülne, a napló pont azoknál hízna
+  használhatatlanná, akiknél a legtöbbet kattintanak.
+* ⚠️ **Csak beszúrható**, adatbázis-szintű triggerrel. Egy napló, amit át lehet
+  írni, nem napló — és épp az elbírálásnál lenne a legdrágább: az időpont,
+  amihez mérünk, hamisítható lenne.
+* Rögzítjük, hogy a döntés a **felhőben** vagy a **telephelyen** született. Egy
+  offline tett változtatás elavult jogállás szerint született, és az elbírálás
+  kiindulópontja épp ez a tény.
+
+⚠️ **A „megvolt-e neki AKKOR?" kérdésre a MAI állapotból indulunk visszafelé**,
+nem a bejegyzésekből előre. Ha csak a bejegyzéseket néznénk, minden korábban
+kiosztott jog úgy látszana, mintha soha nem létezett volna — vagyis **a napló
+bevezetése maga törölné el mindenki múltját**.
+
 ---
 
 ## 8. A Siduri-hozzáférés a pulthoz
@@ -567,7 +686,15 @@ pult; **nincs közös raktár** → csak átvételezéssel lehet áttolni.)*
    másolattal — **kész** *(2026-09-23)*, lásd §2.1/a.
 4. ✅ **Pultos fiókok kezelése a Zigguratról**, és az összekapcsolás (§6) —
    **kész** *(2026-09-23, `admin/1.5.0`)*.
-5. **Globális pultos szerkesztés a pultból** (§7.1).
+5. **Globális pultos szerkesztés a pultból** (§7.1) — **három részre bomlott**,
+   mert a pultban **egyáltalán nincs felhasználókezelő képernyő**, és a
+   kassza-szerződésben sincs mihez beszélnie:
+   * **5/a — a felhő oldala.** A globális kiértékelés *(leggyengébb szint,
+     metszet-burok)* ✅ és a **jogosultság-napló** (§7.3) ✅ **kész**; hátra van
+     az offline változtatások elbírálása (§7.2).
+   * **5/b — a telephelyi szerver és a szerződések.** A pulti felhasználókezelés
+     végpontjai, az offline átfedő tábla és a felküldés.
+   * **5/c — a pult képernyője.** WPF, a helyi lista és a globális fül.
 6. **A Siduri-hozzáférés** (§8).
 7. **A belső kollégafiókok** (§4), a négy szem elv munkafolyamatával.
 

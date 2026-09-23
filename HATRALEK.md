@@ -251,6 +251,22 @@ kipróbálva a felületről.
 ✅ **A K3 szerződés kiadva ÉS megvalósítva** *(2026-09-21, `szinkron/1.0.0`)*:
 lefelé törzsadat és zárolás, felfelé nyugta és állapot.
 
+⚠️ **LELET (2026-09-24): a telephelyen átírt törzsadat NEM jut fel a felhőbe.**
+A szinkron-szerződésben (és a kódban) felfelé csak lekérdezés, nyugta és
+hozzáférés-változás megy — **mezőérték nem**. Következmények:
+
+* A telephelyről kiszolgált Zigguratban átírt ár a felhős Zigguratban **a régi
+  értékkel látszik tovább**, és semmi nem jelzi, hogy eltér. Ez néma kudarc.
+* A „későbbi írás nyer” szabályt ma **csak a telephely** alkalmazza (a lefelé
+  érkező értékre). A felhő a telephelyi írásról nem tud, tehát nem is dönthet.
+* A döntés szerint *„a teljes [ár]történet a felhőben áll”* — **a felhőben
+  nincs ártörténet**, és felküldés nélkül nem is lehetne.
+* A „mi volt előtte / mi veszett el” kijelzése a felhőben emiatt **felküldés
+  nélkül nem építhető meg**: a vesztes érték többnyire a telephelyen keletkezik.
+
+**Sorrend:** előbb a felküldés *(szinkron-kisverzió)*, utána a felhős
+ártörténet, végül az előző/vesztes érték a szerződésben és a felületen.
+
 **Élő próbán végigvitt út:** a felhőbe tett árváltozás a telephelyi
 adatbázisban landolt (2400 → 2650 → 2790), a felhő **ALKALMAZTA** nyugtát
 kapott, a mezőeredet a **felhőt** mondja, az ártörténet lezárta a régi sort, és

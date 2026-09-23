@@ -235,10 +235,18 @@ ehhez a nézet az útvonalváltáskor újratölt, különben csak az URL változ
   magyarul jelenik meg nyelvváltás után is.
 * A **401** még nyers hibakódot mutat (`NINCS_MUNKAMENET: …`) — a bejelentkezés
   képernyőjével együtt készül.
-* A **telephelyi** kiszolgálással (az 501-es „csak a felhőben” ág) **nincs**
-  böngészőben megnézve — ehhez a telephelyi szervert kell elindítani.
-* A felhős fejlesztői bérlőben **nincs termék**, így a termékképernyők csak üres
-  állapotban látszottak.
+* ⚠️ **Az előző érték nem látszik az árnál.** A szabály szerint a mező mellett
+  látszania kell, mikor, honnan **és mi volt előtte** — az első kettő megvan, a
+  harmadikat a szerződés nem adja *(ÁRA: `admin` kisverzió)*. Enélkül egy
+  elveszett átírás nyoma csak a naplóban van, a képernyőn nem.
+* Az **áfa** is nyers kódként látszik (`C_27`), a termékek **kategória** oszlopa
+  a fejlesztői adaton mindenhol üres.
+
+✅ **A telephelyi szerverrel is átnézve** *(2026-09-23)*: termékek, zárolt és
+szerkeszthető ár, eredet, a „csak a felhőben” magyarázat. Javítva: a magyarázat
+a pultos fülön is a Ziggurat-fiókokról szólt · az árszerkesztő mezőinek nem volt
+akadálymentes címkéje. **Árat nem mentettem** — a mentés útja élőben nincs
+kipróbálva a felületről.
 
 ✅ **A K3 szerződés kiadva ÉS megvalósítva** *(2026-09-21, `szinkron/1.0.0`)*:
 lefelé törzsadat és zárolás, felfelé nyugta és állapot.

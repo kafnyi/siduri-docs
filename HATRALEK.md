@@ -182,7 +182,7 @@ döntéshozatal szokásos ára.
 | 1 | **A hozzáférési modell a felhőben** — szintek, hierarchia, burok, személyre szabott eltérés, 0. szint, típus+azonosító hatókör | ✅ **kész** *(2026-09-23)* |
 | 2 | **Bérlői Ziggurat-fiókok kezelése** — jogok, sablonok, sablon-visszaállítás | ✅ **kész** *(`admin/1.4.0`)* |
 | 3 | **A pultos nyilvántartás átköltöztetése** a felhő gazdasága alá, telephelyi másolattal | ✅ **kész** *(`szinkron/1.2.0`)* |
-| 4 | **Pultos fiókok kezelése a Zigguratról** + a két fiók összekapcsolása | hátra |
+| 4 | **Pultos fiókok kezelése a Zigguratról** + a két fiók összekapcsolása | ✅ **kész** *(`admin/1.5.0`)* |
 | 5 | **Globális pultos szerkesztés a pultból** — hálózatellenőrzéssel, kiemelt oldalon | hátra |
 | 6 | **A Siduri-hozzáférés** — forgó kód, néma belépés, növekvő várakozás, láncolt napló | hátra |
 | 7 | **Belső kollégafiókok** — jogkörök, kapcsolók, négy szem elv | hátra |

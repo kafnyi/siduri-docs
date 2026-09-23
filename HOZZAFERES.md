@@ -130,9 +130,18 @@ kérdéseket (*erősebb-e a könyvelő a pultfőnöknél?*).
 
 ### 2.4 Öröklés felfelé
 
-**Ha egy szint új jogot kap, minden felette álló is megkapja.**
+**Ha egy szint új jogot kap, minden RANGBAN FELETTE ÁLLÓ is megkapja.**
 
-Két kikötéssel, mert enélkül csendes lenne:
+⚠️ **SZIGORÚAN felette — nem „felette vagy azonos".** Egy szerep megkapja a
+**saját** jogait, és minden **szigorúan gyengébb** szintű szerep jogát. Ha az
+azonos szint is öröklődne, akkor **egy szinten minden szerep ugyanazt
+jelentené** — pedig épp azért engedünk több szerepet egy szinten, hogy a
+tényleges különbséget a **jogaik** adják, ne a rangsor. *(Ezt egy teszt fogta
+meg: az azonos szintet is beszámító öröklés mellett két azonos szintű szerep
+kibontott joga betű szerint megegyezett — vagyis a megkülönböztetésük
+elveszett.)*
+
+Két további kikötéssel, mert enélkül csendes lenne:
 
 * ⚠️ **Számoljuk, ne másoljuk.** Az öröklés **levezetett** (lekérdezéskor
   számolt), nem bemásolt sorok. A másolás első ránézésre egyszerűbb, de egy
@@ -313,6 +322,15 @@ Egy **felhasználói beállítás**, ami felmentést ad **mindkét** burok-szab�
 * Pultos fiók **bérlői fiók nélkül is** létrehozható.
 * ⚠️ **Letiltáskor a rendszer RÁKÉRDEZ**, hogy a kapcsolt másikat is tiltsa-e —
   **mindkét irányban**. **Nem dönt helyettünk, de nem is hallgat.**
+* ⚠️ **Kapcsolat csak ZIGGURAT és PULTOS között értelmes.** Két pultos fiók
+  összekapcsolása nem „ugyanaz az ember", hanem elgépelés — a csendes elfogadás
+  később megfejthetetlen adatot hagyna.
+
+**Aki szint nélküli, arra a pultos rangsor nem vonatkozik — sem célként, sem
+cselekvőként.** A tipikus eset: egy **Ziggurat-fiók kezel pultos
+felhasználókat**. Őt a **burok** köti *(csak azt adhatja és veheti el, amije
+van)*. Enélkül a Ziggurat — ahol a személyzetet kezelik — **egyetlen pultos
+fiókhoz sem nyúlhatna**, amint az kap egy szerepet. *(Élő próbán jött elő.)*
 
 **Ára:** a kapcsolatot valakinek be kell állítania, és a rendszer **nem** tiltja
 le automatikusan a másikat — csak figyelmeztet.
@@ -547,7 +565,8 @@ pult; **nincs közös raktár** → csak átvételezéssel lehet áttolni.)*
    sablon-visszaállítás.
 3. ✅ **A pultos nyilvántartás átköltöztetése** a felhő gazdasága alá, telephelyi
    másolattal — **kész** *(2026-09-23)*, lásd §2.1/a.
-4. **Pultos fiókok kezelése a Zigguratról**, és az összekapcsolás (§6).
+4. ✅ **Pultos fiókok kezelése a Zigguratról**, és az összekapcsolás (§6) —
+   **kész** *(2026-09-23, `admin/1.5.0`)*.
 5. **Globális pultos szerkesztés a pultból** (§7.1).
 6. **A Siduri-hozzáférés** (§8).
 7. **A belső kollégafiókok** (§4), a négy szem elv munkafolyamatával.

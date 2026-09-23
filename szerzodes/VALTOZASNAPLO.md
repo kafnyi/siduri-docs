@@ -269,6 +269,29 @@ csökkentett** alapra számolódik. Ez a védhető alapértelmezés — szolgál
 díjat azon összeg után szedni, amit a vendég ténylegesen fizet. **Ha az ügyfél
 másképp akarja, az konfiguráció, és meg kell kérdezni, nem kitalálni.**
 
+### v1.5.0 — 2026-09-23 — *pultos fiókok és a két fiók összekapcsolása* `NEM TÖRŐ`
+
+**Három új végpont:** `GET /szerepek`, `PUT /felhasznalok/{id}/szerepek`,
+`PUT /felhasznalok/{id}/kapcsolat`. A felvétel mostantól **fajtát** is kap
+*(ZIGGURAT vagy PULTOS)*, és a felvett fiók **azonnal összekapcsolható** egy
+másikkal.
+
+| Mi | Döntés | Miért |
+|----|--------|-------|
+| **E-mail** | **Csak a ZIGGURAT-fióknál kötelező** | A pultos fiók nem a böngészőbe lép be; egy kötelező, de értelmetlen mező kitalált címekkel telne meg |
+| **Szerepkör** | **Csak a pultos oldalon van** | A Ziggurat-fiókoknál felhasználónkénti jog áll — az irodista, a könyvelő és a területi vezető nem rendezhető egy sorba |
+| **Kiosztás** | **KÉT korlát egyszerre**: szint és burok | A második nélkül az első megkerülhető lenne egy **azonos szintű**, de több jogot tartalmazó szereppel |
+| **Sérthetetlen szerep** | **A felületről soha nem osztható** | A burok önmagában nem védené meg: egy bérlői adminisztrátor, akinek minden bérlői joga megvan, ki tudná osztani — és onnantól a saját nyilvántartásában lenne egy elvehetetlen főkulcs |
+| **Kapcsolat** | **Csak ZIGGURAT és PULTOS között** | Két pultos fiók összekapcsolása nem „ugyanaz az ember", hanem elgépelés — és a csendes elfogadás később megfejthetetlen adatot hagyna |
+
+⚠️ **A kapcsolat NEM von maga után automatikus letiltást.** Ha az egyiket
+letiltják, a válasz `kapcsoltFigyelmeztetes` mezője szól róla, és a felület
+**rákérdez** — mindkét irányban. A rendszer nem dönt helyettünk, de nem is hallgat.
+
+⚠️ **AMI MA MÉG NEM TÖRTÉNIK MEG:** a pultos fiók **PIN nélkül** jön létre — azt a
+pult mögött kell beállítani. A felhő a **személyt** és a **jogait** tartja nyilván;
+a hitelesítés helyi marad.
+
 ### v1.4.0 — 2026-09-01 — *sztornó és a számla–nyugta kizárás* `NEM TÖRŐ`
 
 **Új:** `BizonylatMod` (`ADOUGYI` / `SZAMLA`) a lezárásban és a válaszban,

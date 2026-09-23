@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.4.0
+  version: 1.5.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -607,6 +607,159 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /szerepek:
+    get:
+      tags: [hozzaferes]
+      operationId: szerepek
+      summary: A PULTOS szerepek, szintekkel
+      description: |
+        ⚠️ **SZEREPKOR CSAK A PULTOS OLDALON VAN.** A Ziggurat-fiokoknal nincs:
+        ott felhasznalonkenti jog all, sablonbol indulva. Ez nem hianyossag,
+        hanem dontes: az irodista, a konyvelo es a teruleti vezeto **nem
+        rendezheto egy sorba**, es a rangsor ott ertelmetlen
+        osszehasonlitasokat kenyszeritene ki.
+
+        A `szint` **kisebb szam = erosebb**; a 0. szint a Siduri rendszergazdae.
+        A `jogosultsagok` itt a szerep **sajat** jogai - a szint szerinti
+        oroklest a kiszolgalo szamolja, amikor a telephelyre kuldi.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A szerepek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [szerepek]
+                properties:
+                  szerepek:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Szerep'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /felhasznalok/{felhasznaloAzonosito}/szerepek:
+    put:
+      tags: [hozzaferes]
+      operationId: szerepeketBeallit
+      summary: A pultos felhasznalo szerepei EGY hatokorben
+      description: |
+        A megadott hatokorre vonatkozo **teljes** szerephalmazt allitja be: ami
+        nincs a listaban, az elkerul.
+
+        ⚠️ **KET KORLAT all ra egyszerre:**
+
+          1. **Maga fole senkit nem emelhet** - a kiosztott szerep szintje nem
+             lehet erosebb a muveletet vegzoenel *(`EROSEBB_SZINT`)*;
+          2. **a burok**: a szerep jogainak meg kell lenniuk nala is
+             *(`BUROK`)*.
+
+        A masodik nelkul az elso megkerulheto lenne egy AZONOS szintu, de tobb
+        jogot tartalmazo szereppel.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - $ref: '#/components/parameters/FelhasznaloAzonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SzerepKeres'
+      responses:
+        '200':
+          description: A felhasznalo, a modositott szerepekkel
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FelhasznaloReszletek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /felhasznalok/{felhasznaloAzonosito}/kapcsolat:
+    put:
+      tags: [hozzaferes]
+      operationId: kapcsolatotBeallit
+      summary: A Ziggurat-fiok es a pultos fiok osszekapcsolasa
+      description: |
+        Ugyanaz az ember lehet mindketto - peldaul egy kis helyen dolgozo
+        uzletvezeto, aki reggel PIN-nel nyit muszakot, delutan a bongeszoben
+        arat ir.
+
+        ⚠️ **A KAPCSOLAT NEM VON MAGA UTAN AUTOMATIKUS LETILTAST.** Ha az
+        egyiket letiltjak, a valasz `kapcsoltFigyelmeztetes` mezoje szol rola,
+        es a felulet **rakerdez** - MINDKET iranyban. A rendszer nem dont
+        helyettunk, de nem is hallgat.
+
+        Ures `kapcsoltAzonosito` = a kapcsolat **bontasa**.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - $ref: '#/components/parameters/FelhasznaloAzonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KapcsolatKeres'
+      responses:
+        '200':
+          description: A felhasznalo, a modositott kapcsolattal
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FelhasznaloReszletek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          description: |
+            A ket fiok ugyanaz, VAGY a ketto AZONOS FAJTAJU. Kapcsolat csak
+            ZIGGURAT es PULTOS kozott ertelmes - ket pultos fiok osszekapcsolasa
+            nem "ugyanaz az ember", hanem elgepeles.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /sablonok:
     get:
       tags: [hozzaferes]
@@ -669,7 +822,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.4.0"]
+        examples: ["admin/1.5.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -866,6 +1019,13 @@ components:
           description: Hatokoronkent, amire van beallitott joga.
           items:
             $ref: '#/components/schemas/HatokoriJogok'
+        hatokoriSzerepek:
+          type: array
+          description: >
+            Hatokoronkent a kiosztott SZEREPEK. Csak a PULTOS fiokoknal van
+            tartalma - a Ziggurat oldalan nincs szerepkor.
+          items:
+            $ref: '#/components/schemas/HatokoriSzerepek'
         kapcsoltFigyelmeztetes:
           type: [string, "null"]
           description: |
@@ -895,8 +1055,12 @@ components:
     FelhasznaloKeres:
       title: Uj felhasznalo
       type: object
-      required: [nev, azonosito, email]
+      required: [nev, azonosito]
       properties:
+        fajta:
+          type: string
+          enum: [ZIGGURAT, PULTOS]
+          default: ZIGGURAT
         nev:
           type: string
           minLength: 1
@@ -904,14 +1068,86 @@ components:
         azonosito:
           type: string
           description: >
-            A bejelentkezesi nev berlo utani resze. Kisbetu, szam, pont es
-            alulvonas - hogy a teljes nev (berlo.azonosito) egyertelmuen
-            olvashato legyen.
+            ZIGGURAT-nal a bejelentkezesi nev berlo utani resze; PULTOS-nal a
+            pult mogott hasznalt azonosito. Kisbetu, szam, pont es alulvonas.
           pattern: '^[a-z0-9][a-z0-9._-]{1,63}$'
         email:
-          type: string
+          type: [string, "null"]
           format: email
-          description: Ide megy a regisztracios meghivo.
+          description: |
+            Ide megy a regisztracios meghivo. **ZIGGURAT-nal kotelezo**,
+            PULTOS-nal nincs ertelme: a pultos fiok nem a bongeszobe lep be.
+        kapcsoltAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      additionalProperties: false
+
+    Szerep:
+      title: Pultos szerep
+      type: object
+      required: [azonosito, kod, nev, szint, jogosultsagok]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        kod:
+          type: string
+        nev:
+          type: string
+        szint:
+          type: integer
+          minimum: 0
+          description: Kisebb szam = erosebb. A 0. szint a Siduri rendszergazdae.
+        serthetetlen:
+          type: boolean
+          description: >
+            A Siduri szerep. Nem modosithato es nem torolheto - adatbazisszinten
+            sem.
+        jogosultsagok:
+          type: array
+          items:
+            type: string
+      additionalProperties: false
+
+    HatokoriSzerepek:
+      title: Szerepek egy hatokorben
+      type: object
+      required: [hatokorTipus, szerepek]
+      properties:
+        hatokorTipus:
+          type: string
+          enum: [TELEPHELY, RAKTAR, GLOBALIS]
+        hatokorAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        szerepek:
+          type: array
+          items:
+            $ref: '#/components/schemas/Szerep'
+      additionalProperties: false
+
+    SzerepKeres:
+      title: Szerepek egy hatokorben
+      type: object
+      required: [hatokorTipus, szerepek]
+      properties:
+        hatokorTipus:
+          type: string
+          enum: [TELEPHELY, RAKTAR, GLOBALIS]
+        hatokorAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        szerepek:
+          type: array
+          description: A TELJES halmaz erre a hatokorre. Ami nincs benne, elkerul.
+          items:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      additionalProperties: false
+
+    KapcsolatKeres:
+      title: Fiokok osszekapcsolasa
+      type: object
+      properties:
+        kapcsoltAzonosito:
+          type: [string, "null"]
+          format: uuid
+          description: Ures = a kapcsolat bontasa.
       additionalProperties: false
 
     FelhasznaloModositas:

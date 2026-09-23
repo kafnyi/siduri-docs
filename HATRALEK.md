@@ -156,7 +156,7 @@ tulajdonos, akinek **egyáltalán nincs** telephelyi fiókja.
 
 **Ami ebből még hiányzik a felhőben:** írás (az ármódosítás ma csak a telephelyi
 oldalon él) · bejelentkezés (ma fejlesztői kapcsoló, alapértelmezésben **minden
-kérés 401**) · a webes admin **böngészős átnézése** *(még soha nem történt meg)*.
+kérés 401**) · a webes admin **böngészős átnézése** *(✅ 2026-09-23, a felhőn: hat felületi hiba javítva, lásd lent)*.
 A **felhasználókezelés** külön fejezet lett — lásd lentebb.
 
 ### A hozzáférési modell — megtervezve, még nem megépítve *(2026-09-23)*
@@ -219,6 +219,26 @@ szerződésteszt mindkét megvalósításon megköveteli.
 megnézve** — a döntési logikát teszt fedi, a típusok fordulnak, a kiszolgáló
 oldala élőben ellenőrzött, de a **megjelenés** nem. A felhasználókezelő felület
 és a 401 (bejelentkezés) saját képernyője továbbra is hátra van.
+
+✅ **Böngészőben átnézve** *(2026-09-23, felhő, fejlesztői bérlő)*: termékek,
+felhasználók két füle, felhasználó lapja, kapcsolt fiók, felvétel, 403. Javítva:
+a cím még „Siduri admin” volt · a keresőgomb felirata a helykitöltő szövege volt ·
+dupla elválasztó e-mail nélkül · a 403 alatt ott maradt az „Új felhasználó” gomb ·
+a kapcsolt fiók figyelmeztetése nem mondta meg, **ki** a másik (most hivatkozás;
+ehhez a nézet az útvonalváltáskor újratölt, különben csak az URL változott volna).
+
+⚠️ **Amit az átnézés talált, de NEM javított:**
+* A jogosultságok **nyers kódként** látszanak (`termek.ar_modositas`). Emberi
+  név a szerződésből kellene *(ÁRA: `admin` kisverzió)*; egy felületi fordítótábla
+  csendben elcsúszna a kiszolgáló katalógusától.
+* Az **angol és német** szöveg a felületnek csak ~12 kulcsát fedi — a többi
+  magyarul jelenik meg nyelvváltás után is.
+* A **401** még nyers hibakódot mutat (`NINCS_MUNKAMENET: …`) — a bejelentkezés
+  képernyőjével együtt készül.
+* A **telephelyi** kiszolgálással (az 501-es „csak a felhőben” ág) **nincs**
+  böngészőben megnézve — ehhez a telephelyi szervert kell elindítani.
+* A felhős fejlesztői bérlőben **nincs termék**, így a termékképernyők csak üres
+  állapotban látszottak.
 
 ✅ **A K3 szerződés kiadva ÉS megvalósítva** *(2026-09-21, `szinkron/1.0.0`)*:
 lefelé törzsadat és zárolás, felfelé nyugta és állapot.

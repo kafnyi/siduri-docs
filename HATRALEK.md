@@ -187,6 +187,15 @@ döntéshozatal szokásos ára.
 | 6 | **A Siduri-hozzáférés** — forgó kód, néma belépés, növekvő várakozás, láncolt napló | hátra |
 | 7 | **Belső kollégafiókok** — jogkörök, kapcsolók, négy szem elv | hátra |
 
+⚠️ **Amit a 4. darab NEM old meg:** a szerepjelölők közül csak a
+**sérthetetlen** látszik eleve letiltva. A **szint** és a **burok** korlátját a
+kiszolgáló dönti el, és a felület az elutasítás után **visszaolvassa** az
+állapotot. Ez helyes, de **egy kattintásnyi kitérő**: a felhasználó előbb
+próbálkozik, csak utána tudja meg, hogy nem lehet. Az előzetes jelöléshez a
+szereplistának **felhasználónként** kellene megmondania, kiosztható-e —
+vagyis **szerződésbővítés** *(ÁRA: egy újabb `admin` kisverzió, és a
+szereplista a cselekvőtől is függne, tehát nem lenne gyorstárazható)*.
+
 **Amit ez a kör ELHALASZTOTT, kimondva:** második tényező a belső fiókokhoz
 *(vállalt kockázat: egy kiszivargó kollégajelszó = minden bérlő minden adata)* ·
 a raktár mint **entitás** *(csak a hatókör dőlt el)* · a készletkezelés egésze ·

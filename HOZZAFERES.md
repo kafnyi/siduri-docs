@@ -419,13 +419,22 @@ marad**. Csak a 10:00 **utáni** cselekvés bukik el. Ehhez kell a §7.3 naplój
    azonnal él. **Visszaengedni offline nem lehet:** ha a pillanatkép szerint
    valaki le van tiltva, azt helyben nem lehet feloldani. Szándékosan nem
    szimmetrikus — kijuttatni valakit sürgős lehet, beengedni sosem az.
-2. ⚠️ **A hatalmi jogok offline nem oszthatók.** Az üzleti jogok mehetnek
-   (sztornó, árengedmény, napzárás); a rendszer **fölötti** hatalom nem:
-   `jogosultsag.kiosztas`, `szerep.kezeles`, `felhasznalo.globalis`. Enélkül a
-   rés **ki tudja tágítani önmagát**: aki offline kap jogosztási jogot, az
-   onnantól bármit adhat. *(Javaslat, még nem hagytad jóvá: a
-   `felhasznalo.jelszo_csere_mase` is ide tartozik — más jelszavának átírása egy
-   út befelé, nem üzleti művelet.)*
+2. ⚠️ **A hatalmi jogok offline nem oszthatók.** Az **üzleti** jogok mehetnek
+   (sztornó, árengedmény, napzárás); a rendszer **fölötti** hatalom nem. A
+   lista *(2026-09-23 döntés)*:
+
+   | Kód | Miért nem osztható offline |
+   |---|---|
+   | `jogosultsag.kiosztas` | Aki ezt offline megkapja, onnantól **bármit** adhat — a rés ki tudja tágítani önmagát |
+   | `szerep.kezeles` | Ugyanaz, egy lépéssel odébb: a szerep jogain keresztül |
+   | `felhasznalo.globalis` | A helyi rés **minden üzletre** kiterjedne |
+   | `felhasznalo.jelszo_csere_mase` | **Nem üzleti művelet, hanem egy út befelé**: aki megkapja, bárki fiókjába beléphet, és onnantól az illető jogaival dolgozik — a burok megkerülése személycserével |
+
+   ⚠️ **A négy közös vonása:** egyik sem egy **üzleti** műveletet enged meg,
+   hanem azt, hogy valaki **több jogot szerezzen**, mint amennyi az elbíráláskor
+   számon kérhető rajta. Ezért nem elegénségi kérdés, hogy offline eljárhat-e
+   velük: a felhős elbírálás **utólag** törli őket, de amit közben csináltak velük,
+   az megmarad.
 3. **Elévülés NINCS** — kimondott döntés. A licenc **10 napos offline türelmi
    ideje** már korlátozza az ablakot; egy második, szűkebb korlát csak annyit
    érne el, hogy a 8. napon a képernyő érthetetlenül megtagadná a munkát. *(A

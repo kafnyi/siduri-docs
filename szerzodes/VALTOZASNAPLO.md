@@ -137,6 +137,25 @@ A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a tel
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
 
+### v1.3.0 — 2026-09-23 — *a telephely kerdez: offline valtoztatasok elbiralasa* `NEM TÖRŐ`
+
+**Ez az első hely, ahol a telephely kérdez valamit, amire a felhő nemet is
+mondhat.** A K3 lefelé menő iránya **parancs**; a kapcsolat nélkül tett
+hozzáférés-változtatás viszont **kérés**.
+
+| Mi | Döntés | Miért |
+|----|--------|-------|
+| **Hol megy fel** | A **meglévő `/hozzaferes` körben**, nem külön úton | Így az elfogadott változtatás **már benne van** a visszakapott pillanatképben. Külön úton a telephely egy olyan állapotot alkalmazna, ami a saját, iménti változtatását még nem tartalmazza — és az a pillanatra **visszaállna** |
+| **`tortent`** | **Amikor megtörtént**, nem amikor felkerült | A felhő **ehhez** az időponthoz méri, hogy a cselekvőnek volt-e joga. A két időpont különbsége napokban mérhető — és épp ez a szelet lényege |
+| **`ertekek`** | A hatókör **teljes** kívánt halmaza, nem növekmény | A részleges alkalmazás olyan állapotot állítana elő, amit **soha senki nem akart** — sem a pultfőnök, sem a központ |
+| **`eredmeny`** | **HÁROM érték**: `ELFOGADVA`, `ELUTASITVA`, `ELAVULT` | Az utolsó kettő **nem ugyanaz**: az egyik a cselekvőről szól *(nem volt joga)*, a másik senkiről, csak sorrendről |
+| **`telephelyDarab`** | **Minden körben lejön** | A pultnak **kapcsolat nélkül is** tudnia kell, együzletes-e a bérlő — különben a globális menüpont offline vagy eltűnne, vagy egy hasznavehetetlen oldalra vinne |
+
+⚠️ **Az elbírálás akkor is lejön, ha a pillanatkép változatlan.** Hogy
+változott-e a tartalom, és hogy mi lett a felküldött változtatás sorsa, **két
+külön kérdés** — egy elutasítás tipikusan épp **nem változtat semmin**, és épp azt
+kell megtudnia a telephelynek.
+
 ### v1.2.0 — 2026-09-23 — *a pultos hozzáférés — PILLANATKÉPKÉNT* `NEM TÖRŐ`
 
 **Egy új végpont:** `POST /hozzaferes`. A telephely lekéri a saját pultos

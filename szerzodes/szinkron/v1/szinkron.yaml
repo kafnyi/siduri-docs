@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.2.0
+  version: 1.3.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -366,6 +366,22 @@ components:
             Amit a telephely mar alkalmazott. Ha egyezik a mostanival, a valasz
             nem hoz adatot. Elso lekerdezesnel ures.
           maxLength: 128
+        valtoztatasok:
+          type: array
+          maxItems: 200
+          description: |
+            A telephelyen, KAPCSOLAT NELKUL tett valtoztatasok, elbiralasra.
+
+            ⚠️ UGYANEBBEN A KORBEN, nem kulon uton. Igy az elfogadott
+            valtoztatas MAR BENNE VAN a visszakapott pillanatkepben - kulonben a
+            telephely egy olyan allapotot alkalmazna, ami a sajat, imenti
+            valtoztatasat meg nem tartalmazza, es az a pillanatra visszaallna.
+
+            ⚠️ Ez NEM parancs, hanem KERES. A lefele meno irany parancs; ez az
+            egyetlen hely, ahol a telephely kerdez valamit, amire a felho
+            nemet is mondhat.
+          items:
+            $ref: '#/components/schemas/HelyiValtoztatas'
 
     HozzaferesValasz:
       title: Hozzaferes-pillanatkep
@@ -391,6 +407,100 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SzinkronFelhasznalo'
+        elbiralasok:
+          type: array
+          description: >
+            A felkuldott valtoztatasok sorsa. Akkor is jon, ha a pillanatkep
+            valtozatlan - az elbiralas fuggetlen attol, valtozott-e a tartalom.
+          items:
+            $ref: '#/components/schemas/Elbiralas'
+        telephelyDarab:
+          type: integer
+          minimum: 1
+          description: |
+            Hany telephelye van a berlonek. EGYETLEN telephely eseten a
+            globalis szerkesztes oldala NEM JELENIK MEG (HOZZAFERES 7.1):
+            folosleges es zavaro lenne.
+
+            ⚠️ Azert jon le MINDEN korben, mert a pultnak ezt KAPCSOLAT NELKUL
+            is tudnia kell. Ha csak lekerdezeskor derulne ki, a menupont
+            offline vagy eltunne, vagy egy olyan oldalra vinne, ami csak annyit
+            mond, hogy nem hasznalhato - es epp ezt a zavart akartuk elkerulni.
+
+    HelyiValtoztatas:
+      title: Helyi valtoztatas elbiralasra
+      type: object
+      required: [azonosito, tortent, cselekvo, erintett, hatokorTipus, fajta]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tortent:
+          type: string
+          format: date-time
+          description: |
+            AMIKOR MEGTORTENT, nem amikor felkerult. A felho EHHEZ az idoponthoz
+            meri, hogy a cselekvonek volt-e joga.
+
+            ⚠️ A ket idopont kulonbsege lehet napokban merheto, es epp ez a
+            szelet lenyege: egy kedden tett valtoztatas kedden tortent.
+        cselekvo:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        erintett:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        hatokorTipus:
+          type: string
+          enum: [TELEPHELY, RAKTAR, GLOBALIS]
+        hatokorAzonosito:
+          oneOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            - type: "null"
+          description: GLOBALIS hatokornel ures, a tobbinel kotelezo.
+        fajta:
+          type: string
+          enum: [SZEREPEK, JOGOK, AKTIV]
+        ertekek:
+          type: array
+          maxItems: 500
+          description: >
+            A hatokor TELJES kivant halmaza - szerepazonositok vagy
+            jogosultsagkodok. NEM novekmeny: a reszleges alkalmazas olyan
+            allapotot allitana elo, amit soha senki nem akart.
+          items:
+            type: string
+            maxLength: 100
+        aktiv:
+          type: [boolean, "null"]
+          description: >
+            AKTIV fajtanal. ⚠️ A hamis (letiltas) mindig elfogadhato; az igaz
+            (visszaengedes) kapcsolat nelkul SOHA - kijuttatni valakit surgos
+            lehet, beengedni sosem az.
+
+    Elbiralas:
+      title: Egy valtoztatas sorsa
+      type: object
+      required: [azonosito, eredmeny]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        eredmeny:
+          type: string
+          enum: [ELFOGADVA, ELUTASITVA, ELAVULT]
+          description: |
+            ⚠️ HAROM kimenet, nem ketto, es az utolso KETTO NEM UGYANAZ.
+
+              - ELUTASITVA: a cselekvonek NEM VOLT JOGA hozza. Rola szol.
+              - ELAVULT: a kozpont idokozben dontott ugyanarrol. Senkirol nem
+                szol, csak sorrendrol.
+
+            A felulet ezeket KULON kell hogy mondja. Egy kozos "nem sikerult"
+            azt sugallna a pultfonoknek, hogy o rontott el valamit - pedig a
+            masodik esetben csak megelroztek.
+        kod:
+          type: [string, "null"]
+          maxLength: 64
+        uzenet:
+          type: [string, "null"]
+          maxLength: 500
 
     SzinkronSzerep:
       title: Szerep

@@ -184,7 +184,7 @@ döntéshozatal szokásos ára.
 | 3 | **A pultos nyilvántartás átköltöztetése** a felhő gazdasága alá, telephelyi másolattal | ✅ **kész** *(`szinkron/1.2.0`)* |
 | 4 | **Pultos fiókok kezelése a Zigguratról** + a két fiók összekapcsolása | ✅ **kész** *(`admin/1.5.0`)* |
 | 5/a | **A felhő oldala** — globális kiértékelés, jogosultság-napló, offline elbírálás | ✅ **kész** |
-| 5/b | **A telephelyi szerver és a szerződések** — pulti felhasználókezelés, offline átfedő tábla, felküldés | hátra |
+| 5/b | **A telephelyi szerver és a szerződések** — `szinkron/1.3.0`, `kassza/1.23.0`, offline tábla, felküldés, öt végpont | ✅ **kész** |
 | 5/c | **A pult képernyője** — WPF, helyi lista és globális fül | hátra |
 | 6 | **A Siduri-hozzáférés** — forgó kód, néma belépés, növekvő várakozás, láncolt napló | hátra |
 | 7 | **Belső kollégafiókok** — jogkörök, kapcsolók, négy szem elv | hátra |

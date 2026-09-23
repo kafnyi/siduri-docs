@@ -1019,3 +1019,26 @@ minden szerver-újraindulás után, a nyitott nap hátralévő részében. Ez ne
 regresszió, hanem az, amit a mező mindig is állított magáról. Egy elvesztett, de
 érvényes mérés a fali órára esik vissza, és ezt jelezzük; egy tévesen elhitt
 mérés viszont hamis vészzárást okozhat, és azt senki nem jelezné.
+### v1.23.0 — 2026-09-23 — *személyzetkezelés a pult mögül* `NEM TÖRŐ`
+
+Öt új végpont a `/szemelyzet` alatt: lista, szereplista, szerepek, egyedi
+jogosultságok, letiltás.
+
+⚠️ **NEM AZONOS A `/kezelok` LISTÁVAL.** Az a belépőképernyő listája: nevet
+ad, hitelesítés nélkül, és szándékosan **semmi mást** — se szerepet, se jogot,
+se kártyát. Ez itt a személyzet **kezelése**, jogosultsághoz kötve. A két lista
+összevonása azt jelentené, hogy a belépőképernyő hitelesítés nélkül adna ki
+jogosultsági adatot.
+
+| Mi | Döntés | Miért |
+|----|--------|-------|
+| **Minden írás** | **Elbírálásra vár** (`varakozo: true`) | A változtatás helyben azonnal él, de a felhő mondja ki a végső szót (`HOZZAFERES.md` §7.2). A pultfőnöknek **tudnia kell**, hogy amit lát, az még nem végleges |
+| **`masolatFrissitve`** | **Minden listában benne van** | Egy néma másolat ugyanolyan „rendben" képet mutat, mint egy friss — pedig lehet, hogy hetek óta nem frissült, és egy kilépett dolgozó még mindig be tud lépni |
+| **`sorsuk`** | A helyi változtatások **sorsa** felhasználónként | A változtatás kedden történt, a válasz szerdán érkezik — esetleg **más műszakban**. Ha nem látszik, a változtatás úgy vesz el, hogy senki nem tud meg róla |
+| **`kioszthato`** | Szerepenként, **előre** | A felület így nem kényszerül próbálkozásra. De a védelem nem itt van: **az elrejtett gomb nem jogosultság** |
+| **`egyuzletes`** | A válaszban | Egyetlen telephely esetén a globális oldal **meg sem jelenik** (§7.1). A telephely **eltárolja**, mert a pultnak kapcsolat nélkül is tudnia kell |
+| **Hatalmi jog** | **422 már itt**, nem a felhő válaszára várva | A felhő is megtagadná, de a válasza **órákkal később** érkezik — és addig a pultfőnök azt hinné, elintézte. **Az első nem-et ott kell kimondani, ahol a gomb van** |
+
+⚠️ **A letiltás kapcsolat nélkül is megy; a visszaengedés SOHA.** Szándékosan nem
+szimmetrikus: kijuttatni valakit **sürgős** lehet, épp a kapcsolat nélküli
+órákban; beengedni sosem az.

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.22.1
+  version: 1.23.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -280,6 +280,173 @@ paths:
             application/json:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /szemelyzet:
+    get:
+      operationId: szemelyzet
+      summary: A telephely pultos felhasznaloi - SZERKESZTESHEZ
+      description: |
+        ⚠️ NEM AZONOS A /kezelok LISTAVAL. Az a belepokepernyo listaja: nevet ad,
+        hitelesites nelkul, es szandekosan SEMMI mast. Ez itt a szemelyzet
+        kezelese: szerepek, allapot, es hogy mi var elbiralasra - ehhez
+        felhasznalo.megtekintes jogosultsag kell.
+
+        ⚠️ A NYILVANTARTAS GAZDAJA A FELHO (HOZZAFERES.md 2.1). Ez a lista a
+        telephelyi MASOLAT, es a masolat kora szamit: a valasz megmondja, mikor
+        frissult utoljara. Egy nema masolat ugyanolyan "rendben" kepet mutat,
+        mint egy friss - pedig lehet, hogy hetek ota nem frissult, es egy
+        kilepett dolgozo meg mindig be tud lepni a pult mogott.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+      responses:
+        '200':
+          description: A szemelyzet, a masolat korenak jelzesevel
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SzemelyzetValasz'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+
+  /szemelyzet/szerepek:
+    get:
+      operationId: szemelyzetSzerepek
+      summary: A kioszthato szerepek, szintekkel
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+      responses:
+        '200':
+          description: A szerepek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PultosSzerep'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+
+  /szemelyzet/{felhasznaloAzonosito}/szerepek:
+    put:
+      operationId: szemelyzetSzerepeket
+      summary: Egy pultos szerepeinek beallitasa
+      description: |
+        ⚠️ A TELJES kivant halmaz, nem novekmeny. A reszleges alkalmazas olyan
+        allapotot allitana elo, amit soha senki nem akart.
+
+        ⚠️ A VALTOZTATAS HELYBEN AZONNAL EL, es a felho UTOLAG birlalja el
+        (HOZZAFERES.md 7.2). A valasz ezert NEM azt jelenti, hogy vegleges: a
+        `varakozo` mezo megmondja, hogy meg elbiralasra var. A sorsat a
+        /szemelyzet lista `sorsuk` mezoje mutatja.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - name: felhasznaloAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SzerepKeres'
+      responses:
+        '200':
+          description: A valtoztatas helyben ervenyes, elbiralasra var
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelyiValtoztatasValasz'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+
+  /szemelyzet/{felhasznaloAzonosito}/jogosultsagok:
+    put:
+      operationId: szemelyzetJogokat
+      summary: Egy pultos egyedi jogosultsagainak beallitasa
+      description: |
+        A szerepen FELULI, szemelyre szabott jogok - a teljes kivant halmaz.
+
+        ⚠️ A HATALMI JOGOK KAPCSOLAT NELKUL NEM OSZTHATOK, es ezt MAR EZ A
+        VEGPONT megtagadja (422, OFFLINE_NEM_OSZTHATO). A felho is megtagadna,
+        de akkor a pultfonok azt hinne, elintezte - es csak masnap derulne ki,
+        hogy nem. Az elso nem-et ott kell kimondani, ahol a gomb van.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - name: felhasznaloAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JogosultsagKeres'
+      responses:
+        '200':
+          description: A valtoztatas helyben ervenyes, elbiralasra var
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelyiValtoztatasValasz'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+
+  /szemelyzet/{felhasznaloAzonosito}/letiltas:
+    post:
+      operationId: szemelyzetLetiltas
+      summary: Egy pultos lezarasa - KAPCSOLAT NELKUL IS
+      description: |
+        ⚠️ KIFELE MINDIG, BEFELE SOHA. Letiltani kapcsolat nelkul is lehet, es
+        azonnal el; VISSZAENGEDNI nem - ahhoz a felho kell. Szandekosan nem
+        szimmetrikus: kijuttatni valakit SURGOS lehet, epp a kapcsolat nelkuli
+        orakban, beengedni sosem az.
+
+        ⚠️ Nem torles, hanem letiltas. A korabbi bizonylatok mellol nem tunhet
+        el, ki csinalta oket.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - name: felhasznaloAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: Letiltva, elbiralasra var
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelyiValtoztatasValasz'
+        '403':
+          $ref: '#/components/responses/Hiba403'
 
   /belepes:
     post:
@@ -1743,6 +1910,165 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+    SzemelyzetValasz:
+      title: A szemelyzet es a masolat kora
+      type: object
+      required: [felhasznalok, egyuzletes]
+      properties:
+        felhasznalok:
+          type: array
+          items:
+            $ref: '#/components/schemas/PultosFelhasznalo'
+        masolatFrissitve:
+          type: [string, "null"]
+          format: date-time
+          description: |
+            Mikor jott le utoljara a pillanatkep a felhobol.
+
+            ⚠️ EZT KI KELL IRNI A FELULETEN. Egy nema masolat ugyanolyan
+            "rendben" kepet mutat, mint egy friss - pedig lehet, hogy hetek ota
+            nem frissult.
+        varakozoDarab:
+          type: integer
+          minimum: 0
+          description: >
+            Hany helyi valtoztatas var meg elbiralasra. Nullanal nagyobb ertek
+            azt jelenti, hogy a lathato allapot TOBBET enged, mint a felhos
+            igazsag - es ezt a felhasznalonak tudnia kell.
+        egyuzletes:
+          type: boolean
+          description: |
+            Egyetlen telephelye van-e a berlonek. IGAZ eseten a globalis
+            szerkesztes oldala NEM JELENIK MEG (HOZZAFERES 7.1): folosleges es
+            zavaro lenne.
+
+            ⚠️ A felho mondja meg, de a telephely ELTAROLJA - mert a pultnak ezt
+            kapcsolat nelkul is tudnia kell.
+
+    PultosFelhasznalo:
+      title: Egy pultos - szerkesztesi nezetben
+      type: object
+      required: [azonosito, nev, aktiv, szerepek, jogosultsagok, sorsuk]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+          maxLength: 200
+        bejelentkezesiNev:
+          type: [string, "null"]
+          maxLength: 100
+        aktiv:
+          type: boolean
+        szerepek:
+          type: array
+          items:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        jogosultsagok:
+          type: array
+          description: A szerepen FELULI, szemelyre szabott jogok.
+          items:
+            type: string
+            maxLength: 100
+        sorsuk:
+          type: array
+          description: |
+            Mi lett a rajta vegzett helyi valtoztatasokkal.
+
+            ⚠️ EZT MEG KELL MUTATNI. A pultfonok kedden valtoztatott, a valasz
+            szerdan erkezik - esetleg mas muszakban. Ha nem latszik, a
+            valtoztatas ugy vesz el, hogy senki nem tud meg rola.
+          items:
+            $ref: '#/components/schemas/ValtoztatasSorsa'
+
+    ValtoztatasSorsa:
+      title: Egy helyi valtoztatas sorsa
+      type: object
+      required: [azonosito, tortent, fajta, allapot]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tortent:
+          type: string
+          format: date-time
+        fajta:
+          type: string
+          enum: [SZEREPEK, JOGOK, AKTIV]
+        allapot:
+          type: string
+          enum: [VAR, ELFOGADVA, ELUTASITVA, ELAVULT]
+          description: |
+            ⚠️ Az ELUTASITVA es az ELAVULT NEM UGYANAZ, es a felulet KULON kell
+            hogy mondja oket. Az elso a cselekvorol szol (nem volt joga); a
+            masodik senkirol, csak sorrendrol (a kozpont idokozben dontott).
+            A teendo is mas: az elsonel jogot kell kerni, a masodiknal meg kell
+            nezni, mi lett az uj ertek.
+        kod:
+          type: [string, "null"]
+          maxLength: 64
+        uzenet:
+          type: [string, "null"]
+          maxLength: 500
+
+    PultosSzerep:
+      title: Kioszthato szerep
+      type: object
+      required: [azonosito, nev, szint, kioszthato]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+          maxLength: 200
+        szint:
+          type: integer
+          description: Kisebb szam = erosebb. A 0. szint a Siduri rendszergazdae.
+        kioszthato:
+          type: boolean
+          description: |
+            Kioszthatja-e EZ a kezelo. Hamis, ha a szerep erosebb a sajatjanal,
+            vagy ha van benne olyan jog, ami neki sincs meg.
+
+            ⚠️ A felulet ezt ELORE tudja, tehat nem kell probalkozni. De a
+            vedelem nem itt van: az elrejtett gomb nem jogosultsag.
+
+    SzerepKeres:
+      type: object
+      required: [szerepek]
+      properties:
+        szerepek:
+          type: array
+          maxItems: 50
+          description: A TELJES kivant szerephalmaz, nem novekmeny.
+          items:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+
+    JogosultsagKeres:
+      type: object
+      required: [jogosultsagok]
+      properties:
+        jogosultsagok:
+          type: array
+          maxItems: 500
+          description: A TELJES kivant, szerepen feluli joghalmaz.
+          items:
+            type: string
+            maxLength: 100
+
+    HelyiValtoztatasValasz:
+      title: A helyi valtoztatas nyugtazasa
+      type: object
+      required: [azonosito, varakozo]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        varakozo:
+          type: boolean
+          description: |
+            ⚠️ IGAZ eseten a valtoztatas HELYBEN ERVENYES, de a felho meg nem
+            mondott rola semmit. A felulet ezt NEM hallgathatja el: a
+            pultfonoknek tudnia kell, hogy amit lat, az meg nem vegleges.
+
     PinCsereKeres:
       type: object
       required: [jelenlegiPin, ujPin, eszkozIdo]

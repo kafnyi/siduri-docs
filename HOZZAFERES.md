@@ -387,6 +387,36 @@ visszavont jog **feléledhet**, és ez csendben történik. Helyette:
 | 3. | Kapcsolódáskor **felmegy**, és a felhő bírálja el |
 | 4. | Elfogadva → felhős igazsággá válik. Elutasítva → helyben visszavonjuk, és **kiírjuk, kinél, mit, miért** |
 
+✅ **A felhő oldala megvált** *(2026-09-23)*. **HÁROM kimenet van, nem kettő:**
+
+| Kimenet | Mit jelent | Mi a teendő |
+|---|---|---|
+| **ELFOGADVA** | A cselekvőnek **akkor** megvolt a joga | semmi |
+| **ELUTASITVA** | **Nem volt joga** hozzá — a cselekvőről szól | jogot kérni |
+| **ELAVULT** | A központ **időközben döntött ugyanarról** — senkiről nem szól, csak sorrendről | megnézni, mi lett az új érték |
+
+⚠️ **A második és a harmadik nem ugyanaz, és a felületnek külön kell mondania
+őket.** Egy közös „nem sikerült" üzenet azt sugallná a pultfőnöknek, hogy
+ő rontott el valamit — pedig a harmadik esetben csak megelőzték.
+
+⚠️ **A köteg NEM mindent-vagy-semmit.** Ha a harmadik változtatás elbukik, az
+első kettő **attól még jó volt**. Egy közös visszagörgetés azt üzenné, hogy a
+napi munka egy hibás sor miatt elveszett — és a javítás előtt nem is derülne ki,
+melyik volt az.
+
+⚠️ **Egy elavult változtatás EGÉSZE elavul**, nem csak az ütköző kód. A művelet
+a hatókör **teljes** halmazát állítja be; részlegesen alkalmazni annyit
+jelentene, hogy egy olyan állapot áll elő, amit **soha senki nem akart** — sem a
+pultfőnök, sem a központ.
+
+⚠️ **AMIT NEM BÍRÁLUNK EL IDŐBEN: A RANGSORT.** A **szint** szerinti korlátot a
+**mai** állapot szerint nézzük, mert **szinttörténetet nem vezetünk** — a napló
+jogosultságokat rögzít, nem rangokat. Tudatos szűkítés: a rang **jelen idejű**
+tulajdonság *(„van-e most állása ehhez")*, míg a jogosultság konkrét
+felhatalmazás, amit **el lehetett veszíteni**. **ÁRA:** egy időközben
+**lefokozott** pultfőnök jóhiszemű változtatása elbukhat. Látható és
+megmagyarázható elutasítás, és megismételheti az, akinek most van hozzá állása.
+
 ⚠️ **Ez nem összefésülés, hanem jóváhagyásra váró kérés.** Az összefésülés egy
 soron két értéket ütköztet; itt egyetlen kérés vár elbírálásra. A második nem
 igényel algoritmust — és nincs benne az a hiba, hogy a helyi írás csendben
@@ -698,9 +728,9 @@ pult; **nincs közös raktár** → csak átvételezéssel lehet áttolni.)*
 5. **Globális pultos szerkesztés a pultból** (§7.1) — **három részre bomlott**,
    mert a pultban **egyáltalán nincs felhasználókezelő képernyő**, és a
    kassza-szerződésben sincs mihez beszélnie:
-   * **5/a — a felhő oldala.** A globális kiértékelés *(leggyengébb szint,
-     metszet-burok)* ✅ és a **jogosultság-napló** (§7.3) ✅ **kész**; hátra van
-     az offline változtatások elbírálása (§7.2).
+   * ✅ **5/a — a felhő oldala: KÉSZ** *(2026-09-23)*. Globális kiértékelés
+     *(leggyengébb szint, metszet-burok)*, **jogosultság-napló** (§7.3) és az
+     **offline elbírálás** (§7.2).
    * **5/b — a telephelyi szerver és a szerződések.** A pulti felhasználókezelés
      végpontjai, az offline átfedő tábla és a felküldés.
    * **5/c — a pult képernyője.** WPF, a helyi lista és a globális fül.

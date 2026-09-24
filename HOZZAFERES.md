@@ -238,6 +238,15 @@ később a **Managerek** (ez maga is egy kapcsoló, nem a rang neve).
 ⚠️ Ez **munkafolyamat, nem szabály**: kell hozzá egy *függőben lévő kérelem →
 jóváhagyás → végrehajtás* lánc. Külön darab.
 
+### 4.4/a DÖNTÉSEK a megvalósításhoz *(2026-09-24)*
+
+| Kérdés | Döntés | Ára |
+|---|---|---|
+| **Felhasználónév** | `siduri.<név>` — ugyanaz a forma, mint a bérlőknél | a `siduri` rövid név **bérlőnek végleg tiltott** |
+| **Munka egy bérlő adatán** | **bérlőválasztó**, belépés után; a belépés **naplózódik**, indok nélkül | a naplóból nem derül ki, **miért** lépett be |
+| **Az első kapcsolók** | idegen bérlőbe belépés · új bérlő regisztrálása · a hozzáférési napló megtekintése · kollégafiókok kezelése | — |
+| **Második tényező** | **továbbra sincs** (lásd 4.5) | a 4.5 kockázata marad |
+
 ### 4.5 Amit NEM kapnak — és ennek ára van
 
 **DÖNTÉS:** a belső kollégafiókokhoz **egyelőre nincs második tényező**, elég a

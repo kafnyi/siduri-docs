@@ -264,7 +264,12 @@ hozzáférés-változás megy — **mezőérték nem**. Következmények:
 * A „mi volt előtte / mi veszett el” kijelzése a felhőben emiatt **felküldés
   nélkül nem építhető meg**: a vesztes érték többnyire a telephelyen keletkezik.
 
-**A terv: `TORZSADAT_FELKULDES.md`** *(átnézésre vár, három döntési kérdéssel)*.
+**A terv: `TORZSADAT_FELKULDES.md`** — ✅ **az 1–3. darab kész** *(2026-09-24,
+`szinkron/1.4.0`)*: a telephelyi írás és a kezdeti katalógus felmegy, élő próbán
+is. Hátra: írás-történet, előző/vesztes érték, felület.
+
+⚠️ **Mellékleleten, javítatlanul:** a telephelyi admin-végpont **hibás JSON-ra
+500-at** ad, nem 4xx-et (`HttpMessageNotReadableException` a `HibaKezelo`-ben).
 Közben kiderült, hogy a felhőben **egyáltalán nincs törzsadat-írás** — a kezdeti
 feltöltést is ennek kell megoldania. Sorrend: felküldés → írás-történet mindkét
 oldalon → előző/vesztes érték a szerződésben és a felületen.

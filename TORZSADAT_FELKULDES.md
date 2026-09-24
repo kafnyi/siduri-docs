@@ -1,7 +1,8 @@
 # A törzsadat felküldése — a telephelyről a felhőbe
 
-> **Állapot: ELFOGADVA** *(2026-09-24)* — mindhárom döntési kérdésben a
-> javaslat szerint (lásd 5.). A kód készül.
+> **Állapot: az 1–3. darab KÉSZ** *(2026-09-24)*, élő próbán végigvíve. A
+> 4–6. (írás-történet, előző/vesztes érték, felület) hátra van. Mindhárom
+> döntési kérdés a javaslat szerint dőlt el (lásd 5.).
 >
 > **Miért most:** a Ziggurat böngészős átnézésekor kiderült, hogy az árnál nem
 > látszik, **mi volt előtte**. Ennek utánajárva egy nagyobb hiány került elő:
@@ -222,3 +223,26 @@ körönként legfeljebb néhány száz tétel, ahogy a lefelé menő irány is.
 
 Az 1–3. darab **önmagában is értékes**: megszünteti, hogy a felhős Ziggurat
 csendben mást mutat. A 4–6. erre épül.
+
+### 6.1 Az 1–3. darab — ami megépült *(2026-09-24)*
+
+✅ `szinkron/1.4.0` · felhő: elbíráló + V6 (idempotencia) · telephely: V28
+(kimenő sor, triggerek, kezdeti feltöltés) + felküldés a körben.
+
+**Élő próba, két valódi kiszolgálóval** *(a fejlesztői adatbázisok másolatán)*:
+
+| Lépés | Eredmény |
+|---|---|
+| Első kör | a teljes katalógus felment (5 termék, 5 kiszerelés), a felhős Ziggurat ugyanazt mutatja |
+| Ár átírása a telephelyen, a felhő által **nem ismert** íróval | helyben azonnal 850, a felhő `ELUTASITVA` / `NINCS_ILYEN_FELHASZNALO`, **13 mp-en belül visszaállt 820-ra** |
+| Jog kiosztása a felhőben → lejön → az író átírja | 880 mindkét oldalon, eredet: `telephely`; **visszhang nincs** |
+
+⚠️ **Amit a próba NEM fedett, és csak teszt védi:** a `ZAROLT` és az
+`ELAVULT` kimenet, a megvonás előtti jóhiszemű írás, az újraküldés.
+
+⚠️ **Két ismert korlát:**
+* Ha egy rekord a kötegen **túli** új kategóriára hivatkozik, a felhő
+  `HIBAS_TETEL`-lel utasítja el; a rekord a következő módosításakor megy fel
+  újra. Ritka, de nem nulla.
+* A telephely a **beszerzési árat** és a termék NTAK-kódjait **nem** küldi fel —
+  a felhős táblában nincs helyük. A felhős árrés-riport előtt pótolni kell.

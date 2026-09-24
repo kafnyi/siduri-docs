@@ -277,10 +277,12 @@ nélkül hozott döntések és áruk:
 | **Élettartam, darabszám** | **24 óra**, telephelyenként **legfeljebb egy él**: az új generálása a régit azonnal érvényteleníti | ha a telepítés csúszik, új jegy kell |
 | **Hol látszik** | a Zigguratban, **egyszer**, másolható módon — nem megy ki levélben | az adatbázisban csak a lenyomata áll: bezárt lap után új jegy kell |
 
-⚠️ **Amit a jegy NEM old meg, és külön tétel:** egy újratelepítés új
-tanúsítványt ad, de a régi gép tanúsítványa érvényes marad (a csere átfedése
-szándékos). Egy ellopott vagy leselejtezett gép tanúsítványát ma **csak
-adatbázisból** lehet visszavonni.
+⚠️ **Amit a jegy NEM old meg:** egy újratelepítés új tanúsítványt ad, de a
+régi gép tanúsítványa érvényes marad (a csere átfedése szándékos). ✅ Az
+ellopott vagy leselejtezett gép tanúsítványa **a felületről visszavonható**
+*(2026-09-25, `admin/1.15.0`)*: külön kapcsoló („Tanúsítvány visszavonása”),
+kötelező indok, azonnal hat, naplózva; a bérlő nem vonhat vissza. A telephely
+utolsó jelentkezése is látszik.
 
 ### 4.5 Amit NEM kapnak — és ennek ára van
 

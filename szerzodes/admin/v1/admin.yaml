@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.14.0
+  version: 1.15.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1550,9 +1550,10 @@ paths:
       operationId: siduriBerlok
       summary: A berlovalaszto listaja
       description: |
-        Minden berlo, nev szerint. Kapcsolo: `IDEGEN_BERLO`, `BERLO_REGISZTRACIO`
-        vagy `TELEPITESI_JEGY` (1.13.0) - a lista a belepeshez, a regisztraciohoz
-        es a telepiteshez is kell. A belepeshez maga tovabbra is `IDEGEN_BERLO` kell.
+        Minden berlo, nev szerint. Kapcsolo: `IDEGEN_BERLO`, `BERLO_REGISZTRACIO`,
+        `TELEPITESI_JEGY` (1.13.0) vagy `TANUSITVANY_VISSZAVONAS` (1.15.0) - a lista
+        a belepeshez, a regisztraciohoz, a telepiteshez es a visszavonashoz is kell.
+        A belepeshez maga tovabbra is `IDEGEN_BERLO` kell.
       responses:
         '200':
           description: A berlok
@@ -2242,7 +2243,8 @@ paths:
       operationId: siduriTelephelyek
       summary: Egy berlo telephelyei - a telepitesi jegy allapotaval
       description: |
-        Kapcsolo: `BERLO_REGISZTRACIO` VAGY `TELEPITESI_JEGY`. A jegy maga NEM
+        Kapcsolo: `BERLO_REGISZTRACIO`, `TELEPITESI_JEGY` vagy (1.15.0)
+        `TANUSITVANY_VISSZAVONAS`. A jegy maga NEM
         latszik itt (csak a lenyomata all az adatbazisban) - csak az, hogy van-e
         elo jegy, es meddig el.
       parameters:
@@ -2374,6 +2376,122 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /siduri/telephelyek/{telephelyAzonosito}/tanusitvanyok:
+    get:
+      tags: [siduri]
+      operationId: tanusitvanyok
+      summary: A telephely tanusitvanyai - es mikor jelentkezett utoljara
+      description: |
+        Kapcsolo: `TANUSITVANY_VISSZAVONAS`, `TELEPITESI_JEGY` vagy
+        `BERLO_REGISZTRACIO` (1.15.0). A visszavontak is latszanak.
+
+        ⚠️ Egy telephelynek egyszerre TOBB ervenyes tanusitvanya lehet -
+        szandekosan: a csere nem egy pillanat.
+      parameters:
+        - name: telephelyAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: A tanusitvanyok
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [tanusitvanyok]
+                properties:
+                  tanusitvanyok:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tanusitvany'
+                  utolsoJelentkezes:
+                    type: [string, "null"]
+                    format: date-time
+                    description: |
+                      A telephely utolso lekerdezese. Egy leallt vagy ellopott
+                      gepnel ebbol latszik, mikor beszelt utoljara.
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/telephelyek/{telephelyAzonosito}/tanusitvanyok/{ujjlenyomat}/visszavonas:
+    post:
+      tags: [siduri]
+      operationId: tanusitvanytVisszavon
+      summary: Egy tanusitvany visszavonasa - azonnal hat
+      description: |
+        Kapcsolo: `TANUSITVANY_VISSZAVONAS` (1.15.0). Az indok KOTELEZO, es a
+        kollegak naplojaba kerul. A kovetkezo kerestol a telephely ezzel a
+        tanusitvannyal nem szinkronizalhat.
+
+        ⚠️ A berlo nem vonhatja vissza: egy teves visszavonas a telephelyet
+        leallitja (FOLYAMATBAN 7.0/a). Idempotens: a mar visszavont
+        tanusitvanyra 200, a korabbi indok marad.
+      parameters:
+        - name: telephelyAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: ujjlenyomat
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-f]{64}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [indok]
+              properties:
+                indok:
+                  type: string
+                  minLength: 3
+                  maxLength: 500
+              additionalProperties: false
+      responses:
+        '200':
+          description: Visszavonva
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tanusitvany'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
 components:
 
   securitySchemes:
@@ -2418,7 +2536,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.14.0"]
+        examples: ["admin/1.15.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -2735,12 +2853,15 @@ components:
     KollegaKapcsolo:
       title: Egy kollega-kapcsolo
       type: string
-      enum: [IDEGEN_BERLO, BERLO_REGISZTRACIO, NAPLO, KOLLEGAK, TELEPITESI_JEGY]
+      enum: [IDEGEN_BERLO, BERLO_REGISZTRACIO, NAPLO, KOLLEGAK, TELEPITESI_JEGY,
+             TANUSITVANY_VISSZAVONAS]
       description: |
         IDEGEN_BERLO: belepes egy berlo adataihoz. BERLO_REGISZTRACIO: uj berlo
         es uj telephely felvetele. NAPLO: a hozzaferesi naplo. KOLLEGAK: a
         kollegafiokok kezelese. TELEPITESI_JEGY (1.13.0): telepitesi jegy
         generalasa a telephelyi szerver elso tanusitvanyahoz.
+        TANUSITVANY_VISSZAVONAS (1.15.0): egy telephelyi gep tanusitvanyanak
+        visszavonasa (ellopott, leselejtezett gep).
 
         ⚠️ Uj kapcsolo = kisverzio; a felulet az ismeretlent figyelmen kivul
         hagyja.
@@ -3006,6 +3127,31 @@ components:
           maxLength: 200
       additionalProperties: false
 
+    Tanusitvany:
+      title: Egy telephelyi tanusitvany
+      type: object
+      required: [ujjlenyomat, alany, sorozatszam, kiadva, lejar]
+      properties:
+        ujjlenyomat:
+          type: string
+          description: A DER alak SHA-256-ja, kisbetus hexa - ez az azonosito.
+        alany:
+          type: string
+        sorozatszam:
+          type: string
+        kiadva:
+          type: string
+          format: date-time
+        lejar:
+          type: string
+          format: date-time
+        visszavonva:
+          type: [string, "null"]
+          format: date-time
+        visszavonasOka:
+          type: [string, "null"]
+      additionalProperties: false
+
     TelepitesiJegy:
       title: Telepitesi jegy
       type: object
@@ -3044,7 +3190,8 @@ components:
             BELEPES, SIKERTELEN_BELEPES, BERLOBE_LEPES; 1.11.0-tol a kezeles:
             KOLLEGA_FELVETEL, KOLLEGA_MODOSITAS, RANG, JOGKOR, KERELEM,
             JOVAHAGYAS, VISSZAVONAS; 1.13.0-tol BERLO_REGISZTRACIO,
-            TELEPHELY_FELVETEL, TELEPITESI_JEGY. ⚠️ A lista bovulhet; a felulet az
+            TELEPHELY_FELVETEL, TELEPITESI_JEGY; 1.15.0-tol
+            TANUSITVANY_VISSZAVONAS. ⚠️ A lista bovulhet; a felulet az
             ismeretlent a kodjaval mutatja.
           examples: ["BERLOBE_LEPES"]
         felhasznalonev:

@@ -43,6 +43,16 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.15.0 — 2026-09-25 — *tanúsítvány visszavonása* `NEM TÖRŐ`
+
+* **`GET /siduri/telephelyek/{id}/tanusitvanyok`** — a telephely tanúsítványai
+  (a visszavontak is) és az utolsó jelentkezése.
+* **`POST …/tanusitvanyok/{ujjlenyomat}/visszavonas`** — kötelező indokkal,
+  azonnal hat, naplózva. Új kapcsoló: **`TANUSITVANY_VISSZAVONAS`**; a bérlő nem
+  vonhat vissza.
+
+**Törő-e:** nem.
+
 ### v1.14.0 — 2026-09-25 — *áfakategóriák és az áfa írása* `NEM TÖRŐ`
 
 * **`/afakategoriak`** — a bérlő áfakategóriái: név + a nyolc rögzített

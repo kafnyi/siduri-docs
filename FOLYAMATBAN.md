@@ -865,6 +865,26 @@ képernyője (5/c, WPF) · a Siduri-hozzáférés (6.) · a tanúsítvány vissz
 felületről (ellopott/leselejtezett gép) · az adminban áfa írása, kategória- és
 menükezelés, export, riportok.
 
+### 7.0/a Döntések a következő nagy körhöz *(2026-09-25)*
+
+| Téma | Döntés | Ára |
+|---|---|---|
+| **Áfa írása** | mindkét oldalon, mint a név (mezőeredet, O3), `termek.afa_modositas` joggal | szinkron-kisverzió |
+| **Áfakategória** | előre felvett, **névvel** („Ital 27%”) és **kulccsal**; a pénztárgépi **betűjel a kulcsból** adódik (jogszabály rögzíti), nem írható; a terméknél csak ezekből lehet választani | szabad betűjel nincs |
+| **Ki veszi fel** | a **bérlő**, a Zigguratban, bérlőnként **közös** lista (minden telephelyen ugyanaz); a meglévő termékek a kulcsukkal azonos, automatikusan létrehozott kategóriát kapják | — |
+| **Kulcsváltás** | a kategória **kulcsa nem írható át**, csak a neve; kulcsváltáshoz új kategória + átsorolás (egyenként vagy csoportosan, áttekintéssel) | több kattintás, cserébe egy elgépelés nem állítja át az egész étlapot |
+| **Tanúsítvány visszavonása** | **új kollégakapcsoló**, csak Siduri; indok kötelező, naplózva, azonnal hat; a bérlő nem vonhat vissza | új kapcsoló |
+| **Siduri-hozzáférés, forgó rész** | a **felhő generálja** havonta, a pillanatképpel jut le; az előző hónapé is él | egy hónapig internet nélküli pult csak a régit ismeri |
+| **Siduri-munkamenet a pultnál** | **15 perc tétlenség, legfeljebb 4 óra** | — |
+| **A pult felhasználókezelő képernyője (5/c)** | megépül; itt lefordul és a tesztek futnak, **élő próba a felhasználónál**, valódi gépen | az első kezelhetőségi visszajelzés tőle jön |
+| **Kategóriafa szerkesztése** | mindkét oldalon, O3-mal; menü és módosító nélkül; az örökölt áfát nem írja vissza automatikusan (C3/c) | szinkron-kisverzió |
+| **Export** | **fastexcel**; a J1900-as mérés (M20/M21) a telephelyi élesítés előtt kötelező marad | ha a mérés rosszul sül el, a telephelyi ágat cserélni kell |
+| **Eladási adatok felküldése** | **előbb terv**, jóváhagyásra; kód csak utána | — |
+
+**A sorrend:** döntésmentes apróságok → áfakategória és áfaírás → tanúsítvány
+visszavonása → kategóriafa → Siduri-hozzáférés → export → a pult képernyője →
+az eladások felküldésének terve.
+
 ### 7.1 Ami MŰKÖDIK
 
 | Terület | Állapot | Bizonyíték |

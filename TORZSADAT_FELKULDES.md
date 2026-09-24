@@ -1,6 +1,7 @@
 # A törzsadat felküldése — a telephelyről a felhőbe
 
-> **Állapot: TERV, átnézésre vár** *(2026-09-24)*. Kód még nem készült.
+> **Állapot: ELFOGADVA** *(2026-09-24)* — mindhárom döntési kérdésben a
+> javaslat szerint (lásd 5.). A kód készül.
 >
 > **Miért most:** a Ziggurat böngészős átnézésekor kiderült, hogy az árnál nem
 > látszik, **mi volt előtte**. Ennek utánajárva egy nagyobb hiány került elő:
@@ -188,13 +189,13 @@ alkalmazott is átírhat árat, akitől a felhőben időközben elvették a jogo
 | **ÁRA** | ha a felhő utólag elutasítja, a telephelyen **már élt** az ár — vissza kell állítani, és **az addigi eladások azon az áron maradnak** (a bizonylat nem módosítható) | egy megvont jogú ember offline árat írhat, és az a felhőben is érvényes lesz |
 | Munka | kicsi: a „megvolt-e akkor” kiértékelés már megvan (jogosultság-napló) | nulla |
 
-**Javaslat: ellenőrizze** — de az elutasításnál a felület mondja ki, hogy a
+**`[ELDÖNTVE 2026-09-24]` Ellenőrzi** — és az elutasításnál a felület mondja ki, hogy a
 közben történt eladások a régi szabály szerint rendben vannak. A hozzáférésnél
 ugyanezt a szigort választottuk, és egy ár pénzügyileg nem kisebb tét.
 
 ### 5.2 Az első szelet mit fedjen le?
 
-**Javaslat:** a **teljes katalógus** kezdeti feltöltése *(kategória, termék,
+**`[ELDÖNTVE 2026-09-24]`** A **teljes katalógus** kezdeti feltöltése *(kategória, termék,
 kiszerelés, vonalkód)*, és a módosításoknál **csak az ár**, mert ma csak azt
 lehet a telephelyen szerkeszteni. **ÁRA:** a név/áfa/állapot szerkesztése, ha
 a telephelyen elkészül, a kimenő sorba is be kell kötni — ezt a telephelyi
@@ -202,7 +203,7 @@ szerkesztés elkészülésénél kötelező pontként kell felvenni.
 
 ### 5.3 Automatikus-e a kezdeti feltöltés?
 
-**Javaslat: igen**, az első sikeres kapcsolódáskor, magától. **ÁRA:** egy
+**`[ELDÖNTVE 2026-09-24]` Igen**, az első sikeres kapcsolódáskor, magától. **ÁRA:** egy
 nagy katalógusnál az első kör hosszabb — ezért a feltöltés **lapozva** megy,
 körönként legfeljebb néhány száz tétel, ahogy a lefelé menő irány is.
 

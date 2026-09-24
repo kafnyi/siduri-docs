@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.3.0
+  version: 1.4.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -43,6 +43,24 @@ info:
       - ⚠️ A TELEPHELY VALIDAL, NEM VAKON ALKALMAZ (B16.8/3). Egy olyan
         afakulcs, ami a datumozott adokulcs-tablaban nem szerepel, ELUTASITANDO.
         A bizalom nem mentesit az ellenorzes alol.
+
+    A FELFELE MENO TORZSADAT KERES, NEM PARANCS (1.4.0). A telephelyen tett
+    torzsadat-iras a lekerdezes kereseben megy fel (felkuldes), es a felho
+    UGYANAZZAL a szaballyal dont rola, mint a telephely a lefele erkezo
+    ertekrol: a kesobbi iras nyer, a zarolt ertek mindig nyer. A teljes
+    dontes: siduri-docs/TORZSADAT_FELKULDES.md.
+
+      - A KEZDETI FELTOLTES UGYANEZ AZ UT (mint lefele az S3): a telephely
+        minden rekordjat elkuldi, lapozva. Nincs masodik formatum.
+      - ⚠️ NINCS VISSZHANG: egy elfogadott telephelyi irasbol a felho NEM
+        keszit lefele meno valtozast ugyanannak a telephelynek. Ha keszitene,
+        az azonos idobelyeg miatt a telephely a sajat erteket vesztesnek
+        latna - egy nem letezo utkozes.
+      - ⚠️ A felho ellenorzi, hogy az IRONAK AZ IRAS IDEJEN volt-e joga (mint
+        a hozzaferes-valtoztatasoknal). Ha nem, vagy ha a mezo kozben zarolt
+        lett, a felho a SAJAT erteket kuldi le, friss idobelyeggel - a
+        telephelyen igy visszaall. A kozben tortent eladasok a regi szabaly
+        szerint rendben vannak: a bizonylat nem modosul.
 
     AMI EBBEN A SZELETBEN NINCS BENNE, kimondva:
 
@@ -319,7 +337,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["szinkron/1.2.0"]
+        examples: ["szinkron/1.4.0"]
 
   responses:
 
@@ -639,6 +657,21 @@ components:
             szerver egy J1900, ami kozben kasszat is kiszolgal.
         allapot:
           $ref: '#/components/schemas/TelephelyAllapot'
+        felkuldes:
+          type: array
+          maxItems: 200
+          description: |
+            A telephelyen tett torzsadat-irasok, elbiralasra (1.4.0). A
+            SORREND SZAMIT: a felho a kuldes sorrendjeben dolgozza fel, mert egy
+            termek a kategoriajara, egy kiszereles a termekere hivatkozik.
+
+            ⚠️ Egy tetel addig marad a telephely kimeno soraban, amig a valasz
+            KIMENETET nem ad ra. Ha egy tetelre nem jon kimenet (a felho
+            atmeneti hiba miatt megallt, vagy regebbi, es a mezot nem ismeri),
+            a kovetkezo korben ujra felmegy. Az azonosito miatt a felho egy mar
+            elbiralt tetelt nem biral el ujra, hanem a regi kimenetet adja.
+          items:
+            $ref: '#/components/schemas/FelkuldottTetel'
       additionalProperties: false
 
     TelephelyAllapot:
@@ -658,7 +691,7 @@ components:
         szerzodesVerzio:
           type: string
           description: Melyik K3-verziot beszeli a telephely.
-          examples: ["szinkron/1.2.0"]
+          examples: ["szinkron/1.4.0"]
         alkalmazasVerzio:
           type: string
           description: A telephelyi szerver kiadasi verzioja.
@@ -713,6 +746,14 @@ components:
           description: >
             Emberi mondat, ha van megjegyezni valo (pl. nagy oraelteres). A
             kliens NEM erre agazik el - arra a gepi mezok valok.
+        felkuldesElbiralasok:
+          type: array
+          description: |
+            A felkuldott tetelek sorsa (1.4.0), a feldolgozas sorrendjeben.
+            ⚠️ AMI NINCS BENNE, AZ NINCS ELBIRALVA - nem elutasitva. A telephely
+            megtartja, es a kovetkezo korben ujra kuldi.
+          items:
+            $ref: '#/components/schemas/FelkuldesElbiralas'
       additionalProperties: false
 
     Valtozas:
@@ -856,4 +897,184 @@ components:
           type: string
           format: date-time
           description: Mikor allt elo ez az allapot, a telephely oraja szerint.
+      additionalProperties: false
+
+    FelkuldottTetel:
+      title: Egy felkuldott torzsadat-iras
+      description: |
+        KET FAJTA, mert egy uj rekordnal nincs mit mezonkent osszevetni - a
+        felho meg nem tudja, hogy letezik.
+
+          - REKORD: a rekord TELJES allapota. Letrehozas es frissites is
+            (a kezdeti feltoltes csupa REKORD). Az idobelyeg nelkuli mezoknel
+            (nev, afa, kategoria, allapot...) a TELEPHELY nyer, mert ma o az
+            egyetlen iroja. Az AR kivetel: arra a mezoeredet szabalya ervenyes.
+          - MEZO_ERTEK: egy mezo uj erteke, mezoeredettel es a cselekvovel.
+            Ma egyetlen mezo: a kiszereles ara.
+      type: object
+      required: [azonosito, fajta, tabla, rekordId, tortent]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        fajta:
+          type: string
+          enum: [REKORD, MEZO_ERTEK]
+        tabla:
+          type: string
+          enum: [kategoria, termek, kiszereles]
+        rekordId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tortent:
+          type: string
+          format: date-time
+          description: >
+            AMIKOR MEGTORTENT, a telephely oraja szerint - nem amikor
+            felkerult. A felho EHHEZ meri, hogy a cselekvonek volt-e joga.
+        mezo:
+          type: string
+          enum: [brutto_ar]
+          description: MEZO_ERTEK fajtanal kotelezo.
+        egeszErtek:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: MEZO_ERTEK fajtanal az uj ertek, egesz forintban (I1).
+        mezoeredet:
+          allOf:
+            - $ref: '#/components/schemas/Mezoeredet'
+          description: >
+            MEZO_ERTEK fajtanal kotelezo, es a forras mindig telephely. A
+            felho EZT veti ossze a sajat mezoeredetevel.
+        cselekvo:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        indok:
+          type: [string, "null"]
+          maxLength: 500
+        kategoria:
+          $ref: '#/components/schemas/SzinkronKategoria'
+        termek:
+          $ref: '#/components/schemas/SzinkronTermek'
+        kiszereles:
+          $ref: '#/components/schemas/SzinkronKiszereles'
+      additionalProperties: false
+
+    SzinkronKategoria:
+      title: Kategoria (REKORD)
+      type: object
+      required: [nev, szint, sorrend, aktiv]
+      properties:
+        szuloId:
+          oneOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            - type: "null"
+        nev:
+          type: string
+        szint:
+          type: integer
+          minimum: 1
+          maximum: 4
+        afaHelyben:
+          oneOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+            - type: "null"
+        afaElvitel:
+          oneOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+            - type: "null"
+        ntakFokategoria:
+          type: [string, "null"]
+        ntakAlkategoria:
+          type: [string, "null"]
+        sorrend:
+          type: integer
+        aktiv:
+          type: boolean
+      additionalProperties: false
+
+    SzinkronTermek:
+      title: Termek (REKORD)
+      type: object
+      required: [megnevezes, afaHelyben, afaElvitel, mennyisegiEgyseg, korhataros, allapot]
+      properties:
+        megnevezes:
+          type: string
+        megnevezesEn:
+          type: [string, "null"]
+        kategoriaId:
+          oneOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            - type: "null"
+        afaHelyben:
+          $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+        afaElvitel:
+          $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+        mennyisegiEgyseg:
+          type: string
+        korhataros:
+          type: boolean
+        allapot:
+          type: string
+          enum: [AKTIV, INAKTIV, TOROLT]
+      additionalProperties: false
+
+    SzinkronKiszereles:
+      title: Kiszereles (REKORD)
+      type: object
+      required: [termekId, nev, bruttoAr, sorrend, allapot, vonalkodok]
+      properties:
+        termekId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        bruttoAr:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: >
+            ⚠️ Az ar itt is a mezoeredet szabalya ala esik, nem a "telephely
+            nyer" ala. Uj rekordnal atvesszuk; letezonel csak akkor, ha a
+            telephelyi mezoeredet kesobbi - vagy a felhoben meg nincs.
+        arEredet:
+          allOf:
+            - $ref: '#/components/schemas/Mezoeredet'
+          description: Hianyzik, ha az arat meg soha nem irta at senki.
+        sorrend:
+          type: integer
+        allapot:
+          type: string
+          enum: [AKTIV, INAKTIV, TOROLT]
+        vonalkodok:
+          type: array
+          description: >
+            A kiszereles TELJES vonalkod-halmaza. A felho erre allitja be, nem
+            novekmenykent kezeli: igy a torolt vonalkod is eltunik.
+          items:
+            type: string
+      additionalProperties: false
+
+    FelkuldesElbiralas:
+      title: Egy felkuldott tetel sorsa
+      type: object
+      required: [azonosito, eredmeny]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        eredmeny:
+          type: string
+          enum: [ELFOGADVA, ELUTASITVA, ELAVULT, ZAROLT]
+          description: |
+            ⚠️ NEGY kimenet, es a harom nem-elfogado NEM UGYANAZ - a felulet
+            kulon mondja oket:
+
+              - ELUTASITVA: a CSELEKVOROL szol (nem volt joga az iras idejen),
+                vagy a tetel ervenytelen. A felho lekuldi a sajat erteket.
+              - ELAVULT: SENKIROL nem szol, csak sorrendrol - a felhoben
+                kesobbi ertek all, es az mar uton van lefele.
+              - ZAROLT: a mezot kozben a kozpont zarolta. Hataskor, nem
+                sorrend. A felho lekuldi a sajat erteket.
+        kod:
+          type: [string, "null"]
+          maxLength: 64
+          examples: ["NINCS_JOGOSULTSAG", "NINCS_ILYEN_FELHASZNALO", "NINCS_ILYEN_REKORD", "HIBAS_TETEL"]
+        uzenet:
+          type: [string, "null"]
+          maxLength: 500
       additionalProperties: false

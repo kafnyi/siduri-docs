@@ -253,6 +253,21 @@ visszajáró forintban adható.
 
 ---
 
+### B7 — Alanyi adómentes (AAM) értékesítés a pénztárgépen *(2026-09-25)*
+
+A pénztárgép és az NTAK is **öt** termék-áfakódot ismer: 5%, 18%, 27%, AJT, és
+az „E” (TAM, 0%). Külön AAM-rekesz nincs, és újat nem lehet nyitni.
+
+**Amit most tettünk:** az „AAM” áfakategória az **„E” (0%) gyűjtőre** kerül — ez
+az egyetlen 0 Ft áfás rekesz, ugyanaz, amit a TAM használ.
+
+1. Szabályos-e alanyi adómentes értékesítést az „E” (TAM) gyűjtőn nyugtázni?
+2. Ha nem: milyen jelölés vagy eljárás kell (pl. a nyugta szövege, külön
+   bizonylat)?
+
+*Ha a válasz „nem”, csak az AAM-kategória gyűjtője változik — a termékek
+besorolása megmarad.*
+
 ## C) Amit érdemes megkérdezni, mert az ügyfelet érinti
 
 ### C1 — Az első ügyfél átállása
@@ -278,3 +293,4 @@ Ezekre **NAV-állásfoglalást** vagy a **pénztárgép-forgalmazó** vélemény
 | 2 | Az előleg áfakulcsa vegyes fogyasztásnál (A2) | NAV |
 | 3 | Az utólagos számlaigény kezelése kiadott nyugta után (A4/2) | NAV |
 | 4 | A többcélú utalvány bizonylatolása pénztárgépen (A5/3) | forgalmazó / NAV |
+| 5 | Az alanyi adómentes (AAM) értékesítés gyűjtője (B7) | forgalmazó / NAV |

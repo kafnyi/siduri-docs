@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.6.0
+  version: 1.7.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -73,7 +73,7 @@ servers:
     description: A felho - a napi adminisztracio helye
     variables:
       felho:
-        default: admin.sidurisystems.hu
+        default: ziggurat.mythsystem.hu
   - url: https://{telephelyiSzerver}/admin/v1
     description: A telephelyi szerver - offline tartalek es helyi beallitasok
     variables:
@@ -81,9 +81,19 @@ servers:
         default: siduri.helyi
 
 security:
+  - MunkamenetSuti: []
   - MunkamenetToken: []
 
 tags:
+  - name: bejelentkezes
+    description: |
+      Belepes, kijelentkezes, munkamenet, meghivo es elfelejtett jelszo (1.7.0).
+      A teljes dontes: siduri-docs/BEJELENTKEZES.md.
+
+      ⚠️ KET KAPU, ES A TELEPHELYI CSAK KIMARADASKOR NYITOTT. A felhoben nev +
+      jelszo; a telephelyen pultos azonosito + PIN - de CSAK ha a felho nem
+      erheto el. Ha elerheto, a telephely a felhos Zigguratra kuld
+      (FELHORE mod), es a PIN-es kapu 409-cel zar.
   - name: torzsadat
     description: Kategoria es termek - amit a tulajdonos karbantart
   - name: hozzaferes
@@ -100,6 +110,332 @@ tags:
       hogy egy kulon szerzodest verziozzunk ugyanezert.
 
 paths:
+
+  /bejelentkezes/mod:
+    get:
+      tags: [bejelentkezes]
+      operationId: belepesiMod
+      summary: Hogyan lehet itt belepni?
+      description: |
+        A felulet ebbol tudja, melyik belepo kepernyot mutassa.
+
+          - JELSZO: nev + jelszo (a felho).
+          - PIN: pultos azonosito + PIN (a telephely, KIMARADAS alatt).
+          - FELHORE: a telephely, de a felho elerheto - a felulet a `felhoCim`
+            cimre kuld, es itt belepni nem lehet.
+      security: []
+      responses:
+        '200':
+          description: A belepes modja
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BelepesiMod'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /bejelentkezes:
+    post:
+      tags: [bejelentkezes]
+      operationId: bejelentkezes
+      summary: Belepes nevvel es jelszoval (a felho)
+      description: |
+        Siker eseten a valasz `Set-Cookie` fejleccel munkamenet-sutit allit be
+        (HttpOnly, Secure, SameSite=Strict) - a bongeszoben futo kod NEM latja,
+        tehat egy XSS nem viszi el.
+
+        ⚠️ ROSSZ NEV ES ROSSZ JELSZO UGYANAZT A VALASZT KAPJA, ugyanannyi ido
+        alatt: a valaszbol nem derulhet ki, letezik-e a felhasznalo.
+
+        ⚠️ FEKEZES, NEM KIZARAS: fiokonkent novekvo varakozas (429). A kizaras
+        maga is tamadas lenne - barki kizarhatna barkit, aki a nevet ismeri.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JelszavasBelepes'
+      responses:
+        '200':
+          description: Belepve
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+            Set-Cookie:
+              $ref: '#/components/headers/MunkamenetSuti'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Munkamenet'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '429':
+          $ref: '#/components/responses/Hiba429'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /bejelentkezes/pin:
+    post:
+      tags: [bejelentkezes]
+      operationId: pinesBejelentkezes
+      summary: Belepes pultos azonositoval es PIN-nel (a telephely, kimaradaskor)
+      description: |
+        ⚠️ CSAK A TELEPHELY valositja meg, es CSAK AKKOR nyitott, ha a felho
+        nem erheto el. Ha elerheto: 409 (FELHO_ELERHETO), a valaszban a felhos
+        Ziggurat cimevel. A negyjegyu PIN gyengebb egy jelszonal - ezert csak
+        akkor van kapu, amikor tenyleg szukseg van ra.
+
+        A felho 501-et ad (CSAK_A_TELEPHELYEN).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PinesBelepes'
+      responses:
+        '200':
+          description: Belepve
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+            Set-Cookie:
+              $ref: '#/components/headers/MunkamenetSuti'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Munkamenet'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '409':
+          description: A felho elerheto - ott kell belepni (FELHO_ELERHETO).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BelepesiMod'
+        '429':
+          $ref: '#/components/responses/Hiba429'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /kijelentkezes:
+    post:
+      tags: [bejelentkezes]
+      operationId: kijelentkezes
+      summary: Kijelentkezes - a munkamenet AZONNAL megszunik
+      responses:
+        '204':
+          description: Kijelentkezve. A suti torlodik.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /munkamenet:
+    get:
+      tags: [bejelentkezes]
+      operationId: munkamenet
+      summary: Ki vagyok, es meddig el a munkamenetem?
+      description: |
+        ⚠️ EZ AZ EGYETLEN HITELESITETT KERES, AMI NEM NULLAZZA A TETLENSEGI IDOT.
+        A felulet ebbol olvassa a visszaszamlalo pontos allasat - ha a kerdes
+        maga meghosszabbitana, a szamlalo hazudna.
+      responses:
+        '200':
+          description: A munkamenet
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Munkamenet'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /munkamenet/frissites:
+    post:
+      tags: [bejelentkezes]
+      operationId: munkamenetetFrissit
+      summary: A tetlensegi ido nullazasa - "Maradok"
+      description: |
+        A felulet "Maradok" gombja hivja. NEM tolt ujra es nem navigal: a
+        felbehagyott szerkesztes a kepernyon marad.
+
+        ⚠️ Az ABSZOLUT hatart (legfeljebb 12 ora) NEM tolja ki.
+      responses:
+        '200':
+          description: A frissitett munkamenet
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Munkamenet'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /jelszo/elfelejtett:
+    post:
+      tags: [bejelentkezes]
+      operationId: elfelejtettJelszo
+      summary: Jelszo-visszaallito level kerese (a felho)
+      description: |
+        ⚠️ A VALASZ MINDIG 202, akkor is, ha nincs ilyen felhasznalo - kulonben
+        a felhasznalonevek egyenkent kiprobalhatok lennenek.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElfelejtettJelszo'
+      responses:
+        '202':
+          description: Ha letezik ilyen fiok, a level elindult.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+        '400':
+          $ref: '#/components/responses/Hiba'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /jelszo/beallitas:
+    post:
+      tags: [bejelentkezes]
+      operationId: jelszotBeallit
+      summary: Jelszo beallitasa jeggyel - meghivo elfogadasa vagy visszaallitas (a felho)
+      description: |
+        A jegy EGYSZER hasznalhato. Meghivo: 72 ora, visszaallitas: 1 ora.
+        Siker utan a felhasznalo MINDEN korabbi munkamenete megszunik.
+
+        ⚠️ A lejart, a mar felhasznalt es a nem letezo jegy UGYANAZT a valaszt
+        kapja (410) - a jegyek ne legyenek kiprobalhatok.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JelszoBeallitas'
+      responses:
+        '204':
+          description: A jelszo beallitva. Belepni kulon kell.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+        '410':
+          description: A jegy lejart, mar felhasznaltak, vagy nem letezik (ERVENYTELEN_JEGY).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          description: |
+            A jelszo nem felel meg (GYENGE_JELSZO): legalabb 12 karakter, nem
+            szerepelhet a gyakori jelszavak kozott, es nem lehet a felhasznalo
+            neve.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /felhasznalok/{felhasznaloAzonosito}/meghivo:
+    post:
+      tags: [hozzaferes]
+      operationId: meghivotKuld
+      summary: A meghivo (ujra)kuldese
+      description: |
+        Uj jegyet keszit, es a korabbiakat ervenyteleniti. Akkor is hasznalhato,
+        ha a fiok mar aktiv: ilyenkor jelszo-visszaallitaskent mukodik.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - $ref: '#/components/parameters/FelhasznaloAzonosito'
+      responses:
+        '202':
+          description: A level elindult.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeghivoAllapot'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        '503':
+          description: |
+            A levelkuldes nincs beallitva vagy nem erheto el
+            (LEVELKULDES_NEM_ELERHETO). A felulet ezt KIMONDJA.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        default:
+          $ref: '#/components/responses/Hiba'
 
   /kategoriak:
     get:
@@ -426,10 +762,14 @@ paths:
         hivassal allnak be, mert a burok ellenorzese ott tortenik, es egy
         felig sikerult felvetel rosszabb, mint ket lepes.
 
-        ⚠️ **AMI MA MEG NEM TORTENIK MEG, KIMONDVA:** a meghivo **kikuldese** a
-        bejelentkezes-szelettel keszul el. Addig a fiok LETREJON, de levelet nem
-        kuldunk - a valaszban visszaadott adat ezert nem jelenti azt, hogy a
-        felhasznalo be is tud lepni.
+        A meghivo sorsat a valasz `meghivo` mezoje mondja meg (1.7.0). ⚠️ Ha a
+        levelet nem sikerult elkuldeni, a FIOK ATTOL MEG LETREJON - a meghivo
+        kesobb ujrakuldheto. A felulet ezt KIMONDJA, nem tesz ugy, mintha a
+        level elment volna.
+
+        ⚠️ A meghivo LINKJE a valaszban SOHA nem szerepel: ha a meghivo latna,
+        o maga allithatna be a masik jelszavat, es utana az o neveben
+        dolgozhatna - a naplo pedig a meghivottat mutatna.
       parameters:
         - $ref: '#/components/parameters/Telephely'
       requestBody:
@@ -803,17 +1143,38 @@ components:
 
   securitySchemes:
 
+    MunkamenetSuti:
+      type: apiKey
+      in: cookie
+      name: siduri_munkamenet
+      description: |
+        A BEJELENTKEZETT ADMIN FELHASZNALO munkamenete (1.7.0). A belepes
+        allitja be: HttpOnly, Secure, SameSite=Strict.
+
+        Szerveroldali, atlatszatlan azonosito - NEM JWT: kijelentkezeskor,
+        letiltaskor es jelszocserekor AZONNAL megszunik. Egy alairt tokent a
+        lejaratig nem lehetne visszavonni, es egy letiltott dolgozo addig bent
+        maradna.
+
+        Tetlenseg utan 20 perccel lejar, es legfeljebb 12 oraig el. Minden
+        hitelesitett keres nullazza a tetlensegi idot, KIVEVE a GET /munkamenet.
+
     MunkamenetToken:
       type: http
       scheme: bearer
       description: |
-        A BEJELENTKEZETT ADMIN FELHASZNALO munkamenete. Bongeszobol erkezik,
-        ezert itt NINCS eszkoztanusitvany - az a K1 sajatja, ahol a gep maga is
-        azonossag.
-
-        A token megszerzese a K2 kesobbi szelete. EZ HIANY, KIMONDVA.
+        ⚠️ CSAK FEJLESZTOI ES TESZTHASZNALAT, kapcsoloval: a token maga a
+        felhasznalo azonositoja. Elesben ki van kapcsolva, es a felulet sem
+        hasznalja.
 
   headers:
+
+    MunkamenetSuti:
+      description: >
+        A munkamenet-suti (siduri_munkamenet). HttpOnly, Secure,
+        SameSite=Strict, Path=/admin.
+      schema:
+        type: string
 
     SiduriSzerzodes:
       description: >
@@ -822,7 +1183,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.6.0"]
+        examples: ["admin/1.7.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -941,6 +1302,23 @@ components:
           schema:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
+    Hiba429:
+      description: |
+        Tul sok sikertelen kiserlet (VARJON). A Retry-After fejlec mondja meg,
+        hany masodperc mulva lehet ujra probalni.
+      headers:
+        Siduri-Szerzodes:
+          $ref: '#/components/headers/SiduriSzerzodes'
+        Siduri-Kiszolgalo:
+          $ref: '#/components/headers/SiduriKiszolgalo'
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
     Hiba501:
       description: |
         ⚠️ **EZT A VEGPONTOT CSAK A FELHO VALOSITJA MEG** (`CSAK_A_FELHOBEN`).
@@ -973,6 +1351,117 @@ components:
 
   schemas:
 
+    BelepesiMod:
+      title: A belepes modja
+      type: object
+      required: [mod]
+      properties:
+        mod:
+          type: string
+          enum: [JELSZO, PIN, FELHORE]
+        felhoCim:
+          type: [string, "null"]
+          description: FELHORE modnal a felhos Ziggurat cime.
+      additionalProperties: false
+
+    JelszavasBelepes:
+      title: Belepes nevvel es jelszoval
+      type: object
+      required: [felhasznalonev, jelszo]
+      properties:
+        felhasznalonev:
+          type: string
+          maxLength: 200
+          examples: ["kiskocsma.pista"]
+        jelszo:
+          type: string
+          maxLength: 128
+      additionalProperties: false
+
+    PinesBelepes:
+      title: Belepes pultos azonositoval es PIN-nel
+      type: object
+      required: [azonosito, pin]
+      properties:
+        azonosito:
+          type: string
+          maxLength: 100
+          description: A pultos kulso azonositoja - amivel a pult mogott is belep.
+        pin:
+          type: string
+          pattern: '^[0-9]{4,8}$'
+      additionalProperties: false
+
+    Munkamenet:
+      title: Munkamenet
+      type: object
+      required: [felhasznalo, tetlensegiLejar, abszolutLejar, tetlensegiIdoMp]
+      properties:
+        felhasznalo:
+          type: object
+          required: [azonosito, nev]
+          properties:
+            azonosito:
+              $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            nev:
+              type: string
+            bejelentkezesiNev:
+              type: [string, "null"]
+          additionalProperties: false
+        tetlensegiLejar:
+          type: string
+          format: date-time
+          description: Ekkor jar le, ha addig nem erkezik keres.
+        abszolutLejar:
+          type: string
+          format: date-time
+          description: Ekkor MINDENKEPP lejar. Nem tolhato ki.
+        tetlensegiIdoMp:
+          type: integer
+          description: >
+            Mennyivel tol ki egy keres (20 perc = 1200). A felulet EBBOL szamol a
+            kozbenso keresek utan - nem sajat, beegetett ertekbol.
+      additionalProperties: false
+
+    ElfelejtettJelszo:
+      title: Elfelejtett jelszo
+      type: object
+      required: [felhasznalonev]
+      properties:
+        felhasznalonev:
+          type: string
+          maxLength: 200
+      additionalProperties: false
+
+    JelszoBeallitas:
+      title: Jelszo beallitasa jeggyel
+      type: object
+      required: [jegy, jelszo]
+      properties:
+        jegy:
+          type: string
+          maxLength: 200
+        jelszo:
+          type: string
+          minLength: 12
+          maxLength: 128
+      additionalProperties: false
+
+    MeghivoAllapot:
+      title: A meghivo sorsa
+      type: object
+      required: [allapot]
+      properties:
+        allapot:
+          type: string
+          enum: [ELKULDVE, NEM_SIKERULT]
+          description: |
+            ⚠️ NEM_SIKERULT eseten a fiok LETEZIK, csak a level nem ment ki. A
+            felulet ezt kimondja, es felajanlja az ujrakuldest.
+        uzenet:
+          type: [string, "null"]
+      additionalProperties: false
+
     Felhasznalo:
       title: Felhasznalo
       type: object
@@ -990,6 +1479,11 @@ components:
           description: >
             A berlo rovid neve es az azonosito egyutt (pl. kiskocsma.Pista). A
             ZIGGURAT-fiokoknal van csak ertelme.
+        meghivo:
+          allOf:
+            - $ref: '#/components/schemas/MeghivoAllapot'
+          description: >
+            CSAK a felvetel valaszaban (1.7.0): elment-e a meghivo.
         email:
           type: [string, "null"]
         aktiv:

@@ -43,6 +43,29 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.7.0 — 2026-09-24 — *bejelentkezés* `NEM TÖRŐ`
+
+Eddig a Ziggurat fejlesztői kapcsolóval működött, élesben **minden kérés 401**
+volt. A döntések: `siduri-docs/BEJELENTKEZES.md`.
+
+| Mi | Döntés | Miért |
+|----|--------|-------|
+| **Munkamenet** | Szerveroldali, `HttpOnly` süti (`siduri_munkamenet`), **nem JWT** | Kijelentkezéskor, letiltáskor, jelszócserekor **azonnal** megszűnik — egy JWT a lejáratáig érvényes maradna, és egy letiltott dolgozó bent maradna |
+| **Időkorlát** | 20 perc tétlenség, legfeljebb 12 óra | A felület visszaszámlál; a **„Maradok”** (`POST /munkamenet/frissites`) az oldal megzavarása nélkül nulláz |
+| **`GET /munkamenet`** | az egyetlen hitelesített kérés, ami **nem** nulláz | Különben a visszaszámláló lekérdezése maga hosszabbítana, és a számláló hazudna |
+| **Két kapu** | felhő: név + jelszó; telephely: pultos azonosító + PIN, **csak ha a felhő nem érhető el** | A gyenge PIN csak kimaradáskor nyitott; különben a telephely a felhős Zigguratra küld (`FELHORE`, `409 FELHO_ELERHETO`) |
+| **Fékezés** | növekvő várakozás, `429` + `Retry-After` — **kizárás nincs** | A kizárás maga is támadás: bárki kizárhatna bárkit |
+| **Meghívó, elfelejtett jelszó** | egyszer használható, lejáró jegy e-mailben; a meghívó linkje **soha** nincs a válaszban | Különben a meghívó maga állíthatná be a másik jelszavát |
+| **Felhő alapcíme** | `ziggurat.mythsystem.hu` | A korábbi `admin.sidurisystems.hu` helyett |
+
+⚠️ **A válaszok nem árulnak el semmit:** rossz név és rossz jelszó ugyanazt
+kapja; az „elfelejtettem” mindig `202`; lejárt, felhasznált és nem létező jegy
+ugyanazt a `410`-et.
+
+**Törő-e:** nem. Új végpontok és egy új biztonsági séma; a `Bearer` séma
+megmarad, de **csak fejlesztői kapcsolóval** él. Két indokolt lint-kivétel
+került be (`.redocly.lint-ignore.yaml`).
+
 ### v1.6.0 — 2026-09-24 — *az előző és az elveszett ár* `NEM TÖRŐ`
 
 Két új, nem kötelező mező a kiszerelésen: **`arElozo`** *(az előtte érvényes ár,

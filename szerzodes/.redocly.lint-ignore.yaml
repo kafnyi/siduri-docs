@@ -37,3 +37,21 @@ kassza/v1/kassza.yaml:
   no-ambiguous-paths:
     - '#/paths/~1bizonylatok~1{bizonylatAzonosito}~1sztorno'
     - '#/paths/~1bizonylatok~1{bizonylatAzonosito}~1adougyi-eredmeny'
+
+# ---------------------------------------------------------------------------
+# operation-4xx-response - ket vegpont az admin-szerzodesben (2026-09-24)
+# ---------------------------------------------------------------------------
+#
+# `GET /bejelentkezes/mod`: nyilvanos, torzs es parameter nelkuli kerdes (hogyan
+# lehet itt belepni). Nincs olyan kliens-hiba, amit ertelmesen visszaadhatna.
+#
+# `POST /kijelentkezes`: SZANDEKOSAN idempotens - munkamenet nelkul is 204. Ha
+# 401-et adna, egy lejart munkamenetu kijelentkezes "hibanak" latszana, pedig a
+# kivant allapot (nincs munkamenet) mar fennall.
+#
+# MI AZ ARA, KIMONDVA: ha ezek kesobb kapnak 4xx-es agat, azt a szabaly nem fogja
+# kikenyszeriteni - ezert az indok megszunesevel a tetelnek KI KELL KERULNIE.
+admin/v1/admin.yaml:
+  operation-4xx-response:
+    - '#/paths/~1bejelentkezes~1mod/get/responses'
+    - '#/paths/~1kijelentkezes/post/responses'

@@ -269,8 +269,8 @@ hozzáférés-változás megy — **mezőérték nem**. Következmények:
 felmegy, és a Ziggurat az ár mellett mutatja, mi volt előtte, és mi nem lépett
 érvénybe — okkal.
 
-⚠️ **Mellékleleten, javítatlanul:** a telephelyi admin-végpont **hibás JSON-ra
-500-at** ad, nem 4xx-et (`HttpMessageNotReadableException` a `HibaKezelo`-ben).
+✅ **Javítva** *(2026-09-24)*: hibás JSON-ra mindkét oldal **400**-at ad
+(`HIBAS_KERES`), nem 500-at — a felhő is ugyanígy hibázott.
 Közben kiderült, hogy a felhőben **egyáltalán nincs törzsadat-írás** — a kezdeti
 feltöltést is ennek kell megoldania. Sorrend: felküldés → írás-történet mindkét
 oldalon → előző/vesztes érték a szerződésben és a felületen.

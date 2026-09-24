@@ -872,6 +872,8 @@ menükezelés, export, riportok.
 | **Áfa írása** | mindkét oldalon, mint a név (mezőeredet, O3), `termek.afa_modositas` joggal | szinkron-kisverzió |
 | **Áfakategória** | előre felvett, **névvel** („Ital 27%”) és **kulccsal**; a pénztárgépi **betűjel a kulcsból** adódik (jogszabály rögzíti), nem írható; a terméknél csak ezekből lehet választani | szabad betűjel nincs |
 | **Ki veszi fel** | a **bérlő**, a Zigguratban, bérlőnként **közös** lista (minden telephelyen ugyanaz); a meglévő termékek a kulcsukkal azonos, automatikusan létrehozott kategóriát kapják | — |
+| **Alapból létrehozott kategóriák** *(a felhasználó kérése)* | **Termék 5% · Termék 18% · Termék 27% · TAM · AM · Szerviz 5% · Szerviz 18% · Szerviz 27%** — pontosan a nyolc rögzített pénztárgépi gyűjtő (NYITOTT_KERDESEK G1). ⚠️ Az „AM” az **AJT** gyűjtőre kerül (feltételezés, a név átírható) | — |
+| **Finomítás: gyűjtő, nem kulcs** | a Termék 27% és a Szerviz 27% **külön gyűjtő** — a kategória ezért a **gyűjtőre** mutat (8 rögzített érték), a kulcs és a betűjel abból adódik. A terméknél csak a termék-gyűjtős kategóriák választhatók; a szerviz-kategóriák a szervizdíjé (G1.2) | — |
 | **Kulcsváltás** | a kategória **kulcsa nem írható át**, csak a neve; kulcsváltáshoz új kategória + átsorolás (egyenként vagy csoportosan, áttekintéssel) | több kattintás, cserébe egy elgépelés nem állítja át az egész étlapot |
 | **Tanúsítvány visszavonása** | **új kollégakapcsoló**, csak Siduri; indok kötelező, naplózva, azonnal hat; a bérlő nem vonhat vissza | új kapcsoló |
 | **Siduri-hozzáférés, forgó rész** | a **felhő generálja** havonta, a pillanatképpel jut le; az előző hónapé is él | egy hónapig internet nélküli pult csak a régit ismeri |

@@ -133,11 +133,17 @@ felhős második megvalósítás · felhasználó- és jogosultságkezelés, a j
 nevével (`admin/1.8.0`) · telephelyválasztó (`admin/1.9.0`) · teljes angol és
 német felület · böngészős átnézés.
 
-**Hátra az adminból — mind döntést igényel:** export/import *(`M20`, `M22` —
-könyvtárválasztás nyitott)* · név/áfa/inaktiválás írása *(az áfánál a pénztárgép
-gyűjtői és az NTAK miatt)* · kategória-, módosító-, menükezelés · beállításszerkesztés
-· riportok · **a 30 napos offline korlát kiírása**. A kiszolgálótól jövő szövegek
-(hibaüzenetek, jogosultságnevek) nyelvváltáskor magyarok maradnak.
+✅ **Kész még** *(2026-09-24)*: a Siduri kollégafiókjai (`admin/1.10.0`–`1.11.0`),
+a termék neve és állapota O3-mal (`admin/1.12.0`, `szinkron/1.6.0`), új bérlő,
+telephely és telepítési jegy (`admin/1.13.0`).
+
+**Hátra az adminból — a döntések megvannak (FOLYAMATBAN 7.0/a):** áfakategória
+és áfaírás · kategóriafa · export (fastexcel) · tanúsítvány visszavonása. **Még
+döntés kell:** módosító- és menükezelés (C1), beállításszerkesztés, riportok (az
+eladási adatok felküldése előbb — terv készül). **A 30 napos offline korlát
+kiírása** az első időkorlátos képernyővel (riport) együtt készül — ma nincs
+ilyen. A kiszolgálótól jövő szövegek (hibaüzenetek, jogosultságnevek)
+nyelvváltáskor magyarok maradnak.
 
 **Hátra a készletből:** `F5.1`–`F5.6`, `F5.8`.
 
@@ -261,14 +267,16 @@ ehhez a nézet az útvonalváltáskor újratölt, különben csak az URL változ
   látszania kell, mikor, honnan **és mi volt előtte** — az első kettő megvan, a
   harmadikat a szerződés nem adja *(ÁRA: `admin` kisverzió)*. Enélkül egy
   elveszett átírás nyoma csak a naplóban van, a képernyőn nem.
-* Az **áfa** is nyers kódként látszik (`C_27`), a termékek **kategória** oszlopa
-  a fejlesztői adaton mindenhol üres.
+* ✅ Az **áfa** olvasható kulcsként látszik (27%); a fejlesztői adat
+  **kategóriafát** kap *(2026-09-25, a meglévő adatbázison is)*. ⚠️ Az `E_0` ma
+  „0%”-ként jelenik meg — a pénztárgépen ez a TAM gyűjtő; az áfakategóriával
+  javul.
 
 ✅ **A telephelyi szerverrel is átnézve** *(2026-09-23)*: termékek, zárolt és
 szerkeszthető ár, eredet, a „csak a felhőben” magyarázat. Javítva: a magyarázat
 a pultos fülön is a Ziggurat-fiókokról szólt · az árszerkesztő mezőinek nem volt
-akadálymentes címkéje. **Árat nem mentettem** — a mentés útja élőben nincs
-kipróbálva a felületről.
+akadálymentes címkéje. ✅ **Az ár- és a névírás a felületről, a telephelyi
+szerverrel élőben kipróbálva** *(2026-09-25)*.
 
 ✅ **A K3 szerződés kiadva ÉS megvalósítva** *(2026-09-21, `szinkron/1.0.0`)*:
 lefelé törzsadat és zárolás, felfelé nyugta és állapot.

@@ -1,14 +1,8 @@
 # A törzsadat felküldése — a telephelyről a felhőbe
 
-> **Állapot: az 1–3. darab KÉSZ** *(2026-09-24)*, élő próbán végigvíve. A
-> 4–6. (írás-történet, előző/vesztes érték, felület) hátra van. Mindhárom
-> döntési kérdés a javaslat szerint dőlt el (lásd 5.).
->
-> **Miért most:** a Ziggurat böngészős átnézésekor kiderült, hogy az árnál nem
-> látszik, **mi volt előtte**. Ennek utánajárva egy nagyobb hiány került elő:
-> a telephelyen átírt törzsadat **soha nem jut fel a felhőbe**. Ez a terv azt
-> írja le, hogyan jut fel — és csak erre épülhet rá a felhős ártörténet és az
-> „előző / elveszett érték” kijelzése.
+> **Állapot: KÉSZ, mind a hat darab** *(2026-09-24)*. Az 1–3. élő próbán, a
+> 4–6. böngészőben is végigvíve. Mindhárom döntési kérdés a javaslat szerint
+> dőlt el (lásd 5.).
 
 ---
 
@@ -246,3 +240,32 @@ csendben mást mutat. A 4–6. erre épül.
   újra. Ritka, de nem nulla.
 * A telephely a **beszerzési árat** és a termék NTAK-kódjait **nem** küldi fel —
   a felhős táblában nincs helyük. A felhős árrés-riport előtt pótolni kell.
+
+### 6.2 A 4–6. darab — ami megépült *(2026-09-24)*
+
+✅ `admin/1.6.0` (`arElozo`, `arElveszett`) · `mezo_iras` mindkét oldalon (csak
+beszúrható) · a számítás a **közös** `k2` modulban (`IrasTortenet`) · a közös
+szerződésteszt mindkét oldalon ugyanazt a választ követeli meg · a Ziggurat az
+ár alatt mutatja az előző értéket és az elveszett írást, **okkal**.
+
+**Alapvonal:** ha egy mezőnek még nincs története, az első íráskor a mostani,
+**ismert eredetű** értéke első sorként bekerül — különben a bevezetés utáni első
+átírásnál nem lenne „előtte” érték, pedig a mezőeredetből tudjuk.
+
+**Böngészőben ellenőrizve** *(telephelyi szerver)*: átírás után „előtte: 820 Ft”;
+egy későbbi értékkel ütköző átírás után **„Nem lépett érvénybe: 870 Ft — egy
+későbbi módosítás felülírta”**.
+
+⚠️ **Közben előkerült egy RÉGI hiba, javítva:** a „nem lépett érvénybe” és a
+„zárolt” figyelmeztetés **soha nem jelent meg** a felületen — a képernyő
+újratöltése utána törölte. Magát a hibát a 409-es ág óta hordoztuk.
+
+⚠️ **A két oldal története szándékosan eltérhet**, és ez nem hiba. Egy olyan
+telephelyi írás, amit a felhő utólag elutasít, a telephelyen **egy ideig
+érvényes volt** — ott tehát „előtte” értékként is megjelenik. A felhőben soha
+nem volt érvényes, ott csak vesztesként látszik. Mindkettő igaz; a fejléc
+kiírja, melyik kiszolgáló felelt.
+
+⚠️ **Amit a próba NEM fedett:** az elutasított és a zárolt ok **megjelenését**
+böngészőben (a szövegük a kódban van, a mechanizmus ugyanaz); az angol és a
+német szöveg ezekre sincs lefordítva.

@@ -264,9 +264,10 @@ hozzáférés-változás megy — **mezőérték nem**. Következmények:
 * A „mi volt előtte / mi veszett el” kijelzése a felhőben emiatt **felküldés
   nélkül nem építhető meg**: a vesztes érték többnyire a telephelyen keletkezik.
 
-**A terv: `TORZSADAT_FELKULDES.md`** — ✅ **az 1–3. darab kész** *(2026-09-24,
-`szinkron/1.4.0`)*: a telephelyi írás és a kezdeti katalógus felmegy, élő próbán
-is. Hátra: írás-történet, előző/vesztes érték, felület.
+**A terv: `TORZSADAT_FELKULDES.md`** — ✅ **mind a hat darab kész** *(2026-09-24,
+`szinkron/1.4.0`, `admin/1.6.0`)*: a telephelyi írás és a kezdeti katalógus
+felmegy, és a Ziggurat az ár mellett mutatja, mi volt előtte, és mi nem lépett
+érvénybe — okkal.
 
 ⚠️ **Mellékleleten, javítatlanul:** a telephelyi admin-végpont **hibás JSON-ra
 500-at** ad, nem 4xx-et (`HttpMessageNotReadableException` a `HibaKezelo`-ben).

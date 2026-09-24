@@ -234,12 +234,11 @@ csendben mást mutat. A 4–6. erre épül.
 ⚠️ **Amit a próba NEM fedett, és csak teszt védi:** a `ZAROLT` és az
 `ELAVULT` kimenet, a megvonás előtti jóhiszemű írás, az újraküldés.
 
-⚠️ **Két ismert korlát:**
-* Ha egy rekord a kötegen **túli** új kategóriára hivatkozik, a felhő
-  `HIBAS_TETEL`-lel utasítja el; a rekord a következő módosításakor megy fel
-  újra. Ritka, de nem nulla.
-* A telephely a **beszerzési árat** és a termék NTAK-kódjait **nem** küldi fel —
-  a felhős táblában nincs helyük. A felhős árrés-riport előtt pótolni kell.
+✅ **A két korábbi korlát megszűnt** *(2026-09-24)*:
+* a várakozó sor **egészében** a hivatkozások sorrendje érvényes (szülő
+  kategória elöl), nem csak egy kötegen belül;
+* a beszerzési ár és áfa, az NTAK-kódok és a kiszerelés mennyisége is felmegy
+  (`szinkron/1.5.0`).
 
 ### 6.2 A 4–6. darab — ami megépült *(2026-09-24)*
 

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.12.0
+  version: 1.13.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1338,7 +1338,9 @@ paths:
       operationId: siduriBerlok
       summary: A berlovalaszto listaja
       description: |
-        Minden berlo, nev szerint. Kapcsolo: `IDEGEN_BERLO`.
+        Minden berlo, nev szerint. Kapcsolo: `IDEGEN_BERLO`, `BERLO_REGISZTRACIO`
+        vagy `TELEPITESI_JEGY` (1.13.0) - a lista a belepeshez, a regisztraciohoz
+        es a telepiteshez is kell. A belepeshez maga tovabbra is `IDEGEN_BERLO` kell.
       responses:
         '200':
           description: A berlok
@@ -1362,6 +1364,62 @@ paths:
           $ref: '#/components/responses/Hiba401'
         '403':
           $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    post:
+      tags: [siduri]
+      operationId: berlotRegisztral
+      summary: Uj berlo regisztralasa - az elso telephellyel es a tulajdonosi fiokkal
+      description: |
+        Kapcsolo: `BERLO_REGISZTRACIO`.
+
+        Egy lepesben keletkezik: a berlo (sajat semaval), az ELSO telephely, es
+        a **tulajdonosi Ziggurat-fiok** - globalisan a berloi katalogus MINDEN
+        jogaval es az abszolut jogosultsagkezelessel (HOZZAFERES.md 4.4/b). A
+        tulajdonos e-mailes meghivot kap.
+
+        ⚠️ **A ROVID NEV GYAKORLATILAG VEGLEGES:** ez minden bejelentkezesi nev
+        eloTagja (`<rovidNev>.<azonosito>`). A `siduri` tiltott.
+
+        ⚠️ A telepitesi jegy NEM keletkezik vele - kulon, kezzel.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BerloRegisztracio'
+      responses:
+        '201':
+          description: Regisztralva
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BerloRegisztralva'
+        '409':
+          description: A rovid nev foglalt (FOGLALT_ROVID_NEV).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
         '501':
           $ref: '#/components/responses/Hiba501'
         default:
@@ -1966,6 +2024,144 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /siduri/berlok/{berloAzonosito}/telephelyek:
+    get:
+      tags: [siduri]
+      operationId: siduriTelephelyek
+      summary: Egy berlo telephelyei - a telepitesi jegy allapotaval
+      description: |
+        Kapcsolo: `BERLO_REGISZTRACIO` VAGY `TELEPITESI_JEGY`. A jegy maga NEM
+        latszik itt (csak a lenyomata all az adatbazisban) - csak az, hogy van-e
+        elo jegy, es meddig el.
+      parameters:
+        - name: berloAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: A telephelyek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [telephelyek]
+                properties:
+                  telephelyek:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SiduriTelephely'
+                additionalProperties: false
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    post:
+      tags: [siduri]
+      operationId: siduriTelephelytFelvesz
+      summary: Uj telephely egy meglevo berlonel
+      description: |
+        Kapcsolo: `BERLO_REGISZTRACIO`. A berlo maga nem vehet fel telephelyet
+        (licenc- es szamlazasi kerdes). A telepitesi jegy NEM keletkezik vele -
+        azt a telepito kulon, kezzel generalja.
+      parameters:
+        - name: berloAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelephelyFelvetel'
+      responses:
+        '201':
+          description: Felveve
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiduriTelephely'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/telephelyek/{telephelyAzonosito}/jegy:
+    post:
+      tags: [siduri]
+      operationId: telepitesiJegy
+      summary: Telepitesi jegy generalasa - a telephelyi szerver elso tanusitvanyahoz
+      description: |
+        Kapcsolo: `TELEPITESI_JEGY`.
+
+        ⚠️ **LEGFELJEBB EGY EL.** Az uj jegy a telephely MINDEN korabbi, be nem
+        valtott jegyet azonnal ervenyteleniti. **24 oraig el, egyszer
+        hasznalhato.**
+
+        ⚠️ **A JEGY CSAK EBBEN A VALASZBAN LATSZIK.** Az adatbazisban csak a
+        lenyomata all; ha elveszett, ujat kell generalni. Nem megy ki levelben:
+        a telepito kolléga generalja, kozvetlenul a telepites elott.
+
+        ⚠️ **A jegy NEM bizonyitja**, hogy a jogos telepito all a vonal masik
+        vegen - csak azt, hogy a jegy nala van. A rovid elet, az egyszeri
+        hasznalat es az "egy el" szabaly korlatozza a kockazatot.
+      parameters:
+        - name: telephelyAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '201':
+          description: A jegy - egyszer latszik
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelepitesiJegy'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
 components:
 
   securitySchemes:
@@ -2010,7 +2206,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.12.0"]
+        examples: ["admin/1.13.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -2327,11 +2523,12 @@ components:
     KollegaKapcsolo:
       title: Egy kollega-kapcsolo
       type: string
-      enum: [IDEGEN_BERLO, BERLO_REGISZTRACIO, NAPLO, KOLLEGAK]
+      enum: [IDEGEN_BERLO, BERLO_REGISZTRACIO, NAPLO, KOLLEGAK, TELEPITESI_JEGY]
       description: |
         IDEGEN_BERLO: belepes egy berlo adataihoz. BERLO_REGISZTRACIO: uj berlo
-        felvetele. NAPLO: a hozzaferesi naplo. KOLLEGAK: a kollegafiokok
-        kezelese.
+        es uj telephely felvetele. NAPLO: a hozzaferesi naplo. KOLLEGAK: a
+        kollegafiokok kezelese. TELEPITESI_JEGY (1.13.0): telepitesi jegy
+        generalasa a telephelyi szerver elso tanusitvanyahoz.
 
         ⚠️ Uj kapcsolo = kisverzio; a felulet az ismeretlent figyelmen kivul
         hagyja.
@@ -2514,6 +2711,102 @@ components:
           type: string
       additionalProperties: false
 
+    BerloRegisztracio:
+      title: Uj berlo
+      type: object
+      required: [nev, rovidNev, telephelyNev, tulajdonos]
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: A ceg neve.
+        rovidNev:
+          type: string
+          pattern: '^[a-z][a-z0-9_]{1,39}$'
+          description: |
+            A bejelentkezesi nevek eloTagja - GYAKORLATILAG VEGLEGES. Kisbetu,
+            szam, alulvonas; pont nem (az valasztja el a nevtol). A `siduri`
+            tiltott.
+        telephelyNev:
+          type: string
+          minLength: 1
+          maxLength: 200
+        tulajdonos:
+          type: object
+          required: [nev, azonosito, email]
+          properties:
+            nev:
+              type: string
+              minLength: 1
+              maxLength: 200
+            azonosito:
+              type: string
+              pattern: '^[a-z0-9][a-z0-9._-]{1,63}$'
+            email:
+              type: string
+              format: email
+          additionalProperties: false
+      additionalProperties: false
+
+    BerloRegisztralva:
+      title: A regisztracio eredmenye
+      type: object
+      required: [berlo, telephely, tulajdonosBejelentkezesiNev, meghivo]
+      properties:
+        berlo:
+          $ref: '#/components/schemas/BerloRovid'
+        telephely:
+          $ref: '#/components/schemas/SiduriTelephely'
+        tulajdonosBejelentkezesiNev:
+          type: string
+          examples: ["kiskocsma.pista"]
+        meghivo:
+          $ref: '#/components/schemas/MeghivoAllapot'
+      additionalProperties: false
+
+    SiduriTelephely:
+      title: Egy telephely a Siduri szemevel
+      type: object
+      required: [azonosito, nev, regisztralva]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        regisztralva:
+          type: boolean
+          description: Van-e a telephelynek ervenyes (vissza nem vont, le nem jart) tanusitvanya.
+        eloJegyLejar:
+          type: [string, "null"]
+          format: date-time
+          description: Ha van be nem valtott, ervenyes jegy - eddig el. A jegy maga nem.
+      additionalProperties: false
+
+    TelephelyFelvetel:
+      title: Uj telephely
+      type: object
+      required: [nev]
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 200
+      additionalProperties: false
+
+    TelepitesiJegy:
+      title: Telepitesi jegy
+      type: object
+      required: [jegy, lejar]
+      properties:
+        jegy:
+          type: string
+          description: EGYSZER latszik - a telepito a telephelyi szerver beallitasaba masolja.
+        lejar:
+          type: string
+          format: date-time
+      additionalProperties: false
+
     BerloValasztas:
       title: Berlovalasztas
       type: object
@@ -2538,7 +2831,8 @@ components:
           description: |
             BELEPES, SIKERTELEN_BELEPES, BERLOBE_LEPES; 1.11.0-tol a kezeles:
             KOLLEGA_FELVETEL, KOLLEGA_MODOSITAS, RANG, JOGKOR, KERELEM,
-            JOVAHAGYAS, VISSZAVONAS. ⚠️ A lista bovulhet; a felulet az
+            JOVAHAGYAS, VISSZAVONAS; 1.13.0-tol BERLO_REGISZTRACIO,
+            TELEPHELY_FELVETEL, TELEPITESI_JEGY. ⚠️ A lista bovulhet; a felulet az
             ismeretlent a kodjaval mutatja.
           examples: ["BERLOBE_LEPES"]
         felhasznalonev:

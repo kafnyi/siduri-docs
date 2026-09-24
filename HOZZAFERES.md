@@ -265,7 +265,22 @@ nélkül hozott döntések és áruk:
 | A „kettőnél kevesebb nem lehet" a **csökkentést** tiltja; az első Managereket szabadon lehet kinevezni | amíg nincs két Manager, a szabály nem véd — addig a Szuperadmin a biztosíték |
 | Az utolsó `KOLLEGAK`-birtokos elleni külön védelem **nincs** | kizárás esetén a Szuperadmin adatbázisból állítja helyre |
 
-**Még nincs:** az új bérlő regisztrálása (7/c).
+### 4.4/b DÖNTÉSEK: az új bérlő és a telepítési jegy *(2026-09-24)*
+
+| Kérdés | Döntés | Ára |
+|---|---|---|
+| **Az új bérlő első fiókja** | **tulajdonosi**: globálisan a bérlői katalógus MINDEN joga + az abszolút jogosultságkezelés (§5.5) | aki a meghívót megkapja, mindenhez hozzáfér — az e-mail címet gondosan kell megadni |
+| **Az első telephely** | a regisztrációval együtt jön létre | — |
+| **További telephely** | a **„Új bérlő regisztrálása"** kapcsoló birtokosa veszi fel; a bérlő maga nem | a telephelyszám licenc- és számlázási kérdés lehet, ezért szándékos |
+| **A telepítési jegy** *(a telephelyi szerver első tanúsítványához)* | **külön kapcsoló**: „Telepítési jegy generálása" | egy új kapcsoló (szerződés-kisverzió + migráció) |
+| **Mikor keletkezik** | **csak kézzel**, a telepítés előtt — a telephely létrehozásakor NEM | — |
+| **Élettartam, darabszám** | **24 óra**, telephelyenként **legfeljebb egy él**: az új generálása a régit azonnal érvényteleníti | ha a telepítés csúszik, új jegy kell |
+| **Hol látszik** | a Zigguratban, **egyszer**, másolható módon — nem megy ki levélben | az adatbázisban csak a lenyomata áll: bezárt lap után új jegy kell |
+
+⚠️ **Amit a jegy NEM old meg, és külön tétel:** egy újratelepítés új
+tanúsítványt ad, de a régi gép tanúsítványa érvényes marad (a csere átfedése
+szándékos). Egy ellopott vagy leselejtezett gép tanúsítványát ma **csak
+adatbázisból** lehet visszavonni.
 
 ### 4.5 Amit NEM kapnak — és ennek ára van
 
@@ -767,7 +782,7 @@ pult; **nincs közös raktár** → csak átvételezéssel lehet áttolni.)*
 7. **A belső kollégafiókok** (§4), a négy szem elv munkafolyamatával.
    * ✅ **7/a — belépés, bérlőválasztó, napló: KÉSZ** *(2026-09-24, `admin/1.10.0`)*.
    * ✅ **7/b — kollégafiókok és jogkörök kezelése, négy szem: KÉSZ** *(2026-09-24, `admin/1.11.0`)*.
-   * **7/c — új bérlő regisztrálása.**
+   * ✅ **7/c — új bérlő, új telephely, telepítési jegy: KÉSZ** *(2026-09-24, `admin/1.13.0`)*, lásd 4.4/b.
 
 ---
 

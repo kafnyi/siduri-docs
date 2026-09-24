@@ -43,6 +43,21 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.13.0 — 2026-09-24 — *új bérlő, új telephely, telepítési jegy* `NEM TÖRŐ`
+
+* **`POST /siduri/berlok`** — új bérlő, egy lépésben az első telephellyel és a
+  **tulajdonosi** Ziggurat-fiókkal (a bérlői katalógus minden joga + abszolút
+  jogosultságkezelés), meghívóval.
+* **`GET/POST /siduri/berlok/{id}/telephelyek`** — a telephelyek (regisztrált-e,
+  van-e élő jegy) és új telephely felvétele.
+* **`POST /siduri/telephelyek/{id}/jegy`** — telepítési jegy: **24 óra**, egyszer
+  használható, telephelyenként **legfeljebb egy él** (az új a régit
+  érvényteleníti). **Csak a válaszban látszik**, levélben nem megy ki.
+* Új kapcsoló: **`TELEPITESI_JEGY`**.
+
+**Törő-e:** nem. Új végpontok, új felsorolás-érték (a felület az ismeretlen
+kapcsolót figyelmen kívül hagyja).
+
 ### v1.12.0 — 2026-09-24 — *a termék neve és állapota szerkeszthető* `NEM TÖRŐ`
 
 * **`PUT /termekek/{id}/megnevezes`** (jog: `termek.modositas`) és **`PUT

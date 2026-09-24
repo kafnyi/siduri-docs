@@ -856,13 +856,14 @@ trailer nélkül.**
 | **Siduri kollégafiókok** — belépés, bérlőválasztó, napló (7/a) | ✅ böngészőben is | `HOZZAFERES.md` §4, `admin/1.10.0` |
 | **Kollégák és jogkörök kezelése, négy szem** (7/b) | ✅ böngészőben is | `admin/1.11.0` |
 | **A termék neve és állapota** szerkeszthető, mezőeredettel | ✅ böngészőben is | `admin/1.12.0`, `szinkron/1.6.0` |
+| **Új bérlő** (tulajdonosi első fiókkal), **új telephely**, **telepítési jegy** (24 óra, egy él) | ✅ böngészőben is | `HOZZAFERES.md` 4.4/b, `admin/1.13.0` |
 
-**Tesztszámok (mérve):** mag 202 · k2 9 · felhő 165 · telephely 405 · felület 45.
+**Tesztszámok (mérve):** mag 202 · k2 9 · felhő 170 · telephely 405 · felület 45.
 
-**A következő tétel — mind DÖNTÉST igényel:** az új bérlő regisztrálása (7/c:
-az első fiók jogai, a telepítési jegy élettartama és láthatósága) · a pult
-felhasználókezelő képernyője (5/c, WPF) · a Siduri-hozzáférés (6.) · az adminban
-áfa írása, kategória- és menükezelés, export, riportok.
+**A következő tétel — mind DÖNTÉST igényel:** a pult felhasználókezelő
+képernyője (5/c, WPF) · a Siduri-hozzáférés (6.) · a tanúsítvány visszavonása a
+felületről (ellopott/leselejtezett gép) · az adminban áfa írása, kategória- és
+menükezelés, export, riportok.
 
 ### 7.1 Ami MŰKÖDIK
 

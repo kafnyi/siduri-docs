@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.4.0
+  version: 1.5.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -337,7 +337,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["szinkron/1.4.0"]
+        examples: ["szinkron/1.5.0"]
 
   responses:
 
@@ -691,7 +691,7 @@ components:
         szerzodesVerzio:
           type: string
           description: Melyik K3-verziot beszeli a telephely.
-          examples: ["szinkron/1.4.0"]
+          examples: ["szinkron/1.5.0"]
         alkalmazasVerzio:
           type: string
           description: A telephelyi szerver kiadasi verzioja.
@@ -1014,6 +1014,26 @@ components:
         allapot:
           type: string
           enum: [AKTIV, INAKTIV, TOROLT]
+        ntakFokategoria:
+          type: [string, "null"]
+          description: Az NTAK fokategoria kodja (1.5.0).
+        ntakAlkategoria:
+          type: [string, "null"]
+          description: Az NTAK alkategoria kodja (1.5.0).
+        beszerzesiBruttoAr:
+          oneOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+            - type: "null"
+          description: |
+            A beszerzesi brutto ar, egesz forintban (1.5.0) - a felhos arres- es
+            food cost-riporthoz.
+
+            ⚠️ Uzleti adat, es a felho EZERT tarolja: a riportok es a 8 eves
+            archivum ott elnek. A berlo sajat adata, masnak nem latszik.
+        beszerzesiAfa:
+          oneOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+            - type: "null"
       additionalProperties: false
 
     SzinkronKiszereles:
@@ -1041,6 +1061,15 @@ components:
         allapot:
           type: string
           enum: [AKTIV, INAKTIV, TOROLT]
+        mennyiseg:
+          type: [string, "null"]
+          pattern: '^[0-9]+(\\.[0-9]+)?$'
+          description: >
+            A kiszereles mennyisege (1.5.0), pl. "0.33". SZOVEGKENT, mint a K1-ben:
+            lebegopontos ertek a mennyiseg kozeleben sincs.
+        mennyisegiEgyseg:
+          type: [string, "null"]
+          examples: ["LITER", "DARAB"]
         vonalkodok:
           type: array
           description: >

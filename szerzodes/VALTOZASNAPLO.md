@@ -204,6 +204,19 @@ A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a tel
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
 
+### v1.5.0 — 2026-09-24 — *beszerzési ár, NTAK-kódok, mennyiség* `NEM TÖRŐ`
+
+A `REKORD` tétel eddig nem hozta fel a termék **beszerzési árát és áfáját**, az
+**NTAK-kódokat**, és a kiszerelés **mennyiségét**. A felhő a riportok és a
+8 éves archívum helye — az árrés- és food cost-riport enélkül nem építhető.
+
+A mennyiség **szövegként** utazik, mint a K1-ben: lebegőpontos érték a
+mennyiség közelében sincs.
+
+**Törő-e:** nem. Új, nem kötelező mezők. ⚠️ Egy régebbi telephely nem küldi
+őket; a felhő ilyenkor üresen hagyja — a telephely frissítése után a következő
+módosítással töltődnek fel.
+
 ### v1.4.0 — 2026-09-24 — *a telephelyi törzsadat felmegy a felhőbe* `NEM TÖRŐ`
 
 **Eddig a telephelyen átírt törzsadat soha nem jutott fel.** A felhős Ziggurat

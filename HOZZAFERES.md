@@ -251,9 +251,21 @@ jóváhagyás → végrehajtás* lánc. Külön darab.
 
 **Megvalósítva** *(2026-09-24, `admin/1.10.0`)*: belépés `siduri.<név>`-vel,
 bérlőválasztó, a belépés a bérlő saját naplójába is bekerül, hozzáférési napló
-(a sikertelen próbálkozás is, a nem létező kolléganévre is). **Még nincs:** a
-kollégafiókok és jogkörök kezelése a felületről, a négy szem elv, az új bérlő
-regisztrálása — addig kollégát és jogkört **adatbázisból** lehet felvenni.
+(a sikertelen próbálkozás is, a nem létező kolléganévre is).
+
+**Megvalósítva** *(2026-09-24, `admin/1.11.0`)*: kollégafiókok és jogkörök
+kezelése a felületről, a négy szem elv kérelmekkel. A megvalósításkor, kérdés
+nélkül hozott döntések és áruk:
+
+| Döntés | Ára |
+|---|---|
+| **Saját kapcsolóit és jogköreit senki nem módosíthatja** — más kollégának kell | egy Manager a saját felesleges kapcsolóját sem veheti el magától |
+| A négy szem **csak Manager cselekvő és Manager cél** között él; a Szuperadmin azonnal hajt végre, és a kettes alsó határ sem köti | a Szuperadmin egyedül is kiürítheti a Manager-kört — ezt vállaljuk, mert ő az adatbázis gazdája is |
+| A kettes alsó határ az **aktív** Managereket számolja, és a **jóváhagyáskor újra** (zárolással) | — |
+| A „kettőnél kevesebb nem lehet" a **csökkentést** tiltja; az első Managereket szabadon lehet kinevezni | amíg nincs két Manager, a szabály nem véd — addig a Szuperadmin a biztosíték |
+| Az utolsó `KOLLEGAK`-birtokos elleni külön védelem **nincs** | kizárás esetén a Szuperadmin adatbázisból állítja helyre |
+
+**Még nincs:** az új bérlő regisztrálása (7/c).
 
 ### 4.5 Amit NEM kapnak — és ennek ára van
 
@@ -754,7 +766,7 @@ pult; **nincs közös raktár** → csak átvételezéssel lehet áttolni.)*
 6. **A Siduri-hozzáférés** (§8).
 7. **A belső kollégafiókok** (§4), a négy szem elv munkafolyamatával.
    * ✅ **7/a — belépés, bérlőválasztó, napló: KÉSZ** *(2026-09-24, `admin/1.10.0`)*.
-   * **7/b — kollégafiókok és jogkörök kezelése**, a négy szem elvvel.
+   * ✅ **7/b — kollégafiókok és jogkörök kezelése, négy szem: KÉSZ** *(2026-09-24, `admin/1.11.0`)*.
    * **7/c — új bérlő regisztrálása.**
 
 ---

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.10.0
+  version: 1.11.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -110,6 +110,10 @@ tags:
 
       **A kapcsolok EGYENKENT adhatok** (HOZZAFERES.md 4.3). A Szuperadmin es a
       Manager mindet birja.
+
+      **A kollegak kezelese (1.11.0):** kollegafiokok, jogkorok, a Manager
+      rang es a negy szem elv kerelmei. A burok itt is ervenyes: csak azt a
+      kapcsolot adhatod vagy veheted el, ami neked is megvan.
 
       ⚠️ **A BERLOI ADATON a kollega joga (1.10.0):** a Szuperadmin es a
       Manager MINDENT tehet, amit a berloi katalogus ismer; minden mas kollega
@@ -1325,6 +1329,522 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /siduri/kollegak:
+    get:
+      tags: [siduri]
+      operationId: kollegak
+      summary: A Siduri kollegai - a letiltottak is
+      description: Kapcsolo `KOLLEGAK`.
+      responses:
+        '200':
+          description: A kollegak
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [kollegak]
+                properties:
+                  kollegak:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Kollega'
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    post:
+      tags: [siduri]
+      operationId: kollegatFelvesz
+      summary: Uj kollegafiok - e-mailes meghivoval
+      description: |
+        Kapcsolo `KOLLEGAK`. A bejelentkezesi nev `siduri.<azonosito>`. Az uj
+        kollega RANG ES KAPCSOLO NELKUL indul - a kapcsolokat kulon kell adni.
+
+        ⚠️ A meghivo linkje SOHA nincs a valaszban (ugyanaz az ok, mint a
+        berloi fioknal).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KollegaFelvetel'
+      responses:
+        '201':
+          description: Felveve
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [kollega, meghivo]
+                properties:
+                  kollega:
+                    $ref: '#/components/schemas/Kollega'
+                  meghivo:
+                    $ref: '#/components/schemas/MeghivoAllapot'
+                additionalProperties: false
+        '409':
+          description: Az azonosito foglalt (FOGLALT_AZONOSITO).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/kollegak/{kollegaAzonosito}:
+    patch:
+      tags: [siduri]
+      operationId: kollegatModosit
+      summary: Letiltas, visszakapcsolas, egyedi kapcsolok, jogkorok
+      description: |
+        Kapcsolo `KOLLEGAK`. Csak a megadott mezok valtoznak.
+
+        ⚠️ **A BUROK:** csak olyan kapcsolot adhat vagy vehet el - kozvetlenul
+        vagy jogkorrel -, amivel maga is rendelkezik (BUROK, 403). Vezetot
+        (Manager, Szuperadmin) csak vezeto modosithat (EROSEBB_RANG, 403).
+        Magat nem tilthatja le (SAJAT_MAGAT, 403).
+
+        ⚠️ **NEGY SZEM:** egy MANAGER letiltasa egy masik Manager altal NEM
+        tortenik meg azonnal - fuggo kerelem lesz belole (202), amit egy
+        HARMADIK Manager hagy jova. Ha a vegrehajtas utan kettonel kevesebb
+        Manager maradna, 409 NEGY_SZEM: ezt csak Szuperadmin teheti meg.
+      parameters:
+        - $ref: '#/components/parameters/KollegaAzonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KollegaModositas'
+      responses:
+        '200':
+          description: Vegrehajtva
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kollega'
+        '202':
+          description: Negy szem - a kerelem fugg, egy harmadik Manager hagyja jova.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KollegaKerelem'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: NEGY_SZEM vagy MAR_VAN_KERELEM.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/kollegak/{kollegaAzonosito}/rang:
+    put:
+      tags: [siduri]
+      operationId: kollegaRangja
+      summary: A Manager rang adasa vagy elvetele
+      description: |
+        Csak vezeto teheti. A SZUPERADMIN rang a feluletrol NEM adhato es nem
+        veheto el - csak adatbazisbol.
+
+        ⚠️ A Manager rang elvetele egy masik Manager altal: fuggo kerelem
+        (202), mint a letiltasnal.
+      parameters:
+        - $ref: '#/components/parameters/KollegaAzonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RangKeres'
+      responses:
+        '200':
+          description: Vegrehajtva
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kollega'
+        '202':
+          description: Negy szem - a kerelem fugg.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KollegaKerelem'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: NEGY_SZEM vagy MAR_VAN_KERELEM.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/kollegak/{kollegaAzonosito}/meghivo:
+    post:
+      tags: [siduri]
+      operationId: kollegaMeghivo
+      summary: A meghivo ujrakuldese
+      description: Kapcsolo `KOLLEGAK`. A korabbi, fel nem hasznalt jegyek ervenyuket vesztik.
+      parameters:
+        - $ref: '#/components/parameters/KollegaAzonosito'
+      responses:
+        '202':
+          description: A meghivo sorsa
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeghivoAllapot'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/jogkorok:
+    get:
+      tags: [siduri]
+      operationId: jogkorok
+      summary: A jogkorok
+      description: Kapcsolo `KOLLEGAK`.
+      responses:
+        '200':
+          description: A jogkorok
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [jogkorok]
+                properties:
+                  jogkorok:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Jogkor'
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    post:
+      tags: [siduri]
+      operationId: jogkortFelvesz
+      summary: Uj jogkor
+      description: Kapcsolo `KOLLEGAK`, es a BUROK - csak a sajat kapcsoloibol.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JogkorKeres'
+      responses:
+        '201':
+          description: Felveve
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Jogkor'
+        '409':
+          description: A nev foglalt (FOGLALT_NEV).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/jogkorok/{jogkorAzonosito}:
+    put:
+      tags: [siduri]
+      operationId: jogkortModosit
+      summary: A jogkor atirasa - AZONNAL hat minden viselojere
+      description: |
+        ⚠️ **ELO KAPCSOLAT:** a jogkor nem masolodik a kollegara; a modositas a
+        kovetkezo keresnel minden viselojenel ervenyes. Ezt a feluletnek ki kell
+        mondania, a viselok szamaval.
+
+        A BUROK a regi ES az uj kapcsolokra is vonatkozik: aki egy kapcsolot nem
+        bir, az se hozza nem adhatja, se el nem veheti.
+      parameters:
+        - name: jogkorAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JogkorKeres'
+      responses:
+        '200':
+          description: Atirva
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Jogkor'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: A nev foglalt (FOGLALT_NEV).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/kerelmek:
+    get:
+      tags: [siduri]
+      operationId: kollegaKerelmek
+      summary: A fuggo negy szem kerelmek
+      description: Csak vezeto latja.
+      responses:
+        '200':
+          description: A fuggo kerelmek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [kerelmek]
+                properties:
+                  kerelmek:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KollegaKerelem'
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/kerelmek/{kerelemAzonosito}/jovahagyas:
+    post:
+      tags: [siduri]
+      operationId: kerelmetJovahagy
+      summary: A kerelem jovahagyasa - es vegrehajtasa
+      description: |
+        ⚠️ Csak HARMADIK Manager hagyhatja jova: nem a kero, es nem az, akirol
+        szol (SAJAT_KERELEM, 403). A vegrehajtas elott a Manager-szam ujra
+        ellenorzodik (NEGY_SZEM, 409).
+      parameters:
+        - $ref: '#/components/parameters/KerelemAzonosito'
+      responses:
+        '200':
+          description: Vegrehajtva - a cel kollega uj allapota
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kollega'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: NEGY_SZEM, vagy a kerelem mar nem fugg (NEM_FUGG).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/kerelmek/{kerelemAzonosito}/visszavonas:
+    post:
+      tags: [siduri]
+      operationId: kerelmetVisszavon
+      summary: A kerelem visszavonasa vagy elutasitasa
+      description: A kero visszavonhatja; barmely mas vezeto elutasithatja.
+      parameters:
+        - $ref: '#/components/parameters/KerelemAzonosito'
+      responses:
+        '204':
+          description: Lezarva, vegrehajtas nelkul.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: A kerelem mar nem fugg (NEM_FUGG).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
 components:
 
   securitySchemes:
@@ -1369,7 +1889,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.10.0"]
+        examples: ["admin/1.11.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -1399,6 +1919,20 @@ components:
 
     FelhasznaloAzonosito:
       name: felhasznaloAzonosito
+      in: path
+      required: true
+      schema:
+        $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+
+    KollegaAzonosito:
+      name: kollegaAzonosito
+      in: path
+      required: true
+      schema:
+        $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+
+    KerelemAzonosito:
+      name: kerelemAzonosito
       in: path
       required: true
       schema:
@@ -1695,6 +2229,170 @@ components:
           description: A bejelentkezesi nevek eloTagja.
       additionalProperties: false
 
+    Kollega:
+      title: Egy kollegafiok
+      type: object
+      required: [azonosito, nev, bejelentkezesiNev, aktiv, jogkorok, egyediKapcsolok, kapcsolok]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        bejelentkezesiNev:
+          type: string
+          examples: ["siduri.kata"]
+        email:
+          type: [string, "null"]
+        aktiv:
+          type: boolean
+        rang:
+          type: [string, "null"]
+          enum: [SZUPERADMIN, MANAGER, null]
+        jogkorok:
+          type: array
+          items:
+            $ref: '#/components/schemas/JogkorRovid'
+        egyediKapcsolok:
+          type: array
+          description: A kozvetlenul adott kapcsolok - ezek egyenkent elvehetok.
+          items:
+            $ref: '#/components/schemas/KollegaKapcsolo'
+        kapcsolok:
+          type: array
+          description: |
+            A TENYLEGES kapcsolok. ⚠️ Amit egy jogkor ad, az egyedileg nem veheto
+            el - csak a jogkor modositasaval vagy elvetelevel (HOZZAFERES.md 4.1).
+          items:
+            $ref: '#/components/schemas/KollegaKapcsolo'
+        fuggoKerelem:
+          description: Ha a kollegarol negy szem kerelem fugg.
+          $ref: '#/components/schemas/KollegaKerelem'
+      additionalProperties: false
+
+    KollegaFelvetel:
+      title: Uj kollega
+      type: object
+      required: [nev, azonosito, email]
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 200
+        azonosito:
+          type: string
+          description: A `siduri.` utani resz. Kisbetu, szam, pont, alulvonas, kotojel.
+          pattern: '^[a-z0-9][a-z0-9._-]{1,63}$'
+        email:
+          type: string
+          format: email
+      additionalProperties: false
+
+    KollegaModositas:
+      title: Kollega modositasa
+      type: object
+      properties:
+        aktiv:
+          type: boolean
+        egyediKapcsolok:
+          type: array
+          description: A TELJES uj halmaz, nem kulonbseg.
+          items:
+            $ref: '#/components/schemas/KollegaKapcsolo'
+        jogkorok:
+          type: array
+          description: A TELJES uj halmaz - a jogkorok azonositoi.
+          items:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      additionalProperties: false
+
+    RangKeres:
+      title: Rang
+      type: object
+      required: [rang]
+      properties:
+        rang:
+          type: [string, "null"]
+          enum: [MANAGER, null]
+          description: MANAGER = megadas, null = elvetel. A SZUPERADMIN nem adhato.
+      additionalProperties: false
+
+    JogkorRovid:
+      title: Egy jogkor neve
+      type: object
+      required: [azonosito, nev]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+      additionalProperties: false
+
+    Jogkor:
+      title: Egy jogkor
+      type: object
+      required: [azonosito, nev, kapcsolok, viselok]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        kapcsolok:
+          type: array
+          items:
+            $ref: '#/components/schemas/KollegaKapcsolo'
+        viselok:
+          type: integer
+          description: Hany kollega viseli - ennyi emberre hat AZONNAL egy modositas.
+      additionalProperties: false
+
+    JogkorKeres:
+      title: Jogkor felvetele vagy atirasa
+      type: object
+      required: [nev, kapcsolok]
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 100
+        kapcsolok:
+          type: array
+          items:
+            $ref: '#/components/schemas/KollegaKapcsolo'
+      additionalProperties: false
+
+    KollegaKerelem:
+      title: Negy szem kerelem
+      type: object
+      required: [azonosito, fajta, cel, kero, letrehozva, allapot]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        fajta:
+          type: string
+          enum: [MANAGER_ELVETEL, LETILTAS]
+        cel:
+          $ref: '#/components/schemas/KollegaRovid'
+        kero:
+          $ref: '#/components/schemas/KollegaRovid'
+        letrehozva:
+          type: string
+          format: date-time
+        allapot:
+          type: string
+          enum: [FUGGO, VEGREHAJTVA, VISSZAVONVA]
+      additionalProperties: false
+
+    KollegaRovid:
+      title: Egy kollega neve
+      type: object
+      required: [azonosito, nev]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+      additionalProperties: false
+
     BerloValasztas:
       title: Berlovalasztas
       type: object
@@ -1717,8 +2415,10 @@ components:
         esemeny:
           type: string
           description: |
-            BELEPES, SIKERTELEN_BELEPES, BERLOBE_LEPES. ⚠️ A lista bovulhet; a
-            felulet az ismeretlent a kodjaval mutatja.
+            BELEPES, SIKERTELEN_BELEPES, BERLOBE_LEPES; 1.11.0-tol a kezeles:
+            KOLLEGA_FELVETEL, KOLLEGA_MODOSITAS, RANG, JOGKOR, KERELEM,
+            JOVAHAGYAS, VISSZAVONAS. ⚠️ A lista bovulhet; a felulet az
+            ismeretlent a kodjaval mutatja.
           examples: ["BERLOBE_LEPES"]
         felhasznalonev:
           type: string
@@ -1731,6 +2431,11 @@ components:
         ok:
           type: [string, "null"]
           description: A sikertelen belepes oka (HIBAS_JELSZO, NINCS_ILYEN, ...).
+        reszlet:
+          type: [string, "null"]
+          description: |
+            A kollegakezeles esemenyeinel (1.11.0): kin, mi valtozott - a
+            felulet igy mutatja, ahogy van.
         ip:
           type: [string, "null"]
       additionalProperties: false

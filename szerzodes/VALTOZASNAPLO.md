@@ -43,6 +43,25 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.11.0 — 2026-09-24 — *a kollégák kezelése, négy szem* `NEM TÖRŐ`
+
+* **`/siduri/kollegak`** (lista, felvétel meghívóval), **`PATCH`** (letiltás,
+  egyedi kapcsolók, jogkörök), **`/rang`** (Manager adása/elvétele),
+  **`/meghivo`**.
+* **`/siduri/jogkorok`** — a jogkör **élő**: az átírása azonnal hat minden
+  viselőjére; a válasz megmondja, hány emberre (`viselok`).
+* **`/siduri/kerelmek`** — a négy szem elv: egy Manager letiltása vagy
+  rangjának elvétele egy másik Manager által **függő kérelem (202)**, amit egy
+  **harmadik** Manager hagy jóvá. Kettőnél kevesebb Manager nem maradhat
+  (`NEGY_SZEM`, 409) — ezt csak Szuperadmin teheti meg.
+* A napló bejegyzésének új mezője: **`reszlet`**.
+
+⚠️ **A burok itt is:** csak olyan kapcsolót adhat vagy vehet el — közvetlenül
+vagy jogkörrel —, amivel maga is rendelkezik. A Szuperadmin rang a felületről
+sosem adható és sosem vehető el.
+
+**Törő-e:** nem. Új végpontok és egy új, nem kötelező mező.
+
 ### v1.10.0 — 2026-09-24 — *a Siduri kollégafiókjai* `NEM TÖRŐ`
 
 Új címke, **`siduri`**: a belső kollégafiókok (HOZZAFERES.md §4). **Csak a

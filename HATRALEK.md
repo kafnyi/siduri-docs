@@ -105,6 +105,24 @@ v1.06 letöltése és feldolgozása KÓDOLÁS ELŐTT.**
 
 ---
 
+## ⚠️ ÉLESÍTÉST BLOKKOLÓ HIBA — JAVÍTVA *(2026-09-24)*
+
+**A telephelyi szerver adatbázis-kapcsolatai nem kapták meg a telephelyet**
+(`siduri.telephely_id`). A sorszintű elhatárolás ebből dönt, és ha nincs,
+**egyetlen sort sem** enged át. Élesben az alkalmazás a `siduri_app` szereppel
+fut — **minden elhatárolt tábla üresnek látszott volna** (eszköz, bizonylat,
+jogosultság, napló).
+
+Egyetlen teszt sem vette észre, mert fejlesztésben és tesztben a séma
+tulajdonosa fut (mentesül), az elhatárolás tesztje pedig a saját kapcsolatán
+kézzel állította be az értéket. **Javítva:** a kapcsolatkészlet minden
+kapcsolatot a telepítés telephelyével nyit; új teszt az alkalmazás saját
+kapcsolatait vizsgálja; élő próba `siduri_app`-ként: belépés, lista, árírás rendben.
+
+⚠️ **A tanulság, általánosan:** ami csak élesben fut másként (szerep, jogosultság,
+TLS, proxy), azt élesítés előtt **az éles beállítással** is ki kell próbálni. Egy
+zöld tesztkészlet erről nem mond semmit.
+
 ## 6. F5 — Készlet és admin
 
 **Webes admin:** ✅ elindult — K2 olvasás, árírás, **zárolás kikényszerítve**.

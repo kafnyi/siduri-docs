@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.6.0
+  version: 1.7.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -337,7 +337,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["szinkron/1.6.0"]
+        examples: ["szinkron/1.7.0"]
 
   responses:
 
@@ -691,7 +691,7 @@ components:
         szerzodesVerzio:
           type: string
           description: Melyik K3-verziot beszeli a telephely.
-          examples: ["szinkron/1.6.0"]
+          examples: ["szinkron/1.7.0"]
         alkalmazasVerzio:
           type: string
           description: A telephelyi szerver kiadasi verzioja.
@@ -754,6 +754,31 @@ components:
             megtartja, es a kovetkezo korben ujra kuldi.
           items:
             $ref: '#/components/schemas/FelkuldesElbiralas'
+        afakategoriak:
+          type: array
+          description: |
+            A berlo TELJES afakategoria-listaja (1.7.0), minden valaszban. Kicsi
+            (nehany tucat sor), ezert olcsobb mindig kuldeni, mint verziozni. A
+            telephely a valtozasok ELOTT alkalmazza: egy lejovo afa-iras mar az
+            uj kategoriara hivatkozhat.
+          items:
+            $ref: '#/components/schemas/SzinkronAfakategoria'
+      additionalProperties: false
+
+    SzinkronAfakategoria:
+      title: Egy afakategoria
+      type: object
+      required: [azonosito, nev, gyujto, aktiv]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        gyujto:
+          type: string
+          enum: [A_5, B_18, C_27, D_AJT, E_0, SZERVIZ_5, SZERVIZ_18, SZERVIZ_27]
+        aktiv:
+          type: boolean
       additionalProperties: false
 
     Valtozas:
@@ -798,8 +823,8 @@ components:
         mezo:
           type: string
           description: |
-            kiszereles: brutto_ar. termek: megnevezes, allapot (1.6.0).
-          enum: [brutto_ar, megnevezes, allapot]
+            kiszereles: brutto_ar. termek: megnevezes, allapot (1.6.0), afa (1.7.0).
+          enum: [brutto_ar, megnevezes, allapot, afa]
         egeszErtek:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
@@ -810,7 +835,8 @@ components:
           maxLength: 200
           description: |
             A szoveges mezok uj erteke (1.6.0): a megnevezesnel a nev, az
-            allapotnal AKTIV vagy INAKTIV. A TOROLT nem utazik igy.
+            allapotnal AKTIV vagy INAKTIV. A TOROLT nem utazik igy. Az afanal
+            (1.7.0) a ket afakategoria azonositoja vesszovel: "helyben,elvitel".
         mezoeredet:
           allOf:
             - $ref: '#/components/schemas/Mezoeredet'
@@ -946,7 +972,7 @@ components:
             felkerult. A felho EHHEZ meri, hogy a cselekvonek volt-e joga.
         mezo:
           type: string
-          enum: [brutto_ar, megnevezes, allapot]
+          enum: [brutto_ar, megnevezes, allapot, afa]
           description: MEZO_ERTEK fajtanal kotelezo.
         egeszErtek:
           allOf:
@@ -955,7 +981,9 @@ components:
         szovegErtek:
           type: string
           maxLength: 200
-          description: A megnevezes es az allapot MEZO_ERTEK-enel az uj ertek (1.6.0).
+          description: |
+            A megnevezes es az allapot MEZO_ERTEK-enel az uj ertek (1.6.0); az
+            afanal (1.7.0) "helybenKategoriaId,elvitelKategoriaId".
         mezoeredet:
           allOf:
             - $ref: '#/components/schemas/Mezoeredet'
@@ -1048,7 +1076,21 @@ components:
               $ref: '#/components/schemas/Mezoeredet'
             allapot:
               $ref: '#/components/schemas/Mezoeredet'
+            afa:
+              $ref: '#/components/schemas/Mezoeredet'
           additionalProperties: false
+        afaHelybenKategoriaId:
+          oneOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            - type: "null"
+          description: |
+            A helyben afakategoriaja (1.7.0). Az afaHelyben KOD ebbol szarmazik (a
+            gyujtobol) - a ketto egyutt utazik, mert a bizonylat es az NTAK a kodra
+            epul.
+        afaElvitelKategoriaId:
+          oneOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            - type: "null"
         ntakFokategoria:
           type: [string, "null"]
           description: Az NTAK fokategoria kodja (1.5.0).

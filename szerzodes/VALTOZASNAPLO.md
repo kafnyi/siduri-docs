@@ -43,6 +43,20 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.14.0 — 2026-09-25 — *áfakategóriák és az áfa írása* `NEM TÖRŐ`
+
+* **`/afakategoriak`** — a bérlő áfakategóriái: név + a nyolc rögzített
+  pénztárgépi gyűjtő egyike (G1, H5); a kulcs és a betűjel a gyűjtőből adódik.
+  Felvétel és módosítás **csak a felhőben**; a **gyűjtő nem írható át**
+  (kulcsváltáshoz új kategória + átsorolás).
+* Kilenc **alapkategória**, rögzített azonosítóval: Termék 5/18/27%, TAM, AJT,
+  AAM, Szerviz 5/18/27%. ⚠️ Az AAM az E_0 gyűjtőre kerül (KONYVELOI_KERDESEK B7).
+* **`PUT /termekek/{id}/afa`** — a helyben és az elviteli kategória, egy
+  mezőként (O3). A `Termek` új mezői: `afaHelybenKategoria`,
+  `afaElvitelKategoria`, `afaEredet/Elozo/Elveszett`.
+
+**Törő-e:** nem. A meglévő `afaHelyben`/`afaElvitel` kód megmarad.
+
 ### v1.13.0 — 2026-09-24 — *új bérlő, új telephely, telepítési jegy* `NEM TÖRŐ`
 
 * **`POST /siduri/berlok`** — új bérlő, egy lépésben az első telephellyel és a
@@ -269,6 +283,16 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.7.0 — 2026-09-25 — *áfakategória és áfa* `NEM TÖRŐ`
+
+* A lekérdezés válasza hozza a bérlő **teljes áfakategória-listáját**
+  (`afakategoriak`) — a telephely a változások ELŐTT alkalmazza.
+* `MEZO_ERTEK` új mezője: **`afa`** (`"helybenId,elvitelId"`); a REKORD
+  `termek` része: `afaHelybenKategoriaId`, `afaElvitelKategoriaId`,
+  `mezoeredetek.afa`.
+
+**Törő-e:** nem.
 
 ### v1.6.0 — 2026-09-24 — *a név és az állapot mezőeredetet kap* `NEM TÖRŐ`
 

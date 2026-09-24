@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.13.0
+  version: 1.14.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -843,6 +843,218 @@ paths:
             application/json:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /afakategoriak:
+    get:
+      tags: [torzsadat]
+      operationId: afakategoriak
+      summary: A berlo afakategoriai - mindket oldalon
+      description: |
+        Az afakategoria (1.14.0) egy NEV es a nyolc rogzitett penztargepi GYUJTO
+        egyike; a kulcs es a betujel a gyujtobol adodik (NYITOTT_KERDESEK G1,
+        H5). A termeknel csak a TERMEK-gyujtos kategoriak valaszthatok
+        (`termekre`); a szerviz-kategoriak a szervizdije (G1.2).
+
+        A lista a berloe, minden telephelyen ugyanaz. A telephelyi szerver a
+        szinkronnal lejott masolatot adja.
+
+        Jog: `termek.megtekintes`.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A kategoriak
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [afakategoriak]
+                properties:
+                  afakategoriak:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Afakategoria'
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    post:
+      tags: [torzsadat]
+      operationId: afakategoriatFelvesz
+      summary: Uj afakategoria (csak a felhoben)
+      description: |
+        Jog: `termek.afa_modositas`. ⚠️ A GYUJTO KESOBB NEM IRHATO AT: kulcsvaltashoz
+        uj kategoria kell, es a termekeket at kell sorolni. Igy egy elgepeles
+        nem allitja at egyszerre a teljes etlapot.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AfakategoriaFelvetel'
+      responses:
+        '201':
+          description: Felveve
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Afakategoria'
+        '409':
+          description: A nev foglalt (FOGLALT_NEV).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /afakategoriak/{afakategoriaAzonosito}:
+    patch:
+      tags: [torzsadat]
+      operationId: afakategoriatModosit
+      summary: Nev vagy aktiv allapot (csak a felhoben) - a gyujto nem
+      description: |
+        Jog: `termek.afa_modositas`. Az inaktiv kategoria uj besorolashoz nem
+        valaszthato; a mar besorolt termekek megtartjak.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: afakategoriaAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AfakategoriaModositas'
+      responses:
+        '200':
+          description: Modositva
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Afakategoria'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: A nev foglalt (FOGLALT_NEV).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /termekek/{termekAzonosito}/afa:
+    put:
+      tags: [torzsadat]
+      operationId: termekAfajat
+      summary: A termek afakategoriaja - helyben es elvitelre
+      description: |
+        Jog: `termek.afa_modositas`. Mindket kategoria kotelezo, es csak AKTIV,
+        TERMEK-gyujtos kategoria lehet (NEM_TERMEK_KATEGORIA,
+        INAKTIV_KATEGORIA, 422).
+
+        A ket ertek EGY mezokent ervenyesul (O3): egy eredet, egy tortenet. A
+        "megegyezik" jelolot a felulet kezeli (C3/a): ha a helybenit irjak at
+        jelolt allapotban, az elvitelit is kuldi.
+
+        ⚠️ A vesztes iras 409 (KESOBBI_ERTEK_ALL), mint az arnal.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: termekAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AfaKeres'
+      responses:
+        '200':
+          description: A modositott termek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Termek'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: AZ IRAS VESZTETT (KESOBBI_ERTEK_ALL).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
         '422':
           $ref: '#/components/responses/Hiba422'
         default:
@@ -2206,7 +2418,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.13.0"]
+        examples: ["admin/1.14.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -3275,6 +3487,108 @@ components:
           allOf:
             - $ref: '#/components/schemas/ElveszettSzovegesIras'
           description: A legutobbi allapot-iras, ami NEM lepett ervenybe.
+        afaHelybenKategoria:
+          description: A helyben fogyasztas afakategoriaja (1.14.0).
+          $ref: '#/components/schemas/AfakategoriaRovid'
+        afaElvitelKategoria:
+          description: Az elvitel afakategoriaja (1.14.0).
+          $ref: '#/components/schemas/AfakategoriaRovid'
+        afaEredet:
+          allOf:
+            - $ref: '#/components/schemas/Mezoeredet'
+          description: Mikor es honnan kapta az afa (a ket kategoria egyutt) a mostani erteket.
+        afaElozo:
+          allOf:
+            - $ref: '#/components/schemas/SzovegesMezoertek'
+          description: Az elotte ervenyes afa, olvashatoan ("Ital 27% / Ital 27%").
+        afaElveszett:
+          allOf:
+            - $ref: '#/components/schemas/ElveszettSzovegesIras'
+          description: A legutobbi afa-iras, ami NEM lepett ervenybe.
+      additionalProperties: false
+
+    Afakategoria:
+      title: Afakategoria
+      type: object
+      required: [azonosito, nev, gyujto, termekre, aktiv, alap]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+          examples: ["Ital 27%"]
+        gyujto:
+          $ref: '#/components/schemas/AfaGyujto'
+        termekre:
+          type: boolean
+          description: Termekhez valaszthato-e (a szerviz-gyujtosek nem).
+        aktiv:
+          type: boolean
+        alap:
+          type: boolean
+          description: A kilenc alapkategoria egyike (rogzitett azonosito).
+      additionalProperties: false
+
+    AfakategoriaRovid:
+      title: Egy afakategoria neve
+      type: object
+      required: [azonosito, nev, gyujto]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        gyujto:
+          $ref: '#/components/schemas/AfaGyujto'
+      additionalProperties: false
+
+    AfaGyujto:
+      title: A penztargepi gyujto
+      type: string
+      enum: [A_5, B_18, C_27, D_AJT, E_0, SZERVIZ_5, SZERVIZ_18, SZERVIZ_27]
+      description: |
+        A nyolc rogzitett rekesz (G1). A termek-gyujtok kodja azonos az NTAK
+        afaKategoria erteke (H5): A_5, B_18, C_27, D_AJT, E_0 (a gyujton "TAM").
+        ⚠️ Az AAM alapkategoria is az E_0-ra kerul - sajat rekesze nincs
+        (KONYVELOI_KERDESEK B7).
+
+    AfakategoriaFelvetel:
+      title: Uj afakategoria
+      type: object
+      required: [nev, gyujto]
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 100
+        gyujto:
+          $ref: '#/components/schemas/AfaGyujto'
+      additionalProperties: false
+
+    AfakategoriaModositas:
+      title: Afakategoria modositasa
+      type: object
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 100
+        aktiv:
+          type: boolean
+      additionalProperties: false
+
+    AfaKeres:
+      title: A termek afaja
+      type: object
+      required: [helyben, elvitel]
+      properties:
+        helyben:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        elvitel:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        indok:
+          type: string
+          maxLength: 500
       additionalProperties: false
 
     NevKeres:

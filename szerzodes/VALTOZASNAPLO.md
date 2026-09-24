@@ -43,6 +43,25 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.10.0 — 2026-09-24 — *a Siduri kollégafiókjai* `NEM TÖRŐ`
+
+Új címke, **`siduri`**: a belső kollégafiókok (HOZZAFERES.md §4). **Csak a
+felhő valósítja meg**; a telephely 501-et ad.
+
+* **`GET /siduri/berlok`** — a bérlőválasztó listája.
+* **`PUT /siduri/munkamenet/berlo`** — belépés egy bérlő adataihoz. A
+  kollégamunkamenet **bérlő nélkül indul**; amíg nem választott, a bérlői
+  végpontok `NINCS_BERLO_VALASZTVA` 403-at adnak. A belépés **naplózódik**, a
+  bérlő saját belépési naplójába is.
+* **`GET /siduri/naplo`** — a kollégák belépései és bérlőbe lépései.
+* A **`Munkamenet`** új mezője: **`kollega`** (rang, tényleges kapcsolók,
+  választott bérlő). A bérlői fióknál hiányzik.
+
+⚠️ **A bérlői adaton a kollégajog:** a Szuperadmin és a Manager mindent tehet,
+minden más kolléga **csak olvas**.
+
+**Törő-e:** nem. Új végpontok és egy új, nem kötelező válaszmező.
+
 ### v1.9.0 — 2026-09-24 — *telephelyválasztó* `NEM TÖRŐ`
 
 A **`Munkamenet`** új mezője: **`telephelyek`** — a cég telephelyei, névvel. A

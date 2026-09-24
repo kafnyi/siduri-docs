@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.9.0
+  version: 1.10.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -94,6 +94,27 @@ tags:
       jelszo; a telephelyen pultos azonosito + PIN - de CSAK ha a felho nem
       erheto el. Ha elerheto, a telephely a felhos Zigguratra kuld
       (FELHORE mod), es a PIN-es kapu 409-cel zar.
+  - name: siduri
+    description: |
+      A Siduri belso kollegafiokjai (1.10.0) - HOZZAFERES.md 4. A teljes
+      dontes ott all.
+
+      ⚠️ **CSAK A FELHO VALOSITJA MEG** (a telephelyi szerver `CSAK_A_FELHOBEN`
+      501-et ad). A kollegafiok a berlokon KIVUL el: a bejelentkezesi neve
+      `siduri.<nev>`, es a `siduri` rovid nevet berlo nem kaphatja meg.
+
+      **A kollega munkamenete berlo nelkul indul.** Egy berlo adataihoz a
+      berlovalasztoval lep be (`PUT /siduri/munkamenet/berlo`) - a belepes
+      naplozodik, indok nelkul. Amig nincs valasztott berlo, a berloi
+      vegpontok 403-at adnak `NINCS_BERLO_VALASZTVA` koddal.
+
+      **A kapcsolok EGYENKENT adhatok** (HOZZAFERES.md 4.3). A Szuperadmin es a
+      Manager mindet birja.
+
+      ⚠️ **A BERLOI ADATON a kollega joga (1.10.0):** a Szuperadmin es a
+      Manager MINDENT tehet, amit a berloi katalogus ismer; minden mas kollega
+      CSAK OLVAS (a `*.megtekintes` jogok). A szerkeszto kollegajog kesobbi
+      kapcsolo lesz.
   - name: torzsadat
     description: Kategoria es termek - amit a tulajdonos karbantart
   - name: hozzaferes
@@ -1186,6 +1207,124 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /siduri/berlok:
+    get:
+      tags: [siduri]
+      operationId: siduriBerlok
+      summary: A berlovalaszto listaja
+      description: |
+        Minden berlo, nev szerint. Kapcsolo: `IDEGEN_BERLO`.
+      responses:
+        '200':
+          description: A berlok
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [berlok]
+                properties:
+                  berlok:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BerloRovid'
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/munkamenet/berlo:
+    put:
+      tags: [siduri]
+      operationId: siduriBerlobeLep
+      summary: Belepes egy berlo adataihoz - a berlovalaszto
+      description: |
+        A munkamenet ettol fogva a valasztott berlohoz tartozik; a `telephelyek`
+        a valaszban mar az o telephelyei. Kapcsolo: `IDEGEN_BERLO`.
+
+        ⚠️ **NAPLOZODIK** (`BERLOBE_LEPES`), indok nelkul - es a berlo sajat
+        belepesi naplojaba is bekerul, hogy a berlo lassa: a Siduri belepett.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BerloValasztas'
+      responses:
+        '200':
+          description: A munkamenet, a valasztott berloben
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Munkamenet'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/naplo:
+    get:
+      tags: [siduri]
+      operationId: siduriNaplo
+      summary: A kollegak hozzaferesi naploja - a legfrissebb elol
+      description: |
+        Belepesek (a sikertelenek is), berlobe lepesek. Kapcsolo: `NAPLO`.
+      parameters:
+        - $ref: '#/components/parameters/Kurzor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A naplo egy oldala
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [bejegyzesek]
+                properties:
+                  bejegyzesek:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KollegaNaploBejegyzes'
+                  kovetkezoKurzor:
+                    type: [string, "null"]
+                    description: Nincs, ha ez volt az utolso oldal.
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
 components:
 
   securitySchemes:
@@ -1230,7 +1369,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.9.0"]
+        examples: ["admin/1.10.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -1502,6 +1641,98 @@ components:
             lista csak azt mondja meg, hova lehet egyaltalan valtani.
           items:
             $ref: '#/components/schemas/TelephelyRovid'
+        kollega:
+          description: |
+            Csak a Siduri kollegafiokjanal van (1.10.0). A berloi fioknal
+            HIANYZIK.
+          $ref: '#/components/schemas/KollegaAllapot'
+      additionalProperties: false
+
+    KollegaAllapot:
+      title: A kollega munkamenete
+      type: object
+      required: [kapcsolok]
+      properties:
+        rang:
+          type: [string, "null"]
+          enum: [SZUPERADMIN, MANAGER, null]
+          description: >
+            Nincs rang: a kollega csak a kapcsoloi szerint tehet. A SZUPERADMIN
+            kizarolag adatbazisbol adhato.
+        kapcsolok:
+          type: array
+          description: A TENYLEGES kapcsolok - rangbol, jogkorbol es egyedileg.
+          items:
+            $ref: '#/components/schemas/KollegaKapcsolo'
+        berlo:
+          description: A valasztott berlo. Hianyzik, amig nem valasztott.
+          $ref: '#/components/schemas/BerloRovid'
+      additionalProperties: false
+
+    KollegaKapcsolo:
+      title: Egy kollega-kapcsolo
+      type: string
+      enum: [IDEGEN_BERLO, BERLO_REGISZTRACIO, NAPLO, KOLLEGAK]
+      description: |
+        IDEGEN_BERLO: belepes egy berlo adataihoz. BERLO_REGISZTRACIO: uj berlo
+        felvetele. NAPLO: a hozzaferesi naplo. KOLLEGAK: a kollegafiokok
+        kezelese.
+
+        ⚠️ Uj kapcsolo = kisverzio; a felulet az ismeretlent figyelmen kivul
+        hagyja.
+
+    BerloRovid:
+      title: Egy berlo neve
+      type: object
+      required: [azonosito, nev, rovidNev]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        rovidNev:
+          type: string
+          description: A bejelentkezesi nevek eloTagja.
+      additionalProperties: false
+
+    BerloValasztas:
+      title: Berlovalasztas
+      type: object
+      required: [berloAzonosito]
+      properties:
+        berloAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      additionalProperties: false
+
+    KollegaNaploBejegyzes:
+      title: Egy bejegyzes a kollegak naplojaban
+      type: object
+      required: [azonosito, tortent, esemeny, felhasznalonev]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tortent:
+          type: string
+          format: date-time
+        esemeny:
+          type: string
+          description: |
+            BELEPES, SIKERTELEN_BELEPES, BERLOBE_LEPES. ⚠️ A lista bovulhet; a
+            felulet az ismeretlent a kodjaval mutatja.
+          examples: ["BERLOBE_LEPES"]
+        felhasznalonev:
+          type: string
+          description: A beirt nev - ismeretlen fioknal ez az egyetlen nyom.
+        kollegaNev:
+          type: [string, "null"]
+        berlo:
+          description: BERLOBE_LEPES-nel a berlo.
+          $ref: '#/components/schemas/BerloRovid'
+        ok:
+          type: [string, "null"]
+          description: A sikertelen belepes oka (HIBAS_JELSZO, NINCS_ILYEN, ...).
+        ip:
+          type: [string, "null"]
       additionalProperties: false
 
     TelephelyRovid:

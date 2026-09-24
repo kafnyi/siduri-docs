@@ -246,6 +246,14 @@ jóváhagyás → végrehajtás* lánc. Külön darab.
 | **Munka egy bérlő adatán** | **bérlőválasztó**, belépés után; a belépés **naplózódik**, indok nélkül | a naplóból nem derül ki, **miért** lépett be |
 | **Az első kapcsolók** | idegen bérlőbe belépés · új bérlő regisztrálása · a hozzáférési napló megtekintése · kollégafiókok kezelése | — |
 | **Második tényező** | **továbbra sincs** (lásd 4.5) | a 4.5 kockázata marad |
+| **Jog a bérlő adatán** *(a megvalósításkor, kérdés nélkül)* | Szuperadmin és Manager: **minden**; bárki más: **csak olvas** (a `*.megtekintes` jogok) | egy nem vezető kolléga egy ügyfél árát sem javíthatja; ha kell, az **új kapcsoló** lesz, nem csendben kiszélesített olvasójog |
+| **A jogkör és a kapcsoló élő** | minden kérésnél újraszámolódik — egy elvett kapcsoló a **nyitott** munkamenetet is azonnal kizárja a bérlőből | kérésenként egy-két plusz lekérdezés |
+
+**Megvalósítva** *(2026-09-24, `admin/1.10.0`)*: belépés `siduri.<név>`-vel,
+bérlőválasztó, a belépés a bérlő saját naplójába is bekerül, hozzáférési napló
+(a sikertelen próbálkozás is, a nem létező kolléganévre is). **Még nincs:** a
+kollégafiókok és jogkörök kezelése a felületről, a négy szem elv, az új bérlő
+regisztrálása — addig kollégát és jogkört **adatbázisból** lehet felvenni.
 
 ### 4.5 Amit NEM kapnak — és ennek ára van
 
@@ -745,6 +753,9 @@ pult; **nincs közös raktár** → csak átvételezéssel lehet áttolni.)*
    * **5/c — a pult képernyője.** WPF, a helyi lista és a globális fül.
 6. **A Siduri-hozzáférés** (§8).
 7. **A belső kollégafiókok** (§4), a négy szem elv munkafolyamatával.
+   * ✅ **7/a — belépés, bérlőválasztó, napló: KÉSZ** *(2026-09-24, `admin/1.10.0`)*.
+   * **7/b — kollégafiókok és jogkörök kezelése**, a négy szem elvvel.
+   * **7/c — új bérlő regisztrálása.**
 
 ---
 

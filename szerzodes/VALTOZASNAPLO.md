@@ -43,6 +43,18 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.9.0 — 2026-09-24 — *telephelyválasztó* `NEM TÖRŐ`
+
+A **`Munkamenet`** új mezője: **`telephelyek`** — a cég telephelyei, névvel. A
+felület ebből kínál választót a fejlécben, ha egynél több van. Eddig a
+telephely **a konfigurációból** jött, tehát a felhős Zigguratban egy többüzletes
+bérlő csak egy üzletet látott.
+
+⚠️ **A lista nem jogosultság:** egy telephely szerepelhet benne, és a kiszolgáló
+ott mégis 403-at adhat — a jog telephelyenként áll.
+
+**Törő-e:** nem. Új, nem kötelező válaszmező.
+
 ### v1.8.0 — 2026-09-24 — *a jogosultságok emberi neve* `NEM TÖRŐ`
 
 Új végpont: **`GET /jogosultsagok`** — kód, terület, magyar megnevezés, és hogy

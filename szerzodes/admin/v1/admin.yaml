@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.8.0
+  version: 1.9.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1230,7 +1230,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.8.0"]
+        examples: ["admin/1.9.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -1490,6 +1490,29 @@ components:
           description: >
             Mennyivel tol ki egy keres (20 perc = 1200). A felulet EBBOL szamol a
             kozbenso keresek utan - nem sajat, beegetett ertekbol.
+        telephelyek:
+          type: array
+          description: |
+            A ceg telephelyei (1.9.0) - a felulet ebbol kinal valasztot, ha egynel
+            tobb van. A felhoben a berlo MINDEN telephelye; a telephelyi
+            szerveren csak a sajatja.
+
+            ⚠️ A LISTA NEM JOGOSULTSAG: egy telephely szerepelhet benne, es a
+            kiszolgalo ott megis 403-at adhat. A jog telephelyenkent all - a
+            lista csak azt mondja meg, hova lehet egyaltalan valtani.
+          items:
+            $ref: '#/components/schemas/TelephelyRovid'
+      additionalProperties: false
+
+    TelephelyRovid:
+      title: Egy telephely neve
+      type: object
+      required: [azonosito, nev]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
       additionalProperties: false
 
     ElfelejtettJelszo:

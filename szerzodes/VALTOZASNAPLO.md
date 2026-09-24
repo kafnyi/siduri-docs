@@ -43,6 +43,20 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.8.0 — 2026-09-24 — *a jogosultságok emberi neve* `NEM TÖRŐ`
+
+Új végpont: **`GET /jogosultsagok`** — kód, terület, magyar megnevezés, és hogy
+magas kockázatú-e. A felület eddig nyers kódot mutatott (`termek.ar_modositas`).
+
+| Mi | Döntés | Miért |
+|----|--------|-------|
+| **Honnan jön** | egy **közös forrás** (`mag`), amit egy teszt a telephelyi adatbázis-katalógussal kódról kódra egyeztet | Egy új jog, ami csak az egyik helyre kerül be, a buildet buktatja el — nem a felület mutat csendben nyers kódot |
+| **Mindkét oldal** | ugyanaz a válasz; a közös szerződésteszt követeli meg | A felhőben eddig katalógus sem volt |
+| **A Siduri-kódok** | nincsenek a válaszban | A bérlőnek nincs velük dolga |
+| **Ismeretlen kód** | a felület nyersen mutatja | Nem találunk ki rá nevet |
+
+**Törő-e:** nem. Új végpont.
+
 ### v1.7.0 — 2026-09-24 — *bejelentkezés* `NEM TÖRŐ`
 
 Eddig a Ziggurat fejlesztői kapcsolóval működött, élesben **minden kérés 401**

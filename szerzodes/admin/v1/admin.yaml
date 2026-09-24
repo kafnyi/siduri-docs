@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.7.0
+  version: 1.8.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1100,6 +1100,53 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /jogosultsagok:
+    get:
+      tags: [hozzaferes]
+      operationId: jogosultsagKatalogus
+      summary: A jogosultsagok emberi neve (1.8.0)
+      description: |
+        A felulet ezt mutatja a nyers kodok (termek.ar_modositas) helyett.
+
+        ⚠️ MINDKET KISZOLGALO VALOSITJA MEG, UGYANAZZAL A VALASSZAL: a nevek
+        egy kozos forrasbol jonnek, amit egy teszt a telephelyi
+        adatbazis-katalogussal kodrol kodra egyeztet. Egy uj jogosultsag, ami
+        csak az egyikbe kerul be, a buildet buktatja el - nem a felulet mutat
+        csendben nyers kodot.
+
+        A CSAK SIDURI-kollegaknak szolo kodok (siduri.*) NINCSENEK a valaszban:
+        a berlonek nincs velük dolga.
+
+        Ismeretlen kodot (amit a felulet lat, de a katalogus nem ismer) a
+        felulet NYERSEN mutat - nem talal ki ra nevet.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A katalogus
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [jogosultsagok]
+                properties:
+                  jogosultsagok:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JogosultsagLeiras'
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /sablonok:
     get:
       tags: [hozzaferes]
@@ -1183,7 +1230,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.7.0"]
+        examples: ["admin/1.8.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -1350,6 +1397,28 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+
+    JogosultsagLeiras:
+      title: Egy jogosultsag leirasa
+      type: object
+      required: [kod, terulet, megnevezes, magasKockazatu]
+      properties:
+        kod:
+          type: string
+          examples: ["termek.ar_modositas"]
+        terulet:
+          type: string
+          description: A csoport gepi kodja (ELADAS, TERMEK, ...) - a felulet forditja.
+          examples: ["TERMEK"]
+        megnevezes:
+          type: string
+          examples: ["Ár módosítása"]
+        magasKockazatu:
+          type: boolean
+          description: >
+            Igaz: a felulet kiemeli. Ezek a jogok penzt, bizonylatot vagy mas
+            fiokjat erintik - kiosztasuk tobb figyelmet erdemel.
+      additionalProperties: false
 
     BelepesiMod:
       title: A belepes modja

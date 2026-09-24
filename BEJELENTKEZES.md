@@ -1,12 +1,7 @@
 # Bejelentkezés a Zigguratba
 
-> **Állapot: ELFOGADVA** *(2026-09-24)* — a döntések az 5. szakaszban. A kód
-> készül.
->
-> **Miért most:** a Ziggurat ma fejlesztői kapcsolóval működik (a „token” maga
-> a felhasználó azonosítója), élesben **minden kérés 401**. Bejelentkezés nélkül
-> a felület nem élesíthető. A keret már eldőlt (`HOZZAFERES.md` §9); ez a
-> dokumentum a **hiányzó döntéseket** és a megvalósítás darabjait írja le.
+> **Állapot: KÉSZ** *(2026-09-24)*, élő próbán végigvíve mindkét kiszolgálóval.
+> A döntések az 5. szakaszban, az eredmény a 7.-ben.
 
 ---
 
@@ -200,3 +195,44 @@ a munka közben is kiléptetne.
 | 3 | **Telephely:** PIN-es bejelentkezés a Zigguratba, munkamenet | backend `szerver` |
 | 4 | **A Ziggurat:** bejelentkező képernyő, 401-képernyő, kijelentkezés, meghívó- és visszaállító oldal | ez a felület |
 | 5 | **Élő próba** mindkét kiszolgálóval, böngészőben | — |
+
+---
+
+## 7. Ami megépült *(2026-09-24)*
+
+`admin/1.7.0` · felhő: Argon2id, munkamenet a közös sémában, név szerinti
+fékezés, meghívó és elfelejtett jelszó, SMTP (fejlesztésben napló) · telephely:
+PIN-es kapu csak kimaradáskor, munkamenet triggeres visszavonással · felület:
+belépő oldal, lap fölötti belépés lejáratkor, visszaszámláló, „Maradok”.
+
+**Élő próba, böngészőben:**
+
+| Eset | Eredmény |
+|---|---|
+| Védett oldal belépés nélkül | a belépő oldalra visz, utána **vissza** oda |
+| Rossz jelszó | „Hibás felhasználónév vagy jelszó.” |
+| Belépés | a fejlécben név, **visszaszámláló (19:59)**, „Maradok”, kijelentkezés; a `document.cookie` **üres** (HttpOnly) |
+| Meghívó | felvétel után „a meghívó elment ide: …”; a link a levélben (fejlesztésben a naplóban), a válaszban nincs |
+| Jelszó a linkkel | a jegy a címsorból eltűnik; gyakori jelszó okkal elutasítva, a jegy nem használódik el; a jó jelszó beáll |
+| Jog nélküli új fiók | belép, és a 403-as képernyőt kapja |
+| **Lejárat munka közben** | a Mentésre a lap **fölött** kér belépést, a bejelölt jog **megmaradt**, belépés után a mentés sikerült |
+| „Maradok” | a kiszolgálón 10 → 20 perc, a lap nem változott; a `GET /munkamenet` **nem** hosszabbított |
+| Telephelyi Ziggurat, felhő elérhető | **átirányított** a felhős Zigguratra |
+| Telephelyi Ziggurat, kimaradás | PIN-es belépés magyarázattal; a termékek betöltenek |
+
+**Az élő próba két hibát talált, javítva:** lejáratkor a lap fölötti ablak
+mellett egy nyers „LEJART_MUNKAMENET” sor is megjelent, és a számláló a helyi
+becslést mutatta a kiszolgáló szava helyett.
+
+⚠️ **Korlátok, kimondva:**
+
+* **Az IP-cím** a kapcsolat címe (`getRemoteAddr`). Fordított proxy mögött ez a
+  proxyé — élesítéskor a továbbított fejlécet be kell állítani, különben a
+  napló minden belépést ugyanarról a címről mutat.
+* **Fejlesztésben** a `localhost` különböző portjai **közös sütit** látnak (a
+  süti nem porthoz kötött): a felhős és a telephelyi felület egy gépen
+  ugyanazt a sütinevet írja. Élesben a két kiszolgáló más címen van.
+* **Második tényező nincs** — vállalt kockázat.
+* **A telephelyi PIN-es kapun** a zárolás a meglévő szabály szerint 25 hiba
+  után lép életbe, vezetői feloldással — ugyanaz, mint a pult mögött.
+* A **levél kézbesíthetősége** (SPF, DKIM, DMARC) üzemeltetési feladat.

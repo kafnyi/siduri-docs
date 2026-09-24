@@ -155,8 +155,8 @@ helynek szerepelnie kell. Cserébe létezhet olyan központi kategóriafelelős 
 tulajdonos, akinek **egyáltalán nincs** telephelyi fiókja.
 
 **Ami ebből még hiányzik a felhőben:** írás (az ármódosítás ma csak a telephelyi
-oldalon él) · bejelentkezés (ma fejlesztői kapcsoló, alapértelmezésben **minden
-kérés 401**) · a webes admin **böngészős átnézése** *(✅ 2026-09-23, a felhőn: hat felületi hiba javítva, lásd lent)*.
+oldalon él) · ~~bejelentkezés~~ ✅ **kész** *(2026-09-24, `admin/1.7.0`, lásd
+`BEJELENTKEZES.md`)* · a webes admin **böngészős átnézése** *(✅ 2026-09-23, a felhőn: hat felületi hiba javítva, lásd lent)*.
 A **felhasználókezelés** külön fejezet lett — lásd lentebb.
 
 ### A hozzáférési modell — megtervezve, még nem megépítve *(2026-09-23)*

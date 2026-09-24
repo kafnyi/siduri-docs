@@ -1063,7 +1063,7 @@ components:
           enum: [AKTIV, INAKTIV, TOROLT]
         mennyiseg:
           type: [string, "null"]
-          pattern: '^[0-9]+(\\.[0-9]+)?$'
+          pattern: '^[0-9]+([.][0-9]+)?$'
           description: >
             A kiszereles mennyisege (1.5.0), pl. "0.33". SZOVEGKENT, mint a K1-ben:
             lebegopontos ertek a mennyiseg kozeleben sincs.

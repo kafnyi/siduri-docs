@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.5.0
+  version: 1.6.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -822,7 +822,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.5.0"]
+        examples: ["admin/1.6.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -1337,6 +1337,51 @@ components:
             egyetlen dolog, ami valaszol.
       additionalProperties: false
 
+    Mezoertek:
+      title: Egy mezo egy korabbi erteke
+      type: object
+      required: [bruttoAr, modositva, forras]
+      properties:
+        bruttoAr:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+        modositva:
+          type: string
+          format: date-time
+        forras:
+          type: string
+          enum: [felho, telephely]
+      additionalProperties: false
+
+    ElveszettIras:
+      title: Egy iras, ami nem lepett ervenybe
+      type: object
+      required: [bruttoAr, modositva, forras, ok]
+      properties:
+        bruttoAr:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+        modositva:
+          type: string
+          format: date-time
+          description: Amikor az iras TORTENT - nem amikor elbiraltak.
+        forras:
+          type: string
+          enum: [felho, telephely]
+        ok:
+          type: string
+          enum: [KESOBBI_ERTEK, ELUTASITVA, ZAROLT]
+          description: |
+            ⚠️ HAROM OK, es a felulet KULON mondja oket - egy kozos "elveszett"
+            azt sugallna, hogy hiba tortent, pedig a szabaly szerint mukodott:
+
+              - KESOBBI_ERTEK: valaki KESOBB atirta. Sorrend, senkirol nem szol.
+              - ELUTASITVA: a felho elutasitotta, mert az ironak az iras idejen
+                nem volt joga. A kozben tortent eladasok rendben vannak.
+              - ZAROLT: a kozpont kozben zarolta. Hataskor.
+        kod:
+          type: [string, "null"]
+          description: A pontos gepi ok, ha van (pl. NINCS_ILYEN_FELHASZNALO).
+      additionalProperties: false
+
     Zarolas:
       title: Zarolas
       description: |
@@ -1414,6 +1459,24 @@ components:
           description: >
             Hianyzik, ha az ar NINCS zarolva - vagyis a telephelyrol
             szerkesztheto. Ha jelen van, az armodositas 403-at ad.
+        arElozo:
+          allOf:
+            - $ref: '#/components/schemas/Mezoertek'
+          description: |
+            Az ELOTTE ervenyes ar (1.6.0): mennyi volt, mikor es honnan kapta.
+            Hianyzik, ha a mostani ertek elott nem ismert masik - az iras-
+            tortenet a bevezetese napjatol gyulik, a korabbi mult nincs meg.
+        arElveszett:
+          allOf:
+            - $ref: '#/components/schemas/ElveszettIras'
+          description: |
+            A LEGUTOBBI iras, ami NEM lepett ervenybe (1.6.0) - az elozo ertek
+            ota. Hianyzik, ha ilyen nincs.
+
+            ⚠️ AZERT VAN ITT, MERT AZ O3 SZABALY SZERINT A VESZTES ERTEK NEM
+            TUNIK EL, CSAK NEM ERVENYES - es ezt a felulet koteles megmutatni.
+            Enelkul a tulajdonos a szamlan szembesulne azzal, hogy az atirt ar
+            nem el.
         vonalkodok:
           type: array
           items:

@@ -43,6 +43,24 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.6.0 — 2026-09-24 — *az előző és az elveszett ár* `NEM TÖRŐ`
+
+Két új, nem kötelező mező a kiszerelésen: **`arElozo`** *(az előtte érvényes ár,
+mikor és honnan)* és **`arElveszett`** *(a legutóbbi írás, ami nem lépett
+érvénybe, és **miért**)*. A döntés: `siduri-docs/TORZSADAT_FELKULDES.md`.
+
+**Miért:** az O3 szabály kikötése, hogy a vesztes érték nem tűnik el, csak nem
+érvényes — és hogy a felület **mutassa meg**, mi volt előtte. Eddig a felület
+csak azt tudta, mikor és honnan jött a mostani érték.
+
+⚠️ **Az `ok` három érték, és nem vonható össze:** `KESOBBI_ERTEK` *(valaki később
+átírta — sorrend)*, `ELUTASITVA` *(az írónak nem volt joga — a felhő utasította
+el)*, `ZAROLT` *(a központ zárolta — hatáskör)*. Egy közös „elveszett” azt
+sugallná, hogy hiba történt.
+
+**Törő-e:** nem. ÁRA: mindkét oldalon **írás-történet** kellett (`mezo_iras`,
+csak beszúrható), és a múlt nincs meg — a mezők a bevezetés napjától telnek.
+
 ### v1.3.0 — 2026-09-22 — *a hibaválasz is megmondja, melyik oldal felelt* `NEM TÖRŐ`
 
 A `Siduri-Szerzodes` és a `Siduri-Kiszolgalo` fejléc eddig csak a **sikeres**

@@ -110,12 +110,16 @@ v1.06 letöltése és feldolgozása KÓDOLÁS ELŐTT.**
 **Webes admin:** ✅ elindult — K2 olvasás, árírás, **zárolás kikényszerítve**.
 **Készlet:** **0** — raktár, recept, leltár: egyetlen tábla sem létezik.
 
-**Hátra az adminból:** bejelentkezés/munkamenet *(ma fejlesztői kapcsoló)* ·
-**a felhős második megvalósítás** *(enélkül a szerződésteszt egy oldalon fut)* ·
-export/import *(`M20`, `M22` — könyvtárválasztás nyitott)* · név/áfa/inaktiválás
-írása · kategória-, módosító-, menükezelés · felhasználó- és jogosultságkezelés ·
-beállításszerkesztés · riportok · **a 30 napos offline korlát kiírása** ·
-böngészős átnézés.
+✅ **Kész** *(2026-09-24)*: bejelentkezés és munkamenet (`admin/1.7.0`) · a
+felhős második megvalósítás · felhasználó- és jogosultságkezelés, a jogok emberi
+nevével (`admin/1.8.0`) · telephelyválasztó (`admin/1.9.0`) · teljes angol és
+német felület · böngészős átnézés.
+
+**Hátra az adminból — mind döntést igényel:** export/import *(`M20`, `M22` —
+könyvtárválasztás nyitott)* · név/áfa/inaktiválás írása *(az áfánál a pénztárgép
+gyűjtői és az NTAK miatt)* · kategória-, módosító-, menükezelés · beállításszerkesztés
+· riportok · **a 30 napos offline korlát kiírása**. A kiszolgálótól jövő szövegek
+(hibaüzenetek, jogosultságnevek) nyelvváltáskor magyarok maradnak.
 
 **Hátra a készletből:** `F5.1`–`F5.6`, `F5.8`.
 
@@ -217,8 +221,8 @@ szerződésteszt mindkét megvalósításon megköveteli.
 
 ⚠️ **Amit ez a szelet NEM old meg:** a képernyő **böngészőben nincs
 megnézve** — a döntési logikát teszt fedi, a típusok fordulnak, a kiszolgáló
-oldala élőben ellenőrzött, de a **megjelenés** nem. A felhasználókezelő felület
-és a 401 (bejelentkezés) saját képernyője továbbra is hátra van.
+oldala élőben ellenőrzött, de a **megjelenés** nem. *(2026-09-24: a felhasználókezelő
+felület és a bejelentkezés elkészült, böngészőben átnézve.)*
 
 ✅ **Böngészőben átnézve** *(2026-09-23, felhő, fejlesztői bérlő)*: termékek,
 felhasználók két füle, felhasználó lapja, kapcsolt fiók, felvétel, 403. Javítva:

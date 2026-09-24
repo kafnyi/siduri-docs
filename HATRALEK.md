@@ -264,8 +264,10 @@ hozzáférés-változás megy — **mezőérték nem**. Következmények:
 * A „mi volt előtte / mi veszett el” kijelzése a felhőben emiatt **felküldés
   nélkül nem építhető meg**: a vesztes érték többnyire a telephelyen keletkezik.
 
-**Sorrend:** előbb a felküldés *(szinkron-kisverzió)*, utána a felhős
-ártörténet, végül az előző/vesztes érték a szerződésben és a felületen.
+**A terv: `TORZSADAT_FELKULDES.md`** *(átnézésre vár, három döntési kérdéssel)*.
+Közben kiderült, hogy a felhőben **egyáltalán nincs törzsadat-írás** — a kezdeti
+feltöltést is ennek kell megoldania. Sorrend: felküldés → írás-történet mindkét
+oldalon → előző/vesztes érték a szerződésben és a felületen.
 
 **Élő próbán végigvitt út:** a felhőbe tett árváltozás a telephelyi
 adatbázisban landolt (2400 → 2650 → 2790), a felhő **ALKALMAZTA** nyugtát

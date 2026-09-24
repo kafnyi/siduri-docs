@@ -137,6 +137,34 @@ A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a tel
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
 
+### v1.4.0 — 2026-09-24 — *a telephelyi törzsadat felmegy a felhőbe* `NEM TÖRŐ`
+
+**Eddig a telephelyen átírt törzsadat soha nem jutott fel.** A felhős Ziggurat
+ezért csendben a régi árat mutatta, és a felhőbe **semmi** nem írt törzsadatot
+— még a kezdeti katalógus sem jutott fel. A teljes döntés:
+`siduri-docs/TORZSADAT_FELKULDES.md`.
+
+| Mi | Döntés | Miért |
+|----|--------|-------|
+| **Hol megy fel** | A **`/lekerdezes`** kérésében (`felkuldes`), a kimenet a válaszban (`felkuldesElbiralasok`) | Ugyanaz a kör, mint a hozzáférésnél: a felhő döntése — például egy visszaállító érték — **ugyanabban a válaszban** lejöhet |
+| **Két tételfajta** | `REKORD` *(teljes sor)* és `MEZO_ERTEK` *(egy mező)* | Egy új rekordnál nincs mit mezőnként összevetni. A **kezdeti feltöltés csupa `REKORD`**, ugyanazon az úton — nincs második formátum |
+| **Időbélyeg nélküli mezők** | A **telephely nyer** | Ma ő az egyetlen írójuk. Ha a felhő is írhatja őket, azzal együtt kapnak mezőeredetet |
+| **Az ár** | A mezőeredet szabálya, a `REKORD`-ban is | A későbbi írás nyer, a zárolt mindig nyer — ugyanaz, mint lefelé |
+| **Az író joga** | A felhő **az írás idejére** nézve ellenőrzi | Mint a hozzáférésnél: késleltetéssel jogot szerezni nem lehet |
+| **Kimenet** | **NÉGY**: `ELFOGADVA`, `ELUTASITVA`, `ELAVULT`, `ZAROLT` | A három nem-elfogadó **nem ugyanaz**: a cselekvőről, a sorrendről, illetve a hatáskörről szól |
+
+⚠️ **Nincs visszhang.** Egy elfogadott telephelyi írásból a felhő **nem**
+készít lefelé menő változást ugyanannak a telephelynek — az azonos időbélyeg
+miatt a telephely a saját értékét vesztesnek látná.
+
+⚠️ **Ami nem kap kimenetet, az nincs elbírálva**, nem elutasítva. A telephely
+megtartja és újra küldi; az azonosító miatt a felhő egy már elbírált tételt nem
+bírál el kétszer.
+
+**Törő-e:** nem. Új, nem kötelező kérés- és válaszmező. Egy **régebbi felhő**
+a `felkuldes` mezőt figyelmen kívül hagyja, és nem ad rá kimenetet — a tételek
+ettől a telephely sorában maradnak, tehát **nem vesznek el**, csak várnak.
+
 ### v1.3.0 — 2026-09-23 — *a telephely kerdez: offline valtoztatasok elbiralasa* `NEM TÖRŐ`
 
 **Ez az első hely, ahol a telephely kérdez valamit, amire a felhő nemet is

@@ -10,7 +10,7 @@
 > **A horgony frissítése a MUNKA RÉSZE, nem utómunka** (§10). Elavult horgony = §2.4
 > döntési premissza-hiba: a következő kört egy nem létező hátralék hajszolására küldi.
 
-**Utolsó frissítés:** 2026-09-07 (megvalósítás — nap- és műszakvégpontok, POS-főképernyő)
+**Utolsó frissítés:** 2026-09-24 (Ziggurat: bejelentkezés, felhős árírás, törzsadat-felküldés — lásd 7.0)
 **Fázis:** **MEGVALÓSÍTÁS.** A tervezési szakasz lezárult; a kódolás fut.
 Az állapotot a **7. szakasz** vezeti (mi épült meg, mi hiányzik, mi blokkolt).
 
@@ -838,6 +838,27 @@ trailer nélkül.**
 
 **Mérve, nem feltételezve.** A tesztszámok tényleges futásból származnak.
 
+### 7.0 A legutóbbi kör *(2026-09-24)* — ez a friss horgony
+
+> A részletes, fázisonkénti kép a **`HATRALEK.md`**-ben van; ez a szakasz csak
+> azt rögzíti, **hol tart a munka most**, és honnan kell folytatni.
+
+| Mi | Állapot | Hol |
+|---|---|---|
+| **Törzsadat-felküldés** a telephelyről a felhőbe, kezdeti feltöltéssel | ✅ élő próbán is | `TORZSADAT_FELKULDES.md`, `szinkron/1.4.0` |
+| **Írás-történet**, előző és elveszett ár a Zigguratban | ✅ böngészőben is | `admin/1.6.0` |
+| **Bejelentkezés** — felhő: jelszó; telephely: PIN csak kimaradáskor | ✅ élő próbán is | `BEJELENTKEZES.md`, `admin/1.7.0` |
+| **Jogosultságok emberi neve**, közös forrásból, paritásteszttel | ✅ | `admin/1.8.0` |
+| **Telephelyválasztó** | ✅ böngészőben is | `admin/1.9.0` |
+| **Árírás a felhős Zigguratból** — lefelé megy a pulthoz | ✅ élő próbán is | (a szerződés eddig is előírta) |
+| **Teljes angol és német felület**, teszttel kikényszerítve | ✅ | `siduri-cloud-api` |
+
+**Tesztszámok (mérve):** felhő 137 · telephely 394 · felület 39.
+
+**A következő tétel — mind DÖNTÉST igényel:** a pult felhasználókezelő képernyője
+(5/c, WPF) · a Siduri-hozzáférés (6.) · a belső kollégafiókok (7.) · az adminban
+név/áfa/inaktiválás írása, kategória- és menükezelés, export, riportok.
+
 ### 7.1 Ami MŰKÖDIK
 
 | Terület | Állapot | Bizonyíték |
@@ -866,7 +887,7 @@ trailer nélkül.**
 | **Jogosultság-söprés** | A katalógus **92** kódjából **32 ellenőrzött**, **60 indokolt kivétel**, **0 besorolatlan** — és ezt teszt tartja | `JogosultsagSoprasTest` (4 állítás); az **első futásán** talált egy kódot, amit a kézi söprés kihagyott |
 | **A munkanap hossza másik óra mellett** | A monoton mérés csak **azonos óra** állásai között létezik; idegen vagy ismeretlen óránál a fali óra dönt, és ezt jelezzük | `MunkanapHosszTest`, `NapzarasUtemezoTest`, `NapSzolgaltatasTest`; a javítás előtt **piros**, az azonosság-feltételt kivéve **öt teszt bukik** |
 
-**Szerződés:** `kassza` v1.22.0 és `admin` v1.2.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
+**Szerződés:** `kassza` v1.23.0, `admin` v1.9.0, `szinkron` v1.4.0. Minden verzióemelés a `szerzodes/VALTOZASNAPLO.md`-ben
 **indokolva** van — nem „mi változott", hanem **miért nem volt jó az előző**.
 
 ### 7.2 Ami TUDATOSAN nincs kész — és nincs elrejtve

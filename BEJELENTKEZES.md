@@ -1,6 +1,7 @@
 # Bejelentkezés a Zigguratba
 
-> **Állapot: TERV, döntésre vár** *(2026-09-24)*. Kód még nem készült.
+> **Állapot: ELFOGADVA** *(2026-09-24)* — a döntések az 5. szakaszban. A kód
+> készül.
 >
 > **Miért most:** a Ziggurat ma fejlesztői kapcsolóval működik (a „token” maga
 > a felhasználó azonosítója), élesben **minden kérés 401**. Bejelentkezés nélkül
@@ -132,6 +133,22 @@ kimondja, nem hallgatja el.
 
 ### 5.1 Hogyan lépnek be a telephelyről kiszolgált Zigguratba?
 
+**`[ELDÖNTVE 2026-09-24]` Ha a felhő elérhető: átirányítás a felhős
+Zigguratra, és a PIN-es belépés ZÁRVA. Ha nem: pultos azonosító + PIN.**
+
+Ebből következik:
+
+* **„Elérhető”** = a telephely szinkronja a közelmúltban *(3 percen belül)*
+  sikeresen beszélt a felhővel. Ehhez a telephely minden sikeres körnél
+  rögzíti az időpontot — ma csak akkor, ha változás is jött.
+* Ha a telephelyen **nincs beállítva** a felhős Ziggurat címe, vagy a szinkron
+  ki van kapcsolva, a PIN-es út nyitva marad *(különben senki nem lépne be)* —
+  és ezt a napló figyelmeztetésként rögzíti.
+* ⚠️ **Vállalt kockázat:** aki a helyi hálózaton van, az internet elvágásával
+  kinyithatja a PIN-es utat. A fékezés ettől még él, és a belépés naplózódik.
+* A gyenge PIN így **csak kimaradáskor** érhető el a böngészőből — ez
+  biztonsági nyereség az eredeti „a)” javaslathoz képest.
+
 | | a) Pultos azonosító + PIN | b) A Ziggurat-jelszavak a telephelyre is lemennek | c) Csak kapcsolattal |
 |---|---|---|---|
 | Kapcsolat nélkül | működik — pultos fiókkal | működik — mindenkinek | **nem működik** |
@@ -142,12 +159,28 @@ kimondja, nem hallgatja el.
 
 ### 5.2 Meddig él egy munkamenet?
 
+**`[ELDÖNTVE 2026-09-24]` 20 perc tétlenség, legfeljebb 12 óra — LÁTHATÓ
+visszaszámlálóval, és egy gombbal, ami az oldal megzavarása nélkül nullázza a
+tétlenségi időt.**
+
+Ebből következik:
+
+* A gomb **nem tölt újra és nem navigál** — csak jelez a kiszolgálónak. A
+  félbehagyott szerkesztés a képernyőn marad.
+* ⚠️ **Ha mégis lejár** mentés közben: a felület **nem navigál el** a
+  bejelentkezésre, hanem a helyén kér belépést, és utána a mentés
+  megismételhető. Az elvesző munka ellen ez a második védvonal.
+* A 12 órás határ **nem nullázható** — a visszaszámláló a vége előtt azt is
+  jelzi.
+
 **Javaslat:** **60 perc tétlenség** után lejár, és **legfeljebb 12 óra** — utána
 újra be kell lépni. **ÁRA:** aki egész nap nyitva tartja, naponta egyszer-kétszer
 újra belép. Rövidebb tétlenségi idő (15 perc) biztonságosabb egy közös gépen, de
 a munka közben is kiléptetne.
 
 ### 5.3 Mekkora a minimális jelszóhossz?
+
+**`[ELDÖNTVE 2026-09-24]` 12 karakter, tiltólistával.**
 
 | | 8 | **12** | 15 |
 |---|---|---|---|

@@ -76,6 +76,12 @@ felhőben nincs olyan felület, ami ezeket írná. Amikor a felhő is írhatja �
 **ÁRA:** addig a felhőből ezek nem szerkeszthetők. Ez ma is így van, tehát
 nem veszítünk semmit — csak nem nyerünk.
 
+✅ **A név és az állapot megkapta** *(2026-09-24, `admin/1.12.0`,
+`szinkron/1.6.0`)*: mindkét oldalon mezőeredet, a REKORD mezőnként hozza az
+eredetet, és a felhő csak a későbbit veszi át. A telephelyen **trigger** írja
+az eredetet minden helyi változásnál (import, kézi SQL is) — nem csak az admin
+végpont. Az áfa és a kategória továbbra is „a telephely nyer".
+
 ### 3.3 Hol utazik: a lekérdezésben, nem külön úton
 
 A felküldött tételek a **`/lekerdezes`** kérésében mennek fel, és a válasz

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.11.0
+  version: 1.12.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -724,6 +724,127 @@ paths:
             application/json:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /termekek/{termekAzonosito}/megnevezes:
+    put:
+      tags: [torzsadat]
+      operationId: termekNevet
+      summary: A termek nevenek modositasa
+      description: |
+        A nev a pulton, a bizonylaton es a riportokban is ez lesz - a
+        korabbi bizonylatok a SAJAT, akkori nevukkel maradnak.
+        Jog: `termek.modositas`. Ugyanaz a szabaly, mint az arnal (O3): mezonkenti
+        idobelyeg, a kesobbi iras nyer, a vesztes 409 - nem csendes 200.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: termekAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NevKeres'
+      responses:
+        '200':
+          description: A modositott termek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Termek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: |
+            AZ IRAS VESZTETT (KESOBBI_ERTEK_ALL): a mezon mar kesobbi ertek all.
+            Vagy (csak az allapotnal) a termek TOROLT - azt ez a vegpont nem
+            eleszti fel (TOROLT_TERMEK).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /termekek/{termekAzonosito}/allapot:
+    put:
+      tags: [torzsadat]
+      operationId: termekAllapotat
+      summary: Aktivalas es inaktivalas
+      description: |
+        Az inaktiv termek nem arulhato, de a tortenetbol nem tunik el. A
+        TOROLT (soft delete) allapotot ez a vegpont nem allitja es nem oldja
+        fel - az kulon jog es kulon muvelet.
+        Jog: `termek.inaktivalas`. Ugyanaz a szabaly, mint az arnal (O3): mezonkenti
+        idobelyeg, a kesobbi iras nyer, a vesztes 409 - nem csendes 200.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: termekAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AllapotKeres'
+      responses:
+        '200':
+          description: A modositott termek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Termek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: |
+            AZ IRAS VESZTETT (KESOBBI_ERTEK_ALL): a mezon mar kesobbi ertek all.
+            Vagy (csak az allapotnal) a termek TOROLT - azt ez a vegpont nem
+            eleszti fel (TOROLT_TERMEK).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          $ref: '#/components/responses/Hiba422'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -1889,7 +2010,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.11.0"]
+        examples: ["admin/1.12.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -2836,6 +2957,94 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Kiszereles'
+        megnevezesEredet:
+          allOf:
+            - $ref: '#/components/schemas/Mezoeredet'
+          description: Mikor es honnan kapta a nev a mostani erteket (1.12.0).
+        megnevezesElozo:
+          allOf:
+            - $ref: '#/components/schemas/SzovegesMezoertek'
+          description: Az ELOTTE ervenyes nev (1.12.0).
+        megnevezesElveszett:
+          allOf:
+            - $ref: '#/components/schemas/ElveszettSzovegesIras'
+          description: A legutobbi nev-iras, ami NEM lepett ervenybe (1.12.0).
+        allapotEredet:
+          allOf:
+            - $ref: '#/components/schemas/Mezoeredet'
+          description: Mikor es honnan kapta az allapot (aktiv/inaktiv) a mostani erteket.
+        allapotElozo:
+          allOf:
+            - $ref: '#/components/schemas/SzovegesMezoertek'
+          description: Az ELOTTE ervenyes allapot - AKTIV vagy INAKTIV.
+        allapotElveszett:
+          allOf:
+            - $ref: '#/components/schemas/ElveszettSzovegesIras'
+          description: A legutobbi allapot-iras, ami NEM lepett ervenybe.
+      additionalProperties: false
+
+    NevKeres:
+      title: Nevmodositas
+      type: object
+      required: [megnevezes]
+      properties:
+        megnevezes:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: A szelein levo szokozok nem szamitanak; ures nev nincs.
+        indok:
+          type: string
+          maxLength: 500
+      additionalProperties: false
+
+    AllapotKeres:
+      title: Aktivalas vagy inaktivalas
+      type: object
+      required: [aktiv]
+      properties:
+        aktiv:
+          type: boolean
+        indok:
+          type: string
+          maxLength: 500
+      additionalProperties: false
+
+    SzovegesMezoertek:
+      title: Egy szoveges mezo egy korabbi erteke
+      type: object
+      required: [ertek, modositva, forras]
+      properties:
+        ertek:
+          type: string
+          description: A nevnel a nev; az allapotnal AKTIV vagy INAKTIV.
+        modositva:
+          type: string
+          format: date-time
+        forras:
+          type: string
+          enum: [felho, telephely]
+      additionalProperties: false
+
+    ElveszettSzovegesIras:
+      title: Egy szoveges iras, ami nem lepett ervenybe
+      type: object
+      required: [ertek, modositva, forras, ok]
+      properties:
+        ertek:
+          type: string
+        modositva:
+          type: string
+          format: date-time
+        forras:
+          type: string
+          enum: [felho, telephely]
+        ok:
+          type: string
+          enum: [KESOBBI_ERTEK, ELUTASITVA]
+          description: Ugyanaz, mint az arnal - zarolas ezekre a mezokre nincs.
+        kod:
+          type: [string, "null"]
       additionalProperties: false
 
     ArKeres:

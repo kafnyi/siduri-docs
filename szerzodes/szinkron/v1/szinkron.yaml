@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.5.0
+  version: 1.6.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -337,7 +337,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["szinkron/1.5.0"]
+        examples: ["szinkron/1.6.0"]
 
   responses:
 
@@ -691,7 +691,7 @@ components:
         szerzodesVerzio:
           type: string
           description: Melyik K3-verziot beszeli a telephely.
-          examples: ["szinkron/1.5.0"]
+          examples: ["szinkron/1.6.0"]
         alkalmazasVerzio:
           type: string
           description: A telephelyi szerver kiadasi verzioja.
@@ -787,20 +787,30 @@ components:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tabla:
           type: string
-          description: Melyik entitas. Ma egyetlen ertek ervenyes.
-          enum: [kiszereles]
+          description: |
+            Melyik entitas. 1.6.0-tol a termek is (nev, allapot).
+
+            ⚠️ Ismeretlen tabla/mezo parost a telephely ELUTASITVA nyugtaz
+            (ISMERETLEN_MEZO) - nem alkalmazza talalomra.
+          enum: [kiszereles, termek]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         mezo:
           type: string
-          description: Melyik mezo. Ma egyetlen ertek ervenyes.
-          enum: [brutto_ar]
+          description: |
+            kiszereles: brutto_ar. termek: megnevezes, allapot (1.6.0).
+          enum: [brutto_ar, megnevezes, allapot]
         egeszErtek:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
           description: >
-            A MEZO_ERTEK tipusnal az uj ertek, egesz forintban (I1). A
-            ZAROLAS tipusnal hianyzik.
+            A brutto_ar MEZO_ERTEK-enel az uj ertek, egesz forintban (I1).
+        szovegErtek:
+          type: string
+          maxLength: 200
+          description: |
+            A szoveges mezok uj erteke (1.6.0): a megnevezesnel a nev, az
+            allapotnal AKTIV vagy INAKTIV. A TOROLT nem utazik igy.
         mezoeredet:
           allOf:
             - $ref: '#/components/schemas/Mezoeredet'
@@ -910,7 +920,11 @@ components:
             (nev, afa, kategoria, allapot...) a TELEPHELY nyer, mert ma o az
             egyetlen iroja. Az AR kivetel: arra a mezoeredet szabalya ervenyes.
           - MEZO_ERTEK: egy mezo uj erteke, mezoeredettel es a cselekvovel.
-            Ma egyetlen mezo: a kiszereles ara.
+            A kiszereles ara, es 1.6.0-tol a termek neve es allapota.
+
+        ⚠️ 1.6.0: a termek NEVE es ALLAPOTA mar nem "a telephely nyer" mezo -
+        a felho is irhatja oket. A REKORD ezert mezonkent hozza az eredetuket
+        (`termek.mezoeredetek`), es a felho csak a kesobbi erteket veszi at.
       type: object
       required: [azonosito, fajta, tabla, rekordId, tortent]
       properties:
@@ -932,12 +946,16 @@ components:
             felkerult. A felho EHHEZ meri, hogy a cselekvonek volt-e joga.
         mezo:
           type: string
-          enum: [brutto_ar]
+          enum: [brutto_ar, megnevezes, allapot]
           description: MEZO_ERTEK fajtanal kotelezo.
         egeszErtek:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
-          description: MEZO_ERTEK fajtanal az uj ertek, egesz forintban (I1).
+          description: A brutto_ar MEZO_ERTEK-enel az uj ertek, egesz forintban (I1).
+        szovegErtek:
+          type: string
+          maxLength: 200
+          description: A megnevezes es az allapot MEZO_ERTEK-enel az uj ertek (1.6.0).
         mezoeredet:
           allOf:
             - $ref: '#/components/schemas/Mezoeredet'
@@ -1014,6 +1032,23 @@ components:
         allapot:
           type: string
           enum: [AKTIV, INAKTIV, TOROLT]
+        mezoeredetek:
+          type: object
+          description: |
+            A nev es az allapot EREDETE (1.6.0) - mikor es honnan kaptak a
+            mostani erteket. A felho mezonkent dont: csak a KESOBBI erteket veszi
+            at, a sajat, kesobbi irasat nem irja felul.
+
+            Hianyzo kulcs: a telephely nem tudja, mikor kapta (peldaul a bevezetes
+            elotti adat). Ilyenkor a felho csak akkor veszi at, ha neki sincs
+            eredete - vagyis a regi "a telephely nyer" szabaly el tovabb, amig
+            senki nem irta at.
+          properties:
+            megnevezes:
+              $ref: '#/components/schemas/Mezoeredet'
+            allapot:
+              $ref: '#/components/schemas/Mezoeredet'
+          additionalProperties: false
         ntakFokategoria:
           type: [string, "null"]
           description: Az NTAK fokategoria kodja (1.5.0).

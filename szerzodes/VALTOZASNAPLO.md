@@ -43,6 +43,19 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.12.0 — 2026-09-24 — *a termék neve és állapota szerkeszthető* `NEM TÖRŐ`
+
+* **`PUT /termekek/{id}/megnevezes`** (jog: `termek.modositas`) és **`PUT
+  /termekek/{id}/allapot`** (jog: `termek.inaktivalas`). Mezőnként külön, mint
+  az ár: a vesztes írás tiszta 409 (`KESOBBI_ERTEK_ALL`), nem félsiker.
+* A **`Termek`** új mezői: `megnevezesEredet/Elozo/Elveszett` és
+  `allapotEredet/Elozo/Elveszett` — a szabály (O3) ugyanaz, mint az árnál, és a
+  felület ugyanúgy köteles megmutatni, mi nem lépett érvénybe.
+* A TOROLT (soft delete) állapotot az új végpont nem állítja és nem oldja fel
+  (`TOROLT_TERMEK`, 409).
+
+**Törő-e:** nem. Új végpontok és új, nem kötelező mezők.
+
 ### v1.11.0 — 2026-09-24 — *a kollégák kezelése, négy szem* `NEM TÖRŐ`
 
 * **`/siduri/kollegak`** (lista, felvétel meghívóval), **`PATCH`** (letiltás,
@@ -241,6 +254,20 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.6.0 — 2026-09-24 — *a név és az állapot mezőeredetet kap* `NEM TÖRŐ`
+
+* A `MEZO_ERTEK` (le és fel) új táblája a **`termek`**, új mezői a
+  **`megnevezes`** és az **`allapot`**, az értékük a **`szovegErtek`**-ben.
+* A REKORD `termek` része új mezőt kap: **`mezoeredetek`** (a név és az
+  állapot eredete). A felhő mezőnként dönt: csak a későbbi értéket veszi át.
+
+⚠️ **A „telephely nyer" szabály e két mezőre megszűnt** — a felhő is írhatja
+őket (TORZSADAT_FELKULDES §3.2 ígérete szerint: a mezőeredettel együtt).
+Ahol nincs eredet (a bevezetés előtti adat), ott a régi szabály él tovább.
+
+**Törő-e:** nem. Ismeretlen táblát/mezőt a régebbi telephely `ELUTASITVA`
+nyugtáz — a felhő ebből tudja, hogy még nem alkalmazta.
 
 ### v1.5.0 — 2026-09-24 — *beszerzési ár, NTAK-kódok, mennyiség* `NEM TÖRŐ`
 

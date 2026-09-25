@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.12.0
+  version: 1.13.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -1253,6 +1253,12 @@ components:
             elotte jon (a sorszam adja a sorrendet); ha megsincs meg, a telephely
             NINCS_ILYEN_REKORD-dal utasitja el.
           $ref: '#/components/schemas/SzinkronKiszereles'
+        rekord:
+          description: |
+            REKORD tipusnal (1.13.0): a LEIRO-ALAPU torzsadat (raktar, pult, anyag,
+            recept, eszkoz_pult) rekordja. A telephely mezonkent dont: uj sornal a
+            felhoe, meglevonel csak a kesobbi eredetu felhos ertek nyer.
+          $ref: '#/components/schemas/SzinkronRekord'
         mezoeredet:
           allOf:
             - $ref: '#/components/schemas/Mezoeredet'
@@ -1417,6 +1423,28 @@ components:
           $ref: '#/components/schemas/SzinkronTermek'
         kiszereles:
           $ref: '#/components/schemas/SzinkronKiszereles'
+        rekord:
+          $ref: '#/components/schemas/SzinkronRekord'
+      additionalProperties: false
+
+    SzinkronRekord:
+      title: Leiro-alapu rekord (1.13.0)
+      description: |
+        Minden mezo kanonikus szovegkent (admin TorzsRekord), mezonkenti
+        eredettel. Egy uj tabla nem ker uj alakot. A felhő mezonkent dont, es a
+        MEZO_ERTEK-nel a tabla leirasanak jogat ellenorzi (anyag, recept:
+        recept.szerkesztes; raktar, pult, eszkoz_pult: keszlet.raktar_kezeles).
+      type: object
+      required: [ertekek]
+      properties:
+        ertekek:
+          type: object
+          additionalProperties:
+            type: string
+        eredetek:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Mezoeredet'
       additionalProperties: false
 
     SzinkronKategoria:

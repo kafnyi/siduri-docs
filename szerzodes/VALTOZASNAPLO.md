@@ -43,6 +43,17 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.22.0 — 2026-09-26 — *a készlet törzsadata, leíró-alapon* `NEM TÖRŐ`
+
+* **`/torzs/{tabla}`** (lista, felvétel), **`/torzs/{tabla}/{id}`** (részletek) és
+  **`/torzs/{tabla}/{id}/{mezo}`** (O3-írás) — raktár, pult, alapanyag (csomag-
+  átváltással), recept (többszintű, kör és 5 szint fölött 422), gép → pult.
+* Egy tábla egy leírás (k2 `TorzsLeirok`): minden mező kanonikus szöveg, és a
+  meglévő O3-szabály szerint íródik; egy új tábla nem kér új végpontot.
+* Új jog: `keszlet.raktar_kezeles`. A Fő raktár azonosítója a telephelyé.
+
+**Miért:** a felhasználó F5-döntései (2026-09-26, `KESZLET.md`).
+
 ### v1.21.0 — 2026-09-25 — *termék felvétele, törlése és visszaállítása* `NEM TÖRŐ`
 
 * **`POST /termekek`** — új termék a kiszereléseivel, mindkét oldalon. A C3/a
@@ -369,6 +380,15 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.13.0 — 2026-09-26 — *leíró-alapú törzsadat mindkét irányban* `NEM TÖRŐ`
+
+* `SzinkronRekord` (értékek + mezőnkénti eredet) a `Valtozas` és a
+  `FelkuldottTetel` REKORD-jában: raktár, pult, anyag, recept, gép → pult. A
+  MEZO_ERTEK ugyanazokon a mezőkön megy, a tábla leírásának jogával bírálva.
+* A telephely a gépeit felküldi (a felhő így rendelhet pultot), és minden
+  körben biztosítja a Fő raktárat.
+* Régi telephely az új táblákat `ISMERETLEN_TIPUS`-szal utasítja el.
 
 ### v1.12.0 — 2026-09-25 — *a felhőben felvett termék lefelé* `NEM TÖRŐ`
 

@@ -185,6 +185,7 @@ A pincér sztornózni akar, de nincs joga. **Nem az a megoldás, hogy kilép és
 | `keszlet.selejt` | Selejtezés |
 | `keszlet.szemelyzeti` | Személyzeti fogyasztás rögzítése |
 | `keszlet.elfogyott_jelzo` | **„Elfogyott" jelző** be/ki *(§17.6/c)* |
+| `keszlet.raktar_kezeles` | Raktárak, pultok, és a gépek pulthoz rendelése *(admin/1.22.0, KESZLET.md)* |
 | `keszlet.leltar_inditas` | Leltár indítása |
 | `keszlet.leltar_rogzites` ⚠️ | **Leltári eredmény rögzítése** (korrekciós mozgás) |
 | `recept.megtekintes` / `recept.szerkesztes` | Receptúra |

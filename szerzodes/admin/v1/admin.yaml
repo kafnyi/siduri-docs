@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.21.0
+  version: 1.22.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -125,6 +125,11 @@ tags:
     description: Minden nezet kozos szolgaltatasai - pl. az XLSX-export (1.18.0)
   - name: riport
     description: A riportok a felhos archivumbol (1.20.0) - a telephelyi szerver 501
+  - name: keszlet
+    description: |
+      A keszlet torzsadata (1.22.0, KESZLET.md): raktar, pult, alapanyag, recept,
+      gep -> pult. LEIRO-ALAPU: egy tabla egy leiras (k2 TorzsLeirok), minden
+      mezo O3-mezo es kanonikus SZOVEG - ugyanaz a negy vegpont minden tablara.
   - name: hozzaferes
     description: |
       Ziggurat-felhasznalok es a jogosultsagaik.
@@ -2038,6 +2043,202 @@ paths:
           $ref: '#/components/responses/Hiba422'
         '501':
           $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /torzs/{tabla}:
+    get:
+      tags: [keszlet]
+      operationId: torzsLista
+      summary: A tabla rekordjai (1.22.0)
+      description: |
+        Jog: az anyagnal es a receptnel `recept.megtekintes`, a tobbinel
+        `keszlet.megtekintes`. A Fo raktar (azonositoja a telephelye, K7) es a
+        pult-gepek sorai (K8) maguktol vannak meg.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: tabla
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [raktar, pult, anyag, recept, eszkoz_pult]
+      responses:
+        '200':
+          description: A rekordok, csak az ertekekkel
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TorzsLista'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    post:
+      tags: [keszlet]
+      operationId: torzsFelvetel
+      summary: Uj rekord (1.22.0) - mindket oldalon
+      description: |
+        Jog: az anyagnal es a receptnel `recept.szerkesztes`, a tobbinel
+        `keszlet.raktar_kezeles`. A hianyzo mezo az alaperteket kapja. A recept
+        azonositoja a GAZDAJAE (kiszereles vagy FELKESZ anyag, HIANYZO_GAZDA); a
+        recept nem hivatkozhat onmagara (RECEPT_KOR) es legfeljebb 5 szint mely
+        (RECEPT_MELYSEG). A gepet nem lehet felvenni (NEM_FELVEHETO) - a telephely
+        jelenti. A felhoben felvett rekord REKORD-kent megy le (szinkron/1.13.0).
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: tabla
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [raktar, pult, anyag, recept, eszkoz_pult]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TorzsFelvetel'
+      responses:
+        '201':
+          description: Felveve, a mezok allapotaval
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TorzsRekord'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /torzs/{tabla}/{azonosito}:
+    get:
+      tags: [keszlet]
+      operationId: torzsRekord
+      summary: Egy rekord mezonkent, eredettel es tortenettel (1.22.0)
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: tabla
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [raktar, pult, anyag, recept, eszkoz_pult]
+        - name: azonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: A rekord
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TorzsRekord'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /torzs/{tabla}/{azonosito}/{mezo}:
+    put:
+      tags: [keszlet]
+      operationId: torzsMezot
+      summary: Egy mezo uj erteke (1.22.0) - O3
+      description: |
+        Ugyanaz a szabaly, mint a kategorianal: a kesobbi iras nyer, a vesztes 409
+        (KESOBBI_ERTEK_ALL) es a tortenetben marad. A gep neve nem irhato
+        (NEM_IRHATO). A recept tetelei EGY mezo (K2): a teljes lista egyben irodik.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: tabla
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [raktar, pult, anyag, recept, eszkoz_pult]
+        - name: azonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: mezo
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TorzsMezoKeres'
+      responses:
+        '200':
+          description: A rekord az uj allapottal
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TorzsRekord'
+        '409':
+          description: A mezon kesobbi ertek all (KESOBBI_ERTEK_ALL).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          $ref: '#/components/responses/Hiba422'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -4592,6 +4793,71 @@ components:
       title: Torles vagy visszaallitas (1.21.0)
       type: object
       properties:
+        indok:
+          type: string
+          maxLength: 500
+      additionalProperties: false
+
+    TorzsRekord:
+      title: Egy leiro-alapu rekord (1.22.0)
+      description: |
+        Minden ertek kanonikus SZOVEG. A mezok (a tabla leirasa szerint):
+          - raktar: nev, aktiv ("true"/"false")
+          - pult: nev, raktar_id, aktiv
+          - anyag: nev, tipus (ALAPANYAG|FELKESZ), alapegyseg (G|ML|DB), csomagok
+            ("Karton=24;Hordo=50000" - alapegysegben), beszerzesi_afa (A_5..E_0),
+            keszletezett, vart_veszteseg (%, legfeljebb 6 tizedes), aktiv
+          - recept: hozam (a gazda alapegysegeben; kiszerelesnel 1), tetelek
+            ("anyagId=mennyiseg;..." - anyag szerint rendezve)
+          - eszkoz_pult: nev (a gepe, csak olvashato), pult_id (ures = Fo raktar)
+      type: object
+      required: [azonosito, ertekek]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        ertekek:
+          type: object
+          additionalProperties:
+            type: string
+        mezok:
+          type: object
+          description: Csak a reszleteknel - mezonkent az O3-allapot.
+          additionalProperties:
+            $ref: '#/components/schemas/MezoAllapot'
+      additionalProperties: false
+
+    TorzsLista:
+      title: Rekordok (1.22.0)
+      type: object
+      required: [rekordok]
+      properties:
+        rekordok:
+          type: array
+          items:
+            $ref: '#/components/schemas/TorzsRekord'
+      additionalProperties: false
+
+    TorzsFelvetel:
+      title: Uj rekord (1.22.0)
+      type: object
+      properties:
+        azonosito:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: Csak a receptnel - a gazdae (kiszereles vagy felkesz anyag).
+        ertekek:
+          type: object
+          additionalProperties:
+            type: string
+      additionalProperties: false
+
+    TorzsMezoKeres:
+      title: Egy mezo uj erteke (1.22.0)
+      type: object
+      required: [ertek]
+      properties:
+        ertek:
+          type: string
         indok:
           type: string
           maxLength: 500

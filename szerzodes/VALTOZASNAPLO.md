@@ -43,6 +43,19 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.21.0 — 2026-09-25 — *termék felvétele, törlése és visszaállítása* `NEM TÖRŐ`
+
+* **`POST /termekek`** — új termék a kiszereléseivel, mindkét oldalon. A C3/a
+  kapuja: két áfakategória nélkül nincs termék; NTAK-köteles telephelyen az
+  NTAK-főkategória kötelező. Minden mező eredetet kap a felvételkor.
+* **`POST /termekek/{id}/torles`** és **`/visszaallitas`** — a soft delete
+  (TOROLT) és visszavonása, saját joggal (`termek.soft_delete`). A törölt
+  termék vonalkódja felszabadul; a visszaállított termék INAKTÍV.
+* A `Termek` és a `TermekSor` új, opcionális `torolt` jelzője.
+
+**Miért:** a NYITOTT_KERDESEK C2/b nyitott pontjai (2026-09-25, alapértelmezett
+döntések, felülbírálhatók) — és termék eddig a Zigguratból nem jöhetett létre.
+
 ### v1.20.0 — 2026-09-25 — *riportok* `NEM TÖRŐ`
 
 * **`GET /riportok`** és **`GET /riportok/{fajta}`** — 14 riport a felhős
@@ -356,6 +369,17 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.12.0 — 2026-09-25 — *a felhőben felvett termék lefelé* `NEM TÖRŐ`
+
+* A lefelé menő `Valtozas` REKORD-ja a kategórián túl **terméket** és
+  **kiszerelést** is hozhat (`termek`, `kiszereles` — ugyanaz az alak, mint
+  felfelé). A termék előbb jön; a telephely csak felvesz, ha még nincs meg.
+* A szöveges `allapot` mező értéke a `TOROLT` is lehet (admin/1.21.0), mindkét
+  irányban; a felhő a törlést és a visszaállítást `termek.soft_delete` joggal
+  bírálja el.
+* Régi telephely a termék-REKORD-ot `ISMERETLEN_TIPUS`-szal utasítja el — a
+  felhő látja, hogy frissíteni kell.
 
 ### v1.11.0 — 2026-09-25 — *a kezelő és a gép a bizonylat fejében* `NEM TÖRŐ`
 

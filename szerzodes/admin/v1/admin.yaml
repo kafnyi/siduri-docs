@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.20.0
+  version: 1.21.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -752,6 +752,169 @@ paths:
           $ref: '#/components/responses/Hiba403'
         '422':
           $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    post:
+      tags: [torzsadat]
+      operationId: termeketFelvesz
+      summary: Uj termek a kiszereleseivel (1.21.0) - mindket oldalon
+      description: |
+        Jog: `termek.letrehozas`. A C3/a BIZTONSAGI KAPUJA: termek NEM jon
+        letre, ha barmelyik afakategoria hianyzik (ERVENYTELEN_AFA) - a
+        "megegyezik" a feluleten egy jelolo, ami a helybenit az elvitelibe
+        MASOLJA; ide mar ket ertek erkezik. Mindketto letezo, AKTIV, TERMEK-
+        gyujtos kategoria. NTAK-koteles telephelyen az NTAK-fokategoria kotelezo
+        (HIANYZO_NTAK, C3/b). Legalabb egy, legfeljebb 20 kiszereles, egyedi
+        nevvel, egesz forint arral.
+
+        Minden mezo eredete a kiszolgalo (felho/telephely) es az ora - az elso
+        utkozeshez is kell az alapvonal. A felhoben felvett termek es a
+        kiszerelesei REKORD-kent mennek le (szinkron/1.12.0), a telephelyen
+        felvett a meglevo REKORD-felkuldessel megy fel.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TermekFelvetel'
+      responses:
+        '201':
+          description: Felveve - a termek, ahogy a lapja mutatja
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Termek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /termekek/{termekAzonosito}/torles:
+    post:
+      tags: [torzsadat]
+      operationId: termeketTorol
+      summary: Soft delete (1.21.0) - az elerhetoseget szunteti meg, nem a tenyt
+      description: |
+        Jog: `termek.soft_delete` - NEM az inaktivalase (C2/b). A termek
+        allapota TOROLT: nem arulhato, az aktivalas nem eleszti fel, de a
+        tortenetbol, a riportokbol es a regi bizonylatokbol NEM tunik el.
+
+        A vonalkodja FELSZABADUL (C2/b 4.) - egy uj termek megkaphatja; a
+        visszaallitas nem hozza vissza. Ugyanaz az O3-mezo, mint az
+        aktivalase: a kesobbi iras nyer, a vesztes 409.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: termekAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TorlesKeres'
+      responses:
+        '200':
+          description: A torolt termek (torolt = true)
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Termek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: |
+            A termek mar torolt (MAR_TOROLT), vagy a mezon kesobbi ertek all
+            (KESOBBI_ERTEK_ALL).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /termekek/{termekAzonosito}/visszaallitas:
+    post:
+      tags: [torzsadat]
+      operationId: termeketVisszaallit
+      summary: A soft delete visszavonasa (1.21.0)
+      description: |
+        Jog: `termek.soft_delete` - ugyanaz, mint a torlese, hogy a torles es
+        az inaktivalas a gyakorlatban is megkulonboztetheto maradjon (C2/b 2.).
+        A visszaallitott termek INAKTIV: az eladasba kulon kell visszakapcsolni.
+        A felszabadult vonalkodot nem hozza vissza.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: termekAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TorlesKeres'
+      responses:
+        '200':
+          description: A visszaallitott, INAKTIV termek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Termek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: |
+            A termek nem torolt (NEM_TOROLT), vagy a mezon kesobbi ertek all
+            (KESOBBI_ERTEK_ALL).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -4289,6 +4452,11 @@ components:
           description: >
             A kiszerelesek legolcsobbja, TAJEKOZTATASUL a listaban. Hianyzik,
             ha nincs aktiv kiszereles. NEM ebbol kell arat szamolni.
+        torolt:
+          type: boolean
+          description: >
+            Csak akkor van jelen (true), ha a termek TOROLT (soft delete,
+            1.21.0). Ilyenkor az aktiv is false.
       additionalProperties: false
 
     Termek:
@@ -4361,6 +4529,72 @@ components:
           allOf:
             - $ref: '#/components/schemas/ElveszettSzovegesIras'
           description: A legutobbi afa-iras, ami NEM lepett ervenybe.
+        torolt:
+          type: boolean
+          description: >
+            Csak akkor van jelen (true), ha a termek TOROLT (soft delete,
+            1.21.0). Ilyenkor az aktiv is false.
+      additionalProperties: false
+
+    TermekFelvetel:
+      title: Uj termek (1.21.0)
+      type: object
+      required: [megnevezes, afaHelyben, afaElvitel, kiszerelesek]
+      properties:
+        megnevezes:
+          type: string
+          minLength: 1
+          maxLength: 200
+        megnevezesEn:
+          type: string
+          maxLength: 200
+        kategoriaId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        afaHelyben:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        afaElvitel:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        mennyisegiEgyseg:
+          type: string
+          maxLength: 20
+          description: Ha hianyzik, DARAB.
+        korhataros:
+          type: boolean
+        ntakFokategoria:
+          type: string
+          maxLength: 50
+          description: NTAK-koteles telephelyen kotelezo.
+        ntakAlkategoria:
+          type: string
+          maxLength: 50
+        kiszerelesek:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/KiszerelesFelvetel'
+      additionalProperties: false
+
+    KiszerelesFelvetel:
+      title: Uj kiszereles (1.21.0)
+      type: object
+      required: [nev, bruttoAr]
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 100
+        bruttoAr:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+      additionalProperties: false
+
+    TorlesKeres:
+      title: Torles vagy visszaallitas (1.21.0)
+      type: object
+      properties:
+        indok:
+          type: string
+          maxLength: 500
       additionalProperties: false
 
     Afakategoria:

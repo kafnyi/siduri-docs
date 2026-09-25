@@ -2959,7 +2959,7 @@ az árat távolról, tömegesen is át lehet írni.
 
 **A soft delete tehát az ELÉRHETŐSÉGET szünteti meg, nem a TÉNYT.**
 
-#### `[ ]` Amit még el kell dönteni
+#### `[ALAPÉRTELMEZETT]` Amit még el kellett dönteni — lent a döntés *(2026-09-25)*
 
 1. **`[JAVASLAT]` Ha egy termék SOHA nem szerepelt egyetlen bizonylaton vagy
    készletmozgáson sem, akkor legyen ténylegesen TÖRÖLHETŐ.** Ez a tiszta
@@ -2976,6 +2976,18 @@ az árat távolról, tömegesen is át lehet írni.
    a régi bizonylatok vonalkód szerinti visszakeresése félrevezet.
    **Eldöntendő** — javaslom: **a vonalkód szabaduljon fel**, mert az fizikai
    azonosító, és a visszakeresés úgyis a bizonylatszámon megy.
+
+**Alapértelmezett döntések** *(2026-09-25, a „mehetünk tovább" alapján, a
+termék felvételével együtt — `admin/1.21.0`, `szinkron/1.12.0`)*. Mind
+**felülbírálható**; mellettük az áruk:
+
+| # | Döntés | Ára |
+|---|---|---|
+| 1. | **Valódi törlés MOST NINCS** — csak a soft delete. A soha nem használt termék is TOROLT lesz, nem tűnik el | a félregépelt termék sora az adatbázisban marad (a listában „Törölt" jelöléssel). A valódi törléshez **mindkét irányban** törlés-szinkron kellene (ma a telephely eltűnt sora nem megy fel), és a felhő nem látja a telephely még fel nem küldött eladásait — ezért a „soha nem használt" a felhőben nem dönthető el biztosan |
+| 2. | **Visszavonható, a törlés SAJÁT jogával** (`termek.soft_delete`) — nem az inaktiválás jogával; a visszaállított termék **INAKTÍV**, az eladásba külön kell visszakapcsolni | egy lépéssel több a visszaállításnál — cserébe a törlés és az inaktiválás a gyakorlatban is megkülönböztethető |
+| 3. | **Receptúra- és menü-ellenőrzés: még nincs mit ellenőrizni** — se receptúra, se menü nincs (C1, F5). A szabály áll: amikor megépülnek, a törlés előtt fel kell sorolni, hol használják | — |
+| 4. | **A vonalkód felszabadul** (adatbázis-trigger mindkét oldalon: V37, berlo V16); a visszaállítás **nem hozza vissza** | a régi bizonylat vonalkód szerinti visszakeresése nem megy — a bizonylatszám szerinti igen |
+| + | **O3 érvényes a törlésre is**: a törlés ugyanaz a mező, mint az aktiválás, tehát a KÉSŐBBI írás nyer — a másik oldal egy későbbi inaktiválása egy törlést INAKTÍV-ra írhat | ritka (két oldal percre pontosan ugyanazt a terméket írja), és a felület a vesztes írást kiírja |
 
 ### `[ ]` C2 — Árazás
 Csak kedvezmények vannak. Hiányzik: happy hour / idősávos ár, zóna szerinti ár
@@ -4012,7 +4024,7 @@ Rögzítendő a kód előtt:
 | — | ~~C3/a~~ | `[ELDÖNTVE]` | **Termékenként két adókulcs** (helyben / elvitel), megjelölhető az azonosság, és **termék nem hozható létre hiányos adóadattal**. Az adó megadása az ügyfél felelőssége. **Kikötés:** az „azonos" JELÖLŐKÉNT tárolandó, ne másolt értékként, különben a helyben fogyasztásos kulcs átírásakor az elviteles csendben a régin marad. |
 | — | ~~C3/b~~ | `[ELDÖNTVE]` | **NTAK-kategória feltételesen kötelező:** nincs NTAK-kulcs → nem kell és nem is figyelmeztetünk; van kulcs → kötelező vagy erős figyelmeztetés. **Kritikus pillanat:** amikor egy hely utólag illeszt be kulcsot, minden meglévő terméke kategória nélkül áll. |
 | — | ~~C2/a~~ | `[ELDÖNTVE]` | **A bizonylat az ELADÁSKORI árat, adókulcsot ÉS NEVET tárolja**, nem hivatkozást — különben egy áremelés vagy átnevezés visszamenőleg átírja a régi riportokat. |
-| — | ~~C2/b~~ | `[ELDÖNTVE]` | **Három állapot:** aktív / inaktív (szezonális, visszakapcsolható) / **soft delete** (elrontott termék). **Egyik sem rejtheti el a terméket a TÖRTÉNETBŐL** — csak az elérhetőséget szünteti meg. Javaslat: soha nem használt termék legyen ténylegesen törölhető. |
+| — | ~~C2/b~~ | `[ELDÖNTVE]` | **Három állapot:** aktív / inaktív (szezonális, visszakapcsolható) / **soft delete** (elrontott termék). **Egyik sem rejtheti el a terméket a TÖRTÉNETBŐL** — csak az elérhetőséget szünteti meg. **2026-09-25 (alapértelmezett):** valódi törlés most nincs; a soft delete saját joggal visszavonható; a vonalkód felszabadul (`admin/1.21.0`). |
 | — | ~~A3~~ | `[ELDÖNTVE]` | **A felhő a jogi archívum** — a 8 éves megőrzést a felhő teljesíti. Következmény: a „tisztán lokális" topológia önmagában nem elegendő, és ezt a kockázatvállalási nyilatkozatban rögzíteni kell. Későbbi tervként felvéve az összetett felhős archiválás. |
 | — | ~~B17~~ | `[RÉSZBEN ELDÖNTVE]` | **A felhő is két fizikai szerver**, fő + másodlagos, minden adat mindkettőn, terhelésmegosztás, automatikus átcsatornázás. **Fontos:** a telephelyi „kézi átkapcsolás" indoklása **NEM vihető át** ide — a felhőben mi uraljuk az infrastruktúrát, tehát az automatikus átvétel biztonságosan megépíthető. |
 | — | ~~F7/a~~ | `[ELDÖNTVE]` | **Szerkeszthető jogosultsági SZINTEK** — az ügyfél maga hozhat létre szintet (pl. „Pultfőnök"), nem csak egyedi kivételeket. **Frissítési csapda felvéve:** egy új verzió új jogosultságai a meglévő, testreszabott szinteken **alapból TILTOTTAK**, de a felület **feltűnően jelezze**, hogy N új jogosultság érkezett és át kell nézni — különben az új funkció némán nem működik. |

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.11.0
+  version: 1.12.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -1227,7 +1227,8 @@ components:
           maxLength: 200
           description: |
             A szoveges mezok uj erteke (1.6.0): a megnevezesnel a nev, az
-            allapotnal AKTIV vagy INAKTIV. A TOROLT nem utazik igy. Az afanal
+            allapotnal AKTIV vagy INAKTIV - es az 1.12.0 ota TOROLT (soft
+            delete, admin/1.21.0): a torles es a visszaallitas ugyanez a mezo. Az afanal
             (1.7.0) a ket afakategoria azonositoja vesszovel: "helyben,elvitel".
 
             A kategorianal (1.8.0): nev - a nev; szulo - a szulo azonositoja, vagy
@@ -1240,6 +1241,18 @@ components:
             alakja. A telephely csak akkor veszi fel, ha meg nincs meg; a mezok
             kesobbi valtozasai MEZO_ERTEK-kent jonnek.
           $ref: '#/components/schemas/SzinkronKategoria'
+        termek:
+          description: |
+            REKORD tipusnal (1.12.0): egy a felhoben FELVETT termek teljes
+            alakja, mezonkenti eredettel - ugyanaz az alak, mint felfele. A
+            telephely csak akkor veszi fel, ha meg nincs meg.
+          $ref: '#/components/schemas/SzinkronTermek'
+        kiszereles:
+          description: |
+            REKORD tipusnal (1.12.0): egy a felhoben FELVETT kiszereles. A termeke
+            elotte jon (a sorszam adja a sorrendet); ha megsincs meg, a telephely
+            NINCS_ILYEN_REKORD-dal utasitja el.
+          $ref: '#/components/schemas/SzinkronKiszereles'
         mezoeredet:
           allOf:
             - $ref: '#/components/schemas/Mezoeredet'

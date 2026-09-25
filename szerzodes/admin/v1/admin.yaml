@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.19.0
+  version: 1.20.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -123,6 +123,8 @@ tags:
     description: Kategoria es termek - amit a tulajdonos karbantart
   - name: kozos
     description: Minden nezet kozos szolgaltatasai - pl. az XLSX-export (1.18.0)
+  - name: riport
+    description: A riportok a felhos archivumbol (1.20.0) - a telephelyi szerver 501
   - name: hozzaferes
     description: |
       Ziggurat-felhasznalok es a jogosultsagaik.
@@ -1876,6 +1878,109 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /riportok:
+    get:
+      tags: [riport]
+      operationId: riportFajtak
+      summary: A riportok fajtai (1.20.0)
+      description: |
+        A kod, a nev, a szukseges jog, es hogy munkavallaloi adat-e (akkor a
+        felulet a munkajogi figyelmeztetessel mutatja). A telephelyi szerver
+        501-et ad: a riportok a felhos archivumbol szamolnak.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A fajtak
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [fajtak]
+                properties:
+                  fajtak:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RiportFajta'
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /riportok/{fajta}:
+    get:
+      tags: [riport]
+      operationId: riport
+      summary: Egy riport a felhos archivumbol (1.20.0) - ELADAS_FELKULDES.md
+      description: |
+        Ugyanaz az alak, mint az export kerese (oszlopok, sorok, osszesito): a
+        felulet egy altalanos tablaval jelenit meg es exportal minden riportot.
+
+        * Az idoszak legfeljebb 366 nap.
+        * `hatokor`: ures = a fejlec telephelye; `osszes` = a ceg minden
+          telephelye, amire a felhasznalonak joga van (lanc-szint); vagy egy
+          telephely azonositoja.
+        * ⚠️ A meg nem IGAZOLT nap adata ELOZETES - a `figyelmeztetesek` kiirja.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: fajta
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [NAPI_FORGALOM, AFA_OSSZESITO, FIZETESI_MODOK, TERMEK_TOPLISTA, ORANKENT,
+                   HET_NAPJAI, GEPENKENT, TELJESITESI_MOD, KOSARERTEK, KEDVEZMENYEK,
+                   TELEPHELYEK, PULTOSONKENT, TORLESEK, BORRAVALO]
+        - name: hatokor
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: tol
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: ig
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: A riport
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Riport'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /export:
     post:
       tags: [kozos]
@@ -3195,6 +3300,44 @@ components:
 
         ⚠️ Uj kapcsolo = kisverzio; a felulet az ismeretlent figyelmen kivul
         hagyja.
+
+    RiportFajta:
+      title: Egy riport fajtaja
+      type: object
+      required: [kod, cim, jogosultsag, munkajogi]
+      properties:
+        kod: {type: string}
+        cim: {type: string}
+        jogosultsag: {type: string}
+        munkajogi:
+          type: boolean
+          description: Munkavallaloi adat - a felulet a munkajogi figyelmeztetessel mutatja.
+      additionalProperties: false
+
+    Riport:
+      title: Egy riport
+      type: object
+      required: [oszlopok, sorok, figyelmeztetesek, munkajogi]
+      properties:
+        fajta: {type: string}
+        cim: {type: string}
+        oszlopok:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportOszlop'
+        sorok:
+          type: array
+          items:
+            type: array
+            items: {}
+        osszesito:
+          type: [array, "null"]
+          items: {}
+        figyelmeztetesek:
+          type: array
+          items: {type: string}
+        munkajogi: {type: boolean}
+      additionalProperties: false
 
     NapEgyeztetesLista:
       title: A napok egyeztetese

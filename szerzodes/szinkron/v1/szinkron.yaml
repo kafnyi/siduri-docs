@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.10.0
+  version: 1.11.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -526,6 +526,15 @@ components:
             szamlalo: {type: integer, format: int64}
             eszkozIdo: {type: string, format: date-time}
             szerverIdo: {type: [string, "null"], format: date-time}
+            kezelo:
+              type: [string, "null"]
+              description: (1.11.0) A muszak gazdaja - aki a bizonylatot utotte.
+            kezeloNev:
+              type: [string, "null"]
+              description: (1.11.0) Az ELADASKORI nev - a riport 8 ev mulva is olvashato legyen.
+            eszkozNev:
+              type: [string, "null"]
+              description: (1.11.0) A gep eladaskori neve.
         tetelek:
           type: array
           items:
@@ -561,6 +570,7 @@ components:
               epoch: {type: integer, format: int64}
               szamlalo: {type: integer, format: int64}
               eszkozIdo: {type: [string, "null"]}
+              felhasznaloNev: {type: [string, "null"], description: (1.11.0) eladaskori nev}
         afaCsoportok:
           type: array
           items:

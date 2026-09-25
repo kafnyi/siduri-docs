@@ -43,6 +43,20 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.20.0 — 2026-09-25 — *riportok* `NEM TÖRŐ`
+
+* **`GET /riportok`** és **`GET /riportok/{fajta}`** — 14 riport a felhős
+  archívumból: napi forgalom, áfaösszesítő, fizetési módok, termék-toplista,
+  óránkénti és a hét napjai szerinti eloszlás, gépenként, teljesítési mód,
+  kosárérték-sávok, kedvezmények, telephelyek összehasonlítása, pultosonként,
+  tételtörlések és sztornók, borravaló.
+* Az alak ugyanaz, mint az export kérése; lánc-szint (`hatokor=osszes`); a
+  nem igazolt nap ELŐZETES; a munkavállalói riport munkajogi jelöléssel.
+* A telephelyi szerver 501-et ad.
+
+**Miért:** a felhasználó döntése (2026-09-25): minden kért riport, csak a
+felhőben, lánc-szinttel, az előzetes napok jelölésével.
+
 ### v1.19.0 — 2026-09-25 — *az eladások napi egyeztetése* `NEM TÖRŐ`
 
 * **`GET /siduri/telephelyek/{id}/egyeztetes`** — a lezárt napok egyeztetése
@@ -342,6 +356,13 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.11.0 — 2026-09-25 — *a kezelő és a gép a bizonylat fejében* `NEM TÖRŐ`
+
+* A bizonylat fejében: `kezelo` (a műszak gazdája), `kezeloNev`, `eszkozNev`;
+  a tételtörlésben `felhasznaloNev` — mind **eladáskori** érték, hogy a riport
+  8 év múlva is olvasható legyen. A pultos- és gépenkénti riport ebből számol.
+* Régi telephely a mezőket nem küldi: a riport „ismeretlen" kezelőként mutatja.
 
 ### v1.10.0 — 2026-09-25 — *az eladási adatok felküldése* `NEM TÖRŐ`
 

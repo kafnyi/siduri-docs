@@ -863,15 +863,16 @@ trailer nélkül.**
 | **Siduri-hozzáférés a pulthoz** — kód (felhő), lenyomat és munkamenet (telephely), napló és „Pult-kódom" (Ziggurat); a pult rejtett belépése az 5/c-vel | ✅ a felhő élő próbán (HTTP); a telephely tesztekkel | `HOZZAFERES.md` §8.7, `admin/1.17.0`, `szinkron/1.9.0`, `kassza/1.24.0` |
 | **A pult személyzet-képernyője (5/c)** és a **Siduri néma belépése** a pultnál | ✅ lefordul, tesztek zöldek (mag 160); **élő próba a felhasználónál** | `siduri-pos-client`, `HOZZAFERES.md` §12/5, §8.7 |
 | **Az eladási adatok felküldése** — a felhő a jogi archívum: folyamatos felküldés, napi egyeztetés, horgony, a törlés csak igazolt napról | ✅ tesztekkel és 4 mutációs próbával; élő próba az első telepítéskor | `ELADAS_FELKULDES.md` §8, `szinkron/1.10.0`, `admin/1.19.0` |
+| **Riportok** — 14 kimutatás a felhős archívumból (forgalom, áfa, fizetés, toplista, időrendi, gép, pultos, törlés, borravaló, kosár, kedvezmény, telephelyek), lánc-szinttel, előzetes napok jelölésével, munkajogi jelöléssel | ✅ tesztekkel, 4 mutációs próbával és élő próbával (HTTP) | `RIPORTOK.md`, `admin/1.20.0`, `szinkron/1.11.0` |
 | **XLSX-export — amit látsz**: egy közös végpont, minden listás nézetben egy gomb (termékek, kategóriák, áfakategóriák, felhasználók, kollégák, naplók, telephelyek) | ✅ élő próbán (HTTP, a Vite-proxyn át) | `EXPORT_IMPORT.md` 2.2/a, `admin/1.18.0` |
 
-**Tesztszámok (mérve):** mag 202 · k2 16 · felhő 196 · telephely 432 · felület 46 · pult 160.
+**Tesztszámok (mérve):** mag 202 · k2 16 · felhő 202 · telephely 432 · felület 50 · pult 160.
 A kategóriafa öt és a Siduri-hozzáférés öt kulcsgaranciáját mutációs próba is igazolta.
 **A 7.0/a sorrendje végigment.** Most a felhasználón a sor: **az élő próba a
 pultnál** (személyzet-képernyő, Siduri néma belépése) és a **§8.7 alapértelmezett
 döntéseinek** átnézése. Az eladások felküldése jóváhagyva és **elkészült**
-(`ELADAS_FELKULDES.md` §8); a következő természetes szelet a **riportok** a
-Zigguratban, erre az archívumra építve.
+(`ELADAS_FELKULDES.md` §8), és rá épülnek a **riportok** (`RIPORTOK.md`). A
+pult szerinti bontás a Pult bevezetésével, az árrés a beszerzési árral (F5.8) jön.
 
 ### 7.0/a Döntések a következő nagy körhöz *(2026-09-25)*
 

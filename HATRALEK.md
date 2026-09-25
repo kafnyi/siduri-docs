@@ -157,7 +157,7 @@ előtt, a PDF (külön döntés) és az import (külön munka). **Még
 döntés kell:** módosító- és menükezelés (C1), beállításszerkesztés. A kiszolgálótól jövő szövegek (hibaüzenetek, jogosultságnevek)
 nyelvváltáskor magyarok maradnak.
 
-**A készlet** (`KESZLET.md`): az S1–S4 (törzsadat, készletmotor, felhős tükör és parancs, leltár) kész; hátra az S5 („elfogyott" — pult-kliens is) és az S6 (pult a bizonylatban + árrés).
+**A készlet** (`KESZLET.md`): az S1–S4 és az S6 (pult a bizonylaton, árrés) kész; hátra az S5 („elfogyott" — a pult-kliens is).
 
 ---
 

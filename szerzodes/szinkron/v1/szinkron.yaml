@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.15.0
+  version: 1.16.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -518,6 +518,14 @@ components:
           enum: [NYOMTATASRA_VAR, KINYOMTATVA, NYOMTATASI_HIBA, SZTORNOZOTT]
         adougyiBizonylatszam:
           type: [string, "null"]
+        pultId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        pultNev:
+          type: string
+          description: |
+            A LEZARASKORI pult (1.16.0, KESZLET.md S6). Elemzesi adat, ezert itt, a
+            lenyomaton KIVUL: egy mar felkuldott bizonylat ujrakuldese (pl. a
+            sztorno utan) igy nem mutat hamis tartalmi elterest.
       additionalProperties: false
 
     BizonylatTartalom:

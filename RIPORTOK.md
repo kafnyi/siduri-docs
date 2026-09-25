@@ -34,6 +34,8 @@ kiszolgálón egy függvény, a felületen semmi.
 | `PULTOSONKENT` | pultosonként — **munkavállalói adat** | `riport.felhasznalo_tortenet` |
 | `TORLESEK` | tételtörlések (konyhára ment-e, mennyi idő után) és sztornók pultosonként | `riport.torlesi_arany` |
 | `BORRAVALO` | naponként és pultosonként | `riport.borravalo` |
+| `PULT_SZERINT` | a lezáráskori pult szerint *(1.26.0)* | `riport.napi_forgalom` |
+| `ARRES` | árrés és food cost, nettó, termékenként × teljesítési módonként *(1.26.0, F5.8)* | `riport.arres` |
 
 A munkavállalói riport a **munkajogi figyelmeztetéssel** jelenik meg, ott, ahol
 használják (`JOGOSULTSAG_KATALOGUS.md` 4.10). A pultos és a gép neve az
@@ -43,8 +45,8 @@ használják (`JOGOSULTSAG_KATALOGUS.md` 4.10). A pultos és a gép neve az
 
 | Mi | Miért | Mikor |
 |---|---|---|
-| **Pult szerinti bontás** | a „Pult" (gépek logikai csoportja, `HOZZAFERES.md` 11.1) a telephelyi modellben **még nincs meg** | a Pult bevezetésével — a gépenkénti riport addig is megvan |
-| **Árrés, food cost** | beszerzési ár nincs az adatban | F5.8 |
+| ~~Pult szerinti bontás~~ | **kész** (1.26.0, `KESZLET.md` S6) | — |
+| ~~Árrés, food cost~~ | **kész** (1.26.0) — a bizonylatszintű kedvezmény nincs a tételekre osztva | — |
 | **Riport a telephelyi szerveren** | döntés: előbb csak a felhőben | ha kell, külön szelet, 30 napos korláttal |
 | **Nagy időszak gyorsan** | a számolás memóriában, a bizonylatok JSON-jából; az időszak legfeljebb 366 nap | ha lassú: előre összesített riport-vetület |
 | **Régi telephely pultosa** | a `szinkron/1.11.0` előtti telephely nem küldi a kezelőt | „ismeretlen" sorként látszik |

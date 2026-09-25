@@ -43,6 +43,12 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.26.0 — 2026-09-26 — *pult szerinti riport és árrés* `NEM TÖRŐ`
+
+* Két új riport: **`PULT_SZERINT`** (a lezáráskori pult) és **`ARRES`** (F5.8:
+  nettó alapon, termékenként és teljesítési módonként; a költség a készletmozgás
+  korabeli átlagárából; saját jog: `riport.arres`).
+
 ### v1.25.0 — 2026-09-26 — *a leltár* `NEM TÖRŐ`
 
 * `POST /keszlet/leltar` — egylépéses leltárív (fordulónap, LELTAR indokkód, a
@@ -412,6 +418,10 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.16.0 — 2026-09-26 — *a pult a bizonylat állapotában* `NEM TÖRŐ`
+
+* `BizonylatAllapot.pultId`, `pultNev` — a lezáráskori pult, a lenyomaton kívül.
 
 ### v1.15.0 — 2026-09-26 — *a leltár parancsként* `NEM TÖRŐ`
 

@@ -1,6 +1,6 @@
 # Siduri — készlet és receptúra (F5)
 
-> **Státusz: az S1–S4 KÉSZ (törzsadat, készletmotor, felhő, leltár); az S5 („elfogyott") és az S6 (pult a bizonylatban, árrés) következik** *(2026-09-26)*. A fázisterv F5.1–F5.6
+> **Státusz: az S1–S4 és az S6 KÉSZ; az S5 („elfogyott", a pult-kliens is) következik** *(2026-09-26)*. A fázisterv F5.1–F5.6
 > és F5.8 pontja. A már eldöntött alapszabályok: `NYITOTT_KERDESEK` B16.4
 > (a készlet egyenlege telephely-autoritatív, a felhő MOZGÁST küld, egyenleget
 > soha nem ír felül), B16.10 (leltár = korrekciós mozgás fordulónapra), G2.2
@@ -102,6 +102,17 @@ LELTAR; mennyiség alapegységben, előjelesen; nettó egységköltség),
   PDA és a papír-ív (spec 21.7) később; a felhő a teljes leltárívet nem mutatja
   (501), csak a korrekciós mozgásokat.
 
+## 3/d. Az S6 megvalósítása
+
+* **A pult a lezáráskor rögzül** a bizonylaton (trigger, V42) — az utólagos
+  átrendelés nem írja át a riportot. Felfelé az **állapot-részben** megy, a
+  lenyomaton kívül: a már felküldött bizonylat újraküldése így nem mutat hamis
+  tartalmi eltérést.
+* **Árrés** (F5.8, G10.3): nettó alapon, termékenként × teljesítési módonként;
+  a költség a mozgások korabeli átlagárából (K5), a sztornózott bizonylat kimarad.
+  **Ára:** a bizonylatszintű kedvezmény nincs a tételekre osztva (az árrés
+  annyival felülbecsült); a mozgás nélküli (recept nélküli) tételre figyelmeztet.
+
 ## 4. Szeletek
 
 | # | Szelet | Állapot |
@@ -111,4 +122,4 @@ LELTAR; mennyiség alapegységben, előjelesen; nettó egységköltség),
 | S3 | Felhő: a mozgások archívuma, felhős készletkép, felhőből indított mozgás | ✅ `szinkron/1.14.0`, `admin/1.24.0`; 5 mutációs próba, mind megfogva |
 | S4 | Leltár | ✅ `admin/1.25.0`, `szinkron/1.15.0`, V41; 3 mutációs próba, mind megfogva |
 | S5 | „Elfogyott" jelző (kassza + pult-kliens) | — |
-| S6 | Pult a bizonylatban → pult szerinti riport; árrés-riport teljesítési módonként (F5.8) | — |
+| S6 | Pult a bizonylatban → pult szerinti riport; árrés-riport teljesítési módonként (F5.8) | ✅ `admin/1.26.0`, `szinkron/1.16.0`, V42; 4 mutációs próba, mind megfogva |

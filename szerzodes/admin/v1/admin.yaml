@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.25.0
+  version: 1.26.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2597,7 +2597,7 @@ paths:
             type: string
             enum: [NAPI_FORGALOM, AFA_OSSZESITO, FIZETESI_MODOK, TERMEK_TOPLISTA, ORANKENT,
                    HET_NAPJAI, GEPENKENT, TELJESITESI_MOD, KOSARERTEK, KEDVEZMENYEK,
-                   TELEPHELYEK, PULTOSONKENT, TORLESEK, BORRAVALO]
+                   TELEPHELYEK, PULTOSONKENT, TORLESEK, BORRAVALO, PULT_SZERINT, ARRES]
         - name: hatokor
           in: query
           required: false

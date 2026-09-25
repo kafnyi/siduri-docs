@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.13.0
+  version: 1.14.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -217,6 +217,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EladasValasz'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+
+  /keszlet:
+    post:
+      tags: [szinkron]
+      operationId: keszletetFelkuld
+      summary: A keszlet tukre (1.14.0) - KESZLET.md S3
+      description: |
+        ⚠️ TUKOR, NEM ELBIRALANDO IRAS: a keszlet egyenlege a telephelye (B16.4).
+        A telephely a konyvelt mozgasokat (a trigger teszi a kimeno sorba) es az
+        erintett egyenlegek pillanatkepet kuldi. A felho idempotens a mozgas
+        azonositoja szerint; az egyenleg a legutobbi allapot. A felhobol inditott
+        muvelet NEM itt jon, hanem lefele, KESZLET_PARANCS valtozaskent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeszletKeres'
+      responses:
+        '200':
+          description: Atvette
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeszletValasz'
         '403':
           $ref: '#/components/responses/Hiba403'
         '422':
@@ -1197,7 +1229,7 @@ components:
             nyugtaz (ISMERETLEN_TIPUS). Ez a ket kiadasi ciklusnyi
             visszafele kompatibilitas ara es eszkoze egyszerre: a felho igy
             megtudja, hogy a telephely regebbi, es nem hiszi alkalmazottnak.
-          enum: [MEZO_ERTEK, ZAROLAS, ZAROLAS_FELOLDAS, REKORD]
+          enum: [MEZO_ERTEK, ZAROLAS, ZAROLAS_FELOLDAS, REKORD, KESZLET_PARANCS]
         telephely:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tabla:
@@ -1207,7 +1239,8 @@ components:
 
             ⚠️ Ismeretlen tabla/mezo parost a telephely ELUTASITVA nyugtaz
             (ISMERETLEN_MEZO) - nem alkalmazza talalomra.
-          enum: [kiszereles, termek, kategoria]
+          enum: [kiszereles, termek, kategoria, raktar, pult, anyag, recept, eszkoz_pult,
+                 keszlet]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         mezo:
@@ -1215,8 +1248,9 @@ components:
           description: |
             kiszereles: brutto_ar. termek: megnevezes, allapot (1.6.0), afa (1.7.0).
             kategoria (1.8.0): nev, szulo, aktiv, afa, ntak. REKORD tipusnal a
-            mezo "-" (nincs ertelme).
-          enum: [brutto_ar, megnevezes, allapot, afa, nev, szulo, aktiv, ntak, "-"]
+            mezo "-" (nincs ertelme). A leiro-alapu tablaknal (1.13.0) a leiras
+            mezoi (admin TorzsRekord). KESZLET_PARANCS-nal (1.14.0) a muvelet
+            neve: bevetelezes, atadas, selejt, szemelyzeti, eloallitas.
         egeszErtek:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
@@ -1224,8 +1258,11 @@ components:
             A brutto_ar MEZO_ERTEK-enel az uj ertek, egesz forintban (I1).
         szovegErtek:
           type: string
-          maxLength: 200
           description: |
+            ⚠️ A hossza tipusonkent mas: a nev legfeljebb 200, a recept tetelei es
+            a KESZLET_PARANCS (1.14.0 - a KeszletParancs JSON-ja: muvelet, keres,
+            felhasznalo) hosszabb is lehet.
+
             A szoveges mezok uj erteke (1.6.0): a megnevezesnel a nev, az
             allapotnal AKTIV vagy INAKTIV - es az 1.12.0 ota TOROLT (soft
             delete, admin/1.21.0): a torles es a visszaallitas ugyanez a mezo. Az afanal
@@ -1383,7 +1420,7 @@ components:
           enum: [REKORD, MEZO_ERTEK]
         tabla:
           type: string
-          enum: [kategoria, termek, kiszereles]
+          enum: [kategoria, termek, kiszereles, raktar, pult, anyag, recept, eszkoz_pult]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tortent:
@@ -1394,7 +1431,7 @@ components:
             felkerult. A felho EHHEZ meri, hogy a cselekvonek volt-e joga.
         mezo:
           type: string
-          enum: [brutto_ar, megnevezes, allapot, afa, nev, szulo, aktiv, ntak]
+          description: A leiro-alapu tablaknal (1.13.0) a leiras mezoi.
           description: MEZO_ERTEK fajtanal kotelezo.
         egeszErtek:
           allOf:
@@ -1425,6 +1462,87 @@ components:
           $ref: '#/components/schemas/SzinkronKiszereles'
         rekord:
           $ref: '#/components/schemas/SzinkronRekord'
+      additionalProperties: false
+
+    KeszletKeres:
+      title: A keszlet tukre (1.14.0)
+      type: object
+      required: [telephely, mozgasok, egyenlegek]
+      properties:
+        telephely:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        mozgasok:
+          type: array
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/FelkuldottMozgas'
+        egyenlegek:
+          type: array
+          items:
+            $ref: '#/components/schemas/FelkuldottEgyenleg'
+      additionalProperties: false
+
+    FelkuldottMozgas:
+      title: Egy konyvelt keszletmozgas (1.14.0)
+      type: object
+      required: [azonosito, sorszam, raktarId, anyagId, fajta, mennyiseg, korrekciobol, mikor]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        sorszam:
+          type: integer
+          format: int64
+        raktarId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        anyagId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        fajta:
+          type: string
+        mennyiseg:
+          type: string
+        egysegkoltseg:
+          type: string
+        korrekciobol:
+          type: boolean
+        bizonylatId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tetelsorId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        bizonylatszam:
+          type: string
+        megjegyzes:
+          type: string
+        mikor:
+          type: string
+          format: date-time
+      additionalProperties: false
+
+    FelkuldottEgyenleg:
+      title: Egy egyenleg a konyveles utan (1.14.0)
+      type: object
+      required: [raktarId, anyagId, mennyiseg, atlagKorrekciobol]
+      properties:
+        raktarId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        anyagId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        mennyiseg:
+          type: string
+        atlagar:
+          type: string
+        utolsoBekerulesiAr:
+          type: string
+        atlagKorrekciobol:
+          type: boolean
+      additionalProperties: false
+
+    KeszletValasz:
+      title: Atvette (1.14.0)
+      type: object
+      required: [atvett]
+      properties:
+        atvett:
+          type: integer
       additionalProperties: false
 
     SzinkronRekord:

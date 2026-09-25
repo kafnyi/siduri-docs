@@ -43,6 +43,15 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.24.0 — 2026-09-26 — *a készlet a felhőben* `NEM TÖRŐ`
+
+* A felhő is kiszolgálja a `/keszlet/*` olvasó végpontokat — a telephely
+  tükréből. A **`POST /keszlet/{muvelet}` a felhőben 202**: a művelet parancsként
+  megy le (`fuggoben`), a telephely könyveli.
+* **`GET /keszlet/parancsok`** — a felhőből indított műveletek és a sorsuk.
+
+**Miért:** `KESZLET.md` S3.
+
 ### v1.23.0 — 2026-09-26 — *a készletmotor a telephelyen* `NEM TÖRŐ`
 
 * **`/keszlet/egyenlegek`**, **`/keszlet/mozgasok`**, **`/keszlet/recept-nelkul`**
@@ -393,6 +402,16 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.14.0 — 2026-09-26 — *a készlet tükre és a készletparancs* `NEM TÖRŐ`
+
+* **`POST /keszlet`** — a telephely a könyvelt mozgásokat (kimenő sorból, nem
+  sorszám-kurzorral) és az érintett egyenlegeket küldi; a felhő idempotens.
+* Új változástípus: **`KESZLET_PARANCS`** — a felhőből indított készletművelet
+  (a `KeszletParancs` JSON-ja a `szovegErtek`-ben); a telephely könyveli, a
+  parancs azonosítója miatt kétszer nem. Régi telephely `ISMERETLEN_TIPUS`.
+* Pótlás az 1.13.0-hoz: a `tabla` felsorolása a leíró-alapú táblákkal bővült,
+  a `mezo` felsorolása leírássá vált.
 
 ### v1.13.0 — 2026-09-26 — *leíró-alapú törzsadat mindkét irányban* `NEM TÖRŐ`
 

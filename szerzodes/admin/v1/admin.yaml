@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.23.0
+  version: 1.24.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2278,7 +2278,7 @@ paths:
         '422':
           $ref: '#/components/responses/Hiba422'
         '501':
-          description: A felho a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN) - KESZLET.md S3.
+          description: Regi (1.24.0 elotti) felho - a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN).
           headers:
             Siduri-Szerzodes:
               $ref: '#/components/headers/SiduriSzerzodes'
@@ -2335,7 +2335,7 @@ paths:
         '422':
           $ref: '#/components/responses/Hiba422'
         '501':
-          description: A felho a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN) - KESZLET.md S3.
+          description: Regi (1.24.0 elotti) felho - a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN).
           headers:
             Siduri-Szerzodes:
               $ref: '#/components/headers/SiduriSzerzodes'
@@ -2374,7 +2374,7 @@ paths:
         '422':
           $ref: '#/components/responses/Hiba422'
         '501':
-          description: A felho a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN) - KESZLET.md S3.
+          description: Regi (1.24.0 elotti) felho - a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN).
           headers:
             Siduri-Szerzodes:
               $ref: '#/components/headers/SiduriSzerzodes'
@@ -2384,6 +2384,36 @@ paths:
             application/json:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /keszlet/parancsok:
+    get:
+      tags: [keszlet]
+      operationId: keszletParancsok
+      summary: A felhobol inditott keszletmuveletek es a sorsuk (1.24.0)
+      description: |
+        A felhoben: VAR (a telephely meg nem nyugtazta), KONYVELVE vagy
+        ELUTASITVA (a telephely kodjaval). A telephelyen: az onnan jott,
+        itt konyvelt parancsok.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A legutobbi 50 parancs
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeszletParancsLista'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -2418,8 +2448,22 @@ paths:
             schema:
               $ref: '#/components/schemas/KeszletMuvelet'
       responses:
+        '202':
+          description: |
+            A FELHOBEN (1.24.0): a muvelet PARANCSKENT ment le (fuggoben = true), a
+            telephely a kovetkezo szinkronnal konyveli - a sorsa a /keszlet/parancsok
+            listaban latszik.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeszletMuveletValasz'
         '201':
-          description: Konyvelve
+          description: Konyvelve (a telephelyen)
           headers:
             Siduri-Szerzodes:
               $ref: '#/components/headers/SiduriSzerzodes'
@@ -2436,7 +2480,7 @@ paths:
         '422':
           $ref: '#/components/responses/Hiba422'
         '501':
-          description: A felho a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN) - KESZLET.md S3.
+          description: Regi (1.24.0 elotti) felho - a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN).
           headers:
             Siduri-Szerzodes:
               $ref: '#/components/headers/SiduriSzerzodes'
@@ -5122,6 +5166,41 @@ components:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         mozgasok:
           type: integer
+        fuggoben:
+          type: boolean
+          description: A felhoben (1.24.0) - a parancs elment, a telephely konyveli.
+      additionalProperties: false
+
+    KeszletParancsAllapot:
+      title: Egy keszletparancs (1.24.0)
+      type: object
+      required: [azonosito, muvelet, letrehozva, allapot]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        muvelet:
+          type: string
+        letrehozva:
+          type: string
+          format: date-time
+        allapot:
+          type: string
+          enum: [VAR, KONYVELVE, ELUTASITVA, ATVETTE]
+        kod:
+          type: string
+        uzenet:
+          type: string
+      additionalProperties: false
+
+    KeszletParancsLista:
+      title: Keszletparancsok (1.24.0)
+      type: object
+      required: [parancsok]
+      properties:
+        parancsok:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeszletParancsAllapot'
       additionalProperties: false
 
     KeszletEgyenleg:

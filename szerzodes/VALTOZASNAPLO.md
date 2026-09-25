@@ -43,6 +43,22 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.16.0 — 2026-09-25 — *a kategóriafa szerkesztése* `NEM TÖRŐ`
+
+* **`POST /kategoriak`**, **`GET /kategoriak/{id}`** (mezőnként eredettel és
+  történettel), **`PUT /kategoriak/{id}/{mezo}`** — `megnevezes`, `szulo`
+  (áthelyezés), `allapot`, `afa` (alapértelmezett áfakategória), `ntak`.
+  Mindkét oldalon, O3-mal. Jog: `kategoria.kezeles`.
+* Az adatbázis kényszeríti: legfeljebb 4 szint (`MELYSEG`), saját leszármazott
+  alá nem (`KOR`); áthelyezéskor a teljes részfa szintje újraszámolódik.
+* Ugyanazon szülő alatt a név egyedi (`FOGLALT_NEV`, 409) — **a főkategóriák
+  között is**: a korábbi egyedi kulcs a hiányzó szülőt különbözőnek vette, két
+  „Italok” főkategória is felvehető volt (telephely V34, felhő V14).
+* A kategória örökölt áfája a termékekre **nem** íródik vissza automatikusan
+  (C3/c).
+
+**Törő-e:** nem.
+
 ### v1.15.0 — 2026-09-25 — *tanúsítvány visszavonása* `NEM TÖRŐ`
 
 * **`GET /siduri/telephelyek/{id}/tanusitvanyok`** — a telephely tanúsítványai
@@ -293,6 +309,17 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.8.0 — 2026-09-25 — *kategória: lefelé REKORD, mezőnként O3* `NEM TÖRŐ`
+
+* Új lefelé menő típus: **`REKORD`** (`tabla: kategoria`) — a felhőben felvett
+  kategória teljes alakja; a telephely csak akkor veszi fel, ha még nincs meg.
+* `MEZO_ERTEK` a `kategoria` táblán: `nev`, `szulo`, `aktiv`, `afa`, `ntak`.
+* A REKORD `kategoria` része: `afaHelybenKategoriaId`, `afaElvitelKategoriaId`,
+  `mezoeredetek`.
+
+**Törő-e:** nem — a régebbi telephely az ismeretlen típust `ELUTASITVA`
+nyugtázza, a felhő ebből tudja, hogy még nem alkalmazta.
 
 ### v1.7.0 — 2026-09-25 — *áfakategória és áfa* `NEM TÖRŐ`
 

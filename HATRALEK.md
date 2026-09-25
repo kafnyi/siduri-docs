@@ -135,10 +135,13 @@ német felület · böngészős átnézés.
 
 ✅ **Kész még** *(2026-09-24)*: a Siduri kollégafiókjai (`admin/1.10.0`–`1.11.0`),
 a termék neve és állapota O3-mal (`admin/1.12.0`, `szinkron/1.6.0`), új bérlő,
-telephely és telepítési jegy (`admin/1.13.0`).
+telephely és telepítési jegy (`admin/1.13.0`); *(2026-09-25)* áfakategóriák és
+a termék áfájának írása (`admin/1.14.0`), tanúsítvány visszavonása
+(`admin/1.15.0`), a kategóriafa szerkesztése O3-mal (`admin/1.16.0`,
+`szinkron/1.8.0`).
 
-**Hátra az adminból — a döntések megvannak (FOLYAMATBAN 7.0/a):** áfakategória
-és áfaírás · kategóriafa · export (fastexcel) · tanúsítvány visszavonása. **Még
+**Hátra az adminból — a döntések megvannak (FOLYAMATBAN 7.0/a):** export
+(fastexcel). **Még
 döntés kell:** módosító- és menükezelés (C1), beállításszerkesztés, riportok (az
 eladási adatok felküldése előbb — terv készül). **A 30 napos offline korlát
 kiírása** az első időkorlátos képernyővel (riport) együtt készül — ma nincs

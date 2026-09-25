@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.15.0
+  version: 1.16.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -512,6 +512,159 @@ paths:
           $ref: '#/components/responses/Hiba401'
         '403':
           $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    post:
+      tags: [torzsadat]
+      operationId: kategoriatFelvesz
+      summary: Uj kategoria (1.16.0) - mindket oldalon
+      description: |
+        Jog: `kategoria.kezeles`. Legfeljebb 4 szint (MELYSEG, 422); ugyanazon
+        szulo alatt a nev egyedi (FOGLALT_NEV, 409). A felhoben felvett kategoria
+        a szinkronnal jut le a telephelyre.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KategoriaFelvetel'
+      responses:
+        '201':
+          description: Felveve
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KategoriaReszletek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          description: A nev foglalt ugyanazon szulo alatt (FOGLALT_NEV).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /kategoriak/{kategoriaAzonosito}:
+    get:
+      tags: [torzsadat]
+      operationId: kategoria
+      summary: Egy kategoria - mezonkent az eredettel es a tortenettel (1.16.0)
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: kategoriaAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: A kategoria
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KategoriaReszletek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /kategoriak/{kategoriaAzonosito}/{mezo}:
+    put:
+      tags: [torzsadat]
+      operationId: kategoriaMezot
+      summary: Egy kategoria-mezo irasa - O3, mint a termeknel (1.16.0)
+      description: |
+        Jog: `kategoria.kezeles`. Mindket oldalon. A mezo es a torzs:
+
+          - `megnevezes`: `nev`
+          - `szulo`: `szuloId` (null = gyokerszint) - az ATHELYEZES. A teljes
+            reszfa szintje ujraszamolodik; legfeljebb 4 szint (MELYSEG), es sajat
+            leszarmazott ala nem kerulhet (KOR) - 422, az adatbazis kenyszeriti.
+          - `allapot`: `aktiv`
+          - `afa`: `afaHelyben`, `afaElvitel` - afakategoria-azonositok; null =
+            a szulotol orokli. ⚠️ A termekekre NEM irodik vissza automatikusan
+            (C3/c).
+          - `ntak`: `ntakFokategoria`, `ntakAlkategoria`
+
+        A vesztes iras 409 (KESOBBI_ERTEK_ALL).
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: kategoriaAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: mezo
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [megnevezes, szulo, allapot, afa, ntak]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KategoriaMezoKeres'
+      responses:
+        '200':
+          description: A modositott kategoria
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KategoriaReszletek'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '409':
+          description: AZ IRAS VESZTETT (KESOBBI_ERTEK_ALL), vagy a nev foglalt ugyanazon szulo alatt (FOGLALT_NEV).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
         '422':
           $ref: '#/components/responses/Hiba422'
         default:
@@ -2536,7 +2689,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["admin/1.15.0"]
+        examples: ["admin/1.16.0"]
 
     SiduriKiszolgalo:
       description: |
@@ -3536,6 +3689,100 @@ components:
           type: integer
         aktiv:
           type: boolean
+        afaHelybenKategoria:
+          description: Az ezen a szinten allo helyben afakategoria (1.16.0); hianyzik = orokli.
+          $ref: '#/components/schemas/AfakategoriaRovid'
+        afaElvitelKategoria:
+          $ref: '#/components/schemas/AfakategoriaRovid'
+      additionalProperties: false
+
+    KategoriaReszletek:
+      title: Egy kategoria a mezoinek eredetevel
+      type: object
+      required: [kategoria, mezok]
+      properties:
+        kategoria:
+          $ref: '#/components/schemas/Kategoria'
+        mezok:
+          type: object
+          description: Mezonkent (O3) - mikor es honnan, mi volt elotte, mi nem lepett ervenybe.
+          properties:
+            nev:
+              $ref: '#/components/schemas/MezoAllapot'
+            szulo:
+              $ref: '#/components/schemas/MezoAllapot'
+            allapot:
+              $ref: '#/components/schemas/MezoAllapot'
+            afa:
+              $ref: '#/components/schemas/MezoAllapot'
+            ntak:
+              $ref: '#/components/schemas/MezoAllapot'
+          additionalProperties: false
+      additionalProperties: false
+
+    MezoAllapot:
+      title: Egy mezo eredete es tortenete
+      type: object
+      properties:
+        eredet:
+          $ref: '#/components/schemas/Mezoeredet'
+        elozo:
+          $ref: '#/components/schemas/SzovegesMezoertek'
+        elveszett:
+          $ref: '#/components/schemas/ElveszettSzovegesIras'
+      additionalProperties: false
+
+    KategoriaFelvetel:
+      title: Uj kategoria
+      type: object
+      required: [nev]
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 200
+        szuloId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        afaHelyben:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        afaElvitel:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        ntakFokategoria:
+          type: string
+        ntakAlkategoria:
+          type: string
+      additionalProperties: false
+
+    KategoriaMezoKeres:
+      title: Egy kategoria-mezo uj erteke
+      description: Csak az adott mezohoz tartozo tulajdonsag szamit (lasd a vegpontot).
+      type: object
+      properties:
+        nev:
+          type: string
+          minLength: 1
+          maxLength: 200
+        szuloId:
+          oneOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            - type: "null"
+        aktiv:
+          type: boolean
+        afaHelyben:
+          oneOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            - type: "null"
+        afaElvitel:
+          oneOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            - type: "null"
+        ntakFokategoria:
+          type: [string, "null"]
+        ntakAlkategoria:
+          type: [string, "null"]
+        indok:
+          type: string
+          maxLength: 500
       additionalProperties: false
 
     TermekSor:

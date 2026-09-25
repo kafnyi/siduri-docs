@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.7.0
+  version: 1.8.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -337,7 +337,7 @@ components:
       required: true
       schema:
         type: string
-        examples: ["szinkron/1.7.0"]
+        examples: ["szinkron/1.8.0"]
 
   responses:
 
@@ -691,7 +691,7 @@ components:
         szerzodesVerzio:
           type: string
           description: Melyik K3-verziot beszeli a telephely.
-          examples: ["szinkron/1.7.0"]
+          examples: ["szinkron/1.8.0"]
         alkalmazasVerzio:
           type: string
           description: A telephelyi szerver kiadasi verzioja.
@@ -807,7 +807,7 @@ components:
             nyugtaz (ISMERETLEN_TIPUS). Ez a ket kiadasi ciklusnyi
             visszafele kompatibilitas ara es eszkoze egyszerre: a felho igy
             megtudja, hogy a telephely regebbi, es nem hiszi alkalmazottnak.
-          enum: [MEZO_ERTEK, ZAROLAS, ZAROLAS_FELOLDAS]
+          enum: [MEZO_ERTEK, ZAROLAS, ZAROLAS_FELOLDAS, REKORD]
         telephely:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tabla:
@@ -817,14 +817,16 @@ components:
 
             ⚠️ Ismeretlen tabla/mezo parost a telephely ELUTASITVA nyugtaz
             (ISMERETLEN_MEZO) - nem alkalmazza talalomra.
-          enum: [kiszereles, termek]
+          enum: [kiszereles, termek, kategoria]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         mezo:
           type: string
           description: |
             kiszereles: brutto_ar. termek: megnevezes, allapot (1.6.0), afa (1.7.0).
-          enum: [brutto_ar, megnevezes, allapot, afa]
+            kategoria (1.8.0): nev, szulo, aktiv, afa, ntak. REKORD tipusnal a
+            mezo "-" (nincs ertelme).
+          enum: [brutto_ar, megnevezes, allapot, afa, nev, szulo, aktiv, ntak, "-"]
         egeszErtek:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
@@ -837,6 +839,17 @@ components:
             A szoveges mezok uj erteke (1.6.0): a megnevezesnel a nev, az
             allapotnal AKTIV vagy INAKTIV. A TOROLT nem utazik igy. Az afanal
             (1.7.0) a ket afakategoria azonositoja vesszovel: "helyben,elvitel".
+
+            A kategorianal (1.8.0): nev - a nev; szulo - a szulo azonositoja, vagy
+            ures (gyokerszint); aktiv - "true"/"false"; afa - "helyben,elvitel",
+            barmelyik resz ures lehet (= orokli); ntak - "fo|al", barmelyik resz
+            ures lehet.
+        kategoria:
+          description: |
+            REKORD tipusnal (1.8.0): egy a felhoben FELVETT kategoria teljes
+            alakja. A telephely csak akkor veszi fel, ha meg nincs meg; a mezok
+            kesobbi valtozasai MEZO_ERTEK-kent jonnek.
+          $ref: '#/components/schemas/SzinkronKategoria'
         mezoeredet:
           allOf:
             - $ref: '#/components/schemas/Mezoeredet'
@@ -972,7 +985,7 @@ components:
             felkerult. A felho EHHEZ meri, hogy a cselekvonek volt-e joga.
         mezo:
           type: string
-          enum: [brutto_ar, megnevezes, allapot, afa]
+          enum: [brutto_ar, megnevezes, allapot, afa, nev, szulo, aktiv, ntak]
           description: MEZO_ERTEK fajtanal kotelezo.
         egeszErtek:
           allOf:
@@ -1034,6 +1047,32 @@ components:
           type: integer
         aktiv:
           type: boolean
+        afaHelybenKategoriaId:
+          oneOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            - type: "null"
+          description: Az ezen a szinten allo helyben afakategoria (1.8.0); null = orokli.
+        afaElvitelKategoriaId:
+          oneOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+            - type: "null"
+        mezoeredetek:
+          type: object
+          description: |
+            A kategoria O3-mezoinek eredete (1.8.0). A fogado oldal mezonkent
+            dont: csak a kesobbi erteket veszi at.
+          properties:
+            nev:
+              $ref: '#/components/schemas/Mezoeredet'
+            szulo:
+              $ref: '#/components/schemas/Mezoeredet'
+            aktiv:
+              $ref: '#/components/schemas/Mezoeredet'
+            afa:
+              $ref: '#/components/schemas/Mezoeredet'
+            ntak:
+              $ref: '#/components/schemas/Mezoeredet'
+          additionalProperties: false
       additionalProperties: false
 
     SzinkronTermek:

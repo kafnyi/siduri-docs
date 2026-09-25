@@ -838,7 +838,7 @@ trailer nélkül.**
 
 **Mérve, nem feltételezve.** A tesztszámok tényleges futásból származnak.
 
-### 7.0 A legutóbbi kör *(2026-09-24)* — ez a friss horgony
+### 7.0 A legutóbbi kör *(2026-09-25)* — ez a friss horgony
 
 > A részletes, fázisonkénti kép a **`HATRALEK.md`**-ben van; ez a szakasz csak
 > azt rögzíti, **hol tart a munka most**, és honnan kell folytatni.
@@ -857,13 +857,18 @@ trailer nélkül.**
 | **Kollégák és jogkörök kezelése, négy szem** (7/b) | ✅ böngészőben is | `admin/1.11.0` |
 | **A termék neve és állapota** szerkeszthető, mezőeredettel | ✅ böngészőben is | `admin/1.12.0`, `szinkron/1.6.0` |
 | **Új bérlő** (tulajdonosi első fiókkal), **új telephely**, **telepítési jegy** (24 óra, egy él) | ✅ böngészőben is | `HOZZAFERES.md` 4.4/b, `admin/1.13.0` |
+| **Áfakategóriák** (kilenc alap) és a **termék áfájának írása** O3-mal | ✅ böngészőben is | `admin/1.14.0`, `szinkron/1.7.0` |
+| **Tanúsítvány visszavonása** a telephely-lapon, új kapcsolóval | ✅ böngészőben is | `admin/1.15.0` |
+| **Kategóriafa szerkesztése** — felvétel, átnevezés, áthelyezés (a részfa szintje követi), áfa-alapérték, NTAK, állapot; mezőnként eredettel; a felhőben felvett kategória REKORD-ként jut le | ✅ élő próbán (HTTP, a Vite-proxyn át) — a böngészős átnézés a felhasználónál | `admin/1.16.0`, `szinkron/1.8.0` |
 
-**Tesztszámok (mérve):** mag 202 · k2 9 · felhő 170 · telephely 405 · felület 45.
+**Tesztszámok (mérve):** mag 202 · k2 9 · felhő 185 · telephely 417 · felület 46.
+A kategóriafa öt kulcsgaranciáját mutációs próba is igazolta (részfa-kaszkád,
+REKORD-visszhang tiltása, azonos eredetű MEZO_ERTEK, a kör utáni visszaállítás,
+mezőnkénti REKORD-döntés).
 
-**A következő tétel — mind DÖNTÉST igényel:** a pult felhasználókezelő
-képernyője (5/c, WPF) · a Siduri-hozzáférés (6.) · a tanúsítvány visszavonása a
-felületről (ellopott/leselejtezett gép) · az adminban áfa írása, kategória- és
-menükezelés, export, riportok.
+**A következő tétel (7.0/a sorrendje):** a Siduri-hozzáférés a pulthoz (§8) →
+export (fastexcel) → a pult felhasználókezelő képernyője (5/c, WPF) → az
+eladások felküldésének terve.
 
 ### 7.0/a Döntések a következő nagy körhöz *(2026-09-25)*
 

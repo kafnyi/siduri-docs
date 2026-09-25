@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.17.0
+  version: 1.18.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -121,6 +121,8 @@ tags:
       kapcsolo lesz.
   - name: torzsadat
     description: Kategoria es termek - amit a tulajdonos karbantart
+  - name: kozos
+    description: Minden nezet kozos szolgaltatasai - pl. az XLSX-export (1.18.0)
   - name: hozzaferes
     description: |
       Ziggurat-felhasznalok es a jogosultsagaik.
@@ -1874,6 +1876,55 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /export:
+    post:
+      tags: [kozos]
+      operationId: exportal
+      summary: XLSX-export - AMIT LATSZ (1.18.0, EXPORT_IMPORT.md 2.1-2.2)
+      description: |
+        EGYETLEN kozos szolgaltatas minden listas nezethez: a felulet a tablat
+        UGY kuldi el, ahogy a kepernyon latszik - szurve, rendezve, a lathato
+        oszlopokkal, a lapozott listanal a TELJES szurt eredmennyel -, a
+        kiszolgalo pedig XLSX-et ir belole. Igy az export nem tud mast adni,
+        mint a kepernyo.
+
+        A kiszolgalo nem ker ki adatot, tehat kulon jog nem kell hozza -
+        belepes igen. Ugyanaz a kod fut a felhoben es a telephelyen (k2).
+
+        * A PENZ es az EGESZ oszlop CSAK egesz szamot fogad (I1): `1500`, nem
+          `1500.0` - a tort ertek 422.
+        * A SZOVEG oszlop szovegkent kerul a fajlba - a vonalkod nem valik
+          `5,9982E+12`-ve (4.1).
+        * Fejlec felkoverrel, rogzitett fejlecsor, automatikus szuro.
+
+        ⚠️ Bizonyitekot (bizonylat, napi zaras, biztonsagi audit) a felulet
+        ide NEM kuld (1.2) - az PDF-ben megy, kulon dontes szerint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportKeres'
+      responses:
+        '200':
+          description: Az XLSX-fajl
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /siduri/pult-kodom:
     get:
       tags: [siduri]
@@ -3105,6 +3156,52 @@ components:
 
         ⚠️ Uj kapcsolo = kisverzio; a felulet az ismeretlent figyelmen kivul
         hagyja.
+
+    ExportKeres:
+      title: Egy tabla, ahogy latszik
+      type: object
+      required: [cim, oszlopok, sorok]
+      properties:
+        cim:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: A munkalap es a fajl neve.
+        oszlopok:
+          type: array
+          minItems: 1
+          maxItems: 60
+          items:
+            $ref: '#/components/schemas/ExportOszlop'
+        sorok:
+          type: array
+          maxItems: 50000
+          description: Soronkent az oszlopok sorrendjeben; a hianyzo ertek null.
+          items:
+            type: array
+            items: {}
+        osszesito:
+          type: [array, "null"]
+          description: Az osszesito sor, ha a kepernyon is van - felkoverrel a vegen.
+          items: {}
+      additionalProperties: false
+
+    ExportOszlop:
+      title: Egy oszlop
+      type: object
+      required: [cim, tipus]
+      properties:
+        cim:
+          type: string
+          maxLength: 100
+        tipus:
+          type: string
+          enum: [SZOVEG, EGESZ, PENZ, DATUM_IDO, LOGIKAI]
+          description: |
+            SZOVEG: szovegkent (vonalkod is). EGESZ, PENZ: egesz szam (a PENZ
+            forintformatummal). DATUM_IDO: ISO-8601, budapesti idore irva.
+            LOGIKAI: igaz/hamis.
+      additionalProperties: false
 
     PultKodom:
       title: A sajat pult-kod reszei

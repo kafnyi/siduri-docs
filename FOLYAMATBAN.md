@@ -861,12 +861,12 @@ trailer nélkül.**
 | **Tanúsítvány visszavonása** a telephely-lapon, új kapcsolóval | ✅ böngészőben is | `admin/1.15.0` |
 | **Kategóriafa szerkesztése** — felvétel, átnevezés, áthelyezés (a részfa szintje követi), áfa-alapérték, NTAK, állapot; mezőnként eredettel; a felhőben felvett kategória REKORD-ként jut le | ✅ élő próbán (HTTP, a Vite-proxyn át) — a böngészős átnézés a felhasználónál | `admin/1.16.0`, `szinkron/1.8.0` |
 | **Siduri-hozzáférés a pulthoz** — kód (felhő), lenyomat és munkamenet (telephely), napló és „Pult-kódom" (Ziggurat); a pult rejtett belépése az 5/c-vel | ✅ a felhő élő próbán (HTTP); a telephely tesztekkel | `HOZZAFERES.md` §8.7, `admin/1.17.0`, `szinkron/1.9.0`, `kassza/1.24.0` |
+| **XLSX-export — amit látsz**: egy közös végpont, minden listás nézetben egy gomb (termékek, kategóriák, áfakategóriák, felhasználók, kollégák, naplók, telephelyek) | ✅ élő próbán (HTTP, a Vite-proxyn át) | `EXPORT_IMPORT.md` 2.2/a, `admin/1.18.0` |
 
-**Tesztszámok (mérve):** mag 202 · k2 9 · felhő 188 · telephely 425 · felület 46.
+**Tesztszámok (mérve):** mag 202 · k2 13 · felhő 189 · telephely 426 · felület 46.
 A kategóriafa öt és a Siduri-hozzáférés öt kulcsgaranciáját mutációs próba is igazolta.
-**A következő tétel (7.0/a sorrendje):** export (fastexcel) → a pult
-felhasználókezelő képernyője (5/c, WPF) a Siduri rejtett belépésével → az
-eladások felküldésének terve.
+**A következő tétel (7.0/a sorrendje):** a pult felhasználókezelő képernyője
+(5/c, WPF) a Siduri rejtett belépésével → az eladások felküldésének terve.
 
 ### 7.0/a Döntések a következő nagy körhöz *(2026-09-25)*
 

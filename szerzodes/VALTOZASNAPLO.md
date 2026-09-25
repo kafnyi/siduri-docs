@@ -43,6 +43,18 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.18.0 — 2026-09-25 — *XLSX-export — amit látsz* `NEM TÖRŐ`
+
+* **`POST /export`** — egyetlen közös szolgáltatás minden listás nézethez
+  (EXPORT_IMPORT.md 2.1): a felület a táblát úgy küldi el, ahogy látszik
+  (szűrve, rendezve, a látható oszlopokkal, a lapozott listánál a teljes
+  eredménnyel), a kiszolgáló XLSX-et ír belőle. Oszloptípusok: `SZOVEG`,
+  `EGESZ`, `PENZ`, `DATUM_IDO`, `LOGIKAI`; a pénz csak egész (I1), a szöveg
+  szövegként (a vonalkód nem válik számmá).
+* A könyvtár a **fastexcel** (FOLYAMATBAN 7.0/a); az írás a k2-ben, közösen.
+
+**Törő-e:** nem.
+
 ### v1.17.0 — 2026-09-25 — *a Siduri-hozzáférés a pulthoz* `NEM TÖRŐ`
 
 * **`GET /siduri/pult-kodom`** — a kolléga saját pult-kódja: az állandó három

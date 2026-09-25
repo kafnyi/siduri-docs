@@ -82,6 +82,34 @@ megírnia** — az jár hozzá. És **nem is felejtheti el.**
 szűrt eredményt** adja, nem az aktuális oldalt. Ezt **a felület mondja meg
 előre**, ne meglepetés legyen: *„Exportálás — 4 312 sor."*
 
+### 2.2/a ✅ A megvalósítás *(2026-09-25, `admin/1.18.0`)*
+
+**Egy közös végpont: `POST /admin/v1/export`.** A felület a táblát **úgy küldi
+el, ahogy látszik** — szűrve, rendezve, a látható oszlopokkal és a képernyőn
+álló szöveggel; a lapozott listánál a **teljes** szűrt eredménnyel, és a gomb
+előre kiírja a sorszámot. A kiszolgáló csak leírja (k2, fastexcel — ugyanaz a
+kód a felhőben és a telephelyen, 5/a). Így az export **szerkezetileg** nem tud
+mást adni, mint a képernyő (2.2), és egy új listás nézet egyetlen gombbal
+megkapja (2.1).
+
+| Mi | Hogyan |
+|---|---|
+| Oszloptípus | `SZOVEG`, `EGESZ`, `PENZ`, `DATUM_IDO`, `LOGIKAI` — a felület mondja meg |
+| Pénz | **csak egész** (I1) — a tört érték 422, nem kerekítés; `#,##0 [$Ft-40E]` formátummal |
+| Vonalkód | szövegként (4.1) — a vezető nulla megmarad |
+| Fejléc | félkövér, rögzített, automatikus szűrő |
+| Jog | nem kell külön (a kiszolgáló nem ad ki adatot), belépés igen |
+| Korlát | 50 000 sor, 60 oszlop |
+
+> ⚠️ **Talált hiba, kimondva:** a fastexcel a számformátum kódját **nem
+> escape-eli** — a `"Ft"` idézőjelei érvénytelen XML-t adtak volna, amit az
+> Excel „javít". Ezért idézőjel nélküli pénznemjelölés áll; a teszt a fájl
+> minden részét XML-ként ellenőrzi, hogy egy hasonló hiba ne csússzon át.
+
+**Hátra:** a PDF (6.3, külön döntés), az import (3., külön munka), és a
+mérések: **M20** (natív kép) és **M21** (20 000 sor a J1900-on) — a telephelyi
+élesítés előtt kötelező.
+
 ### 2.3 A tipikus helyek
 
 | Terület | XLSX | PDF |
@@ -275,7 +303,7 @@ csendben rövidebb fájlt adni.
 
 ---
 
-## 6. `[NYITOTT — DÖNTÉST IGÉNYEL]` Könyvtárválasztás, és egy valós ütközés
+## 6. Könyvtárválasztás, és egy valós ütközés — ✅ DÖNTVE: fastexcel *(2026-09-25, FOLYAMATBAN 7.0/a; a mérés M20/M21 hátra)*
 
 ### 6.1 ⚠️ Az Apache POI és a GraalVM natív fordítás ütközik
 

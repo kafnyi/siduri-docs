@@ -1,8 +1,8 @@
 # Siduri — az eladási adatok felküldése a felhőbe
 
-> **Státusz: TERV, JÓVÁHAGYÁSRA** *(2026-09-25, FOLYAMATBAN 7.0/a: „előbb terv,
-> kód csak utána")*. A döntést igénylő pontok a **6. fejezetben**, mindegyik
-> mellett a javaslat és az ára.
+> **Státusz: JÓVÁHAGYVA** *(2026-09-25)* — a felhasználó a D1–D7 javaslatokat
+> változtatás nélkül elfogadta („jóváhagyom a D1–D7 javaslatokat, mehet a
+> kód"). A megvalósítás a 7. fejezet sorrendjében halad.
 
 ## 1. Miért — és mi NEM ez
 
@@ -108,3 +108,33 @@ kiderül (horgonyzás).
    *nem igazolt nap → nem törlődik*.
 6. Ziggurat: a telephely-lapon a napok egyeztetési állapota (igazolt / eltérő /
    függőben) — a riportok a következő szeletben.
+
+## 8. ✅ A megvalósítás *(2026-09-25)*
+
+| Rész | Hol | Bizonyíték |
+|---|---|---|
+| Alakok, lenyomat, napi összesítő — **közös kód** | k2 `EladasAlakok`, `EladasLenyomat` | `EladasLenyomatTest`: a sorrend nem számít, a tartalom igen; a tárolt JSON-ból ugyanaz a lenyomat |
+| Szerződés | `szinkron/1.10.0` (`/eladasok`, `/napi-egyeztetes`), `admin/1.19.0` (a telephely-lap) | redocly |
+| Felhő: csak beszúrható archívum, elbírálás, egyeztetés, horgony | berlo V15, `FelhoEladas` | `FelhoEladasTest` (7) |
+| Telephely: sor a lezárással egy tranzakcióban, küldő, egyeztető, **törlés-őr** | V36, `EladasFelkuldes` | `EladasFelkuldesTest` (6), a Spring-leképezésen át is |
+| Kezdeti feltöltés | V36 sorba teszi a meglévő bizonylatokat és a lezárt napokat; körönként ≤200 bizonylat, ≤5 nap | — |
+| Ziggurat | a telephely-lapon „Egyeztetés": napok, a két oldal számai, az archívum eltéréseinek száma | build |
+
+**Mutációs próbák (mind megfogva):** a felhő nem számolja újra a lenyomatot ·
+nem veszi észre az eltérő tartalmat · a telephely várakozó bizonylat mellett is
+egyeztet · a törlés-őr hiányzik.
+
+**Amiben eltér a tervtől, kimondva:**
+* **A számla vevőadatai (D5) ma még nem léteznek** a telephelyen — a `SZAMLA`
+  mód csak „nem adóügyi". A szerkezet befogadja őket, amikor megjönnek.
+* **A sztornóbizonylat nem ismétli a tételeket:** az eredetire hivatkozik, ami
+  maga is az archívumban van.
+* **A felhőben a tartalom JSON-ként áll** (önmagában értelmezhetően); a havi
+  partícionálás és a riportok vetülete a **riport-szeletben** jön — ma nincs
+  rájuk szükség.
+* **A napi összesítő** a nap minden bizonylatát összeállítja (egy forgalmas
+  napon ~1 000 × 6 lekérdezés, egyszer). A J1900-on ezt a telephelyi
+  élesítés előtt mérni kell.
+* **Élő próba nem volt:** a kölcsönös TLS-es szinkront a tesztek hamis
+  felhővel és a felhő saját tesztjeivel igazolják; az első valódi kör a
+  telepítéskor.

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.18.0
+  version: 1.19.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2718,6 +2718,45 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /siduri/telephelyek/{telephelyAzonosito}/egyeztetes:
+    get:
+      tags: [siduri]
+      operationId: napiEgyeztetes
+      summary: Az eladasok napi egyeztetese (1.19.0) - ELADAS_FELKULDES.md
+      description: |
+        A telephely lezart napjai, a legfrissebb elol: IGAZOLT (a felho a sajat
+        bizonylataibol ugyanazt szamolta) vagy ELTERES - a ket oldal szamaival.
+        ⚠️ A telephelyen csak IGAZOLT nap bizonylata torolheto. Az
+        `eltereseDarab` az archivumba rogzitett elteresek szama (mas tartalommal
+        erkezett bizonylat, mas lenyomatu audit-lancpont). Kapcsolo:
+        `TANUSITVANY_VISSZAVONAS`, `TELEPITESI_JEGY` vagy `BERLO_REGISZTRACIO`.
+      parameters:
+        - name: telephelyAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: A napok
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NapEgyeztetesLista'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /siduri/telephelyek/{telephelyAzonosito}/tanusitvanyok/{ujjlenyomat}/visszavonas:
     post:
       tags: [siduri]
@@ -3156,6 +3195,36 @@ components:
 
         ⚠️ Uj kapcsolo = kisverzio; a felulet az ismeretlent figyelmen kivul
         hagyja.
+
+    NapEgyeztetesLista:
+      title: A napok egyeztetese
+      type: object
+      required: [napok, eltereseDarab]
+      properties:
+        napok:
+          type: array
+          items:
+            $ref: '#/components/schemas/NapEgyeztetes'
+        eltereseDarab:
+          type: integer
+          format: int64
+      additionalProperties: false
+
+    NapEgyeztetes:
+      title: Egy nap egyeztetese
+      type: object
+      required: [uzletiNap, allapot, telephelyDarab, telephelyVegosszeg, felhoDarab,
+                 felhoVegosszeg, ellenorizve]
+      properties:
+        uzletiNap: {type: string, format: date}
+        allapot: {type: string, enum: [IGAZOLT, ELTERES]}
+        telephelyDarab: {type: integer, format: int64}
+        telephelyVegosszeg: {type: integer, format: int64}
+        felhoDarab: {type: integer, format: int64}
+        felhoVegosszeg: {type: integer, format: int64}
+        uzenet: {type: [string, "null"]}
+        ellenorizve: {type: string, format: date-time}
+      additionalProperties: false
 
     ExportKeres:
       title: Egy tabla, ahogy latszik

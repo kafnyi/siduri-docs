@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.9.0
+  version: 1.10.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -183,6 +183,80 @@ paths:
           $ref: '#/components/responses/Hiba422'
         default:
           $ref: '#/components/responses/Hiba'
+
+  /eladasok:
+    post:
+      tags: [szinkron]
+      operationId: eladasokatFelkuld
+      summary: A lezart bizonylatok felkuldese (1.10.0) - ELADAS_FELKULDES.md
+      description: |
+        A felho a JOGI ARCHIVUM (A3). A telephely a lezaraskor sorba teszi a
+        bizonylatot, es kotegben kuldi, onmagaban ertelmezhetoen: az eladaskori
+        nev, ar, afa benne van.
+
+        * **Idempotens** a kimeno tetel es a bizonylat azonositoja szerint:
+          ugyanaz a bizonylat ujrakuldve csak az ALLAPOTAT frissiti (nyomtatas,
+          sztorno) - a tartalma nem valtozhat.
+        * A felho **ujraszamolja a lenyomatot** a tartalombol; ha nem egyezik
+          a kuldottel: `HIBAS_LENYOMAT`. Ha a mar tarolt bizonylat tartalma
+          mas: `ELTERO_TARTALOM` - es ez eltereskent rogzul.
+        * A felhoben a tarolt bizonylat **csak beszurhato**.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EladasKeres'
+      responses:
+        '200':
+          description: Bizonylatonkenti kimenet
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EladasValasz'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+
+  /napi-egyeztetes:
+    post:
+      tags: [szinkron]
+      operationId: napotEgyeztet
+      summary: A napi egyeztetes - a pozitiv bizonyitek (1.10.0)
+      description: |
+        A lezart nap osszesitoje: darab, vegosszeg, afa- es fizetesimod-bontas,
+        a bizonylat-lenyomatok rendezett lenyomata. A felho a SAJAT, beerkezett
+        bizonylataibol ugyanezt szamolja (ugyanazzal a kozos koddal). Ha
+        egyezik: `IGAZOLT`, kulonben `ELTERES`, a felho szamaival.
+
+        ⚠️ **A telephelyen CSAK IGAZOLT nap bizonylata torolheto** (A3, D4).
+
+        Ugyanitt megy fel a biztonsagi audit-lanc feje (horgony): egy
+        visszamenoleges atiras a telephelyen igy kiderul.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EgyeztetesKeres'
+      responses:
+        '200':
+          description: Naponkenti kimenet
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EgyeztetesValasz'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
 
   /hozzaferes:
     post:
@@ -370,6 +444,237 @@ components:
             $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   schemas:
+
+    EladasKeres:
+      title: Bizonylatok kotege
+      type: object
+      required: [telephely, bizonylatok]
+      properties:
+        telephely:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        bizonylatok:
+          type: array
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/FelkuldottBizonylat'
+      additionalProperties: false
+
+    FelkuldottBizonylat:
+      title: Egy felkuldott bizonylat
+      type: object
+      required: [kimeno, lenyomat, tartalom, allapot]
+      properties:
+        kimeno:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        lenyomat:
+          type: string
+          pattern: '^[0-9a-f]{64}$'
+          description: SHA-256 a tartalom kanonikus JSON-alakjara (k2 EladasLenyomat).
+        tartalom:
+          $ref: '#/components/schemas/BizonylatTartalom'
+        allapot:
+          $ref: '#/components/schemas/BizonylatAllapot'
+      additionalProperties: false
+
+    BizonylatAllapot:
+      title: A bizonylat utolag valtozo resze
+      type: object
+      required: [allapot]
+      properties:
+        allapot:
+          type: string
+          enum: [NYOMTATASRA_VAR, KINYOMTATVA, NYOMTATASI_HIBA, SZTORNOZOTT]
+        adougyiBizonylatszam:
+          type: [string, "null"]
+      additionalProperties: false
+
+    BizonylatTartalom:
+      title: A bizonylat valtozatlan tartalma
+      description: |
+        Onmagaban ertelmezheto (A3/1). Penz: egesz forint. Mennyiseg, arany,
+        arfolyam: szoveg - lebegopont nincs (I1).
+      type: object
+      required: [fej, tetelek, afaCsoportok, fizetesek]
+      properties:
+        fej:
+          type: object
+          required: [azonosito, uzletiNap, siduriBizonylatszam, mod, tipus, eszkoz, reszSorszam,
+                     reszekSzama, vegosszeg, borravalo, epoch, szamlalo, eszkozIdo]
+          properties:
+            azonosito: {type: string}
+            uzletiNap: {type: string, format: date}
+            siduriBizonylatszam: {type: string}
+            mod: {type: string, enum: [ADOUGYI, SZAMLA]}
+            tipus: {type: string, enum: [NORMAL, SZTORNO]}
+            eredetiBizonylat: {type: [string, "null"]}
+            rendeles: {type: [string, "null"]}
+            teljesitesMod: {type: [string, "null"]}
+            eszkoz: {type: string}
+            muszak: {type: [string, "null"]}
+            reszSorszam: {type: integer}
+            reszekSzama: {type: integer}
+            vegosszeg: {type: integer, format: int64}
+            borravalo: {type: integer, format: int64}
+            kedvezmenyTipus: {type: [string, "null"]}
+            kedvezmenyErtek: {type: [string, "null"]}
+            szervizdijSzazalek: {type: [string, "null"]}
+            kedvezmenyIndokKod: {type: [string, "null"]}
+            kedvezmenyIndokSzoveg: {type: [string, "null"]}
+            sztornoIndokKod: {type: [string, "null"]}
+            sztornoIndokSzoveg: {type: [string, "null"]}
+            epoch: {type: integer, format: int64}
+            szamlalo: {type: integer, format: int64}
+            eszkozIdo: {type: string, format: date-time}
+            szerverIdo: {type: [string, "null"], format: date-time}
+        tetelek:
+          type: array
+          items:
+            type: object
+            required: [azonosito, megnevezes, bruttoEgysegar, afaKategoria, mennyiseg, sorOsszeg,
+                       allapot, epoch, szamlalo]
+            properties:
+              azonosito: {type: string}
+              termek: {type: [string, "null"]}
+              kiszereles: {type: [string, "null"]}
+              megnevezes: {type: string}
+              bruttoEgysegar: {type: integer, format: int64}
+              afaKategoria: {type: string}
+              mennyiseg: {type: string}
+              sorOsszeg: {type: integer, format: int64}
+              allapot: {type: string}
+              epoch: {type: integer, format: int64}
+              szamlalo: {type: integer, format: int64}
+              eszkozIdo: {type: [string, "null"]}
+        torlesek:
+          type: array
+          description: A rendelesbol lezaras elott torolt tetelek - a csalasfelderites nyoma.
+          items:
+            type: object
+            properties:
+              azonosito: {type: string}
+              tetel: {type: string}
+              felhasznalo: {type: [string, "null"]}
+              indokKod: {type: [string, "null"]}
+              indokSzoveg: {type: [string, "null"]}
+              konyharaVoltKuldve: {type: boolean}
+              felutesOtaMasodperc: {type: integer, format: int64}
+              epoch: {type: integer, format: int64}
+              szamlalo: {type: integer, format: int64}
+              eszkozIdo: {type: [string, "null"]}
+        afaCsoportok:
+          type: array
+          items:
+            type: object
+            required: [afaKategoria, brutto, netto, afa]
+            properties:
+              afaKategoria: {type: string}
+              brutto: {type: integer, format: int64}
+              netto: {type: integer, format: int64}
+              afa: {type: integer, format: int64}
+        fizetesek:
+          type: array
+          items:
+            type: object
+            required: [sorrend, mod, osszeg]
+            properties:
+              sorrend: {type: integer}
+              mod: {type: string}
+              osszeg: {type: integer, format: int64}
+              kerekitesiKulonbozet: {type: [integer, "null"], format: int64}
+              valutaPenznem: {type: [string, "null"]}
+              valutaOsszeg: {type: [string, "null"]}
+              arfolyam: {type: [string, "null"]}
+        egyebTetelek:
+          type: array
+          items:
+            type: object
+            required: [fajta, afaKategoria, osszeg]
+            properties:
+              fajta: {type: string, enum: [KEDVEZMENY, SZERVIZDIJ]}
+              afaKategoria: {type: string}
+              osszeg: {type: integer, format: int64}
+        megosztas:
+          type: array
+          items:
+            type: object
+            required: [tetel, reszSorszam, suly, osszeg]
+            properties:
+              tetel: {type: string}
+              reszSorszam: {type: integer}
+              suly: {type: integer, format: int64}
+              osszeg: {type: integer, format: int64}
+
+    EladasValasz:
+      title: Bizonylatonkenti kimenet
+      type: object
+      required: [kimenetek]
+      properties:
+        kimenetek:
+          type: array
+          items:
+            type: object
+            required: [kimeno, eredmeny]
+            properties:
+              kimeno: {type: string}
+              eredmeny: {type: string, enum: [ELFOGADVA, ELUTASITVA]}
+              kod:
+                type: [string, "null"]
+                enum: [HIBAS_LENYOMAT, ELTERO_TARTALOM, HIBAS_TETEL, null]
+              uzenet: {type: [string, "null"]}
+
+    EgyeztetesKeres:
+      title: Napi osszesitok es az audit-lanc feje
+      type: object
+      required: [telephely, napok]
+      properties:
+        telephely:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        napok:
+          type: array
+          maxItems: 31
+          items:
+            $ref: '#/components/schemas/NapiOsszesito'
+        auditFej:
+          type: [object, "null"]
+          required: [epoch, szamlalo, lenyomat]
+          properties:
+            epoch: {type: integer, format: int64}
+            szamlalo: {type: integer, format: int64}
+            lenyomat: {type: string}
+      additionalProperties: false
+
+    NapiOsszesito:
+      title: Egy nap osszesitoje
+      type: object
+      required: [uzletiNap, darab, vegosszeg, afa, fizetes, lenyomat]
+      properties:
+        uzletiNap: {type: string, format: date}
+        darab: {type: integer, format: int64}
+        vegosszeg: {type: integer, format: int64}
+        afa:
+          type: object
+          additionalProperties: {type: integer, format: int64}
+        fizetes:
+          type: object
+          additionalProperties: {type: integer, format: int64}
+        lenyomat: {type: string, pattern: '^[0-9a-f]{64}$'}
+
+    EgyeztetesValasz:
+      title: Naponkenti kimenet
+      type: object
+      required: [napok]
+      properties:
+        napok:
+          type: array
+          items:
+            type: object
+            required: [uzletiNap, allapot, felhoDarab, felhoVegosszeg]
+            properties:
+              uzletiNap: {type: string, format: date}
+              allapot: {type: string, enum: [IGAZOLT, ELTERES]}
+              felhoDarab: {type: integer, format: int64}
+              felhoVegosszeg: {type: integer, format: int64}
+              uzenet: {type: [string, "null"]}
 
     HozzaferesKeres:
       title: Hozzaferes-lekerdezes

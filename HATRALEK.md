@@ -142,7 +142,9 @@ a termék áfájának írása (`admin/1.14.0`), tanúsítvány visszavonása
 Ziggurat oldala (`admin/1.17.0`, `szinkron/1.9.0`, `kassza/1.24.0`; a pult
 rejtett belépése az 5/c-vel).
 
-✅ **Kész még:** az XLSX-export minden listás nézetben (`admin/1.18.0`,
+✅ **Kész még:** az eladási adatok felküldése a felhőbe, napi egyeztetéssel
+(`szinkron/1.10.0`, `ELADAS_FELKULDES.md` §8) — a riportok erre épülhetnek.
+✅ Az XLSX-export minden listás nézetben (`admin/1.18.0`,
 EXPORT_IMPORT 2.2/a). **Hátra belőle:** az M20/M21 mérés a telephelyi élesítés
 előtt, a PDF (külön döntés) és az import (külön munka). **Még
 döntés kell:** módosító- és menükezelés (C1), beállításszerkesztés, riportok (az

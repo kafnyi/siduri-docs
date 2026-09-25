@@ -43,6 +43,14 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.19.0 — 2026-09-25 — *az eladások napi egyeztetése* `NEM TÖRŐ`
+
+* **`GET /siduri/telephelyek/{id}/egyeztetes`** — a lezárt napok egyeztetése
+  (IGAZOLT / ELTERES, a két oldal számaival) és az archívumba rögzített
+  eltérések száma. A telephely-lapon látszik.
+
+**Miért:** `ELADAS_FELKULDES.md` 7/6.
+
 ### v1.18.0 — 2026-09-25 — *XLSX-export — amit látsz* `NEM TÖRŐ`
 
 * **`POST /export`** — egyetlen közös szolgáltatás minden listás nézethez
@@ -334,6 +342,19 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.10.0 — 2026-09-25 — *az eladási adatok felküldése* `NEM TÖRŐ`
+
+* **`POST /eladasok`** — a lezárt bizonylatok, önmagában értelmezhetően
+  (tartalom + állapot + lenyomat). Idempotens; a tartalom nem változhat
+  (`ELTERO_TARTALOM`), az állapot (nyomtatás, sztornó) igen.
+* **`POST /napi-egyeztetes`** — a lezárt nap összesítője; a felhő a saját
+  bizonylataiból ugyanazzal a közös kóddal számol: `IGAZOLT` vagy `ELTERES`.
+  Ugyanitt a biztonsági audit-lánc feje (horgony).
+* A lenyomat a tartalom kanonikus JSON-alakjának SHA-256-ja (k2
+  `EladasLenyomat`).
+
+**Miért:** `ELADAS_FELKULDES.md`, a D1–D7 jóváhagyva (2026-09-25).
 
 ### v1.9.0 — 2026-09-25 — *a Siduri-hozzáférés a pulthoz* `NEM TÖRŐ`
 

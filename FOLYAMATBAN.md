@@ -885,7 +885,7 @@ A kategóriafa öt és a Siduri-hozzáférés öt kulcsgaranciáját mutációs 
 | **A pult felhasználókezelő képernyője (5/c)** | megépül; itt lefordul és a tesztek futnak, **élő próba a felhasználónál**, valódi gépen | az első kezelhetőségi visszajelzés tőle jön |
 | **Kategóriafa szerkesztése** | mindkét oldalon, O3-mal; menü és módosító nélkül; az örökölt áfát nem írja vissza automatikusan (C3/c) | szinkron-kisverzió |
 | **Export** | **fastexcel**; a J1900-as mérés (M20/M21) a telephelyi élesítés előtt kötelező marad | ha a mérés rosszul sül el, a telephelyi ágat cserélni kell |
-| **Eladási adatok felküldése** | **előbb terv**, jóváhagyásra; kód csak utána | — |
+| **Eladási adatok felküldése** | **előbb terv**, jóváhagyásra; kód csak utána — ✅ **a terv kész: `ELADAS_FELKULDES.md`**, a döntések (D1–D7) jóváhagyásra várnak | — |
 
 **A sorrend:** döntésmentes apróságok → áfakategória és áfaírás → tanúsítvány
 visszavonása → kategóriafa → Siduri-hozzáférés → export → a pult képernyője →

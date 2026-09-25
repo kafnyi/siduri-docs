@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.14.0
+  version: 1.15.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -1250,7 +1250,8 @@ components:
             kategoria (1.8.0): nev, szulo, aktiv, afa, ntak. REKORD tipusnal a
             mezo "-" (nincs ertelme). A leiro-alapu tablaknal (1.13.0) a leiras
             mezoi (admin TorzsRekord). KESZLET_PARANCS-nal (1.14.0) a muvelet
-            neve: bevetelezes, atadas, selejt, szemelyzeti, eloallitas.
+            neve: bevetelezes, atadas, selejt, szemelyzeti, eloallitas - es az
+            1.15.0 ota leltar (a KeszletMuvelet fordulonap es indokKod mezojevel).
         egeszErtek:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'

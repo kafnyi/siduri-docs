@@ -1,6 +1,6 @@
 # Siduri — készlet és receptúra (F5)
 
-> **Státusz: az S1–S3 KÉSZ (törzsadat, készletmotor, felhő); az S4 (leltár) következik** *(2026-09-26)*. A fázisterv F5.1–F5.6
+> **Státusz: az S1–S4 KÉSZ (törzsadat, készletmotor, felhő, leltár); az S5 („elfogyott") és az S6 (pult a bizonylatban, árrés) következik** *(2026-09-26)*. A fázisterv F5.1–F5.6
 > és F5.8 pontja. A már eldöntött alapszabályok: `NYITOTT_KERDESEK` B16.4
 > (a készlet egyenlege telephely-autoritatív, a felhő MOZGÁST küld, egyenleget
 > soha nem ír felül), B16.10 (leltár = korrekciós mozgás fordulónapra), G2.2
@@ -87,6 +87,21 @@ LELTAR; mennyiség alapegységben, előjelesen; nettó egységköltség),
 * **Ára:** a felhős készletkép a szinkron késésével frissül (K13); a felhőből
   indított művelet eredménye csak a következő körben látszik.
 
+## 3/c. Az S4 megvalósítása — a leltár
+
+* **Egylépéses leltárív** (K12): a fordulónap, a LELTAR indokkód (C7) és a
+  megszámolt sorok egyben; mindkét jog kell (`keszlet.leltar_inditas` és
+  `keszlet.leltar_rogzites`). A felhőből parancsként indítható.
+* **A fordulónapi egyenleghez mér** (B16.10): a rendszer-mennyiség a fordulónapig
+  könyvelt mozgások összege; az eltérés MOST könyvelt korrekciós mozgás — így a
+  fordulónap és a rögzítés közötti mozgások érvényesek maradnak. A nem
+  megszámolt anyaghoz nem nyúl; a 0 is megszámolt mennyiség.
+* **Kalkulált veszteség:** az anyag %-a az előző leltár óta eladott (eladás −
+  sztornó) mennyiségből — a lapon a tényleges eltérés mellett.
+* **Ára / nincs még:** a több ember által részletekben rögzített számlálás, a
+  PDA és a papír-ív (spec 21.7) később; a felhő a teljes leltárívet nem mutatja
+  (501), csak a korrekciós mozgásokat.
+
 ## 4. Szeletek
 
 | # | Szelet | Állapot |
@@ -94,6 +109,6 @@ LELTAR; mennyiség alapegységben, előjelesen; nettó egységköltség),
 | S1 | Törzsadat: a közös leíró-alapú út + anyag, recept, raktár, pult, gép→pult; Ziggurat-képernyők | ✅ `admin/1.22.0`, `szinkron/1.13.0`; 6 mutációs próba, mind megfogva; élő próba (HTTP) |
 | S2 | Készletmotor a telephelyen: mozgás, egyenleg, átlagár; eladás levonása lezáráskor, sztornó; bevételezés, átadás, selejt, személyzeti, előállítás | ✅ `admin/1.23.0`, V39; 7 mutációs próba, mind megfogva (6 SQL-trigger-mutáns a DB-ben) |
 | S3 | Felhő: a mozgások archívuma, felhős készletkép, felhőből indított mozgás | ✅ `szinkron/1.14.0`, `admin/1.24.0`; 5 mutációs próba, mind megfogva |
-| S4 | Leltár | — |
+| S4 | Leltár | ✅ `admin/1.25.0`, `szinkron/1.15.0`, V41; 3 mutációs próba, mind megfogva |
 | S5 | „Elfogyott" jelző (kassza + pult-kliens) | — |
 | S6 | Pult a bizonylatban → pult szerinti riport; árrés-riport teljesítési módonként (F5.8) | — |

@@ -43,6 +43,16 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.25.0 — 2026-09-26 — *a leltár* `NEM TÖRŐ`
+
+* `POST /keszlet/leltar` — egylépéses leltárív (fordulónap, LELTAR indokkód, a
+  megszámolt sorok); az eltérés a fordulónapi egyenleghez mérve korrekciós
+  mozgás. A felhőből parancsként indítható.
+* **`GET /keszlet/leltarak`** — a legutóbbi leltárak a tételeikkel (rendszer,
+  számolt, eltérés, kalkulált veszteség). A felhő 501.
+
+**Miért:** `KESZLET.md` S4 (K12).
+
 ### v1.24.0 — 2026-09-26 — *a készlet a felhőben* `NEM TÖRŐ`
 
 * A felhő is kiszolgálja a `/keszlet/*` olvasó végpontokat — a telephely
@@ -402,6 +412,11 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.15.0 — 2026-09-26 — *a leltár parancsként* `NEM TÖRŐ`
+
+* A `KESZLET_PARANCS` művelete a `leltar` is lehet (a `fordulonap` és az
+  `indokKod` mezővel). Régi telephely `HIBAS_PARANCS`-csal utasítja el.
 
 ### v1.14.0 — 2026-09-26 — *a készlet tükre és a készletparancs* `NEM TÖRŐ`
 

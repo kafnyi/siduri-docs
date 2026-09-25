@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.24.0
+  version: 1.25.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2387,6 +2387,43 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /keszlet/leltarak:
+    get:
+      tags: [keszlet]
+      operationId: keszletLeltarak
+      summary: A legutobbi 20 leltar a teteleivel (1.25.0)
+      description: |
+        Tetelenkent a fordulonapi rendszer-mennyiseg, a megszamolt, az elteres (a
+        korrekcios mozgas) es a kalkulalt veszteseg (az anyag %-a az elozo leltar
+        ota eladottbol). Az elteres erteke csak a beszerzesi arak jogaval. A
+        felho 501-et ad (CSAK_A_TELEPHELYEN): ott a korrekciok a mozgasok kozott
+        latszanak.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: raktar
+          in: query
+          required: false
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: A leltarak
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeszletLeltarLista'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /keszlet/parancsok:
     get:
       tags: [keszlet]
@@ -2433,6 +2470,13 @@ paths:
         anyage, felulirhato - a netto egysegkoltseg ebbol szamol (I3). A selejthez
         es a szemelyzetihez indok kell. Az eloallitas csak keszletezett felkeszre
         megy (K3): a receptje kimegy, a felkesz a reszei koltsegen bejon.
+
+        A LELTAR (1.25.0, B16.10) egylepeses leltariv: `keszlet.leltar_inditas`
+        ES `keszlet.leltar_rogzites` kell; `indokKod` a LELTAR indokkeszletbol
+        kotelezo; `fordulonap` (hianyzik = most, jovobeli nem lehet). A sorok
+        mennyisege a MEGSZAMOLT mennyiseg (a 0 is ervenyes). Az elteres a
+        fordulonapi egyenleghez merve korrekcios mozgas lesz; a fordulonap utani
+        mozgasok ervenyesek maradnak; a nem megszamolt anyaghoz nem nyul.
       parameters:
         - $ref: '#/components/parameters/Telephely'
         - name: muvelet
@@ -2440,7 +2484,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [bevetelezes, atadas, selejt, szemelyzeti, eloallitas]
+            enum: [bevetelezes, atadas, selejt, szemelyzeti, eloallitas, leltar]
       requestBody:
         required: true
         content:
@@ -5155,6 +5199,13 @@ components:
         mennyiseg:
           type: string
           description: Csak az eloallitasnal - az alapegysegben.
+        fordulonap:
+          type: string
+          format: date-time
+          description: Csak a leltarnal (1.25.0) - hianyzik = most.
+        indokKod:
+          type: string
+          description: Csak a leltarnal (1.25.0) - a LELTAR indokkeszlet egy kodja.
       additionalProperties: false
 
     KeszletMuveletValasz:
@@ -5169,6 +5220,67 @@ components:
         fuggoben:
           type: boolean
           description: A felhoben (1.24.0) - a parancs elment, a telephely konyveli.
+      additionalProperties: false
+
+    LeltarTetel:
+      title: Egy leltartetel (1.25.0)
+      type: object
+      required: [anyagId, anyagNev, alapegyseg, rendszer, szamolt, elteres, vartVeszteseg]
+      properties:
+        anyagId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        anyagNev:
+          type: string
+        alapegyseg:
+          type: string
+        rendszer:
+          type: string
+        szamolt:
+          type: string
+        elteres:
+          type: string
+        vartVeszteseg:
+          type: string
+        elteresErteke:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: Csak a beszerzesi arak jogaval.
+      additionalProperties: false
+
+    KeszletLeltar:
+      title: Egy leltar (1.25.0)
+      type: object
+      required: [azonosito, raktarNev, fordulonap, mikor, tetelek]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        raktarNev:
+          type: string
+        fordulonap:
+          type: string
+          format: date-time
+        mikor:
+          type: string
+          format: date-time
+        indokKod:
+          type: string
+        indok:
+          type: string
+        tetelek:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeltarTetel'
+      additionalProperties: false
+
+    KeszletLeltarLista:
+      title: Leltarak (1.25.0)
+      type: object
+      required: [leltarak]
+      properties:
+        leltarak:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeszletLeltar'
       additionalProperties: false
 
     KeszletParancsAllapot:

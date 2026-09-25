@@ -811,9 +811,17 @@ pult; **nincs közös raktár** → csak átvételezéssel lehet áttolni.)*
    * **5/b — a telephelyi szerver és a szerződések.** A pulti felhasználókezelés
      végpontjai, az offline átfedő tábla és a felküldés.
    * **5/c — a pult képernyője.** WPF, a helyi lista és a globális fül.
+     ✅ **Az első szelet KÉSZ** *(2026-09-25, `siduri-pos-client`)*: a helyi
+     lista a másolat korával, szerepek kiosztása, kétlépéses letiltás, és
+     minden sornál a változtatás sorsa (ELUTASITVA ≠ ELAVULT). Lefordul, a
+     tesztek zöldek; **az élő próba a felhasználónál**, valódi gépen.
+     **Hátra:** az egyedi jogosultságok szerkesztése (a kassza-API-n nincs
+     jogkatalógus), a globális fül (több telephelyes bérlőnél).
 6. **A Siduri-hozzáférés** (§8). ✅ **A felhő, a telephely és a Ziggurat oldala KÉSZ**
-   *(2026-09-25, `admin/1.17.0`, `szinkron/1.9.0`, `kassza/1.24.0`)*, lásd §8.7. A pult
-   rejtett belépése az 5/c-vel együtt készül.
+   *(2026-09-25, `admin/1.17.0`, `szinkron/1.9.0`, `kassza/1.24.0`)*, lásd §8.7.
+   ✅ **A pult rejtett belépése is KÉSZ** (a logó gesztusa, néma billentyűzet, a
+   7. jegynél indul) — az élő próba a felhasználónál. ⚠️ A pult főablakán
+   nincs kilépés: a Siduri-munkamenetet a kiszolgáló zárja (15 perc / 4 óra).
 7. **A belső kollégafiókok** (§4), a négy szem elv munkafolyamatával.
    * ✅ **7/a — belépés, bérlőválasztó, napló: KÉSZ** *(2026-09-24, `admin/1.10.0`)*.
    * ✅ **7/b — kollégafiókok és jogkörök kezelése, négy szem: KÉSZ** *(2026-09-24, `admin/1.11.0`)*.

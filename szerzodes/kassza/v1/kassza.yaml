@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.23.0
+  version: 1.24.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -513,6 +513,76 @@ paths:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
+
+  /siduri-belepes:
+    post:
+      operationId: siduriBelepes
+      summary: A Siduri-hozzaferes (1.24.0) - HOZZAFERES §8
+      description: |
+        A 7 jegyu kod: 4 forgo + 3 szemelyes. Nincs hozza felhasznalovalasztas:
+        a harom szemelyes jegybol derul ki, melyik kollega. A valasz a
+        felhasznalo azonositoja - innentol a tobbi vegpont a szokott
+        Siduri-Felhasznalo fejlecet kapja.
+
+        ⚠️ A MUNKAMENET 15 perc tetlenseg utan, de legkesobb 4 ora mulva lejar;
+        azutan minden vegpont 403-at ad erre a felhasznalora.
+
+        ⚠️ A novekvo varakozas TELEPHELYENKENT szamol (1, 2, 4 ... 256 mp, onnan
+        256 marad a helyes belepesig) - nem zar ki senkit (§8.3). A kliens
+        felulete a hibat NEM mutatja (§8.2, nema belepes).
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kod]
+              properties:
+                kod:
+                  type: string
+                  pattern: '^[0-9]{7}$'
+              additionalProperties: false
+      responses:
+        '200':
+          description: Sikeres belepes
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BelepesValasz'
+        '401':
+          description: A kod nem ervenyes. Mindig ugyanaz a valasz.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '429':
+          description: Varakozni kell (a novekvo varakozas meg tart).
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /siduri-kilepes:
+    post:
+      operationId: siduriKilepes
+      summary: A Siduri-munkamenet lezarasa (1.24.0)
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+      responses:
+        '204':
+          description: Lezarva (vagy mar nem volt nyitva)
+        '400':
+          description: Hianyzo vagy hibas fejlec.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   /pin:
     post:

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.16.0
+  version: 1.17.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1874,6 +1874,91 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /siduri/pult-kodom:
+    get:
+      tags: [siduri]
+      operationId: pultKodom
+      summary: A sajat pult-kodom (1.17.0) - HOZZAFERES §8
+      description: |
+        A Siduri-hozzaferes a pulthoz 7 szamjegy: a 4 jegyu FORGO resz (havonta
+        cserelodik, minden berlonel ugyanaz; az elozo havi is el) + a kolleganak
+        a sajat, allando 3 jegye. Kapcsolo: `PULT_HOZZAFERES`.
+
+        ⚠️ A valasz titkot hordoz: a felulet NEM tarolja, csak megmutatja. A
+        szemelyes resz az elso lekereskor keletkezik.
+      responses:
+        '200':
+          description: A kod reszei
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PultKodom'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /siduri/pult-naplo:
+    get:
+      tags: [siduri]
+      operationId: pultNaplo
+      summary: A Siduri-belepesek a pultoknal (1.17.0) - HOZZAFERES §8.5
+      description: |
+        Hol, melyik gepen, melyik kollega, mikortol meddig. A telephelyek
+        felkuldik, amikor van netjuk - ezert minden sor mellett ott van, a
+        telephely MIKOR JELENTKEZETT UTOLJARA: egy nema gep kulonben "tisztanak"
+        latszana. Kapcsolo: `NAPLO`.
+      parameters:
+        - name: telephely
+          in: query
+          required: false
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: kollega
+          in: query
+          required: false
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: A belepesek, a legfrissebb elol
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [belepesek]
+                properties:
+                  belepesek:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SiduriPultBelepes'
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /siduri/kollegak:
     get:
       tags: [siduri]
@@ -3007,17 +3092,85 @@ components:
       title: Egy kollega-kapcsolo
       type: string
       enum: [IDEGEN_BERLO, BERLO_REGISZTRACIO, NAPLO, KOLLEGAK, TELEPITESI_JEGY,
-             TANUSITVANY_VISSZAVONAS]
+             TANUSITVANY_VISSZAVONAS, PULT_HOZZAFERES]
       description: |
         IDEGEN_BERLO: belepes egy berlo adataihoz. BERLO_REGISZTRACIO: uj berlo
         es uj telephely felvetele. NAPLO: a hozzaferesi naplo. KOLLEGAK: a
         kollegafiokok kezelese. TELEPITESI_JEGY (1.13.0): telepitesi jegy
         generalasa a telephelyi szerver elso tanusitvanyahoz.
         TANUSITVANY_VISSZAVONAS (1.15.0): egy telephelyi gep tanusitvanyanak
-        visszavonasa (ellopott, leselejtezett gep).
+        visszavonasa (ellopott, leselejtezett gep). PULT_HOZZAFERES (1.17.0):
+        a Siduri-hozzaferes a pulthoz (HOZZAFERES §8) - a kollega megkapja a
+        sajat pult-kodjat, es a telephelyek megismerik.
 
         ⚠️ Uj kapcsolo = kisverzio; a felulet az ismeretlent figyelmen kivul
         hagyja.
+
+    PultKodom:
+      title: A sajat pult-kod reszei
+      type: object
+      required: [szemelyes, forgo]
+      properties:
+        szemelyes:
+          type: string
+          pattern: '^[0-9]{3}$'
+          description: A kolleganak allando harom jegye - a naplo EZBOL azonosit.
+        forgo:
+          type: array
+          description: A mostani honap forgo resze elol, utana az elozoe (az is el).
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/PultForgo'
+      additionalProperties: false
+
+    PultForgo:
+      title: Egy honap forgo resze
+      type: object
+      required: [honap, kod]
+      properties:
+        honap:
+          type: string
+          pattern: '^[0-9]{4}-[0-9]{2}$'
+        kod:
+          type: string
+          pattern: '^[0-9]{4}$'
+      additionalProperties: false
+
+    SiduriPultBelepes:
+      title: Egy Siduri-belepes a pultnal
+      type: object
+      required: [azonosito, telephely, kezdet]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        telephely:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        telephelyNev:
+          type: [string, "null"]
+        berloNev:
+          type: [string, "null"]
+        kollega:
+          type: [string, "null"]
+          description: A kollega azonositoja - a harom szemelyes jegybol.
+        kollegaNev:
+          type: [string, "null"]
+        eszkoz:
+          type: [string, "null"]
+        kezdet:
+          type: string
+          format: date-time
+        veg:
+          type: [string, "null"]
+          format: date-time
+          description: Ures, amig a munkamenet nyitott (vagy a telephely meg nem jelentette a veget).
+        vegOka:
+          type: [string, "null"]
+          enum: [KILEPES, TETLENSEG, IDOKORLAT, null]
+        telephelyUtolsoJelentkezes:
+          type: [string, "null"]
+          format: date-time
+          description: ⚠️ Mikor jelentkezett utoljara a telephely - egy nema gep nem jelent.
+      additionalProperties: false
 
     BerloRovid:
       title: Egy berlo neve

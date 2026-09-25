@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.8.0
+  version: 1.9.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -400,6 +400,79 @@ components:
             nemet is mondhat.
           items:
             $ref: '#/components/schemas/HelyiValtoztatas'
+        siduriBelepesek:
+          type: array
+          maxItems: 500
+          description: |
+            (1.9.0) A Siduri-belepesek a pultnal (HOZZAFERES §8.5) - az uj es a
+            kozben lezart munkamenetek. Azonosito szerint idempotens: ugyanaz a
+            sor ujrakuldve csak a veget frissiti.
+          items:
+            $ref: '#/components/schemas/SiduriPultBelepes'
+
+    SiduriPultBelepes:
+      title: Egy Siduri-belepes a pultnal
+      type: object
+      required: [azonosito, kezdet]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        kollega:
+          type: [string, "null"]
+        eszkoz:
+          type: [string, "null"]
+        kezdet:
+          type: string
+          format: date-time
+        veg:
+          type: [string, "null"]
+          format: date-time
+        vegOka:
+          type: [string, "null"]
+          enum: [KILEPES, TETLENSEG, IDOKORLAT, null]
+      additionalProperties: false
+
+    SiduriPult:
+      title: A Siduri-hozzaferes a pulthoz
+      description: |
+        (1.9.0) HOZZAFERES §8. A forgo resz (a mostani es az elozo honap) es a
+        PULT_HOZZAFERES kapcsolos kollegak szemelyes resze.
+
+        ⚠️ A telephely NEM tarolja el igy: a megerkezeskor lenyomatot kepez a
+        sajat borsaval, es csak azt irja az adatbazisba. A kod csak a kolcsonos
+        TLS-sel vedett valaszban utazik.
+      type: object
+      required: [forgo, kollegak]
+      properties:
+        forgo:
+          type: array
+          maxItems: 2
+          items:
+            type: object
+            required: [honap, kod]
+            properties:
+              honap:
+                type: string
+                pattern: '^[0-9]{4}-[0-9]{2}$'
+              kod:
+                type: string
+                pattern: '^[0-9]{4}$'
+            additionalProperties: false
+        kollegak:
+          type: array
+          items:
+            type: object
+            required: [azonosito, nev, szemelyes]
+            properties:
+              azonosito:
+                $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+              nev:
+                type: string
+              szemelyes:
+                type: string
+                pattern: '^[0-9]{3}$'
+            additionalProperties: false
+      additionalProperties: false
 
     HozzaferesValasz:
       title: Hozzaferes-pillanatkep
@@ -425,6 +498,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SzinkronFelhasznalo'
+        siduriPult:
+          $ref: '#/components/schemas/SiduriPult'
         elbiralasok:
           type: array
           description: >

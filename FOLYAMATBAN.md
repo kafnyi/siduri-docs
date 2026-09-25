@@ -860,14 +860,12 @@ trailer nélkül.**
 | **Áfakategóriák** (kilenc alap) és a **termék áfájának írása** O3-mal | ✅ böngészőben is | `admin/1.14.0`, `szinkron/1.7.0` |
 | **Tanúsítvány visszavonása** a telephely-lapon, új kapcsolóval | ✅ böngészőben is | `admin/1.15.0` |
 | **Kategóriafa szerkesztése** — felvétel, átnevezés, áthelyezés (a részfa szintje követi), áfa-alapérték, NTAK, állapot; mezőnként eredettel; a felhőben felvett kategória REKORD-ként jut le | ✅ élő próbán (HTTP, a Vite-proxyn át) — a böngészős átnézés a felhasználónál | `admin/1.16.0`, `szinkron/1.8.0` |
+| **Siduri-hozzáférés a pulthoz** — kód (felhő), lenyomat és munkamenet (telephely), napló és „Pult-kódom" (Ziggurat); a pult rejtett belépése az 5/c-vel | ✅ a felhő élő próbán (HTTP); a telephely tesztekkel | `HOZZAFERES.md` §8.7, `admin/1.17.0`, `szinkron/1.9.0`, `kassza/1.24.0` |
 
-**Tesztszámok (mérve):** mag 202 · k2 9 · felhő 185 · telephely 417 · felület 46.
-A kategóriafa öt kulcsgaranciáját mutációs próba is igazolta (részfa-kaszkád,
-REKORD-visszhang tiltása, azonos eredetű MEZO_ERTEK, a kör utáni visszaállítás,
-mezőnkénti REKORD-döntés).
-
-**A következő tétel (7.0/a sorrendje):** a Siduri-hozzáférés a pulthoz (§8) →
-export (fastexcel) → a pult felhasználókezelő képernyője (5/c, WPF) → az
+**Tesztszámok (mérve):** mag 202 · k2 9 · felhő 188 · telephely 425 · felület 46.
+A kategóriafa öt és a Siduri-hozzáférés öt kulcsgaranciáját mutációs próba is igazolta.
+**A következő tétel (7.0/a sorrendje):** export (fastexcel) → a pult
+felhasználókezelő képernyője (5/c, WPF) a Siduri rejtett belépésével → az
 eladások felküldésének terve.
 
 ### 7.0/a Döntések a következő nagy körhöz *(2026-09-25)*

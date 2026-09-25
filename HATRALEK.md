@@ -138,7 +138,9 @@ a termék neve és állapota O3-mal (`admin/1.12.0`, `szinkron/1.6.0`), új bér
 telephely és telepítési jegy (`admin/1.13.0`); *(2026-09-25)* áfakategóriák és
 a termék áfájának írása (`admin/1.14.0`), tanúsítvány visszavonása
 (`admin/1.15.0`), a kategóriafa szerkesztése O3-mal (`admin/1.16.0`,
-`szinkron/1.8.0`).
+`szinkron/1.8.0`), a Siduri-hozzáférés a pulthoz — a felhő, a telephely és a
+Ziggurat oldala (`admin/1.17.0`, `szinkron/1.9.0`, `kassza/1.24.0`; a pult
+rejtett belépése az 5/c-vel).
 
 **Hátra az adminból — a döntések megvannak (FOLYAMATBAN 7.0/a):** export
 (fastexcel). **Még

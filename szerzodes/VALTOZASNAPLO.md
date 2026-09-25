@@ -43,6 +43,19 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.17.0 — 2026-09-25 — *a Siduri-hozzáférés a pulthoz* `NEM TÖRŐ`
+
+* **`GET /siduri/pult-kodom`** — a kolléga saját pult-kódja: az állandó három
+  személyes jegy és a forgó rész (a mostani és az előző hónapé). Kapcsoló:
+  `PULT_HOZZAFERES` (új). `no-store`.
+* **`GET /siduri/pult-naplo`** — a Siduri-belépések a pultoknál, a telephely
+  utolsó jelentkezésével. Kapcsoló: `NAPLO`.
+* A `KollegaKapcsolo` bővül: `PULT_HOZZAFERES`.
+
+**Miért:** HOZZAFERES §8, a megvalósítás döntései §8.7.
+
+**Törő-e:** nem.
+
 ### v1.16.0 — 2026-09-25 — *a kategóriafa szerkesztése* `NEM TÖRŐ`
 
 * **`POST /kategoriak`**, **`GET /kategoriak/{id}`** (mezőnként eredettel és
@@ -309,6 +322,18 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.9.0 — 2026-09-25 — *a Siduri-hozzáférés a pulthoz* `NEM TÖRŐ`
+
+* **`HozzaferesValasz.siduriPult`** — a forgó rész (most és előző hónap) és a
+  `PULT_HOZZAFERES`-es kollégák személyes része. ⚠️ A telephely megérkezéskor
+  **lenyomatot** képez belőle a saját borsával, és csak azt tárolja. A kódok
+  **nem** kerülnek a verzió-lenyomatba.
+* **`HozzaferesKeres.siduriBelepesek`** — a pultnál tett Siduri-belépések
+  (kezdet, vég, ok), azonosító szerint idempotensen.
+
+**Kompatibilitás:** régi telephely a mezőt figyelmen kívül hagyja; régi felhő
+nem küldi — akkor a telephely meglévő kódjai maradnak.
 
 ### v1.8.0 — 2026-09-25 — *kategória: lefelé REKORD, mezőnként O3* `NEM TÖRŐ`
 
@@ -1268,6 +1293,17 @@ minden szerver-újraindulás után, a nyitott nap hátralévő részében. Ez ne
 regresszió, hanem az, amit a mező mindig is állított magáról. Egy elvesztett, de
 érvényes mérés a fali órára esik vissza, és ezt jelezzük; egy tévesen elhitt
 mérés viszont hamis vészzárást okozhat, és azt senki nem jelezné.
+### v1.24.0 — 2026-09-25 — *a Siduri-hozzáférés a pulthoz* `NEM TÖRŐ`
+
+* **`POST /siduri-belepes`** — a 7 jegyű kód (4 forgó + 3 személyes), a
+  felhasználó kiválasztása nélkül. A válasz a szokott `BelepesValasz`. A
+  munkamenet 15 perc tétlenség után, legkésőbb 4 óra múlva lejár; utána minden
+  végpont 403. A várakozás telephelyenként 1, 2, 4 … 256 mp.
+* **`POST /siduri-kilepes`** — a munkamenet lezárása.
+
+**Miért:** HOZZAFERES §8, §8.7. A pult rejtett belépése (§8.2) az 5/c-vel
+együtt készül.
+
 ### v1.23.0 — 2026-09-23 — *személyzetkezelés a pult mögül* `NEM TÖRŐ`
 
 Öt új végpont a `/szemelyzet` alatt: lista, szereplista, szerepek, egyedi

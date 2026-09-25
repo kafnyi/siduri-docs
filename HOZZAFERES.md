@@ -663,6 +663,37 @@ RFID vagy fizikai kulcs a Siduri-fiókhoz. ⚠️ Megjegyzés előre: az **olcs�
 RFID-kártyák másolhatók** — ha ide eljutunk, **biztonsági kulcs (FIDO2)**
 érdemesebb: ugyanaz a kezelői élmény, de nem klónozható.
 
+### 8.7 A megvalósítás döntései *(2026-09-25)*
+
+> A 7.0/a döntései (a forgó részt a felhő generálja havonta, a pillanatképpel
+> jut le, az előző havi is él; munkamenet 15 perc tétlenség / 4 óra) mellé a
+> megvalósításhoz kellett még néhány döntés. **Alapértelmezésként hoztam meg
+> őket — bármelyik felülírható**; az áruk itt áll.
+
+| Kérdés | Döntés | Ára |
+|---|---|---|
+| **Ki kap kódot** | Új kollégakapcsoló: **`PULT_HOZZAFERES`**. A Szuperadmin és a Manager magától bírja (mint minden kapcsolót) | egy kapcsolóval több kiosztanivaló |
+| **A személyes rész** | a **felhő sorsolja**, az első megtekintéskor; kollégánként **egyedi** (ebből azonosít a napló); nem választható | a kolléga nem választhat „könnyen megjegyezhetőt" — cserébe nincs „123" |
+| **Ki kerül ki a telephelyre** | csak aki **már megnézte a kódját** (addig úgysem tudná használni) | — |
+| **Hol látja a kolléga** | a Zigguratban, **„Pult-kódom"** lap: a mostani és az előző havi teljes kód, alapból elrejtve; a válasz `no-store` | a kód a böngészőben megjelenik — ezt a képernyőt nem szabad kivetítőn megnyitni |
+| **A hónap** | a **budapesti** naptár szerint fordul | — |
+| **Tárolás a telephelyen** | ⚠️ **csak lenyomat**: a személyes rész borsos HMAC-je (keresőkulcs) + a teljes kód PBKDF2-je, mint a PIN-é. A kód csak a kölcsönös TLS-sel védett pillanatképben utazik, és a telephely memóriájában él a lenyomatolásig | a pillanatkép alkalmazása kollégánként 2 KDF (~0,1–0,2 s a J1900-on) — havonta egyszer |
+| **A verzió-lenyomat** | a kódok **nem** kerülnek bele (egy 7 jegyű tér egy hash-ből visszafejthető); csak a hónap és a kollégák listája | — |
+| **Kinek a nevében fut a pult** | a kolléga **rejtett felhasználó-sort** kap a telephelyen („Siduri – *név*"), az első belépéskor. A belépőképernyőn és a személyzeti listán nem látszik; a belépett név igen (§8.4) | egy sor a felhasználótáblában, ami „nem ember a helyen" |
+| **Mihez fér hozzá** | **mindenhez, a `siduri.*` kör kivételével** — és csak **élő munkamenet** alatt, amíg a kódja érvényes. A kaput egy helyen, a jogosultság-lekérdezés tartja | a hierarchikus műveletek (pl. más PIN-jének cseréje) a szint nélküli felhasználót továbbra is elutasíthatják — ha kell, külön döntés |
+| **A kód visszavonása** | a következő pillanatképpel **azonnal hat**, a nyitott munkamenetre is | egy kapcsoló elvétele a gép következő szinkronjáig (~1 perc) nem hat |
+| **A várakozás** | **telephelyenként** számol (belépéskor még nem tudni, ki próbálkozik) | egy próbálkozó a kollégának is várakozást okoz — legfeljebb 256 mp |
+| **A napló** | a helyi **láncolt auditba** (`SIDURI_PULT_BELEPES`, `…_SIKERTELEN`, `…_KILEPES`, `…_LEJART`), és munkamenetenként a felhőbe (a hozzáférés-lekérdezéssel, azonosító szerint idempotensen). A Zigguratban **„Pult-belépések"** (`NAPLO` kapcsoló): szűrés, rendezés, keresés, és a telephely **utolsó jelentkezése** | — |
+| **A lejárat ideje** | a lezárás a **lejárat pillanatát** írja (utolsó aktivitás + 15 perc, vagy kezdet + 4 óra), nem a felfedezésé | — |
+
+**Szerződések:** `admin/1.17.0`, `szinkron/1.9.0`, `kassza/1.24.0` (`POST /siduri-belepes`,
+`POST /siduri-kilepes`).
+
+**⚠️ Ami még hátra van:** a pult oldala — a rejtett gesztus, a néma
+billentyűzet, a 10 másodperces ablak és a 7. jegynél induló belépés (§8.2) —
+a `siduri-pos-client`-ben, **a pult felhasználókezelő képernyőjével (5/c)
+együtt** készül: ugyanaz a WPF-kód, ugyanaz az élő próba a felhasználónál.
+
 ---
 
 ## 9. Bejelentkezés a Zigguratba
@@ -780,7 +811,9 @@ pult; **nincs közös raktár** → csak átvételezéssel lehet áttolni.)*
    * **5/b — a telephelyi szerver és a szerződések.** A pulti felhasználókezelés
      végpontjai, az offline átfedő tábla és a felküldés.
    * **5/c — a pult képernyője.** WPF, a helyi lista és a globális fül.
-6. **A Siduri-hozzáférés** (§8).
+6. **A Siduri-hozzáférés** (§8). ✅ **A felhő, a telephely és a Ziggurat oldala KÉSZ**
+   *(2026-09-25, `admin/1.17.0`, `szinkron/1.9.0`, `kassza/1.24.0`)*, lásd §8.7. A pult
+   rejtett belépése az 5/c-vel együtt készül.
 7. **A belső kollégafiókok** (§4), a négy szem elv munkafolyamatával.
    * ✅ **7/a — belépés, bérlőválasztó, napló: KÉSZ** *(2026-09-24, `admin/1.10.0`)*.
    * ✅ **7/b — kollégafiókok és jogkörök kezelése, négy szem: KÉSZ** *(2026-09-24, `admin/1.11.0`)*.

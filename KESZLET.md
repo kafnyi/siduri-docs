@@ -1,6 +1,6 @@
 # Siduri — készlet és receptúra (F5)
 
-> **Státusz: az S1 (törzsadat) KÉSZ, az S2 munkában** *(2026-09-26)*. A fázisterv F5.1–F5.6
+> **Státusz: az S1 (törzsadat) és az S2 (készletmotor) KÉSZ, az S3 következik** *(2026-09-26)*. A fázisterv F5.1–F5.6
 > és F5.8 pontja. A már eldöntött alapszabályok: `NYITOTT_KERDESEK` B16.4
 > (a készlet egyenlege telephely-autoritatív, a felhő MOZGÁST küld, egyenleget
 > soha nem ír felül), B16.10 (leltár = korrekciós mozgás fordulónapra), G2.2
@@ -56,12 +56,30 @@ LELTAR; mennyiség alapegységben, előjelesen; nettó egységköltség),
 `keszlet_egyenleg` (raktár × anyag: mennyiség, átlagár, jelölések),
 `keszlet_bizonylat` (a bevételezés, átadás, selejt, leltár fejléce).
 
+## 3/a. Az S2 megvalósítása — amit tud, és amit nem
+
+* **A levonás adatbázis-trigger** a bizonylat beszúrásakor (V39): a rendelés
+  aktív tételei a kiszerelés receptjéből, a nem készletezett félkészen át
+  (legfeljebb 5 szint); **megosztott számlánál** a bizonylat a saját része
+  súlyának arányában von; a **SZTORNO** bizonylat az eredeti mozgásait fordítja
+  vissza az eredeti költségen. A raktár a záró gép pultjáé, pult nélkül a Fő raktár.
+* **Az egyenleg és a mozgóátlagár** is trigger (BEFORE INSERT a mozgáson): a
+  kimenő az átlagon, nulla alatt az utolsó ismert bekerülési áron megy, és
+  **„korrekcióból"** jelölést kap; a negatív bázist feltöltő bevételezés után
+  az átlag = a bevételezés ára, és az egyenleg is jelölt (K6).
+* **A mozgás csak beszúrható** (SI080) — a javítás új mozgás.
+* **Az ár és az érték** csak a `riport.beszerzesi_arak` joggal látszik.
+* **Az előállítás** a `keszlet.bevetelezes` jogával megy (a félkész bevétele).
+* **Nincs még:** a felhős készletkép és a felhőből indított mozgás (S3 — a
+  felhő addig 501-et ad), a leltár (S4), az „elfogyott" (S5), az árrés (S6).
+  A régi (V39 előtti) bizonylatok nem vonnak — akkor még recept sem volt.
+
 ## 4. Szeletek
 
 | # | Szelet | Állapot |
 |---|---|---|
 | S1 | Törzsadat: a közös leíró-alapú út + anyag, recept, raktár, pult, gép→pult; Ziggurat-képernyők | ✅ `admin/1.22.0`, `szinkron/1.13.0`; 6 mutációs próba, mind megfogva; élő próba (HTTP) |
-| S2 | Készletmotor a telephelyen: mozgás, egyenleg, átlagár; eladás levonása lezáráskor, sztornó; bevételezés, átadás, selejt, személyzeti, előállítás | — |
+| S2 | Készletmotor a telephelyen: mozgás, egyenleg, átlagár; eladás levonása lezáráskor, sztornó; bevételezés, átadás, selejt, személyzeti, előállítás | ✅ `admin/1.23.0`, V39; 7 mutációs próba, mind megfogva (6 SQL-trigger-mutáns a DB-ben) |
 | S3 | Felhő: a mozgások archívuma, felhős készletkép, felhőből indított mozgás | — |
 | S4 | Leltár | — |
 | S5 | „Elfogyott" jelző (kassza + pult-kliens) | — |

@@ -43,6 +43,19 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.23.0 — 2026-09-26 — *a készletmotor a telephelyen* `NEM TÖRŐ`
+
+* **`/keszlet/egyenlegek`**, **`/keszlet/mozgasok`**, **`/keszlet/recept-nelkul`**
+  és **`POST /keszlet/{muvelet}`** (bevételezés, átadás, selejt, személyzeti,
+  előállítás). A mennyiség szöveg, alapegységben vagy csomagban; a bevételezés
+  bruttó + beszerzési áfa → nettó egységköltség.
+* Az eladás a **lezáráskor** von a receptből (adatbázis-trigger), a sztornó az
+  eredeti költségen ír vissza; a mozgás a saját korabeli átlagárát őrzi (K5).
+* Az ár és az érték csak a `riport.beszerzesi_arak` joggal látszik. A felhő
+  egyelőre 501-et ad (S3).
+
+**Miért:** `KESZLET.md` S2.
+
 ### v1.22.0 — 2026-09-26 — *a készlet törzsadata, leíró-alapon* `NEM TÖRŐ`
 
 * **`/torzs/{tabla}`** (lista, felvétel), **`/torzs/{tabla}/{id}`** (részletek) és

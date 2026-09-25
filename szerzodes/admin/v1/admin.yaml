@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.22.0
+  version: 1.23.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2239,6 +2239,213 @@ paths:
           $ref: '#/components/responses/Hiba404'
         '422':
           $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /keszlet/egyenlegek:
+    get:
+      tags: [keszlet]
+      operationId: keszletEgyenlegek
+      summary: A keszlet egyenlege raktar x anyag (1.23.0)
+      description: |
+        Jog: `keszlet.megtekintes`. Az atlagar es az ertek CSAK a
+        `riport.beszerzesi_arak` joggal van jelen (az olvasas nincs naplozva, a
+        jog a vedelem). A negativ egyenleg jelolt (M12); az atlag, ha egy nulla
+        ala ment keszletet feltolto bevetelezesbol szamolt, szinten (K6).
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: raktar
+          in: query
+          required: false
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: Az egyenlegek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeszletEgyenlegLista'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          description: A felho a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN) - KESZLET.md S3.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /keszlet/mozgasok:
+    get:
+      tags: [keszlet]
+      operationId: keszletMozgasok
+      summary: A legutobbi keszletmozgasok (1.23.0)
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: raktar
+          in: query
+          required: false
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: anyag
+          in: query
+          required: false
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 100
+      responses:
+        '200':
+          description: A mozgasok, a legujabb elol
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeszletMozgasLista'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          description: A felho a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN) - KESZLET.md S3.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /keszlet/recept-nelkul:
+    get:
+      tags: [keszlet]
+      operationId: receptNelkul
+      summary: Az aktiv kiszerelesek recept nelkul - ezek nem vonnak (K9)
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A kiszerelesek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptNelkulLista'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          description: A felho a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN) - KESZLET.md S3.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /keszlet/{muvelet}:
+    post:
+      tags: [keszlet]
+      operationId: keszletMuvelet
+      summary: Keszletmuvelet (1.23.0) - bevetelezes, atadas, selejt, szemelyzeti, eloallitas
+      description: |
+        A mozgas a telephelyen konyvelodik (B16.4); az egyenleget es a
+        mozgoatlagart az adatbazis szamolja. Jogok: bevetelezes es eloallitas -
+        `keszlet.bevetelezes`; atadas - `keszlet.raktarkozi_mozgas`; selejt -
+        `keszlet.selejt`; szemelyzeti - `keszlet.szemelyzeti`.
+
+        A mennyiseg SZOVEG, alapegysegben vagy a megnevezett csomagban. A
+        bevetelezes soranak brutto osszege egesz forint; a beszerzesi afa az
+        anyage, felulirhato - a netto egysegkoltseg ebbol szamol (I3). A selejthez
+        es a szemelyzetihez indok kell. Az eloallitas csak keszletezett felkeszre
+        megy (K3): a receptje kimegy, a felkesz a reszei koltsegen bejon.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: muvelet
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [bevetelezes, atadas, selejt, szemelyzeti, eloallitas]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeszletMuvelet'
+      responses:
+        '201':
+          description: Konyvelve
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeszletMuveletValasz'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          description: A felho a keszletet meg nem kezeli (CSAK_A_TELEPHELYEN) - KESZLET.md S3.
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -4849,6 +5056,187 @@ components:
           type: object
           additionalProperties:
             type: string
+      additionalProperties: false
+
+    KeszletSor:
+      title: Egy keszletmozgas sora (1.23.0)
+      type: object
+      required: [anyagId, mennyiseg]
+      properties:
+        anyagId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        csomag:
+          type: string
+          description: A csomag neve (az anyag csomagjai kozul); hianyzik = alapegyseg.
+        mennyiseg:
+          type: string
+          description: Pozitiv, legfeljebb 6 tizedes - SZOVEGKENT.
+        bruttoOsszeg:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: Csak a bevetelezesnel, es ott kotelezo - a sor brutto osszege.
+        beszerzesiAfa:
+          $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
+      additionalProperties: false
+
+    KeszletMuvelet:
+      title: Keszletmuvelet (1.23.0)
+      type: object
+      required: [raktarId]
+      properties:
+        raktarId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        celRaktarId:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: Csak az atadasnal.
+        szallito:
+          type: string
+          maxLength: 200
+        szamlaszam:
+          type: string
+          maxLength: 100
+        indok:
+          type: string
+          maxLength: 500
+        sorok:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/KeszletSor'
+        anyagId:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: Csak az eloallitasnal - a keszletezett felkesz.
+        mennyiseg:
+          type: string
+          description: Csak az eloallitasnal - az alapegysegben.
+      additionalProperties: false
+
+    KeszletMuveletValasz:
+      title: A konyvelt muvelet (1.23.0)
+      type: object
+      required: [azonosito, mozgasok]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        mozgasok:
+          type: integer
+      additionalProperties: false
+
+    KeszletEgyenleg:
+      title: Egy egyenleg (1.23.0)
+      type: object
+      required: [raktarId, raktarNev, anyagId, anyagNev, alapegyseg, mennyiseg, negativ, atlagKorrekciobol]
+      properties:
+        raktarId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        raktarNev:
+          type: string
+        anyagId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        anyagNev:
+          type: string
+        alapegyseg:
+          type: string
+          enum: [G, ML, DB]
+        mennyiseg:
+          type: string
+        atlagar:
+          type: string
+          description: Netto Ft / alapegyseg - csak a beszerzesi arak jogaval.
+        ertek:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: mennyiseg x atlagar, egesz forintra - csak a beszerzesi arak jogaval.
+        negativ:
+          type: boolean
+        atlagKorrekciobol:
+          type: boolean
+      additionalProperties: false
+
+    KeszletEgyenlegLista:
+      title: Egyenlegek (1.23.0)
+      type: object
+      required: [egyenlegek, arakLathatok]
+      properties:
+        egyenlegek:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeszletEgyenleg'
+        arakLathatok:
+          type: boolean
+      additionalProperties: false
+
+    KeszletMozgas:
+      title: Egy mozgas (1.23.0)
+      type: object
+      required: [azonosito, mikor, fajta, raktarNev, anyagNev, alapegyseg, mennyiseg, korrekciobol]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        mikor:
+          type: string
+          format: date-time
+        fajta:
+          type: string
+          enum: [ELADAS, SZTORNO, BEVETELEZES, ATADAS_KI, ATADAS_BE, SELEJT, SZEMELYZETI,
+                 ELOALLITAS_KI, ELOALLITAS_BE, LELTAR]
+        raktarNev:
+          type: string
+        anyagNev:
+          type: string
+        alapegyseg:
+          type: string
+        mennyiseg:
+          type: string
+          description: Elojelesen, alapegysegben.
+        egysegkoltseg:
+          type: string
+          description: A mozgas IDEJEN (K5) - csak a beszerzesi arak jogaval.
+        korrekciobol:
+          type: boolean
+        bizonylatszam:
+          type: string
+        megjegyzes:
+          type: string
+      additionalProperties: false
+
+    KeszletMozgasLista:
+      title: Mozgasok (1.23.0)
+      type: object
+      required: [mozgasok]
+      properties:
+        mozgasok:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeszletMozgas'
+      additionalProperties: false
+
+    ReceptNelkul:
+      title: Recept nelkuli kiszereles (1.23.0)
+      type: object
+      required: [termekId, termekNev, kiszerelesId, kiszerelesNev]
+      properties:
+        termekId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        termekNev:
+          type: string
+        kiszerelesId:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        kiszerelesNev:
+          type: string
+      additionalProperties: false
+
+    ReceptNelkulLista:
+      title: Recept nelkuli kiszerelesek (1.23.0)
+      type: object
+      required: [kiszerelesek]
+      properties:
+        kiszerelesek:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReceptNelkul'
       additionalProperties: false
 
     TorzsMezoKeres:

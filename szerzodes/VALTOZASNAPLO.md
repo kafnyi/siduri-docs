@@ -43,6 +43,11 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.27.0 — 2026-09-26 — *az „elfogyott" jelző* `NEM TÖRŐ`
+
+* **`GET /keszlet/elfogyottak`**, **`PUT /keszlet/elfogyott/{kiszereles}`** — a
+  telephelyi Zigguratból (`keszlet.elfogyott_jelzo`); a felhő 501.
+
 ### v1.26.0 — 2026-09-26 — *pult szerinti riport és árrés* `NEM TÖRŐ`
 
 * Két új riport: **`PULT_SZERINT`** (a lezáráskori pult) és **`ARRES`** (F5.8:
@@ -1482,3 +1487,11 @@ jogosultsági adatot.
 ⚠️ **A letiltás kapcsolat nélkül is megy; a visszaengedés SOHA.** Szándékosan nem
 szimmetrikus: kijuttatni valakit **sürgős** lehet, épp a kapcsolat nélküli
 órákban; beengedni sosem az.
+
+### v1.25.0 — 2026-09-26 — *az „elfogyott" jelző* `NEM TÖRŐ`
+
+* `ErtekesithetoTetel.elfogyott` — a pult szürkén mutatja a gombot (M12).
+* **`PUT /kiszerelesek/{id}/elfogyott`** — a pultról (`keszlet.elfogyott_jelzo`);
+  a termeklista változás-jelzője megváltozik. A kiszolgáló az eladást nem tiltja.
+
+**Miért:** `KESZLET.md` S5 (K15).

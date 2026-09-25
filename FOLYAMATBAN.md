@@ -863,6 +863,7 @@ trailer nélkül.**
 | **Siduri-hozzáférés a pulthoz** — kód (felhő), lenyomat és munkamenet (telephely), napló és „Pult-kódom" (Ziggurat); a pult rejtett belépése az 5/c-vel | ✅ a felhő élő próbán (HTTP); a telephely tesztekkel | `HOZZAFERES.md` §8.7, `admin/1.17.0`, `szinkron/1.9.0`, `kassza/1.24.0` |
 | **A pult személyzet-képernyője (5/c)** és a **Siduri néma belépése** a pultnál | ✅ lefordul, tesztek zöldek (mag 160); **élő próba a felhasználónál** | `siduri-pos-client`, `HOZZAFERES.md` §12/5, §8.7 |
 | **Az eladási adatok felküldése** — a felhő a jogi archívum: folyamatos felküldés, napi egyeztetés, horgony, a törlés csak igazolt napról | ✅ tesztekkel és 4 mutációs próbával; élő próba az első telepítéskor | `ELADAS_FELKULDES.md` §8, `szinkron/1.10.0`, `admin/1.19.0` |
+| **Készlet S5 — „elfogyott" jelző**: a kiszerelésen telephelyi állapot, a pult szürkíti a gombot (külön jelölő mód), a kiszolgáló nem tilt; a Ziggurat telephelyi termék-lapján is | ✅ tesztekkel; a pult-kliens fordul — élő próba a pultnál hátra | `KESZLET.md` 3/e, `kassza/1.25.0`, `admin/1.27.0` |
 | **Készlet S6 — pult a bizonylaton, pult szerinti riport, árrés (F5.8)** nettó alapon, teljesítési módonként, a mozgások korabeli költségéből | ✅ tesztekkel, 4 mutációs próbával | `KESZLET.md` 3/d, `admin/1.26.0`, `szinkron/1.16.0` |
 | **Készlet S4 — leltár**: egylépéses leltárív a fordulónapi egyenleghez mérve, korrekciós mozgás, LELTAR indokkód, kalkulált veszteség; a felhőből parancsként | ✅ tesztekkel, 3 mutációs próbával | `KESZLET.md` 3/c, `admin/1.25.0`, V41 |
 | **Készlet S3 — felhő**: a mozgások tükre (kimenő sor), felhős egyenleg/mozgás/recept nélküli lista, a felhőből indított művelet parancsként (202), a sorsa a nyugtából | ✅ tesztekkel, 5 mutációs próbával | `KESZLET.md` 3/b, `szinkron/1.14.0`, `admin/1.24.0` |
@@ -872,7 +873,7 @@ trailer nélkül.**
 | **Riportok** — 14 kimutatás a felhős archívumból (forgalom, áfa, fizetés, toplista, időrendi, gép, pultos, törlés, borravaló, kosár, kedvezmény, telephelyek), lánc-szinttel, előzetes napok jelölésével, munkajogi jelöléssel | ✅ tesztekkel, 4 mutációs próbával és élő próbával (HTTP) | `RIPORTOK.md`, `admin/1.20.0`, `szinkron/1.11.0` |
 | **XLSX-export — amit látsz**: egy közös végpont, minden listás nézetben egy gomb (termékek, kategóriák, áfakategóriák, felhasználók, kollégák, naplók, telephelyek) | ✅ élő próbán (HTTP, a Vite-proxyn át) | `EXPORT_IMPORT.md` 2.2/a, `admin/1.18.0` |
 
-**Tesztszámok (mérve):** mag 202 · k2 21 · felhő 213 · telephely 453 · felület 59 · pult 160.
+**Tesztszámok (mérve):** mag 202 · k2 21 · felhő 213 · telephely 455 · felület 59 · pult 160.
 A kategóriafa öt és a Siduri-hozzáférés öt kulcsgaranciáját mutációs próba is igazolta.
 **A 7.0/a sorrendje végigment.** Most a felhasználón a sor: **az élő próba a
 pultnál** (személyzet-képernyő, Siduri néma belépése) és a **§8.7 alapértelmezett

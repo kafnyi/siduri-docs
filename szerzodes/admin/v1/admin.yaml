@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.26.0
+  version: 1.27.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2384,6 +2384,82 @@ paths:
             application/json:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /keszlet/elfogyottak:
+    get:
+      tags: [keszlet]
+      operationId: elfogyottak
+      summary: Az "elfogyott"-nak jelolt kiszerelesek (1.27.0)
+      description: Jog - termek.megtekintes. A felho 501 (a jelzo a telephely allapota).
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A kiszerelesek azonositoi
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [kiszerelesek]
+                properties:
+                  kiszerelesek:
+                    type: array
+                    items:
+                      $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+                additionalProperties: false
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /keszlet/elfogyott/{kiszerelesAzonosito}:
+    put:
+      tags: [keszlet]
+      operationId: elfogyottAllit
+      summary: Az "elfogyott" jelzo a telephelyi Zigguratbol (1.27.0)
+      description: Jog - keszlet.elfogyott_jelzo. A felho 501.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: kiszerelesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [elfogyott]
+              properties:
+                elfogyott:
+                  type: boolean
+              additionalProperties: false
+      responses:
+        '200':
+          description: Beallitva
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [kiszereles, elfogyott]
+                properties:
+                  kiszereles:
+                    $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+                  elfogyott:
+                    type: boolean
+                additionalProperties: false
         default:
           $ref: '#/components/responses/Hiba'
 

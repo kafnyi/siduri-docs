@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.24.0
+  version: 1.25.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -445,6 +445,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HelyiValtoztatasValasz'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+
+  /kiszerelesek/{kiszerelesAzonosito}/elfogyott:
+    put:
+      operationId: elfogyottJelzo
+      summary: Az "elfogyott" jelzo allitasa (1.25.0)
+      description: |
+        Jog: `keszlet.elfogyott_jelzo`. Telephelyi allapot (nem torzsadat, nem
+        megy fel). A termeklista valtozas-jelzoje megvaltozik - a tobbi pult a
+        kovetkezo lekerdezesnel latja.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - name: kiszerelesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [elfogyott]
+              properties:
+                elfogyott:
+                  type: boolean
+              additionalProperties: false
+      responses:
+        '200':
+          description: Beallitva
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [kiszereles, elfogyott]
+                properties:
+                  kiszereles:
+                    $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+                  elfogyott:
+                    type: boolean
+                additionalProperties: false
         '403':
           $ref: '#/components/responses/Hiba403'
 
@@ -2491,6 +2538,13 @@ components:
           description: >
             Piktogram a tetelsoron, SOHA nem felugro ablak (I46). A besorolast
             az ugyfel tartja karban.
+        elfogyott:
+          type: boolean
+          description: |
+            A kezi "elfogyott" jelzo (1.25.0, M12): a pult SZURKEN mutatja a
+            gombot. A KESZLET soha nem blokkol eladast - ez a jelzo igen, de csak a
+            feluleten: a kiszolgalo nem utasitja el (a degradalt modban mar eladott
+            tetel visszajatszasa nem bukhat el).
       additionalProperties: false
 
     UjTetel:

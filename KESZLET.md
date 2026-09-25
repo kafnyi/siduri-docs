@@ -1,6 +1,6 @@
 # Siduri — készlet és receptúra (F5)
 
-> **Státusz: az S1–S4 és az S6 KÉSZ; az S5 („elfogyott", a pult-kliens is) következik** *(2026-09-26)*. A fázisterv F5.1–F5.6
+> **Státusz: az F5 mind a hat szelete KÉSZ** *(2026-09-26)* — a pult-kliens élő próbája és a J1900-mérés (a levonás triggere nagy rendelésnél) a telephelyi élesítés előtt. A fázisterv F5.1–F5.6
 > és F5.8 pontja. A már eldöntött alapszabályok: `NYITOTT_KERDESEK` B16.4
 > (a készlet egyenlege telephely-autoritatív, a felhő MOZGÁST küld, egyenleget
 > soha nem ír felül), B16.10 (leltár = korrekciós mozgás fordulónapra), G2.2
@@ -113,6 +113,19 @@ LELTAR; mennyiség alapegységben, előjelesen; nettó egységköltség),
   **Ára:** a bizonylatszintű kedvezmény nincs a tételekre osztva (az árrés
   annyival felülbecsült); a mozgás nélküli (recept nélküli) tételre figyelmeztet.
 
+## 3/e. Az S5 megvalósítása — az „elfogyott"
+
+* **Telephelyi állapot** a kiszerelésen (V43), nem O3-törzsadat: nem megy fel.
+  Az állítása megváltoztatja a termeklista változás-jelzőjét — a többi pult a
+  következő lekérdezésnél látja.
+* **A pult szürkíti a gombot**, és „ELFOGYOTT" felirattal mutatja; a jelölés egy
+  külön mód a műveletsávon (`keszlet.elfogyott_jelzo` joggal), nem hosszú nyomás
+  — a pultnál a hosszú nyomás véletlenül is megtörténik.
+* **A kiszolgáló az eladást NEM tiltja** (M12: a készlet soha nem blokkol, a jelző
+  a felületé): a degradált módban már eladott tétel visszajátszása így nem bukik
+  el. **Ára:** egy régi listát mutató gép még eladhatja.
+* A telephelyi Ziggurat termék-lapján is állítható; a felhő 501 (K15).
+
 ## 4. Szeletek
 
 | # | Szelet | Állapot |
@@ -121,5 +134,5 @@ LELTAR; mennyiség alapegységben, előjelesen; nettó egységköltség),
 | S2 | Készletmotor a telephelyen: mozgás, egyenleg, átlagár; eladás levonása lezáráskor, sztornó; bevételezés, átadás, selejt, személyzeti, előállítás | ✅ `admin/1.23.0`, V39; 7 mutációs próba, mind megfogva (6 SQL-trigger-mutáns a DB-ben) |
 | S3 | Felhő: a mozgások archívuma, felhős készletkép, felhőből indított mozgás | ✅ `szinkron/1.14.0`, `admin/1.24.0`; 5 mutációs próba, mind megfogva |
 | S4 | Leltár | ✅ `admin/1.25.0`, `szinkron/1.15.0`, V41; 3 mutációs próba, mind megfogva |
-| S5 | „Elfogyott" jelző (kassza + pult-kliens) | — |
+| S5 | „Elfogyott" jelző (kassza + pult-kliens) | ✅ `kassza/1.25.0`, `admin/1.27.0`, V43; a pult-kliens fordul, a 160 teszt zöld — **élő próba a pultnál hátra** |
 | S6 | Pult a bizonylatban → pult szerinti riport; árrés-riport teljesítési módonként (F5.8) | ✅ `admin/1.26.0`, `szinkron/1.16.0`, V42; 4 mutációs próba, mind megfogva |

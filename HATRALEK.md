@@ -157,7 +157,7 @@ előtt, a PDF (külön döntés) és az import (külön munka). **Még
 döntés kell:** módosító- és menükezelés (C1), beállításszerkesztés. A kiszolgálótól jövő szövegek (hibaüzenetek, jogosultságnevek)
 nyelvváltáskor magyarok maradnak.
 
-**A készlet** (`KESZLET.md`): az S1–S4 és az S6 (pult a bizonylaton, árrés) kész; hátra az S5 („elfogyott" — a pult-kliens is).
+**A készlet** (`KESZLET.md`): az F5 mind a hat szelete kész (S1–S6). **Hátra:** a pult-kliens élő próbája (a személyzet-képernyővel és a Siduri néma belépésével együtt), a levonás-trigger J1900-mérése nagy rendelésnél, a lánc-szintű közös anyaglista (K1), a levonó módosító és az allergének (C1), a több ember által részletekben rögzített leltár (PDA).
 
 ---
 

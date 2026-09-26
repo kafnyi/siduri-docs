@@ -43,6 +43,17 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.28.0 — 2026-09-26 — *módosítók, menük, allergének törzsadata* `NEM TÖRŐ`
+
+* A leíró-alapú `/torzs/{tabla}` öt új táblát kap (C1.md): `modosito_csoport`,
+  `modosito`, `termek_modosito_csoport`, `menu_komponens`, `menu_opcio`. Jog:
+  `modosito.kezeles`, `menu.kezeles`.
+* `anyag.allergenek`, `recept.allergen_felulir` — a 14 EU-allergén kódlistája
+  (`?` = ismeretlen).
+* **`GET /torzs/allergenek/{kiszereles}`** — a recept-fából származtatva; vagy
+  teljes a lista, vagy csak a hiányzók jönnek.
+* Új hibakódok: `NINCS_ILYEN_<TABLA>`, `MENU_A_MENUBEN`, `MIN_NAGYOBB_MAX`.
+
 ### v1.27.0 — 2026-09-26 — *az „elfogyott" jelző* `NEM TÖRŐ`
 
 * **`GET /keszlet/elfogyottak`**, **`PUT /keszlet/elfogyott/{kiszereles}`** — a
@@ -423,6 +434,11 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.17.0 — 2026-09-26 — *módosítók és menük a szinkronban* `NEM TÖRŐ`
+
+* A `tabla` felsorolás öt új táblával bővül (C1.md). Régi telephely az ismeretlen
+  táblát `ISMERETLEN_MEZO`-val utasítja el — ezért a felhőt frissítjük előbb.
 
 ### v1.16.0 — 2026-09-26 — *a pult a bizonylat állapotában* `NEM TÖRŐ`
 

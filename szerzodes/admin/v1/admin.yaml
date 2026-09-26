@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.27.0
+  version: 1.28.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -130,6 +130,11 @@ tags:
       A keszlet torzsadata (1.22.0, KESZLET.md): raktar, pult, alapanyag, recept,
       gep -> pult. LEIRO-ALAPU: egy tabla egy leiras (k2 TorzsLeirok), minden
       mezo O3-mezo es kanonikus SZOVEG - ugyanaz a negy vegpont minden tablara.
+      1.28.0-tol (C1.md): modositok, menuk es allergenek ugyanigy. Jog: a
+      modositoknal `modosito.kezeles`, a menunel `menu.kezeles` (olvasas:
+      `termek.megtekintes`). A hivatkozas csak letezo sorra mutathat
+      (NINCS_ILYEN_<TABLA>), menu nem lehet menu opcioja (MENU_A_MENUBEN), es a
+      min nem lehet nagyobb a maxnal (MIN_NAGYOBB_MAX).
   - name: hozzaferes
     description: |
       Ziggurat-felhasznalok es a jogosultsagaik.
@@ -2062,7 +2067,8 @@ paths:
           required: true
           schema:
             type: string
-            enum: [raktar, pult, anyag, recept, eszkoz_pult]
+            enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
+                   termek_modosito_csoport, menu_komponens, menu_opcio]
       responses:
         '200':
           description: A rekordok, csak az ertekekkel
@@ -2104,7 +2110,8 @@ paths:
           required: true
           schema:
             type: string
-            enum: [raktar, pult, anyag, recept, eszkoz_pult]
+            enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
+                   termek_modosito_csoport, menu_komponens, menu_opcio]
       requestBody:
         required: true
         content:
@@ -2146,7 +2153,8 @@ paths:
           required: true
           schema:
             type: string
-            enum: [raktar, pult, anyag, recept, eszkoz_pult]
+            enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
+                   termek_modosito_csoport, menu_komponens, menu_opcio]
         - name: azonosito
           in: path
           required: true
@@ -2175,6 +2183,42 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /torzs/allergenek/{kiszereles}:
+    get:
+      tags: [keszlet]
+      operationId: torzsAllergenek
+      summary: Egy kiszereles allergenlistaja a receptjebol (1.28.0, C1.md D8)
+      description: |
+        Jog: `termek.megtekintes`. A recept-fan at (felkeszen is) szarmaztatva; a
+        recept `allergen_felulir` mezoje mindent visz. ⚠️ VAGY TELJES, VAGY NINCS:
+        ha akar egy anyag allergenje ismeretlen ("?"), az `allergenek` hianyzik, es
+        a `hianyzo` mondja meg, mit kell potolni.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: kiszereles
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '200':
+          description: A lista vagy a hianyzok
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllergenValasz'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /torzs/{tabla}/{azonosito}/{mezo}:
     put:
       tags: [keszlet]
@@ -2191,7 +2235,8 @@ paths:
           required: true
           schema:
             type: string
-            enum: [raktar, pult, anyag, recept, eszkoz_pult]
+            enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
+                   termek_modosito_csoport, menu_komponens, menu_opcio]
         - name: azonosito
           in: path
           required: true
@@ -2414,6 +2459,10 @@ paths:
                     items:
                       $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
                 additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -2460,6 +2509,10 @@ paths:
                   elfogyott:
                     type: boolean
                 additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -5181,6 +5234,23 @@ components:
           - recept: hozam (a gazda alapegysegeben; kiszerelesnel 1), tetelek
             ("anyagId=mennyiseg;..." - anyag szerint rendezve)
           - eszkoz_pult: nev (a gepe, csak olvashato), pult_id (ures = Fo raktar)
+        1.28.0-tol (C1.md):
+          - anyag.allergenek, recept.allergen_felulir: a 14 EU-allergen kodja
+            vesszovel, a rendelet sorrendjeben (GLUTEN,RAKFELEK,TOJAS,HAL,
+            FOLDIMOGYORO,SZOJA,TEJ,DIOFELEK,ZELLER,MUSTAR,SZEZAM,SZULFIT,
+            CSILLAGFURT,PUHATESTUEK); "" = nincs benne; "?" = ismeretlen (az
+            alapertek; a recepten = nincs felulirva)
+          - modosito_csoport: nev, min, max, ingyenes (ennyi darab ingyen),
+            ingyenes_sorrend (ELSO|LEGDRAGABB|LEGOLCSOBB), aktiv
+          - modosito: csoport_id, nev, tipus (HOZZAADO|LEVONO), ar (egesz Ft;
+            LEVONO-nal kedvezmenykent kulon sor), anyag_id (ures = nincs
+            keszlethatas), anyag_mennyiseg, max_db, aktiv
+          - termek_modosito_csoport: termek_id, csoport_id, min/max/ingyenes
+            (ures = a csoporte), sorrend, aktiv
+          - menu_komponens: kiszereles_id (a menu), nev, min, max, sorrend, aktiv
+          - menu_opcio: komponens_id, kiszereles_id (a valaszthato tetel), felar,
+            sorrend, aktiv
+        Torles nincs: a kapcsolat is az `aktiv` mezovel szunik meg.
       type: object
       required: [azonosito, ertekek]
       properties:
@@ -5195,6 +5265,35 @@ components:
           description: Csak a reszleteknel - mezonkent az O3-allapot.
           additionalProperties:
             $ref: '#/components/schemas/MezoAllapot'
+        nevek:
+          type: object
+          description: |
+            Csak a listaban (1.28.0): a hivatkozo mezok (…_id) celsoranak neve -
+            kiszerelesnel "Termek · Kiszereles". Olvasasra; nem irhato.
+          additionalProperties:
+            type: string
+      additionalProperties: false
+
+    AllergenValasz:
+      title: Egy kiszereles allergenjei (1.28.0)
+      type: object
+      required: [kiszereles, felulirva]
+      properties:
+        kiszereles:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        allergenek:
+          type: array
+          description: Kanonikus sorrendben; ures = nincs benne. Hianyzik, ha hianyos.
+          items:
+            type: string
+        hianyzo:
+          type: array
+          description: Az ismeretlen allergenu anyagok neve (vagy "(nincs recept)").
+          items:
+            type: string
+        felulirva:
+          type: boolean
+          description: A recepten kezzel megadott lista.
       additionalProperties: false
 
     TorzsLista:

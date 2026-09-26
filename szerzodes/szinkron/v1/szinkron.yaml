@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.16.0
+  version: 1.17.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -1248,7 +1248,8 @@ components:
             ⚠️ Ismeretlen tabla/mezo parost a telephely ELUTASITVA nyugtaz
             (ISMERETLEN_MEZO) - nem alkalmazza talalomra.
           enum: [kiszereles, termek, kategoria, raktar, pult, anyag, recept, eszkoz_pult,
-                 keszlet]
+                 keszlet, modosito_csoport, modosito, termek_modosito_csoport,
+                 menu_komponens, menu_opcio]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         mezo:
@@ -1429,7 +1430,9 @@ components:
           enum: [REKORD, MEZO_ERTEK]
         tabla:
           type: string
-          enum: [kategoria, termek, kiszereles, raktar, pult, anyag, recept, eszkoz_pult]
+          enum: [kategoria, termek, kiszereles, raktar, pult, anyag, recept, eszkoz_pult,
+                 modosito_csoport, modosito, termek_modosito_csoport, menu_komponens,
+                 menu_opcio]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tortent:
@@ -1440,8 +1443,7 @@ components:
             felkerult. A felho EHHEZ meri, hogy a cselekvonek volt-e joga.
         mezo:
           type: string
-          description: A leiro-alapu tablaknal (1.13.0) a leiras mezoi.
-          description: MEZO_ERTEK fajtanal kotelezo.
+          description: MEZO_ERTEK fajtanal kotelezo. A leiro-alapu tablaknal (1.13.0) a leiras mezoi.
         egeszErtek:
           allOf:
             - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'

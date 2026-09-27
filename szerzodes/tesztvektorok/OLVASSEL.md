@@ -19,3 +19,4 @@ változik — és akkor a változásnaplóba is bekerül.
 | `kerekites.json` | Készpénzes kerekítés öt forintra, a különbözettel |
 | `afa.json` | Áfa-visszaszámolás áfakulcs-csoportonként |
 | `sorosszeg.json` | Sorösszeg egész darabszámmal és tört mennyiséggel |
+| `menu.json` | A menü árának bontása a komponensekre (J9) és a módosító-csoport ingyenes kerete (G2.1) — két tömb: `menu`, `modosito` |

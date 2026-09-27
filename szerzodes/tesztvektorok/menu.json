@@ -1,0 +1,88 @@
+{
+  "leiras": "Menu es modosito (C1.md D3 D4 D15 - G2.1 G3.4 J9). A menu ara a valasztott komponens-kiszerelesek listaarainak ARANYABAN oszlik szet EGESZ FORINTOS egysegarakra - a maradek a legnagyobb komponense (holtversenyben a korabbie) - es a felar a szetosztas UTAN adodik a par egysegarahoz. A modosito-csoport ingyenes kerete (FreeLimit) DARABOKBAN szamol es csak a HOZZAADO darabokra vonatkozik.",
+  "miert_kozos": "A pult a kosarban a szerver valasza elott is kiirja a menu soronkenti arat es azt hogy melyik feltet ingyenes - degradalt modban a szerver nem is elerheto. Ha a pult mast mutat mint amit a szerver konyvel a vendeg a pult elott vitatja.",
+  "alak_menu": "listaarak es felarak: CSOVEL elvalasztva a valasztas sorrendjeben. egysegarak: ugyanigy.",
+  "alak_modosito": "valasztasok: 'kod:tipus:ar:db' CSOVEL (tipus H = hozzaado L = levono). eredmeny: 'kod:fizetett:ingyenes'.",
+  "menu": [
+    {
+      "nev": "EZ A LENYEG: aranyos bontas maradekkal es felarral",
+      "menuAr": "3490",
+      "listaarak": "1500|900|690",
+      "felarak": "0|0|390",
+      "egysegarak": "1695|1016|1169",
+      "megjegyzes": "3090 a listaarak osszege. 1694.17 -> 1694 / 1016.50 -> 1016 / 779.32 -> 779 = 3489 - a maradek 1 Ft a legnagyobb sulyu (1500) komponense. A 390 felar utana adodik: 779 + 390."
+    },
+    {
+      "nev": "Minden listaar nulla - egyenlo suly - a maradek a korabbie",
+      "menuAr": "1000",
+      "listaarak": "0|0|0",
+      "felarak": "0|0|0",
+      "egysegarak": "334|333|333"
+    },
+    {
+      "nev": "Egy komponens - az egesz menuar",
+      "menuAr": "2000",
+      "listaarak": "500",
+      "felarak": "0",
+      "egysegarak": "2000"
+    },
+    {
+      "nev": "Holtverseny - a korabbi kapja a maradekot",
+      "menuAr": "1001",
+      "listaarak": "500|500",
+      "felarak": "0|0",
+      "egysegarak": "501|500"
+    }
+  ],
+  "modosito": [
+    {
+      "nev": "EZ A LENYEG: ELSO - a valasztas sorrendje - a nulla forintos is fogyasztja a keretet",
+      "ingyenes": "2",
+      "sorrend": "ELSO",
+      "valasztasok": "A:H:0:1|B:H:300:1|C:H:400:1",
+      "eredmeny": "A:0:1|B:0:1|C:1:0"
+    },
+    {
+      "nev": "LEGDRAGABB - a dragabb ingyenes",
+      "ingyenes": "1",
+      "sorrend": "LEGDRAGABB",
+      "valasztasok": "A:H:300:1|B:H:400:1",
+      "eredmeny": "A:1:0|B:0:1"
+    },
+    {
+      "nev": "LEGOLCSOBB - az olcsobb ingyenes",
+      "ingyenes": "1",
+      "sorrend": "LEGOLCSOBB",
+      "valasztasok": "A:H:300:1|B:H:400:1",
+      "eredmeny": "A:0:1|B:1:0"
+    },
+    {
+      "nev": "Darabokban szamol - a 2x extra sajtbol egy ingyenes",
+      "ingyenes": "1",
+      "sorrend": "ELSO",
+      "valasztasok": "A:H:300:2|B:H:400:1",
+      "eredmeny": "A:1:1|B:1:0"
+    },
+    {
+      "nev": "A levono nem fogyasztja a keretet es nem ingyenes",
+      "ingyenes": "2",
+      "sorrend": "ELSO",
+      "valasztasok": "L:L:100:1|A:H:300:1",
+      "eredmeny": "L:1:0|A:0:1"
+    },
+    {
+      "nev": "Holtverseny az arban - a korabbi valasztas ingyenes",
+      "ingyenes": "1",
+      "sorrend": "LEGDRAGABB",
+      "valasztasok": "A:H:300:1|B:H:300:1",
+      "eredmeny": "A:0:1|B:1:0"
+    },
+    {
+      "nev": "Nincs keret - minden fizetos",
+      "ingyenes": "0",
+      "sorrend": "ELSO",
+      "valasztasok": "A:H:300:1|B:H:0:1",
+      "eredmeny": "A:1:0|B:1:0"
+    }
+  ]
+}

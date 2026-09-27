@@ -435,6 +435,15 @@ A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a tel
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
 
+### v1.18.0 — 2026-09-27 — *módosítók és menük a felküldött bizonylaton* `NEM TÖRŐ`
+
+* `BizonylatTartalom.tetelek[]`: `fajta`, `szulo`, `menuPeldany`, `modositok`;
+  `BizonylatTartalom.menuk`. Rendes tételnél és menü nélkül a mezők
+  **hiányoznak** — a régi bizonylatok lenyomata bitre azonos (a k2 teszt egy
+  rögzített lenyomattal őrzi).
+* A felhő riportjai a módosító- és kedvezménysort a **szülő termékénél**
+  számolják: a pénz odakerül, darabot nem ad.
+
 ### v1.17.0 — 2026-09-26 — *módosítók és menük a szinkronban* `NEM TÖRŐ`
 
 * A `tabla` felsorolás öt új táblával bővül (C1.md). Régi telephely az ismeretlen
@@ -1511,3 +1520,22 @@ szimmetrikus: kijuttatni valakit **sürgős** lehet, épp a kapcsolat nélküli
   a termeklista változás-jelzője megváltozik. A kiszolgáló az eladást nem tiltja.
 
 **Miért:** `KESZLET.md` S5 (K15).
+
+### v1.26.0 — 2026-09-27 — *módosítók és menük a pulton* `NEM TÖRŐ`
+
+* `/termekek`: `modositoCsoportok` (a csoportok a tagjaikkal); a tételen
+  `modositoCsoportok` (a hatályos hozzárendelés), `menu` (komponensek,
+  opciók, felár) és `allergenek` (csak ha teljes).
+* `UjTetel.modositok`, `UjTetel.menu` — a választás sorrendjében. Új 422-k:
+  `MODOSITO_NEM_ENGEDELYEZETT`, `MODOSITO_DARAB`, `MODOSITO_CSOPORT`,
+  `MODOSITO_KEDVEZMENY`, `MENU_MODOSITO`, `MENU_MENNYISEG`, `MENU_VALASZTAS`,
+  `MENU_OPCIO_ISMERETLEN`, `NEM_MENU`.
+* `Tetelsor.fajta` (`MODOSITO` / `KEDVEZMENY` / `MENU_KOMPONENS`; hiányzik =
+  rendes tétel), `szulo`, `menuPeldany`, `modositok`; `Rendeles.menuk`.
+* Törlés: a gyereksor a szülővel, a menükomponens az egész menüvel megy;
+  önmagában `GYEREKSOR_NEM_TOROLHETO`. Megosztás: a gyereksor a szülő
+  súlyaival oszlik (a kliens csak a szülőt osztja ki).
+* Közös tesztvektorok: `tesztvektorok/menu.json` (menübontás, ingyenes keret).
+
+**Miért:** `C1.md` C1-2 (G2, G3, J9). Régi pult a mezőket figyelmen kívül
+hagyja: módosító és menü nélkül továbbra is ad el.

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.25.0
+  version: 1.26.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1059,6 +1059,11 @@ paths:
         pontosan az a kar, amivel egy muszakot nyugtaadas nelkul le lehet
         vezetni.
 
+        1.26.0: a tetellel EGYUTT torlodnek a modosito- es kedvezmenysorai; a
+        menukomponens torlese az EGESZ menupeldanyt viszi (D6). A
+        modosito-/kedvezmenysor onmagaban nem torolheto (422
+        GYEREKSOR_NEM_TOROLHETO).
+
         A JOG ATTOL FUGG, ELMENT-E MAR A KONYHARA. A felutes utan tiz
         masodperccel torolt tetel elgepeles; a konyhara mar elkuldott tetel
         torlese fizetes elott a visszaeles mintaja - ket kulon dolog, ket
@@ -1416,6 +1421,15 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ErtekesithetoTetel'
+                  modositoCsoportok:
+                    type: array
+                    description: |
+                      Az aktiv modosito-csoportok az aktiv tagjaikkal (1.26.0,
+                      C1.md). A tetel a sajat hozzarendeleseit hordozza
+                      (ErtekesithetoTetel.modositoCsoportok); ez a lista a
+                      csoportok es a modositok adata. Ures lista eseten hianyzik.
+                    items:
+                      $ref: '#/components/schemas/ModositoCsoport'
                 additionalProperties: false
         '304':
           description: Nem valtozott
@@ -2545,6 +2559,197 @@ components:
             gombot. A KESZLET soha nem blokkol eladast - ez a jelzo igen, de csak a
             feluleten: a kiszolgalo nem utasitja el (a degradalt modban mar eladott
             tetel visszajatszasa nem bukhat el).
+        modositoCsoportok:
+          type: array
+          description: |
+            A termekhez rendelt aktiv csoportok (1.26.0), a sorrend szerint, a
+            HATALYOS min/max/ingyenes ertekkel (a hozzarendeles felulirhatja a
+            csoportet). Ha van min > 0, a tetel valasztas nelkul nem uthato fel.
+          items:
+            $ref: '#/components/schemas/CsoportHozzarendeles'
+        menu:
+          type: array
+          description: |
+            Ha nem ures, a kiszereles MENU (1.26.0, G3): a felutesnel minden
+            komponensbol a min..max szamu opciot kell valasztani. A menu a
+            rendelesen SZETROBBAN a komponenseire (Tetelsor.fajta =
+            MENU_KOMPONENS); az egysegarak a menu aranak aranyos, egesz forintos
+            resze + a par felara (J9, a kozos menu.json vektorok).
+          items:
+            $ref: '#/components/schemas/MenuKomponens'
+        allergenek:
+          type: array
+          description: |
+            A 14 EU-allergen kodja a receptbol (1.26.0, C1.md D8), a rendelet
+            sorrendjeben. HIANYZIK, ha a lista nem teljes (ismeretlen anyag, nincs
+            recept) - az "Allergen info" ilyenkor nem mondhat semmit.
+          items:
+            type: string
+      additionalProperties: false
+
+    ModositoCsoport:
+      title: Modosito-csoport (1.26.0)
+      type: object
+      required: [azonosito, nev, min, max, ingyenes, ingyenesSorrend, modositok]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        min:
+          type: integer
+        max:
+          type: integer
+        ingyenes:
+          type: integer
+          description: Ennyi HOZZAADO darab ingyenes (FreeLimit, G2.1).
+        ingyenesSorrend:
+          type: string
+          enum: [ELSO, LEGDRAGABB, LEGOLCSOBB]
+          description: Melyik darab ingyenes - a kozos menu.json vektorok szerint.
+        modositok:
+          type: array
+          items:
+            $ref: '#/components/schemas/Modosito'
+      additionalProperties: false
+
+    Modosito:
+      title: Modosito (1.26.0)
+      type: object
+      required: [azonosito, nev, tipus, ar, maxDb]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        tipus:
+          type: string
+          enum: [HOZZAADO, LEVONO]
+        ar:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: |
+            Egesz forint. 0 = szovegsor (G2.3). A LEVONO ara KEDVEZMENYKENT kerul
+            a rendelesre (negativ sor, G2.4).
+        maxDb:
+          type: integer
+      additionalProperties: false
+
+    CsoportHozzarendeles:
+      title: A csoport a tetelhez (1.26.0)
+      type: object
+      required: [csoport, min, max, ingyenes]
+      properties:
+        csoport:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        min:
+          type: integer
+        max:
+          type: integer
+        ingyenes:
+          type: integer
+      additionalProperties: false
+
+    MenuKomponens:
+      title: Menukomponens (1.26.0)
+      type: object
+      required: [azonosito, nev, min, max, opciok]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        min:
+          type: integer
+        max:
+          type: integer
+        opciok:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuOpcio'
+      additionalProperties: false
+
+    MenuOpcio:
+      title: Menuopcio (1.26.0)
+      type: object
+      required: [tetelAzonosito, felar]
+      properties:
+        tetelAzonosito:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: A valaszthato KISZERELES - a tetelek kozott megtalalhato.
+        felar:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+      additionalProperties: false
+
+    ModositoValasztas:
+      title: Valasztott modosito (1.26.0)
+      type: object
+      required: [modosito, db]
+      properties:
+        modosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        db:
+          type: integer
+          minimum: 1
+      additionalProperties: false
+
+    MenuValasztas:
+      title: Egy menukomponens valasztasa (1.26.0)
+      type: object
+      required: [komponens, tetelAzonosito]
+      properties:
+        komponens:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tetelAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        modositok:
+          type: array
+          description: A komponens termekenek modositoi (D5).
+          items:
+            $ref: '#/components/schemas/ModositoValasztas'
+      additionalProperties: false
+
+    TetelsorModosito:
+      title: Modosito a soron (1.26.0)
+      description: |
+        MINDEN valasztott modosito - az ingyenes es a nulla forintos is: ami a
+        soron van, az nyomtatodik (G2.2). Az aras, fizetett darabok kulon
+        tetelsorkent is megjelennek (MODOSITO / KEDVEZMENY).
+      type: object
+      required: [modosito, nev, tipus, db, fizetett, ingyenes, egysegar]
+      properties:
+        modosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        tipus:
+          type: string
+          enum: [HOZZAADO, LEVONO]
+        db:
+          type: integer
+        fizetett:
+          type: integer
+        ingyenes:
+          type: integer
+        egysegar:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+      additionalProperties: false
+
+    MenuPeldany:
+      title: A menu egy darabja (1.26.0)
+      description: A MENU_KOMPONENS sorok fejlece - a nyugtan szovegsor (G3.3).
+      type: object
+      required: [azonosito, tetelAzonosito, megnevezes, bruttoAr]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tetelAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        megnevezes:
+          type: string
+        bruttoAr:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
       additionalProperties: false
 
     UjTetel:
@@ -2574,6 +2779,27 @@ components:
           $ref: '../../kozos/penz.yaml#/components/schemas/Mennyiseg'
         eszkozIdo:
           $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+        modositok:
+          type: array
+          description: |
+            A valasztott modositok, A VALASZTAS SORRENDJEBEN (1.26.0) - az ELSO
+            ingyenes-sorrend ebbol dont. Csak a termekhez rendelt, aktiv csoportbol
+            (MODOSITO_NEM_ENGEDELYEZETT); darab 1..maxDb (MODOSITO_DARAB); a
+            csoport darabszama min..max (MODOSITO_CSOPORT); a levonas nem lehet
+            tobb a tetel aranal (MODOSITO_KEDVEZMENY). Menunel nem, csak a
+            komponensein (MENU_MODOSITO).
+          items:
+            $ref: '#/components/schemas/ModositoValasztas'
+        menu:
+          type: array
+          description: |
+            Menunel a komponensek valasztasa (1.26.0). Az "azonosito" ilyenkor a
+            MENUPELDANYE; a komponens-sorok azonositoja a kiszolgaloe. A menu
+            mennyisege 1 (MENU_MENNYISEG, D4); komponensenkent min..max opcio
+            (MENU_VALASZTAS); csak a komponens aktiv opcioja (MENU_OPCIO_ISMERETLEN).
+            Nem menu tetelnel 422 NEM_MENU.
+          items:
+            $ref: '#/components/schemas/MenuValasztas'
       additionalProperties: false
 
     Tetelsor:
@@ -2599,6 +2825,26 @@ components:
           $ref: '../../kozos/penz.yaml#/components/schemas/AfaKategoria'
         sorszam:
           $ref: '../../kozos/ido.yaml#/components/schemas/Sorszam'
+        fajta:
+          type: string
+          enum: [MODOSITO, KEDVEZMENY, MENU_KOMPONENS]
+          description: |
+            1.26.0. HIANYZIK = rendes tetel. MODOSITO: aras hozzaado a szulo alatt;
+            KEDVEZMENY: az aras levono NEGATIV sora a szulo alatt - a kassza
+            kedvezmenykent kuldi (negativ aru eladasi sor nincs, G2.4);
+            MENU_KOMPONENS: a menu szetrobbantott resze (menuPeldany).
+        szulo:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: A MODOSITO/KEDVEZMENY sor szuloje - vele egyutt torlodik es oszlik meg.
+        menuPeldany:
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: A MENU_KOMPONENS sor menupeldanya (Rendeles.menuk).
+        modositok:
+          type: array
+          items:
+            $ref: '#/components/schemas/TetelsorModosito'
       additionalProperties: false
 
     BizonylatMod:
@@ -2791,6 +3037,11 @@ components:
           $ref: '../../kozos/ido.yaml#/components/schemas/Sorszam'
         szerverIdo:
           $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+        menuk:
+          type: array
+          description: A rendelesen levo menupeldanyok (1.26.0); ures eseten hianyzik.
+          items:
+            $ref: '#/components/schemas/MenuPeldany'
       additionalProperties: false
 
     MegosztasKeres:

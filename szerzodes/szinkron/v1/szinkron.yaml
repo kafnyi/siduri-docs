@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.17.0
+  version: 1.18.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -594,6 +594,33 @@ components:
               epoch: {type: integer, format: int64}
               szamlalo: {type: integer, format: int64}
               eszkozIdo: {type: [string, "null"]}
+              fajta:
+                type: string
+                enum: [MODOSITO, KEDVEZMENY, MENU_KOMPONENS]
+                description: |
+                  (1.18.0, C1.md C1-2) HIANYZIK = rendes tetel. ⚠️ A hianyzo mezo a
+                  lenyomat resze: rendes tetelnel NEM szabad kiirni (se null-kent),
+                  kulonben minden korabbi bizonylat lenyomata megvaltozna.
+              szulo:
+                type: string
+                description: (1.18.0) A MODOSITO/KEDVEZMENY sor szuloje - a riport a szulo termekenel szamolja.
+              menuPeldany:
+                type: string
+                description: (1.18.0) A MENU_KOMPONENS sor menupeldanya (menuk).
+              modositok:
+                type: array
+                description: (1.18.0) A soron levo modositok - az ingyenes es a szoveges is. Uresen HIANYZIK.
+                items:
+                  type: object
+                  required: [modosito, nev, tipus, db, fizetett, ingyenes, egysegar]
+                  properties:
+                    modosito: {type: string}
+                    nev: {type: string}
+                    tipus: {type: string, enum: [HOZZAADO, LEVONO]}
+                    db: {type: integer}
+                    fizetett: {type: integer}
+                    ingyenes: {type: integer}
+                    egysegar: {type: integer, format: int64}
         torlesek:
           type: array
           description: A rendelesbol lezaras elott torolt tetelek - a csalasfelderites nyoma.
@@ -653,6 +680,20 @@ components:
               reszSorszam: {type: integer}
               suly: {type: integer, format: int64}
               osszeg: {type: integer, format: int64}
+        menuk:
+          type: array
+          description: |
+            (1.18.0) A menupeldanyok - a MENU_KOMPONENS sorok fejlece. Ha nincs
+            menu, HIANYZIK (nem ures lista): a lenyomat miatt.
+          items:
+            type: object
+            required: [azonosito, megnevezes, bruttoAr]
+            properties:
+              azonosito: {type: string}
+              kiszereles: {type: [string, "null"]}
+              termek: {type: [string, "null"]}
+              megnevezes: {type: string}
+              bruttoAr: {type: integer, format: int64}
 
     EladasValasz:
       title: Bizonylatonkenti kimenet

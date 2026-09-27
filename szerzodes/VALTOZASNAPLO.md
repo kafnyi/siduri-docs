@@ -1536,6 +1536,9 @@ szimmetrikus: kijuttatni valakit **sürgős** lehet, épp a kapcsolat nélküli
   önmagában `GYEREKSOR_NEM_TOROLHETO`. Megosztás: a gyereksor a szülő
   súlyaival oszlik (a kliens csak a szülőt osztja ki).
 * Közös tesztvektorok: `tesztvektorok/menu.json` (menübontás, ingyenes keret).
+* `Kiosztas.sorAzonosito` a menüpéldányé is lehet — a pult a menüt egy sorként osztja ki.
+* **Javítás:** `Tetelsor.tetelAzonosito` a **kiszerelés** (eddig tévesen a
+  termék ment ki; a pult emiatt a szerver sorából pótolta a tételt).
 
 **Miért:** `C1.md` C1-2 (G2, G3, J9). Régi pult a mezőket figyelmen kívül
 hagyja: módosító és menü nélkül továbbra is ad el.

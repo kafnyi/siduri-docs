@@ -2812,7 +2812,12 @@ components:
         azonosito:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tetelAzonosito:
-          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: |
+            A KISZERELES azonositoja, mint az UjTetel-ben. (1.26.0: a kiszolgalo
+            eddig tevesen a termeket kuldte - a pult ezert nem talalta a sort a
+            listaban, es a szerver sorabol potolt.)
         megnevezes:
           type: string
         mennyiseg:
@@ -3081,7 +3086,12 @@ components:
       required: [sorAzonosito, resz, suly]
       properties:
         sorAzonosito:
-          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          allOf:
+            - $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+          description: |
+            A tetelsor - vagy 1.26.0-tol a MENUPELDANY azonositoja: ilyenkor a
+            menu minden komponense ugyanezekkel a sulyokkal oszlik. A
+            modosito-/kedvezmenysort nem kell kiosztani: a szulojet koveti.
         resz:
           type: integer
           minimum: 1

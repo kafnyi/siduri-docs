@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.26.0
+  version: 1.27.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2585,6 +2585,23 @@ components:
             recept) - az "Allergen info" ilyenkor nem mondhat semmit.
           items:
             type: string
+        nyitottAr:
+          type: boolean
+          description: |
+            1.27.0 (C1.md C1-4). Igaz: a pult felutenkor BEKERI az arat
+            (UjTetel.bruttoAr). Hamisan hianyzik.
+        nyitottArMax:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: A nyitott ar felso korlatja (1.27.0); hianyzik = nincs korlat.
+        sulyraMert:
+          type: boolean
+          description: |
+            1.27.0. Igaz: a pult SULYT ker (kezi bevitel, tara); a mennyiseg a
+            netto suly. A merleg-illesztes kesobb, altalanos porton. Hamisan hianyzik.
+        tara:
+          type: string
+          description: Az alapertelmezett tara a mennyisegi egysegben (1.27.0); 0-nal hianyzik.
       additionalProperties: false
 
     ModositoCsoport:
@@ -2800,6 +2817,14 @@ components:
             Nem menu tetelnel 422 NEM_MENU.
           items:
             $ref: '#/components/schemas/MenuValasztas'
+        bruttoAr:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+          description: |
+            1.27.0: a NYITOTT ARU tetel ara, egesz forintban. Nyitott aru tetelnel
+            kotelezo (NYITOTT_AR_KELL), masnal tilos (NEM_NYITOTT_AR); a korlat
+            felett NYITOTT_AR_TUL_NAGY, negativan NYITOTT_AR_ERVENYTELEN. A menunek
+            nem lehet nyitott ara (MENU_NYITOTT_AR).
       additionalProperties: false
 
     Tetelsor:
@@ -2850,6 +2875,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TetelsorModosito'
+        nyitottAr:
+          type: boolean
+          description: A pult adta meg az arat (1.27.0); hamisan hianyzik.
       additionalProperties: false
 
     BizonylatMod:

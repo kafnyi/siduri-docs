@@ -43,6 +43,13 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.29.0 — 2026-09-28 — *nyitott ár és súlyra mért kiszerelés* `NEM TÖRŐ`
+
+* A `/torzs/{tabla}` új táblája: `kiszereles_beallitas` (az azonosító a
+  kiszerelésé): `nyitott_ar`, `nyitott_ar_max`, `sulyra_mert`, `tara`.
+* Új riport: **`NYITOTT_AR`** — nyitott árú eladások pultosonként és
+  termékenként (`riport.torlesi_arany` joggal, mint a törlések).
+
 ### v1.28.0 — 2026-09-26 — *módosítók, menük, allergének törzsadata* `NEM TÖRŐ`
 
 * A leíró-alapú `/torzs/{tabla}` öt új táblát kap (C1.md): `modosito_csoport`,
@@ -434,6 +441,11 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.19.0 — 2026-09-28 — *a nyitott ár nyoma* `NEM TÖRŐ`
+
+* `tabla`: `kiszereles_beallitas`. A felküldött tételen `nyitottAr: true` — csak
+  igazként, a régi lenyomat nem változik.
 
 ### v1.18.0 — 2026-09-27 — *módosítók és menük a felküldött bizonylaton* `NEM TÖRŐ`
 
@@ -1542,3 +1554,14 @@ szimmetrikus: kijuttatni valakit **sürgős** lehet, épp a kapcsolat nélküli
 
 **Miért:** `C1.md` C1-2 (G2, G3, J9). Régi pult a mezőket figyelmen kívül
 hagyja: módosító és menü nélkül továbbra is ad el.
+
+### v1.27.0 — 2026-09-28 — *nyitott ár és súly a pulton* `NEM TÖRŐ`
+
+* `ErtekesithetoTetel.nyitottAr`, `nyitottArMax`, `sulyraMert`, `tara`.
+* `UjTetel.bruttoAr` — a nyitott árú tétel ára. Új 422-k: `NYITOTT_AR_KELL`,
+  `NEM_NYITOTT_AR`, `NYITOTT_AR_TUL_NAGY`, `NYITOTT_AR_ERVENYTELEN`,
+  `MENU_NYITOTT_AR`.
+* `Tetelsor.nyitottAr`.
+
+**Miért:** `C1.md` C1-4 (N5). A súlyt a pult kézzel kéri be, tárával; a
+mérleg-illesztés később, általános porton.

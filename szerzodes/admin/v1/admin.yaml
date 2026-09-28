@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.28.0
+  version: 1.29.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2068,7 +2068,7 @@ paths:
           schema:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
-                   termek_modosito_csoport, menu_komponens, menu_opcio]
+                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas]
       responses:
         '200':
           description: A rekordok, csak az ertekekkel
@@ -2111,7 +2111,7 @@ paths:
           schema:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
-                   termek_modosito_csoport, menu_komponens, menu_opcio]
+                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas]
       requestBody:
         required: true
         content:
@@ -2154,7 +2154,7 @@ paths:
           schema:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
-                   termek_modosito_csoport, menu_komponens, menu_opcio]
+                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas]
         - name: azonosito
           in: path
           required: true
@@ -2236,7 +2236,7 @@ paths:
           schema:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
-                   termek_modosito_csoport, menu_komponens, menu_opcio]
+                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas]
         - name: azonosito
           in: path
           required: true
@@ -2726,7 +2726,8 @@ paths:
             type: string
             enum: [NAPI_FORGALOM, AFA_OSSZESITO, FIZETESI_MODOK, TERMEK_TOPLISTA, ORANKENT,
                    HET_NAPJAI, GEPENKENT, TELJESITESI_MOD, KOSARERTEK, KEDVEZMENYEK,
-                   TELEPHELYEK, PULTOSONKENT, TORLESEK, BORRAVALO, PULT_SZERINT, ARRES]
+                   TELEPHELYEK, PULTOSONKENT, TORLESEK, BORRAVALO, PULT_SZERINT, ARRES,
+                   NYITOTT_AR]
         - name: hatokor
           in: query
           required: false
@@ -5251,6 +5252,11 @@ components:
           - menu_opcio: komponens_id, kiszereles_id (a valaszthato tetel), felar,
             sorrend, aktiv
         Torles nincs: a kapcsolat is az `aktiv` mezovel szunik meg.
+        1.29.0-tol (C1.md C1-4):
+          - kiszereles_beallitas: az azonosito a KISZERELESE (mint a receptnel a
+            gazdae, HIANYZO_GAZDA); nyitott_ar ("true"/"false"), nyitott_ar_max (egesz
+            Ft, ures = nincs korlat), sulyra_mert, tara (a mennyisegi egysegben).
+            Jog: termek.modositas. Nincs sor = alapertekek.
       type: object
       required: [azonosito, ertekek]
       properties:

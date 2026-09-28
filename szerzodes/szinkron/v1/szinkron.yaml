@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.18.0
+  version: 1.19.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -621,6 +621,11 @@ components:
                     fizetett: {type: integer}
                     ingyenes: {type: integer}
                     egysegar: {type: integer, format: int64}
+              nyitottAr:
+                type: boolean
+                description: |
+                  (1.19.0) A pult adta meg az arat. CSAK IGAZKENT szerepel - a
+                  rogzitett aru tetel lenyomata nem valtozik.
         torlesek:
           type: array
           description: A rendelesbol lezaras elott torolt tetelek - a csalasfelderites nyoma.
@@ -1290,7 +1295,7 @@ components:
             (ISMERETLEN_MEZO) - nem alkalmazza talalomra.
           enum: [kiszereles, termek, kategoria, raktar, pult, anyag, recept, eszkoz_pult,
                  keszlet, modosito_csoport, modosito, termek_modosito_csoport,
-                 menu_komponens, menu_opcio]
+                 menu_komponens, menu_opcio, kiszereles_beallitas]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         mezo:
@@ -1473,7 +1478,7 @@ components:
           type: string
           enum: [kategoria, termek, kiszereles, raktar, pult, anyag, recept, eszkoz_pult,
                  modosito_csoport, modosito, termek_modosito_csoport, menu_komponens,
-                 menu_opcio]
+                 menu_opcio, kiszereles_beallitas]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tortent:

@@ -154,7 +154,7 @@ sem kell: a telephelyi szerver a riportokra 501-et ad.
 ✅ Az XLSX-export minden listás nézetben (`admin/1.18.0`,
 EXPORT_IMPORT 2.2/a). **Hátra belőle:** az M20/M21 mérés a telephelyi élesítés
 előtt, a PDF (külön döntés) és az import (külön munka). **Még
-döntés kell:** beállításszerkesztés. A **C1** (módosítók, menük, allergének) eldöntve: a törzsadat (C1-1), az eladás (C1-2) és a pult (C1-3) kész; hátra a pult élő próbája és a C1-4 (nyitott ár, súly) (`C1.md`). A kiszolgálótól jövő szövegek (hibaüzenetek, jogosultságnevek)
+döntés kell:** beállításszerkesztés. A **C1** (módosítók, menük, allergének) eldöntve: mind a négy szelet kész (C1-1–C1-4); hátra a pult élő próbája és a mérleg-illesztés (általános port, ha a típus megvan) (`C1.md`). A kiszolgálótól jövő szövegek (hibaüzenetek, jogosultságnevek)
 nyelvváltáskor magyarok maradnak.
 
 **A készlet** (`KESZLET.md`): az F5 mind a hat szelete kész (S1–S6). **Hátra:** a pult-kliens élő próbája (a személyzet-képernyővel és a Siduri néma belépésével együtt), a levonás-trigger J1900-mérése nagy rendelésnél, a lánc-szintű közös anyaglista (K1), a módosító- és menüválasztó élő próbája a pultnál (C1-3), a menükomponens módosítója a pulton (D23), a több ember által részletekben rögzített leltár (PDA).

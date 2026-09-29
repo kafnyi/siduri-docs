@@ -1,6 +1,6 @@
 # Siduri — konyha: fogások, konyhai jegy, KDS, előnyugta (F4)
 
-> **Státusz: a K1 (szerver) és a K2 (Ziggurat) KÉSZ, a K3 (pult) következik** *(2026-09-29)*. Az eldöntött
+> **Státusz: a K1 (szerver), a K2 (Ziggurat) és a K3 (pult) KÉSZ, a K4 (eseménycsatorna) következik** *(2026-09-29)*. Az eldöntött
 > szabályok: `NYITOTT_KERDESEK` N4 (fogások), L1.2 (a nem fiskális nyomtató
 > kiesése: átirányítás vagy kihagyás, a jegyet szóban kell pótolni),
 > `ESEMENYCSATORNA.md` (WebSocket, szívverés, pótlás/újratöltés), `UIUX_TERV`
@@ -37,6 +37,6 @@
 |---|---|---|
 | K1 | **Szerver**: állomások és irányítás, fogás a tételen, kiküldés (nyomtatással), következő fogás, előnyugta és „fizetésre vár", az események tárolása; `kassza/1.28.0`, `admin/1.30.0` | **kész** — 5 teszttel (rögzítő nyomtatóval), 8 mutációs próbával; `szinkron/1.20.0`, V47 / felhő V22 |
 | K2 | **Ziggurat**: állomások, kategória-hozzárendelés, a pult előnyugta-nyomtatója | **kész** — „Konyha" lap, a pult részleteiben az előnyugta nyomtatója; hu/en/de |
-| K3 | **Pult**: fogás a kosárban, „Konyhára", „Következő fogás", „Előnyugta", a nyomtatási hiba jelzése, „fizetésre vár" az asztalon | — |
+| K3 | **Pult**: fogás a kosárban, „Konyhára", „Következő fogás", „Előnyugta", a nyomtatási hiba jelzése, „fizetésre vár" az asztalon | **kész** — a felütés fogása ragadós (Azonnal / 1–4), a kosársoron a fogás és hogy elment-e; a HIBA-s jegy hanggal és piros sávval áll, amíg újra nem nyomtatják vagy „Szóban pótolva"; gyorseladásnál a lezárás után a `GET /rendelesek/{id}/konyha` (`kassza/1.29.0`) mondja meg; **élő próba a felhasználóé** |
 | K4 | **Eseménycsatorna** (WebSocket, szívverés, pótlás) + a KDS állapot- és „elkészült" végpontja + a KDS párosítása | — |
 | K5 | **Flutter KDS** (`siduri-flutter-clients`) | — |

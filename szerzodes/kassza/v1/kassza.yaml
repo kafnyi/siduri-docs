@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.28.0
+  version: 1.29.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1712,6 +1712,35 @@ paths:
           $ref: '#/components/responses/Hiba403'
         '422':
           $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/konyha:
+    get:
+      tags: [rendeles]
+      operationId: rendelesKonyhaiJegyei
+      summary: Egy rendeles konyhai jegyei (1.29.0)
+      description: |
+        Idorendben, a nyomtatas sorsaval. Gyorseladasnal a lezaras kuld ki
+        (D4), es a pult CSAK EBBOL tudja meg, hogy egy jegy HIBA lett - ilyenkor
+        hangosan jelez (szoban potolni) es ujranyomtatast kinal (D5).
+      parameters:
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+      responses:
+        '200':
+          description: A jegyek; ures, ha semmi nem ment ki
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KonyhaiKuldes'
+        '401':
+          $ref: '#/components/responses/Hiba401'
         default:
           $ref: '#/components/responses/Hiba'
 

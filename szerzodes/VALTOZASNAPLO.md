@@ -1576,6 +1576,12 @@ hagyja: módosító és menü nélkül továbbra is ad el.
 **Miért:** `C1.md` C1-4 (N5). A súlyt a pult kézzel kéri be, tárával; a
 mérleg-illesztés később, általános porton.
 
+### v1.29.0 — 2026-09-29 — *egy rendelés konyhai jegyei* `NEM TÖRŐ`
+
+* **`GET /rendelesek/{id}/konyha`** — a rendelés konyhai jegyei a nyomtatás
+  sorsával. Gyorseladásnál a lezárás küld ki, és a pult csak ebből tudja meg,
+  hogy egy jegy HIBA lett (KONYHA.md D5, K3).
+
 ### v1.28.0 — 2026-09-29 — *fogások, konyhai jegy, előnyugta* `NEM TÖRŐ`
 
 * `UjTetel.fogas`, `Tetelsor.fogas`, `Tetelsor.konyhara`,

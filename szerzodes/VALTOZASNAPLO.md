@@ -43,6 +43,11 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.30.0 — 2026-09-29 — *konyhai állomások* `NEM TÖRŐ`
+
+* A `/torzs/{tabla}` új táblái: `konyhai_allomas`, `allomas_kategoria`
+  (`konyha.allomas_kezeles`); a `pult` új mezője: `elonyugta_allomas_id`.
+
 ### v1.29.0 — 2026-09-28 — *nyitott ár és súlyra mért kiszerelés* `NEM TÖRŐ`
 
 * A `/torzs/{tabla}` új táblája: `kiszereles_beallitas` (az azonosító a
@@ -441,6 +446,11 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.20.0 — 2026-09-29 — *konyhai állomások* `NEM TÖRŐ`
+
+* `tabla`: `konyhai_allomas`, `allomas_kategoria`; a pult REKORD-ja az
+  `elonyugta_allomas_id` mezővel. Az állomás rangja a pult ELŐTT van.
 
 ### v1.19.0 — 2026-09-28 — *a nyitott ár nyoma* `NEM TÖRŐ`
 
@@ -1565,3 +1575,14 @@ hagyja: módosító és menü nélkül továbbra is ad el.
 
 **Miért:** `C1.md` C1-4 (N5). A súlyt a pult kézzel kéri be, tárával; a
 mérleg-illesztés később, általános porton.
+
+### v1.28.0 — 2026-09-29 — *fogások, konyhai jegy, előnyugta* `NEM TÖRŐ`
+
+* `UjTetel.fogas`, `Tetelsor.fogas`, `Tetelsor.konyhara`,
+  `Rendeles.aktualisFogas`, `Rendeles.fizetesreVar`, `Asztal.fizetesreVar`.
+* **`POST /rendelesek/{id}/konyhara`**, **`POST /rendelesek/{id}/fogas/kovetkezo`**
+  (`rendeles.fogas_inditas`), **`POST /konyha/kuldesek/{id}/ujranyomtatas`**,
+  **`POST /rendelesek/{id}/elonyugta`**. A szerver nyomtat (ESC/POS, CP852).
+* Új 422-k: `FOGAS_ERVENYTELEN`, `NINCS_TOVABBI_FOGAS`, `NINCS_ELONYUGTA_NYOMTATO`.
+
+**Miért:** `KONYHA.md` K1 (N4, L1.2).

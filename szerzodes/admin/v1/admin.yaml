@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.29.0
+  version: 1.30.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2068,7 +2068,8 @@ paths:
           schema:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
-                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas]
+                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas,
+                   konyhai_allomas, allomas_kategoria]
       responses:
         '200':
           description: A rekordok, csak az ertekekkel
@@ -2111,7 +2112,8 @@ paths:
           schema:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
-                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas]
+                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas,
+                   konyhai_allomas, allomas_kategoria]
       requestBody:
         required: true
         content:
@@ -2154,7 +2156,8 @@ paths:
           schema:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
-                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas]
+                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas,
+                   konyhai_allomas, allomas_kategoria]
         - name: azonosito
           in: path
           required: true
@@ -2236,7 +2239,8 @@ paths:
           schema:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
-                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas]
+                   termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas,
+                   konyhai_allomas, allomas_kategoria]
         - name: azonosito
           in: path
           required: true
@@ -5257,6 +5261,12 @@ components:
             gazdae, HIANYZO_GAZDA); nyitott_ar ("true"/"false"), nyitott_ar_max (egesz
             Ft, ures = nincs korlat), sulyra_mert, tara (a mennyisegi egysegben).
             Jog: termek.modositas. Nincs sor = alapertekek.
+        1.30.0-tol (KONYHA.md):
+          - konyhai_allomas: nev, nyomtato_cim ("host:port", ures = nem nyomtat), kds,
+            alapertelmezett (legfeljebb egy aktiv), aktiv. Jog: konyha.allomas_kezeles.
+          - allomas_kategoria: allomas_id, kategoria_id, aktiv - egy kategoria egy
+            allomas; a gyerekkategoria orokli.
+          - pult: + elonyugta_allomas_id (az elonyugta nyomtatoja).
       type: object
       required: [azonosito, ertekek]
       properties:

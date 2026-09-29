@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.27.0
+  version: 1.28.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1642,6 +1642,142 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /rendelesek/{rendelesAzonosito}/konyhara:
+    post:
+      tags: [rendeles]
+      operationId: konyharaKuld
+      summary: Kikuldes a konyhara az aktualis fogasig (1.28.0, KONYHA.md)
+      description: |
+        Minden meg el nem kuldott tetel az aktualis fogasig (a fogas nelkuliek
+        is) az allomasara megy: a termek kategoriajanak - vagy a legkozelebbi
+        szulojenek - allomasara, ha nincs, az alapertelmezettre, ha az sincs,
+        sehova (de kikuldottnek szamit). Allomasonkent egy jegy; a nyomtato az
+        allomase, a SZERVER nyomtat. Ha a nyomtato nem valaszol, a kikuldes
+        akkor is megtortenik, a jegy HIBA - a pult hangosan jelezze (szoban
+        potolni), es ujranyomtathato. A masodik hivas nem kuld semmit, ami mar
+        elment - ezert nincs idempotencia-kulcs. Gyorseladasnal a lezaras
+        magatol kikuld mindent (D4).
+      parameters:
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+      responses:
+        '200':
+          description: A kuldesek, a visszatartott tetelek szama es a rendeles
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KikuldesValasz'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/fogas/kovetkezo:
+    post:
+      tags: [rendeles]
+      operationId: kovetkezoFogas
+      summary: A kovetkezo fogas inditasa es kikuldese (1.28.0, N4)
+      description: |
+        Jog: rendeles.fogas_inditas. A kovetkezo LETEZO (meg el nem kuldott)
+        fogasra lep, es kikuldi. Ha nincs tobb: 422 NINCS_TOVABBI_FOGAS.
+      parameters:
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+      responses:
+        '200':
+          description: Mint a kikuldesnel
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KikuldesValasz'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /konyha/kuldesek/{kuldesAzonosito}/ujranyomtatas:
+    post:
+      tags: [rendeles]
+      operationId: kuldestUjranyomtat
+      summary: Egy konyhai jegy ujranyomtatasa (1.28.0)
+      parameters:
+        - name: kuldesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+      responses:
+        '200':
+          description: A kuldes a nyomtatas uj sorsaval
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KonyhaiKuldes'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/elonyugta:
+    post:
+      tags: [rendeles]
+      operationId: elonyugta
+      summary: Elonyugta nyomtatasa (1.28.0, KONYHA.md D6)
+      description: |
+        A gep pultjahoz rendelt elonyugta-nyomtatora, "NEM ADOUGYI BIZONYLAT"
+        felirattal (422 NINCS_ELONYUGTA_NYOMTATO, ha nincs). CSAK HA
+        KINYOMTATTUK, lesz a rendeles "fizetesre var". Az ismetles uj peldanyt
+        nyomtat.
+      parameters:
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+      responses:
+        '200':
+          description: Kinyomtatta-e, es a rendeles
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElonyugtaValasz'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /rendelesek/{rendelesAzonosito}/lezaras:
     post:
       tags: [rendeles, bizonylat]
@@ -2825,6 +2961,13 @@ components:
             kotelezo (NYITOTT_AR_KELL), masnal tilos (NEM_NYITOTT_AR); a korlat
             felett NYITOTT_AR_TUL_NAGY, negativan NYITOTT_AR_ERVENYTELEN. A menunek
             nem lehet nyitott ara (MENU_NYITOTT_AR).
+        fogas:
+          type: integer
+          minimum: 1
+          maximum: 9
+          description: |
+            1.28.0 (KONYHA.md D3): a fogas. Hianyzik = azonnal megy. A menu
+            komponensei es a modosito-sorok oroklik. 1-9 kozott (FOGAS_ERVENYTELEN).
       additionalProperties: false
 
     Tetelsor:
@@ -2878,6 +3021,12 @@ components:
         nyitottAr:
           type: boolean
           description: A pult adta meg az arat (1.27.0); hamisan hianyzik.
+        fogas:
+          type: integer
+          description: A tetel fogasa (1.28.0); hianyzik = azonnal megy.
+        konyhara:
+          type: boolean
+          description: Elment-e mar a konyhara (1.28.0); hamisan hianyzik.
       additionalProperties: false
 
     BizonylatMod:
@@ -3019,6 +3168,64 @@ components:
           description: >
             A 24 oras korlat (H6.5) kozeledtérol, emberi mondatban. NULL, ha
             nincs mire figyelmeztetni - a zaj elvenne a jelzes erejet.
+        fizetesreVar:
+          type: boolean
+          description: Az asztal rendelese fizetesre var (1.28.0); hamisan hianyzik.
+      additionalProperties: false
+
+    KonyhaiKuldes:
+      title: Egy konyhai jegy (1.28.0)
+      type: object
+      required: [azonosito, allomas, allomasNev, fogas, tetelek, nyomtatas]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        allomas:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        allomasNev:
+          type: string
+        fogas:
+          type: integer
+        tetelek:
+          type: integer
+          description: Hany tetelsor ment ezen a jegyen.
+        nyomtatas:
+          type: string
+          enum: [VAR, KINYOMTATVA, HIBA, NINCS]
+          description: NINCS = az allomas nem nyomtat (csak KDS). HIBA = szoban potolni!
+        hiba:
+          type: string
+      additionalProperties: false
+
+    KikuldesValasz:
+      title: A kikuldes eredmenye (1.28.0)
+      type: object
+      required: [kuldesek, visszatartott, aktualisFogas, rendeles]
+      properties:
+        kuldesek:
+          type: array
+          items:
+            $ref: '#/components/schemas/KonyhaiKuldes'
+        visszatartott:
+          type: integer
+          description: A kesobbi fogasra varo tetelek szama ("jon, de meg ne kezdd").
+        aktualisFogas:
+          type: integer
+        rendeles:
+          $ref: '#/components/schemas/Rendeles'
+      additionalProperties: false
+
+    ElonyugtaValasz:
+      title: Az elonyugta eredmenye (1.28.0)
+      type: object
+      required: [kinyomtatva, rendeles]
+      properties:
+        kinyomtatva:
+          type: boolean
+        hiba:
+          type: string
+        rendeles:
+          $ref: '#/components/schemas/Rendeles'
       additionalProperties: false
 
     VendegszamKeres:
@@ -3075,6 +3282,15 @@ components:
           description: A rendelesen levo menupeldanyok (1.26.0); ures eseten hianyzik.
           items:
             $ref: '#/components/schemas/MenuPeldany'
+        aktualisFogas:
+          type: integer
+          description: Az aktualis fogas (1.28.0, KONYHA.md D3) - 1-rol indul.
+        fizetesreVar:
+          type: boolean
+          description: |
+            1.28.0 (D6): van elonyugta, es azota nem jott uj tetel, nem is
+            toroltek. SZAMOLT allapot - uj tetelnel magatol visszavalt. Hamisan
+            hianyzik.
       additionalProperties: false
 
     MegosztasKeres:

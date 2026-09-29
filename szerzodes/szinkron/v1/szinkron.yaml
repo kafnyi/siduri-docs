@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.19.0
+  version: 1.20.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -1295,7 +1295,8 @@ components:
             (ISMERETLEN_MEZO) - nem alkalmazza talalomra.
           enum: [kiszereles, termek, kategoria, raktar, pult, anyag, recept, eszkoz_pult,
                  keszlet, modosito_csoport, modosito, termek_modosito_csoport,
-                 menu_komponens, menu_opcio, kiszereles_beallitas]
+                 menu_komponens, menu_opcio, kiszereles_beallitas, konyhai_allomas,
+                 allomas_kategoria]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         mezo:
@@ -1478,7 +1479,7 @@ components:
           type: string
           enum: [kategoria, termek, kiszereles, raktar, pult, anyag, recept, eszkoz_pult,
                  modosito_csoport, modosito, termek_modosito_csoport, menu_komponens,
-                 menu_opcio, kiszereles_beallitas]
+                 menu_opcio, kiszereles_beallitas, konyhai_allomas, allomas_kategoria]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tortent:

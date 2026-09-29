@@ -92,11 +92,11 @@ v1.06 letöltése és feldolgozása KÓDOLÁS ELŐTT.**
 | # | Hátra | Tény |
 |---|---|---|
 | 1 | Asztaltérkép-szerkesztő | — |
-| 2 | Fogások | sémában 5 nyom, kódban 1 |
-| 3 | Módosítók | kódban **nulla** |
-| 4 | Menük | kódban **nulla** |
+| 2 | Fogások | ✅ szerver (`KONYHA.md` K1); a pult és a vékonykliens hátra |
+| 3 | Módosítók | ✅ kész (`C1.md`) |
+| 4 | Menük | ✅ kész (`C1.md`) |
 | 5 | KDS, rendeléskijelző | kódban **nulla** |
-| 6 | Előnyugta, „fizetésre vár" | kódban **nulla** |
+| 6 | Előnyugta, „fizetésre vár" | ✅ szerver (`KONYHA.md` K1); a pult hátra |
 | 7 | Vékonykliens (Flutter) | a repó **üres** |
 | 8 | Nyomtatási routing, eszközszám-tartományok | — |
 | 9 | **Eseménycsatorna** | az üzenetalakok a szerződésben megvannak, **kiszolgáló oldali megvalósítás nincs**; `M23` mérendő |

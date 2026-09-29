@@ -1,6 +1,6 @@
 # Siduri — asztali műveletek (F2 #3 + a konyhai törlés)
 
-> **Státusz: a szerver kész (A1–A3), a pult (A4) következik** *(2026-09-29)*. A nyolc művelet, amelyik a
+> **Státusz: A1–A5 KÉSZ** — az élő próba (pult, KDS-tablet) a felhasználóé *(2026-09-29)*. A nyolc művelet, amelyik a
 > jogosultsági katalógusban megvan, de végpontja nincs (`JogosultsagSoprasTest`
 > kivétellistája), és a konyhára már kiküldött tétel törlése (`KONYHA.md` 4.).
 
@@ -45,8 +45,8 @@
 | A1 | **Szerver**: közös írási kapu (L1), mennyiségmódosítás, konyhai törlés (TÖRÖLVE jegy, `JEGY_VALTOZOTT`) | **kész** — `kassza/1.31.0`, V48; a konyha utáni csökkentés a törlési mutatóban és a felhőben is; 10 mutációs próba |
 | A2 | **Szerver**: áthelyezés, összevonás, tételenkénti átrakás | **kész** — `kassza/1.32.0`, V49 (`OSSZEVONVA`); a kettévágott, már kiküldött sor a konyhai jegyen is kettéválik (a konyha ugyanannyit készít); 3 végponti teszt, 7 mutációs próba |
 | A3 | **Szerver**: kézi ár, tételkedvezmény, nem fizetett lezárás, műszakátadás, fióknyitás | **kész** — `kassza/1.33.0`, V50–V51 (a készletrobbantás közös függvényben); a sweep-teszt „végpont nélküli" listája kiürült; 11 mutációs próba |
-| A4 | **Pult**: mindez a kosárban és az asztalnál | — |
-| A5 | **KDS**: a `JEGY_VALTOZOTT`, az áthúzott tétel | — |
+| A4 | **Pult**: mindez a kosárban és az asztalnál | **kész** — a kosársor kijelölhető, alatta a sor műveletei (Törlés, Mennyiség, Átrakás, Kedv. %, Kedv. Ft, Kézi ár); az asztalnál Áthelyezés, Összevonás, Nem fizetett; a fejlécben Fiók és Átadás. Előbb az indok, aztán — ha a jog hiányzik — a helyszíni jóváhagyás; a TÖRÖLVE jegy sorsa a hibalistába kerül. ⚠️ A pulton eddig **egyáltalán nem volt tételtörlés** (a kliens metódusa megvolt, gomb nem). A fiókot ma csak a naplózó eszköz „nyitja" — a valódi illesztő az F0.1 után |
+| A5 | **KDS**: a `JEGY_VALTOZOTT`, az áthúzott tétel | **kész** — a törölt tétel áthúzva, a részleges „−n törölve"; a módosult jegy 2 percig „MÓDOSULT — nézze át!" |
 
 ## 5. Kimondott hiányok *(a szerver után)*
 

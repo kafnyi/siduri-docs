@@ -66,7 +66,7 @@ teszt · audit · PIN/RFID · valuta és árfolyam.
 |---|---|---|
 | 1 | Gyártóspecifikus fiskális illesztő | `F0.1` blokkolja |
 | 2 | Eszközregisztráció | Éles telepítéshez kell |
-| 3 | **Hét művelet végpont nélkül** | `ar.kezi_felulriras`, `kedvezmeny.tetel`, `tetel.mennyiseg_modositas`, `rendeles.athelyezes`, `rendeles.osszevonas`, `rendeles.nem_fizetett_lezaras`, `muszak.atadas`, `kassza.fiok_nyitas_eladas_nelkul` *(a söprési kivétellistáról)* |
+| 3 | ~~Hét művelet végpont nélkül~~ | ✅ **kész** (`ASZTALI_MUVELETEK.md`, `kassza/1.31.0`–`1.33.0`): mind a nyolc — a söprési kivétellista „végpont nélküli" tétele kiürült; élő próba a pultnál hátra |
 
 ---
 

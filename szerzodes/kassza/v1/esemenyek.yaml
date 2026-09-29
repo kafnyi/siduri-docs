@@ -12,6 +12,21 @@
 #   Az esemenycsatorna SOHA nem az igazsag egyetlen forrasa. Aki lemaradt,
 #   annak teljes allapotot kell tudnia kerni. Egy elveszett esemeny nemán rossz
 #   kepernyot hagy maga utan, es a szakacs a rossz kepernyorol foz.
+#
+# A CSATORNA (kassza/1.30.0, KONYHA.md K4): ws(s)://<szerver>/kassza/v1/esemenyek
+#   ?allomas=<azonosito>  - csak ennek az allomasnak az esemenyei (es a
+#                           mindenkinek szolok); nelkule minden.
+#   Fejlec: Siduri-Eszkoz, mint a keres-valasz uton (5.4).
+#   1. a kliens LEKERI a teljes allapotot (GET /konyha/allomasok/{a}/jegyek),
+#   2. megnyitja a csatornat, es elkuldi az UjracsatlakozasKeres-t a kapott
+#      sorszammal,
+#   3. UjracsatlakozasValasz (a `dontes` mezorol ismerheto fel) - POTLAS utan
+#      a hianyzo esemenyek, UJRATOLTES utan az 1. lepes ujra,
+#   4. masodpercenkent SZIVVERES; 5 mp csend = a csatorna ELAVULT, es ez LATSZIK.
+#   A szerver egy 30 mp-es ablakot ujrakuld (a kesve veglegesitett esemenyek
+#   miatt): a kliens a sorszam szerint dedupl, a tartalmat azonosito szerint
+#   irja felul. Puffer (E2): 500 esemeny; afelett UJRATOLTES.
+#   A TETELSOR_ERKEZETT es a TETELSOR_ELKESZULT tartalma: kassza.yaml KdsJegy.
 $id: https://szerzodes.siduri.mythsystem.hu/kassza/v1/esemenyek.yaml
 
 components:

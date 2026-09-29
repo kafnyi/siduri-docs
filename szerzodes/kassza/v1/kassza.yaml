@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.29.0
+  version: 1.30.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -41,6 +41,8 @@ tags:
     description: Nyitas, tetelfelvetel, lezaras
   - name: bizonylat
     description: A lezaras utani adougyi ut
+  - name: konyha
+    description: A KDS - allomasok, allapot, elkeszult (1.30.0)
 
 paths:
   /nap/nyitas:
@@ -1744,6 +1746,103 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /konyha/allomasok:
+    get:
+      tags: [konyha]
+      operationId: konyhaiAllomasok
+      summary: Az aktiv konyhai allomasok - a KDS ebbol valaszt (1.30.0, KONYHA.md K4)
+      description: |
+        A KDS PAROSITASA: a kijelzo egyszer kivalasztja, melyik allomast
+        mutatja, es megjegyzi. A KDS eszkozkent dolgozik, felhasznalo nelkul.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+      responses:
+        '200':
+          description: Az allomasok nev szerint
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KdsAllomas'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /konyha/allomasok/{allomasAzonosito}/jegyek:
+    get:
+      tags: [konyha]
+      operationId: kdsAllapot
+      summary: Egy allomas KDS-allapota (1.30.0, ESEMENYCSATORNA 2/a)
+      description: |
+        A TELJES ALLAPOT, a csatornatol fuggetlenul: ami keszul, es ami az
+        utolso 15 percben keszult el (a felrebokes visszavonhato); 12 oranal
+        regebbi jegy nem jon. A `sorszam` az, ameddig az allapot igaz - a
+        kliens ezzel nyitja a csatornat (UjracsatlakozasKeres), es ami kozben
+        jott, megerkezik.
+      parameters:
+        - name: allomasAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+      responses:
+        '200':
+          description: A jegyek idorendben
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KdsAllapot'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /konyha/kuldesek/{kuldesAzonosito}/elkeszult:
+    post:
+      tags: [konyha]
+      operationId: jegyElkeszult
+      summary: A jegy elkeszult - vagy visszavonva (1.30.0)
+      description: |
+        Az egesz jegy egyszerre (a konyha jegyenkent bok le). `elkeszult:
+        false` visszavonja a felrebokest. TETELSOR_ELKESZULT esemenyt ad a
+        csatornan, hogy az allomas tobbi kijelzoje is lassa.
+      parameters:
+        - name: kuldesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElkeszultKeres'
+      responses:
+        '200':
+          description: A jegy uj allapota
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KdsJegy'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /konyha/kuldesek/{kuldesAzonosito}/ujranyomtatas:
     post:
       tags: [rendeles]
@@ -3200,6 +3299,92 @@ components:
         fizetesreVar:
           type: boolean
           description: Az asztal rendelese fizetesre var (1.28.0); hamisan hianyzik.
+      additionalProperties: false
+
+    KdsAllomas:
+      title: Egy konyhai allomas a KDS-nek (1.30.0)
+      type: object
+      required: [azonosito, nev, kds]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        kds:
+          type: boolean
+          description: Van-e kijelzoje (a csak nyomtato allomas is valaszthato).
+      additionalProperties: false
+
+    KdsTetel:
+      title: Egy tetel a KDS-jegyen (1.30.0)
+      type: object
+      required: [tetelsor, megnevezes, mennyiseg, modositok]
+      properties:
+        tetelsor:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        megnevezes:
+          type: string
+        mennyiseg:
+          type: string
+          description: Szoveg, pont a tizedesjel (I1) - "1", "0.35".
+        menu:
+          type: string
+          description: A menu neve, ha a tetel menukomponens.
+        modositok:
+          type: array
+          items:
+            type: string
+          description: '"+ bacon", "- hagyma", "2x extra sajt".'
+      additionalProperties: false
+
+    KdsJegy:
+      title: Egy konyhai jegy a KDS-en (1.30.0)
+      description: |
+        UGYANEZ megy a TETELSOR_ERKEZETT es a TETELSOR_ELKESZULT esemeny
+        tartalmaban is (E1: a KDS-nel a teljes objektum). A kliens azonosito
+        szerint felulir - a ketszer kapott esemeny artalmatlan.
+      type: object
+      required: [azonosito, rendeles, fogas, letrehozva, elkeszult, tetelek]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        rendeles:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        asztal:
+          type: string
+          description: Az asztal szama; gyorseladasnal hianyzik.
+        fogas:
+          type: integer
+        letrehozva:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+        elkeszult:
+          type: boolean
+        tetelek:
+          type: array
+          items:
+            $ref: '#/components/schemas/KdsTetel'
+      additionalProperties: false
+
+    KdsAllapot:
+      title: Egy allomas teljes KDS-allapota (1.30.0)
+      type: object
+      required: [sorszam, jegyek]
+      properties:
+        sorszam:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Sorszam'
+        jegyek:
+          type: array
+          items:
+            $ref: '#/components/schemas/KdsJegy'
+      additionalProperties: false
+
+    ElkeszultKeres:
+      title: Elkeszult-e a jegy (1.30.0)
+      type: object
+      properties:
+        elkeszult:
+          type: boolean
+          default: true
       additionalProperties: false
 
     KonyhaiKuldes:

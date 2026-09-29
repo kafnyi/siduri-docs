@@ -1576,6 +1576,17 @@ hagyja: módosító és menü nélkül továbbra is ad el.
 **Miért:** `C1.md` C1-4 (N5). A súlyt a pult kézzel kéri be, tárával; a
 mérleg-illesztés később, általános porton.
 
+### v1.30.0 — 2026-09-29 — *a KDS és az eseménycsatorna* `NEM TÖRŐ`
+
+* **A csatorna megépült**: `ws(s)://<szerver>/kassza/v1/esemenyek?allomas=` —
+  pótlás / újratöltés, másodpercenkénti szívverés (`esemenyek.yaml` fejléce).
+* **`GET /konyha/allomasok`** (a KDS párosítása), **`GET
+  /konyha/allomasok/{id}/jegyek`** (a teljes állapot a sorszámmal), **`POST
+  /konyha/kuldesek/{id}/elkeszult`** (visszavonható).
+* A `TETELSOR_ERKEZETT` és a `TETELSOR_ELKESZULT` tartalma a `KdsJegy`.
+  ⚠️ A 1.28.0-s `TETELSOR_ERKEZETT` tartalma más volt (a mennyiség szám) —
+  kliens még nem olvasta, ezért nem törő.
+
 ### v1.29.0 — 2026-09-29 — *egy rendelés konyhai jegyei* `NEM TÖRŐ`
 
 * **`GET /rendelesek/{id}/konyha`** — a rendelés konyhai jegyei a nyomtatás

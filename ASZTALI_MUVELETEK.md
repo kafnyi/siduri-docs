@@ -1,6 +1,6 @@
 # Siduri — asztali műveletek (F2 #3 + a konyhai törlés)
 
-> **Státusz: az A1 és az A2 KÉSZ, az A3 következik** *(2026-09-29)*. A nyolc művelet, amelyik a
+> **Státusz: a szerver kész (A1–A3), a pult (A4) következik** *(2026-09-29)*. A nyolc művelet, amelyik a
 > jogosultsági katalógusban megvan, de végpontja nincs (`JogosultsagSoprasTest`
 > kivétellistája), és a konyhára már kiküldött tétel törlése (`KONYHA.md` 4.).
 
@@ -44,6 +44,16 @@
 |---|---|---|
 | A1 | **Szerver**: közös írási kapu (L1), mennyiségmódosítás, konyhai törlés (TÖRÖLVE jegy, `JEGY_VALTOZOTT`) | **kész** — `kassza/1.31.0`, V48; a konyha utáni csökkentés a törlési mutatóban és a felhőben is; 10 mutációs próba |
 | A2 | **Szerver**: áthelyezés, összevonás, tételenkénti átrakás | **kész** — `kassza/1.32.0`, V49 (`OSSZEVONVA`); a kettévágott, már kiküldött sor a konyhai jegyen is kettéválik (a konyha ugyanannyit készít); 3 végponti teszt, 7 mutációs próba |
-| A3 | **Szerver**: kézi ár, tételkedvezmény, nem fizetett lezárás, műszakátadás, fióknyitás | — |
+| A3 | **Szerver**: kézi ár, tételkedvezmény, nem fizetett lezárás, műszakátadás, fióknyitás | **kész** — `kassza/1.33.0`, V50–V51 (a készletrobbantás közös függvényben); a sweep-teszt „végpont nélküli" listája kiürült; 11 mutációs próba |
 | A4 | **Pult**: mindez a kosárban és az asztalnál | — |
 | A5 | **KDS**: a `JEGY_VALTOZOTT`, az áthúzott tétel | — |
+
+## 5. Kimondott hiányok *(a szerver után)*
+
+| Hiány | Ára, ha marad |
+|---|---|
+| **A nem fizetett lezárás a felhős riportban nem látszik** — nincs bizonylat, ami felmenne; ma csak a biztonsági audit és a készletmozgás (`NEM_FIZETETT`) őrzi | a „gyanús minta" nézet (N2.c) ezt még nem tudja összevetni; egy felküldési szelet kell hozzá |
+| **NTAK: a nem fizetett rendelés jelentése** | az F3 előtt el kell dönteni (a térítésmentes átadás jelentendő-e, és hogyan) |
+| **Az átrakott, már kiküldött tétel jegye a régi asztalon marad** (D7) | a pincér tudja, a konyha a régi asztalszámot látja |
+| **A kézi ár és a tételkedvezmény riportja** (hány tétel, ki, mennyi) | a jelzők felmennek (`arfelulirva`, KEDVEZMENY sor) — a riport még nincs megírva |
+

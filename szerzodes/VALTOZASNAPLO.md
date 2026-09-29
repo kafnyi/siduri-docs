@@ -1576,6 +1576,19 @@ hagyja: módosító és menü nélkül továbbra is ad el.
 **Miért:** `C1.md` C1-4 (N5). A súlyt a pult kézzel kéri be, tárával; a
 mérleg-illesztés később, általános porton.
 
+### v1.33.0 — 2026-09-29 — *kézi ár, tételkedvezmény, nem fizetett lezárás, műszakátadás, fióknyitás* `NEM TÖRŐ`
+
+* **`POST /rendelesek/{id}/tetelek/{t}/ar`** (`ar.kezi_felulriras`),
+  **`POST /rendelesek/{id}/tetelek/{t}/kedvezmeny`** (`kedvezmeny.tetel`),
+  **`POST /rendelesek/{id}/nem-fizetett-lezaras`** (`rendeles.nem_fizetett_lezaras`),
+  **`POST /muszak/atadas`** (`muszak.atadas`), **`POST /kassza/fioknyitas`**
+  (`kassza.fiok_nyitas_eladas_nelkul`) — ASZTALI_MUVELETEK D8–D12. Mind a
+  nyolc „végpont nélküli" jog megépült.
+* `Rendeles.allapot`: **`NEM_FIZETETT`**; a műszaknyitás válasza:
+  `atadasiElteres` (csak a nem vakzárónak).
+* Új hibakódok: `NEM_ARAZHATO`, `TETELKEDVEZMENY_VAN`, `AR_ERVENYTELEN`,
+  `KEDVEZMENY_ERVENYTELEN`, `KEDVEZMENY_TUL_NAGY`.
+
 ### v1.32.0 — 2026-09-29 — *áthelyezés, összevonás, átrakás* `NEM TÖRŐ`
 
 * **`POST /rendelesek/{id}/athelyezes`** (`rendeles.athelyezes`),

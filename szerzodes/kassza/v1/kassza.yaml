@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.32.0
+  version: 1.33.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -181,6 +181,14 @@ paths:
                 properties:
                   muszak:
                     $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+                  atadasiElteres:
+                    type: integer
+                    format: int64
+                    description: |
+                      1.33.0 (ASZTALI_MUVELETEK D11): ha az eszkoz elozo muszaka
+                      ATADVA zarult - a nyito osszeg MINUSZ az atado szamolt
+                      osszege. Csak annak jon, aki a muszakosszesitot latja
+                      (kulonben a vakzaras masik iranybol szivarogna ki).
         '403':
           description: Nincs jogosultsag.
           content:
@@ -241,6 +249,84 @@ paths:
             application/json:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /muszak/atadas:
+    post:
+      operationId: muszakotAtad
+      summary: Muszakatadas (1.33.0, ASZTALI_MUVELETEK D11)
+      description: |
+        Jog: muszak.atadas (a zaras joga helyett). Ugyanaz, mint a zaras - a
+        vakzaras szabalyaival -, de ATADVA jelolessel: a gep kovetkezo nyitasa
+        ezt az osszeget varja, az atvevo maga szamol, es az elteres az O
+        nyitasan latszik (MuszakNyitas.atadasiElteres).
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MuszakZarasKeres'
+      responses:
+        '200':
+          description: Mint a zarasnal - vakzarasnal az osszegmezok HIANYOZNAK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MuszakZarasValasz'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /kassza/fioknyitas:
+    post:
+      operationId: fiokotNyit
+      summary: Fioknyitas eladas nelkul (1.33.0, D12)
+      description: |
+        Jog: kassza.fiok_nyitas_eladas_nelkul (egyszeri felhatalmazassal is);
+        FIOKNYITAS indok kotelezo; biztonsagi audit. A szerver engedelyez, A
+        PULT NYITJA a fiokot. Soha nem lehet nyomkovetetlen fiokkivet (M9.c).
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FioknyitasKeres'
+      responses:
+        '200':
+          description: Engedelyezve - a pult nyithatja a fiokot
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [engedelyezve, vezetoiJovahagyassal]
+                properties:
+                  engedelyezve:
+                    type: boolean
+                  vezetoiJovahagyassal:
+                    type: boolean
+                additionalProperties: false
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
 
   /kezelok:
     get:
@@ -1691,6 +1777,122 @@ paths:
         default:
           $ref: '#/components/responses/Hiba'
 
+  /rendelesek/{rendelesAzonosito}/tetelek/{tetelsorAzonosito}/ar:
+    post:
+      tags: [rendeles]
+      operationId: kezilegAraz
+      summary: Kezi ar egy tetelen (1.33.0, D8)
+      description: |
+        Jog: ar.kezi_felulriras (egyszeri felhatalmazassal is); ARFELULIRAS
+        indok kotelezo. Egyszeru es nyitott aru tetelen; menukomponensen,
+        gyereksoron 422 NEM_ARAZHATO; tetelkedvezmenyes soron 422
+        TETELKEDVEZMENY_VAN (elobb azt kell levenni). Negativ ar, vagy a
+        modositokkal nulla ala: 422 AR_ERVENYTELEN. A sor arfelulirva jelolest
+        kap, az eredeti ar a biztonsagi auditban. Asztalnal a verzio kotelezo.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - name: tetelsorAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeziArKeres'
+      responses:
+        '200':
+          $ref: '#/components/responses/Rendeles'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/tetelek/{tetelsorAzonosito}/kedvezmeny:
+    post:
+      tags: [rendeles]
+      operationId: tetelKedvezmeny
+      summary: Tetelkedvezmeny (1.33.0, D9)
+      description: |
+        Jog: kedvezmeny.tetel, a kuszob felett kedvezmeny.kuszob_felett is (egy
+        helyszini jovahagyassal, ha csak egy hianyzik) es KEDVEZMENY indok. A
+        tetel alatti KEDVEZMENY sor, mint a levono modosítoe; soronkent egy, az
+        uj felulirja, a nulla leveszi. Nagyobb a tetel aranal: 422
+        KEDVEZMENY_TUL_NAGY; ervenytelen: 422 KEDVEZMENY_ERVENYTELEN.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - name: tetelsorAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TetelKedvezmenyKeres'
+      responses:
+        '200':
+          $ref: '#/components/responses/Rendeles'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/nem-fizetett-lezaras:
+    post:
+      tags: [rendeles]
+      operationId: nemFizetettLezaras
+      summary: Lezaras fizetes nelkul (1.33.0, D10)
+      description: |
+        Jog: rendeles.nem_fizetett_lezaras (egyszeri felhatalmazassal is);
+        NEM_FIZETETT_LEZARAS indok kotelezo. BIZONYLAT NINCS (nem adougyi
+        esemeny), a keszlet levonodik (fajta NEM_FIZETETT), a biztonsagi audit
+        rogziti az osszeget. A rendeles NEM_FIZETETT, az asztal felszabadul.
+        Asztalnal a verzio kotelezo. NTAK: a jelentes modja nyitott (F3 elott).
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+        - $ref: '#/components/parameters/RendelesAzonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NemFizetettKeres'
+      responses:
+        '200':
+          $ref: '#/components/responses/Rendeles'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /rendelesek/{rendelesAzonosito}/vendegszam:
     post:
       tags: [rendeles]
@@ -2751,6 +2953,83 @@ components:
           description: 1.31.0 - a rendeles verzioja; nem kotelezo, de ha jon, ellenorzott.
       additionalProperties: false
 
+    KeziArKeres:
+      title: Kezi ar (1.33.0)
+      type: object
+      required: [bruttoAr, eszkozIdo]
+      properties:
+        bruttoAr:
+          $ref: '../../kozos/penz.yaml#/components/schemas/Osszeg'
+        verzio:
+          type: integer
+          format: int64
+        indokKod:
+          type: string
+        indokSzoveg:
+          type: string
+        felhatalmazas:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    TetelKedvezmenyKeres:
+      title: Tetelkedvezmeny (1.33.0)
+      type: object
+      required: [tipus, ertek, eszkozIdo]
+      properties:
+        tipus:
+          type: string
+          enum: [SZAZALEKOS, FIX]
+        ertek:
+          type: string
+          description: SZAZALEKOS - 0..100 ("12.5"); FIX - egesz forint ("300"). "0" = leveszi.
+        verzio:
+          type: integer
+          format: int64
+        indokKod:
+          type: string
+        indokSzoveg:
+          type: string
+        felhatalmazas:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    NemFizetettKeres:
+      title: Nem fizetett lezaras (1.33.0)
+      type: object
+      required: [eszkozIdo]
+      properties:
+        verzio:
+          type: integer
+          format: int64
+        indokKod:
+          type: string
+        indokSzoveg:
+          type: string
+        felhatalmazas:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    FioknyitasKeres:
+      title: Fioknyitas (1.33.0)
+      type: object
+      required: [eszkozIdo]
+      properties:
+        indokKod:
+          type: string
+        indokSzoveg:
+          type: string
+        felhatalmazas:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
     AthelyezesKeres:
       title: Athelyezes (1.32.0)
       type: object
@@ -3764,10 +4043,11 @@ components:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         allapot:
           type: string
-          enum: [NYITOTT, LEZART, SZTORNOZOTT, OSSZEVONVA]
+          enum: [NYITOTT, LEZART, SZTORNOZOTT, OSSZEVONVA, NEM_FIZETETT]
           description: |
             1.32.0 - OSSZEVONVA: a tartalma egy masik rendelesbe ment
-            (osszevonas, vagy minden tetele atrakva); ures hej.
+            (osszevonas, vagy minden tetele atrakva); ures hej. 1.33.0 -
+            NEM_FIZETETT: fizetes nelkul lezarva, indokkal (bizonylat nincs).
         teljesitesMod:
           $ref: '#/components/schemas/TeljesitesMod'
         asztalAzonosito:

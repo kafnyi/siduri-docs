@@ -92,14 +92,14 @@ v1.06 letöltése és feldolgozása KÓDOLÁS ELŐTT.**
 | # | Hátra | Tény |
 |---|---|---|
 | 1 | Asztaltérkép-szerkesztő | — |
-| 2 | Fogások | ✅ szerver (`KONYHA.md` K1); a pult és a vékonykliens hátra |
+| 2 | Fogások | ✅ kész — szerver, pult (`KONYHA.md` K1, K3) |
 | 3 | Módosítók | ✅ kész (`C1.md`) |
 | 4 | Menük | ✅ kész (`C1.md`) |
-| 5 | KDS, rendeléskijelző | kódban **nulla** |
-| 6 | Előnyugta, „fizetésre vár" | ✅ szerver (`KONYHA.md` K1); a pult hátra |
-| 7 | Vékonykliens (Flutter) | a repó **üres** |
-| 8 | Nyomtatási routing, eszközszám-tartományok | — |
-| 9 | **Eseménycsatorna** | az üzenetalakok a szerződésben megvannak, **kiszolgáló oldali megvalósítás nincs**; `M23` mérendő |
+| 5 | KDS, rendeléskijelző | ✅ **KDS kész** (`KONYHA.md` K4–K5; élő próba tableten hátra); a **rendeléskijelző hátra** |
+| 6 | Előnyugta, „fizetésre vár" | ✅ kész — szerver, Ziggurat, pult (`KONYHA.md` K1–K3) |
+| 7 | Vékonykliens (Flutter) | ✅ az első: a KDS (`siduri-flutter-clients/kds`); PDA, standoló hátra |
+| 8 | Nyomtatási routing, eszközszám-tartományok | ✅ konyhai routing (kategória → állomás, `KONYHA.md` D2); eszközszám-tartományok hátra |
+| 9 | **Eseménycsatorna** | ✅ kész (`KONYHA.md` K4, `kassza/1.30.0`); `M23` (natív kép) mérendő |
 
 **Kapu:** **`M13`** — és ez a kapu az **F6** felé.
 

@@ -1,6 +1,6 @@
 # Siduri — konyha: fogások, konyhai jegy, KDS, előnyugta (F4)
 
-> **Státusz: a K1–K4 KÉSZ (szerver, Ziggurat, pult, eseménycsatorna), a K5 (Flutter KDS) következik** *(2026-09-29)*. Az eldöntött
+> **Státusz: a K1–K5 KÉSZ** — az élő próba (nyomtató, pult, tablet) a felhasználóé *(2026-09-29)*. Az eldöntött
 > szabályok: `NYITOTT_KERDESEK` N4 (fogások), L1.2 (a nem fiskális nyomtató
 > kiesése: átirányítás vagy kihagyás, a jegyet szóban kell pótolni),
 > `ESEMENYCSATORNA.md` (WebSocket, szívverés, pótlás/újratöltés), `UIUX_TERV`
@@ -44,7 +44,7 @@
 | K2 | **Ziggurat**: állomások, kategória-hozzárendelés, a pult előnyugta-nyomtatója | **kész** — „Konyha" lap, a pult részleteiben az előnyugta nyomtatója; hu/en/de |
 | K3 | **Pult**: fogás a kosárban, „Konyhára", „Következő fogás", „Előnyugta", a nyomtatási hiba jelzése, „fizetésre vár" az asztalon | **kész** — a felütés fogása ragadós (Azonnal / 1–4), a kosársoron a fogás és hogy elment-e; a HIBA-s jegy hanggal és piros sávval áll, amíg újra nem nyomtatják vagy „Szóban pótolva"; gyorseladásnál a lezárás után a `GET /rendelesek/{id}/konyha` (`kassza/1.29.0`) mondja meg; **élő próba a felhasználóé** |
 | K4 | **Eseménycsatorna** (WebSocket, szívverés, pótlás) + a KDS állapot- és „elkészült" végpontja + a KDS párosítása | **kész** — `ws://…/kassza/v1/esemenyek?allomas=`, `kassza/1.30.0`; 5 teszt (4 valódi WebSocketen), 8 mutációs próba |
-| K5 | **Flutter KDS** (`siduri-flutter-clients`) | — |
+| K5 | **Flutter KDS** (`siduri-flutter-clients`) | **kész** — `kds/`: párosítás, teljes állapot + csatorna, látható „NEM FRISS", érintésre kész, 15 percig visszavonható; 14 teszt (a kapcsolat valódi WebSocketen, hamis szerverrel), 8 mutációs próba, **élő próba a valódi telephelyi szerverrel** (esemény és szívverés megérkezett) |
 
 ## 4. Kimondott hiányok *(a K4 után)*
 

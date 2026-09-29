@@ -1,6 +1,6 @@
 # Siduri — asztali műveletek (F2 #3 + a konyhai törlés)
 
-> **Státusz: terv, az A1 következik** *(2026-09-29)*. A nyolc művelet, amelyik a
+> **Státusz: az A1 KÉSZ, az A2 következik** *(2026-09-29)*. A nyolc művelet, amelyik a
 > jogosultsági katalógusban megvan, de végpontja nincs (`JogosultsagSoprasTest`
 > kivétellistája), és a konyhára már kiküldött tétel törlése (`KONYHA.md` 4.).
 
@@ -30,7 +30,7 @@
 | D3 | **Növelés** a konyha előtt ugyanazon a soron, a felütéskori áron; **a konyha után növelni nem lehet** (új felütés kell: a konyhának új jegy kell). **Csökkentés** a konyha után = részleges törlés: `tetel.torles_kuldes_utan` + sztornóindok + TÖRÖLVE jegy a különbségről. Mindig kell a `tetel.mennyiseg_modositas` | — |
 | D4 | **TÖRÖLVE jegy** az eredeti állomásra (nagy fejléc, asztal, tétel, mennyiség); a KDS-en az eredeti jegyen a tétel **áthúzva**, új **`JEGY_VALTOZOTT`** eseménnyel. A nyomtatási hiba ugyanúgy HIBA + újranyomtatás | új eseménytípus a szerződésben |
 | D5 | **Áthelyezés**: egész rendelés **szabad** asztalra (foglaltra: összevonás, külön jog); a nyitott KDS-jegyek az új asztalszámot mutatják (`JEGY_VALTOZOTT`) | — |
-| D6 | **Összevonás**: a forrás aktív tételei (menüpéldánnyal, konyhai jeggyel) a célba kerülnek; a forrás **`OSSZEVONVA`** állapotú lesz (hova ment), a vendégszám összeadódik, a cél előnyugtája érvényét veszti, az aktuális fogás a nagyobb. Mindkét verzió kell | a forrás törölt tételei a forráson maradnak (a törlési riport így személyhez és asztalhoz kötött) |
+| D6 | **Összevonás**: a forrás **minden** tétele (a törölteké és a törlési bejegyzéseké is, menüpéldánnyal, konyhai jeggyel) a célba kerül; a forrás **`OSSZEVONVA`** állapotú üres héj lesz (hova ment), a vendégszám összeadódik, a cél előnyugtája érvényét veszti, az aktuális fogás a nagyobb. Mindkét verzió kell. ⚠️ **A törléseknek is menniük kell**: a forrásnak soha nem lesz bizonylata, és a felhőbe a törlés a bizonylattal megy fel — ha maradna, az összevonás a törlések eltüntetésének útja lenne | — |
 | D7 | **Tételenkénti átrakás** másik asztalra (ha szabad, ott új rendelés nyílik az átrakó nevén); a tétel a gyerekeivel, a menü egészben; egyszerű tételnél **részmennyiség** is (a sor kettéválik, ugyanazon az áron). Jog: `rendeles.athelyezes` (külön kód nincs) | a már kiküldött tétel jegye a régi asztalon marad — a konyha már főzi, a pincér viszi át |
 | D8 | **Kézi ár** egyszerű tételen és nyitott árún (nem menükomponens, nem gyereksor); `ar.kezi_felulriras` + `ARFELULIRAS` indok, egyszeri felhatalmazással is; a sor **`arfelulirva`** jelölést kap, az eredeti ár a biztonsági auditban | a menü ára nem írható át (a szétosztás a listaárakra épül) |
 | D9 | **Tételkedvezmény** = a tétel alatti **KEDVEZMENY sor** (mint a levonó módosítóé), százalék vagy fix, soronként egy (az új felülírja, a 0 leveszi); `kedvezmeny.tetel`, a küszöb fölött `kedvezmeny.kuszob_felett` + `KEDVEZMENY` indok. A végösszeg-kedvezmény a tételkedvezmények utáni összegre számol | menün nincs tételkedvezmény |
@@ -42,7 +42,7 @@
 
 | # | Szelet | Állapot |
 |---|---|---|
-| A1 | **Szerver**: közös írási kapu (L1), mennyiségmódosítás, konyhai törlés (TÖRÖLVE jegy, `JEGY_VALTOZOTT`) | — |
+| A1 | **Szerver**: közös írási kapu (L1), mennyiségmódosítás, konyhai törlés (TÖRÖLVE jegy, `JEGY_VALTOZOTT`) | **kész** — `kassza/1.31.0`, V48; a konyha utáni csökkentés a törlési mutatóban és a felhőben is; 10 mutációs próba |
 | A2 | **Szerver**: áthelyezés, összevonás, tételenkénti átrakás | — |
 | A3 | **Szerver**: kézi ár, tételkedvezmény, nem fizetett lezárás, műszakátadás, fióknyitás | — |
 | A4 | **Pult**: mindez a kosárban és az asztalnál | — |

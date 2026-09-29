@@ -26,7 +26,8 @@
 #   A szerver egy 30 mp-es ablakot ujrakuld (a kesve veglegesitett esemenyek
 #   miatt): a kliens a sorszam szerint dedupl, a tartalmat azonosito szerint
 #   irja felul. Puffer (E2): 500 esemeny; afelett UJRATOLTES.
-#   A TETELSOR_ERKEZETT es a TETELSOR_ELKESZULT tartalma: kassza.yaml KdsJegy.
+#   A TETELSOR_ERKEZETT, a TETELSOR_ELKESZULT es a JEGY_VALTOZOTT (1.31.0: a
+#   jegy tartalma valtozott, pl. torles utan) tartalma: kassza.yaml KdsJegy.
 $id: https://szerzodes.siduri.mythsystem.hu/kassza/v1/esemenyek.yaml
 
 components:
@@ -87,6 +88,7 @@ components:
         - BIZONYLAT_LEZARULT
         - ASZTAL_VALTOZOTT
         - UZEMMOD_VALTOZOTT
+        - JEGY_VALTOZOTT
 
     Szivveres:
       title: Szivveres

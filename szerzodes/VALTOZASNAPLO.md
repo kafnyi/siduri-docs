@@ -1576,6 +1576,18 @@ hagyja: módosító és menü nélkül továbbra is ad el.
 **Miért:** `C1.md` C1-4 (N5). A súlyt a pult kézzel kéri be, tárával; a
 mérleg-illesztés később, általános porton.
 
+### v1.31.0 — 2026-09-29 — *tételtörlés a konyha után, mennyiségmódosítás* `NEM TÖRŐ`
+
+* **`POST /rendelesek/{id}/tetelek/{t}/mennyiseg`** (`tetel.mennyiseg_modositas`,
+  ASZTALI_MUVELETEK D2–D3); új 422-k: `MENNYISEG_NEM_MODOSITHATO`,
+  `MENNYISEG_ERVENYTELEN`, `NOVELES_KIKULDES_UTAN`.
+* A tételtörlés a közös írási kapun megy: **409 `MEGOSZTAS_FOLYAMATBAN`**
+  (a megosztás közbeni törlés eddig némán inkonzisztens részeket hagyott),
+  opcionális `verzio`; a válasz asztalnál az új verziót hozza. Az `indokKod` a
+  konyha előtt nem kötelező (a szerver eddig is így kezelte).
+* A konyhára kiküldött tétel törlése „TÖRÖLVE" jegyet ad: `KonyhaiKuldes.fajta`
+  (`KULDES`/`TORLES`), `KdsTetel.torolt`, új esemény: **`JEGY_VALTOZOTT`**.
+
 ### v1.30.0 — 2026-09-29 — *a KDS és az eseménycsatorna* `NEM TÖRŐ`
 
 * **A csatorna megépült**: `ws(s)://<szerver>/kassza/v1/esemenyek?allomas=` —

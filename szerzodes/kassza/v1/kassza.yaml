@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.30.0
+  version: 1.31.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1070,6 +1070,14 @@ paths:
         masodperccel torolt tetel elgepeles; a konyhara mar elkuldott tetel
         torlese fizetes elott a visszaeles mintaja - ket kulon dolog, ket
         kulon jog.
+
+        1.31.0 (ASZTALI_MUVELETEK D1, D4): a kozos irasi kapun megy - nyitott
+        megosztasnal 409 MEGOSZTAS_FOLYAMATBAN, mas pincer asztala, 24 ora; a
+        `verzio` NEM kotelezo (egy megnevezett sorra szol), de ha jon,
+        ellenorzott. A valasz asztalnal az uj verziot hozza. A konyhara mar
+        kikuldott tetelrol "TOROLVE" jegy megy az allomasra (a KDS athuzza) -
+        a nyomtatas sorsat a GET /rendelesek/{id}/konyha mondja meg (fajta:
+        TORLES).
       parameters:
         - $ref: '#/components/parameters/Eszkoz'
         - $ref: '#/components/parameters/Epoch'
@@ -1101,11 +1109,59 @@ paths:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
         '409':
-          description: A rendeles mar nem nyitott, vagy a tetelsor mar torolve van.
+          description: A rendeles mar nem nyitott, a tetelsor mar torolve van, vagy a rendeles meg van osztva.
           content:
             application/json:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/tetelek/{tetelsorAzonosito}/mennyiseg:
+    post:
+      tags: [rendeles]
+      operationId: mennyisegetModosit
+      summary: Egy egyszeru tetel mennyisegenek modositasa (1.31.0, ASZTALI_MUVELETEK D2-D3)
+      description: |
+        Jog: tetel.mennyiseg_modositas. Csak egyszeru tetelen (nem menu, nincs
+        modosito- vagy kedvezmenysora; kulonben 422 MENNYISEG_NEM_MODOSITHATO).
+        NOVELES a konyha elott ugyanazon a soron, a felutéskori aron; a konyha
+        utan 422 NOVELES_KIKULDES_UTAN (uj felutes kell - a konyhanak uj jegy).
+        CSOKKENTES a konyha utan = reszleges torles: tetel.torles_kuldes_utan,
+        SZTORNO indok kotelezo, "TOROLVE" jegy a kulonbsegrol, es a torlesi
+        mutatoban is ott van. Nulla vagy negativ: 422 MENNYISEG_ERVENYTELEN (a
+        nulla a torles). A kiadott elonyugta ervenyet veszti. Asztalnal a
+        verzio kotelezo.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+        - name: rendelesAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: tetelsorAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MennyisegKeres'
+      responses:
+        '200':
+          $ref: '#/components/responses/Rendeles'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
 
   /bizonylatok/szam/{siduriBizonylatszam}:
     get:
@@ -2547,13 +2603,40 @@ components:
 
     IndokolasKeres:
       type: object
-      required: [indokKod, eszkozIdo]
+      required: [eszkozIdo]
       properties:
         indokKod:
           type: string
+          description: A konyhara mar kikuldott tetelnel kotelezo (INDOK_SZUKSEGES), elotte nem.
         indokSzoveg:
           type: string
           description: Kotelezo, ha az indokkod szabadSzovegKotelezo jelzoje igaz.
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+        verzio:
+          type: integer
+          format: int64
+          description: 1.31.0 - a rendeles verzioja; nem kotelezo, de ha jon, ellenorzott.
+      additionalProperties: false
+
+    MennyisegKeres:
+      title: Mennyisegmodositas (1.31.0)
+      type: object
+      required: [mennyiseg, eszkozIdo]
+      properties:
+        mennyiseg:
+          allOf:
+            - $ref: '../../kozos/penz.yaml#/components/schemas/Mennyiseg'
+          description: Az UJ mennyiseg, szovegkent, pont a tizedesjel.
+        verzio:
+          type: integer
+          format: int64
+          description: Asztalnal kotelezo (HIANYZO_VERZIO).
+        indokKod:
+          type: string
+          description: A konyha utani csokkentesnel kotelezo (SZTORNO keszlet).
+        indokSzoveg:
+          type: string
         eszkozIdo:
           $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
       additionalProperties: false
@@ -3335,6 +3418,11 @@ components:
           items:
             type: string
           description: '"+ bacon", "- hagyma", "2x extra sajt".'
+        torolt:
+          type: string
+          description: |
+            1.31.0 - a konyha utan torolt mennyiseg (a KDS athuzza); hianyzik, ha
+            nem volt. A `mennyiseg` ilyenkor a MEG elkeszitendo (teljes torlesnel "0").
       additionalProperties: false
 
     KdsJegy:
@@ -3407,6 +3495,10 @@ components:
           type: string
           enum: [VAR, KINYOMTATVA, HIBA, NINCS]
           description: NINCS = az allomas nem nyomtat (csak KDS). HIBA = szoban potolni!
+        fajta:
+          type: string
+          enum: [KULDES, TORLES]
+          description: 1.31.0 - TORLES = "TOROLVE" jegy (ASZTALI_MUVELETEK D4); a tetelek szama a torolt soroke.
         hiba:
           type: string
       additionalProperties: false

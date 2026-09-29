@@ -1576,6 +1576,17 @@ hagyja: módosító és menü nélkül továbbra is ad el.
 **Miért:** `C1.md` C1-4 (N5). A súlyt a pult kézzel kéri be, tárával; a
 mérleg-illesztés később, általános porton.
 
+### v1.32.0 — 2026-09-29 — *áthelyezés, összevonás, átrakás* `NEM TÖRŐ`
+
+* **`POST /rendelesek/{id}/athelyezes`** (`rendeles.athelyezes`),
+  **`POST /rendelesek/{id}/osszevonas`** (`rendeles.osszevonas`),
+  **`POST /rendelesek/{id}/atrakas`** (`rendeles.athelyezes`) —
+  ASZTALI_MUVELETEK D5–D7.
+* `Rendeles.allapot` új értéke: **`OSSZEVONVA`** (üres héj; a kliens a
+  mezőt szövegként olvassa, ezért nem törő).
+* Új hibakódok: `NEM_ASZTALOS`, `ONMAGABA_NEM_VONHATO`, `NINCS_ATRAKANDO`,
+  `UGYANAZ_AZ_ASZTAL`, `GYEREKSOR_NEM_RAKHATO_AT`.
+
 ### v1.31.0 — 2026-09-29 — *tételtörlés a konyha után, mennyiségmódosítás* `NEM TÖRŐ`
 
 * **`POST /rendelesek/{id}/tetelek/{t}/mennyiseg`** (`tetel.mennyiseg_modositas`,

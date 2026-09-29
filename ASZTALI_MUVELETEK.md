@@ -1,6 +1,6 @@
 # Siduri — asztali műveletek (F2 #3 + a konyhai törlés)
 
-> **Státusz: az A1 KÉSZ, az A2 következik** *(2026-09-29)*. A nyolc művelet, amelyik a
+> **Státusz: az A1 és az A2 KÉSZ, az A3 következik** *(2026-09-29)*. A nyolc művelet, amelyik a
 > jogosultsági katalógusban megvan, de végpontja nincs (`JogosultsagSoprasTest`
 > kivétellistája), és a konyhára már kiküldött tétel törlése (`KONYHA.md` 4.).
 
@@ -43,7 +43,7 @@
 | # | Szelet | Állapot |
 |---|---|---|
 | A1 | **Szerver**: közös írási kapu (L1), mennyiségmódosítás, konyhai törlés (TÖRÖLVE jegy, `JEGY_VALTOZOTT`) | **kész** — `kassza/1.31.0`, V48; a konyha utáni csökkentés a törlési mutatóban és a felhőben is; 10 mutációs próba |
-| A2 | **Szerver**: áthelyezés, összevonás, tételenkénti átrakás | — |
+| A2 | **Szerver**: áthelyezés, összevonás, tételenkénti átrakás | **kész** — `kassza/1.32.0`, V49 (`OSSZEVONVA`); a kettévágott, már kiküldött sor a konyhai jegyen is kettéválik (a konyha ugyanannyit készít); 3 végponti teszt, 7 mutációs próba |
 | A3 | **Szerver**: kézi ár, tételkedvezmény, nem fizetett lezárás, műszakátadás, fióknyitás | — |
 | A4 | **Pult**: mindez a kosárban és az asztalnál | — |
 | A5 | **KDS**: a `JEGY_VALTOZOTT`, az áthúzott tétel | — |

@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.31.0
+  version: 1.32.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1559,6 +1559,138 @@ paths:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
+  /rendelesek/{rendelesAzonosito}/athelyezes:
+    post:
+      tags: [rendeles]
+      operationId: rendelestAthelyez
+      summary: Az egesz rendeles szabad asztalra (1.32.0, ASZTALI_MUVELETEK D5)
+      description: |
+        Jog: rendeles.athelyezes. A kozos irasi kapun megy (megosztas, mas
+        pincer asztala, 24 ora, verzio). Foglalt asztalra 409
+        ASZTAL_MAR_FOGLALT - ott osszevonas kell (kulon jog). Gyorseladas nem
+        helyezheto at (422 NEM_ASZTALOS). A KDS-jegyek az uj asztalszamot
+        mutatjak (JEGY_VALTOZOTT).
+      parameters:
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AthelyezesKeres'
+      responses:
+        '200':
+          $ref: '#/components/responses/Rendeles'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          description: Nincs ilyen aktiv asztal, vagy a tetel nincs a rendelesen.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/osszevonas:
+    post:
+      tags: [rendeles]
+      operationId: rendeleseketOsszevon
+      summary: Egy masik rendeles osszevonasa EBBE (1.32.0, D6)
+      description: |
+        Jog: rendeles.osszevonas. A forras MINDEN tetele - a torolteke es a
+        torlesi bejegyzeseke is, menupeldannyal, konyhai jeggyel - ide kerul;
+        a forras OSSZEVONVA allapotu ures hej lesz. A vendegszam osszeadodik, az
+        elonyugta ervenyet veszti, az aktualis fogas a nagyobb. Mindket verzio
+        kell. Onmagaba 422 ONMAGABA_NEM_VONHATO.
+      parameters:
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OsszevonasKeres'
+      responses:
+        '200':
+          $ref: '#/components/responses/Rendeles'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          description: Nincs ilyen aktiv asztal, vagy a tetel nincs a rendelesen.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /rendelesek/{rendelesAzonosito}/atrakas:
+    post:
+      tags: [rendeles]
+      operationId: teteleketAtrak
+      summary: Kijelolt tetelek masik asztalra (1.32.0, D7)
+      description: |
+        Jog: rendeles.athelyezes. Ha a cel asztal szabad, ott uj rendeles nyilik
+        az atrako neven; ha foglalt, a tetelek oda kerulnek (a cel verzioja nem
+        kell - sorokat ad hozza, nem ir felul -, de a kapu all). A tetel a
+        modosito- es kedvezmenysoraival, a menukomponens az egesz menuvel megy;
+        egyszeru tetelnel reszmennyiseg is (a sor kettevalik ugyanazon az aron,
+        a konyhai jegyen mindketto rajta marad). Gyereksor onmagaban 422
+        GYEREKSOR_NEM_RAKHATO_AT. Ha a forrasrol minden elment, OSSZEVONVA.
+      parameters:
+        - $ref: '#/components/parameters/RendelesAzonosito'
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Epoch'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - $ref: '#/components/parameters/IdempotenciaKulcs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtrakasKeres'
+      responses:
+        '200':
+          description: Mindket rendeles, ahogy az atrakas utan all
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AtrakasValasz'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          description: Nincs ilyen aktiv asztal, vagy a tetel nincs a rendelesen.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
   /rendelesek/{rendelesAzonosito}/vendegszam:
     post:
       tags: [rendeles]
@@ -2619,6 +2751,78 @@ components:
           description: 1.31.0 - a rendeles verzioja; nem kotelezo, de ha jon, ellenorzott.
       additionalProperties: false
 
+    AthelyezesKeres:
+      title: Athelyezes (1.32.0)
+      type: object
+      required: [asztal, verzio, eszkozIdo]
+      properties:
+        asztal:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        verzio:
+          type: integer
+          format: int64
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    OsszevonasKeres:
+      title: Osszevonas (1.32.0)
+      type: object
+      required: [forras, verzio, forrasVerzio, eszkozIdo]
+      properties:
+        forras:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        verzio:
+          type: integer
+          format: int64
+          description: A cel (ez a) rendeles verzioja.
+        forrasVerzio:
+          type: integer
+          format: int64
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    AtrakasKeres:
+      title: Atrakas (1.32.0)
+      type: object
+      required: [asztal, tetelek, verzio, eszkozIdo]
+      properties:
+        asztal:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        tetelek:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [tetelsor]
+            properties:
+              tetelsor:
+                $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+              mennyiseg:
+                allOf:
+                  - $ref: '../../kozos/penz.yaml#/components/schemas/Mennyiseg'
+                description: Hianyzik = az egesz sor. Csak egyszeru tetelnel.
+            additionalProperties: false
+        verzio:
+          type: integer
+          format: int64
+          description: A forras rendeles verzioja.
+        eszkozIdo:
+          $ref: '../../kozos/ido.yaml#/components/schemas/Idobelyeg'
+      additionalProperties: false
+
+    AtrakasValasz:
+      title: Az atrakas eredmenye (1.32.0)
+      type: object
+      required: [forras, cel]
+      properties:
+        forras:
+          $ref: '#/components/schemas/Rendeles'
+        cel:
+          $ref: '#/components/schemas/Rendeles'
+      additionalProperties: false
+
     MennyisegKeres:
       title: Mennyisegmodositas (1.31.0)
       type: object
@@ -3560,7 +3764,10 @@ components:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         allapot:
           type: string
-          enum: [NYITOTT, LEZART, SZTORNOZOTT]
+          enum: [NYITOTT, LEZART, SZTORNOZOTT, OSSZEVONVA]
+          description: |
+            1.32.0 - OSSZEVONVA: a tartalma egy masik rendelesbe ment
+            (osszevonas, vagy minden tetele atrakva); ures hej.
         teljesitesMod:
           $ref: '#/components/schemas/TeljesitesMod'
         asztalAzonosito:

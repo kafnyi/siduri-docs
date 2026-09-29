@@ -4844,7 +4844,7 @@ zárva töltött tárgynap jelzése **másnap is bőven időben van.**
 | K1.c | **Ha a nyitvatartási minta szerint nyitva kellett volna lenniük, de nem nyílt nap:** ez nem automatikusan `ADOTT_NAPON_ZARVA`, hanem **kérdés** — a következő napnyitáskor: „tegnap zárva voltatok, vagy elfelejtettek napot nyitni?" Az automatikus küldés csak akkor mehet, ha a **minta** mondja, hogy zárva. |
 | K1.d | **Utólagos pótlás kötelező:** szerverindításkor minden hiányzó tárgynap-zárást pótolni kell (nyaralás, hosszabb zárvatartás). |
 
-#### K1.2 — `[NYITOTT JAVASLAT]` Ki küldi a zárva tartott nap jelzését?
+#### K1.2 — `[ELDÖNTVE 2026-09-29]` Ki küldi a zárva tartott nap jelzését?
 
 **Probléma:** egy két hétre bezáró hely **kikapcsolja a szervert is.** Akkor viszont
 semmi nem tud üzenetet küldeni, és a napi zárások két héten át elmaradnak.
@@ -4858,7 +4858,9 @@ felületen áll be, tehát a felhő ismeri. Tulajdonosi szabály:
 - A duplikáció nem katasztrófa: a spec `UniqueConstraint`-je aszinkron hibával
   visszadobja az ismétlést.
 
-**Jóváhagyásra vár.**
+**✅ ELDÖNTVE (2026-09-29, a felhasználó):** a felhő küld, **nyitvatartási minta nélkül, 3 nap
+várakozással** — csak ha a telephely a tárgynap kezdete óta nem jelentkezett. Ára: a 3 napnál
+hosszabb, internet nélkül nyitva töltött idő napjai elvesznek. Megvalósítva: `NTAK.md` N4.
 
 ### `[ÜTKÖZÉS — a javaslat ellentmond a J5.1-nek]` K2 — Óraszinkron a figyelmeztetéseknél
 

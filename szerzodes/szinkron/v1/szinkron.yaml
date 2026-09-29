@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.21.0
+  version: 1.22.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -1276,6 +1276,17 @@ components:
         lejar:
           type: string
           format: date-time
+        felhoZarvaNapok:
+          type: array
+          description: |
+            (1.22.0, NTAK.md N4) A targynapok, amelyeket a FELHO jelentett
+            ADOTT_NAPON_ZARVA-nak, mert a telephely a targynap kezdete ota nem
+            jelentkezett, es utana 3 nap eltelt. A telephely ezekre nem kuld; ami
+            a listabol eltunik (az NTAK elutasitotta), azt maga jelenti. HIANYZIK =
+            nincs hir, a telephely nem torol.
+          items:
+            type: string
+            format: date
       additionalProperties: false
 
     SzinkronAfakategoria:

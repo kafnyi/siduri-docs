@@ -458,6 +458,12 @@ A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a tel
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
 
+### v1.22.0 — 2026-09-29 — *a felhő által jelentett zárt napok* `NEM TÖRŐ`
+
+* `SzinkronNtak.felhoZarvaNapok`: a tárgynapok, amelyeket a felhő jelentett
+  ADOTT_NAPON_ZARVA-nak (NTAK.md N4) — a telephely ezekre nem küld; ami eltűnik
+  a listából, azt maga jelenti. Hiányzik = nincs hír.
+
 ### v1.21.0 — 2026-09-29 — *az NTAK-beállítás le* `NEM TÖRŐ`
 
 * `LekerdezesValasz.ntak` (`SzinkronNtak`): adószám, üzlet, kezdet, tanúsítvány

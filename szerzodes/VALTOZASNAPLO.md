@@ -43,6 +43,17 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.31.0 — 2026-09-29 — *NTAK: adatok, tanúsítvány, küldési sor* `NEM TÖRŐ`
+
+* `GET/PUT /ntak` (adószám, üzlet-regszám, kezdet; a tanúsítvány CN-je és
+  lejárata — **a kulcs soha nem jön ki**), `GET/POST /ntak/csr` (RSA 4096,
+  `CN=<a regszám számjegyei>`), `POST /ntak/tanusitvany` (csak a függő kulcsra,
+  erre az üzletre, élő). Az írás csak a felhőben (a telephely 501).
+* `GET /ntak/sor` és `POST /ntak/osszesitok/{id}/ujraepites` (csak a HIBAS) —
+  csak a telephelyen (a felhő 501). Jog: `beallitas.telephely`.
+* ⚠️ Más üzlet-regszám = a tanúsítvány és a kulcs eldobva; a megújítás (új CSR)
+  alatt a régi kulcs tovább ír alá.
+
 ### v1.30.0 — 2026-09-29 — *konyhai állomások* `NEM TÖRŐ`
 
 * A `/torzs/{tabla}` új táblái: `konyhai_allomas`, `allomas_kategoria`
@@ -446,6 +457,14 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.21.0 — 2026-09-29 — *az NTAK-beállítás le* `NEM TÖRŐ`
+
+* `LekerdezesValasz.ntak` (`SzinkronNtak`): adószám, üzlet, kezdet, tanúsítvány
+  és a **privát kulcs nyersen** (a kölcsönös TLS-en; a telephely a saját
+  titkával titkosítja). Hiányzik = nincs hír; a `tanusitvany` hiánya = törlés.
+* A kódbeli verzió eddig 1.19.0-t írt ki (a yaml 1.20.0 volt) — most mindkettő
+  1.21.0.
 
 ### v1.20.0 — 2026-09-29 — *konyhai állomások* `NEM TÖRŐ`
 

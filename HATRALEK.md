@@ -70,17 +70,23 @@ teszt · audit · PIN/RFID · valuta és árfolyam.
 
 ---
 
-## 4. F3 — NTAK *(0% — a küldési logika egyetlen sora sem létezik)*
+## 4. F3 — NTAK *(N1–N3 kész; N4 és a valódi MTÜ-teszt hátra — `NTAK.md`)*
 
-A sémában csak a kategória-mezők vannak (21 oszlop).
+**Kész (2026-09-29):** üzenetépítő és JWS-aláíró a közös `k2`-ben (N1); a
+telephelyi küldés: tartós kimenő sor, sorba állítás (lezárás, sztornó, nem
+fizetett, napi zárás, zárt nap), 15 perces küldő és ellenőrző kör, kölcsönös TLS
+(N2); a felhőben az NTAK-adatok, a kulcs + CSR, a tanúsítvány feltöltése, a
+szinkron le; a Zigguratban az NTAK-lap és a telephelyi küldési sor a
+javítandókkal (N3).
 
-`F3.1` rendelésösszesítő · `F3.2` kimenő sor · `F3.3` feldolgozási nyugta ·
-`F3.4` napi zárás · `F3.5` nyitvatartási minta · `F3.6` ENUM-ok konfigurációból ·
-`F3.7` `osszesitett` degradált út · `F3.8` mennyiségi egység.
+`F3.1` rendelésösszesítő ✔ · `F3.2` kimenő sor ✔ · `F3.3` feldolgozási nyugta ✔ ·
+`F3.4` napi zárás ✔ · `F3.5` nyitvatartási minta ✘ *(a zárt nap csak utólag,
+NTAK.md D5)* · `F3.6` ENUM-ok konfigurációból ✘ · `F3.7` `osszesitett` degradált
+út — **nem kell** (D6) · `F3.8` mennyiségi egység ✔.
 
-**Előtte eldöntendő:** `H2` (a 25 órás munkanapot az NTAK elutasítja) · `H6` (tíz
-új követelmény) · `J6` · `K1.2` · `K3.2` · `A4.1` · **`C11/a`: az RMS Interfész
-v1.06 letöltése és feldolgozása KÓDOLÁS ELŐTT.**
+**Hátra:** `N4` felhős tartalék (K1.2) · a tanúsítvány lejáratának riasztása
+(60/30/14/7/1 nap — a lap 60 napnál szól, értesítés még nincs) · **a valódi
+tesztrendszer: az MTÜ csatlakozási adatlapja a felhasználónál** (NTAK.md §0).
 
 ---
 

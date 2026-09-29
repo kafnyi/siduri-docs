@@ -1,6 +1,6 @@
 # Siduri — NTAK adatszolgáltatás (F3)
 
-> **Státusz: az N1 és az N2 KÉSZ, az N3 (felhő + Ziggurat) következik** *(2026-09-29)*. Forrás: **RMS Interfész
+> **Státusz: az N1, az N2 és az N3 KÉSZ, az N4 (felhős tartalék) következik** *(2026-09-29)*. Forrás: **RMS Interfész
 > leírás v1.06** (MTÜ) — <https://info.ntak.hu/media/uploads/docs/RMS_Interfesz_leiras_v106.pdf>,
 > 2026-09-29-én letöltve és végigolvasva (C11/a teljesítve). A korábbi döntések:
 > `siduri_spec_hu.md` §11, `NYITOTT_KERDESEK` H1–H6, J1–J9, K1–K3, C11,
@@ -61,5 +61,5 @@ teszthez és élesítéshez** az MTÜ-nek kell:
 |---|---|---|
 | N1 | **Üzenetépítő** a közös `k2` modulban (bizonylat → összesítő, sztornó, megosztás-rész, nem fizetett, napi zárás) + **JWS aláíró** + tesztek | **kész** — `k2/Ntak`, `NtakKulcs` (AES-GCM kulcstárolás, közös); 10 teszt, 6 mutációs próba |
 | N2 | **Telephelyi küldés**: táblák, sorba állítás (lezárás, sztornó, nem fizetett, napzárás, zárt napok), küldő és ellenőrző ütem, kölcsönös TLS, hamis NTAK-szerver a tesztekhez | **kész** — V52 (`ntak_osszesito`, `ntak_napzaras`, `ntak_uzenet`); a KÉSZÜLETLEN (pl. kategória nélküli) összesítő minden körben újraépül, és a nap napzárása megvárja; UJRA_KULDENDO bájtra azonos; a ZÁRVA csak az elmúlt napra, 6:00 után, nyitott nap nélkül; 9 teszt aláírás-ellenőrző hamis NTAK-kal, 9 mutációs próba. ⚠️ A valódi TLS-kapcsolatot csak az MTÜ tesztrendszere tudja igazolni |
-| N3 | **Felhő + Ziggurat**: NTAK-adatok, kulcs + CSR generálása, tanúsítvány feltöltése és lejárata, szinkron le; a telephelyi Zigguratban a küldés állapota, hibák, újraküldés | — |
+| N3 | **Felhő + Ziggurat**: NTAK-adatok, kulcs + CSR generálása, tanúsítvány feltöltése és lejárata, szinkron le; a telephelyi Zigguratban a küldés állapota, hibák, újraküldés | **kész** — felhő: bérlői V23 (`ntak_beallitas`, KÉT kulcshely: az érvényes és a függő CSR-é — a megújítás nem állítja le a küldést), RSA 4096 + CSR (`CN=<a regszám számjegyei>`), a tanúsítvány csak a függő kulcsra, erre az üzletre, élőként; más regszám = a tanúsítvány és a kulcs eldobva; `admin/1.31.0`, `szinkron/1.21.0` (a kulcs nyersen, a kölcsönös TLS-en; a telephely a SAJÁT titkával tárolja, és csak tanúsítványváltáskor írja át). Telephely: `/ntak` olvasásra, `/ntak/sor`, a HIBAS újraépítése (a többi 409); jog `beallitas.telephely`. Ziggurat: NTAK-lap (60 nappal a lejárat előtt szól). 5 felhős + 2 új telephelyi teszt, 13 mutációs próba (N3), összesen 28. ⚠️ Élesítéshez: `SIDURI_NTAK_TITOK` a felhőn ÉS `siduri.ntak.titok` a telephelyen — üresen a felhő nem készít CSR-t (503), a telephely nem tárol kulcsot (a naplóban hibaként) |
 | N4 | **Felhős tartalék** (K1.2): zárt nap jelentése, ha a telephely hallgat | — |

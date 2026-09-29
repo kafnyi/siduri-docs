@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.30.0
+  version: 1.31.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -125,6 +125,8 @@ tags:
     description: Minden nezet kozos szolgaltatasai - pl. az XLSX-export (1.18.0)
   - name: riport
     description: A riportok a felhos archivumbol (1.20.0) - a telephelyi szerver 501
+  - name: ntak
+    description: Az NTAK-adatszolgaltatas (1.31.0, NTAK.md) - adatok es tanusitvany a felhoben, a kuldesi sor a telephelyen
   - name: keszlet
     description: |
       A keszlet torzsadata (1.22.0, KESZLET.md): raktar, pult, alapanyag, recept,
@@ -2820,6 +2822,299 @@ paths:
           $ref: '#/components/responses/Hiba401'
         '422':
           $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /ntak:
+    get:
+      tags: [ntak]
+      operationId: ntakBeallitas
+      summary: Az uzlet NTAK-adatai es a tanusitvany allapota (1.31.0, NTAK.md N3)
+      description: |
+        Az adoszam, az uzlet regisztracios szama, a kuldes kezdete, a fuggo CSR
+        megleteve, a tanusitvany CN-je es lejarata. ⚠️ A PRIVAT KULCS SOHA nem
+        jon ki - a felho generalja, titkosan tarolja, es a szinkron kuldi le a
+        telephelynek.
+
+        Mindket oldalon olvashato: a telephelyi szerver a lejott masolatot adja
+        (`csrKesz` ott mindig hamis - a CSR a felhoe).
+
+        Jog: `beallitas.telephely`.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A beallitas
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NtakBeallitas'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    put:
+      tags: [ntak]
+      operationId: ntakAdatok
+      summary: Az NTAK-adatok megadasa - csak a felhoben
+      description: |
+        ⚠️ MAS UZLET REGISZTRACIOS SZAMA = A TANUSITVANY ES A KULCS ELDOBVA: a
+        tanusitvany CN-je az uzlete, a regivel az NTAK a masik uzlet neveben
+        fogadna. Ugyanaz a szam ujra: marad minden.
+
+        Jog: `beallitas.telephely`. A telephelyi szerver 501 (CSAK_A_FELHOBEN).
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NtakAdatok'
+      responses:
+        '200':
+          description: A beallitas a mentes utan
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NtakBeallitas'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /ntak/csr:
+    get:
+      tags: [ntak]
+      operationId: ntakFuggoCsr
+      summary: A fuggo CSR ujra letoltheto - csak a felhoben
+      description: |
+        Az e-mail elveszhet: amig a tanusitvany nem kerult fel, a CSR ujra
+        letoltheto. Nincs fuggo CSR: 404 (NINCS_FUGGO_CSR).
+
+        Jog: `beallitas.telephely`. A telephelyi szerver 501 (CSAK_A_FELHOBEN).
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A CSR
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NtakCsr'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          $ref: '#/components/responses/Hiba404'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+    post:
+      tags: [ntak]
+      operationId: ntakCsr
+      summary: Uj kulcspar es CSR - csak a felhoben
+      description: |
+        RSA 4096 kulcs, a CSR alanya `CN=<a regisztracios szam szamjegyei>`
+        (ET22012345 -> 22012345, a szolgaltatasi hely azonositoja). A kulcs a
+        felho titkaval titkositva all. A CSR-t a felhasznalo kuldi el az MTU-nek.
+
+        ⚠️ MEGUJITAS: az uj CSR NEM allitja le a kuldest - a regi kulcs es
+        tanusitvany addig ir ala, amig az uj tanusitvany fel nem kerul.
+
+        Uzlet nelkul 409 (NINCS_NTAK_UZLET); a felhon nincs kulcstitok: 503
+        (NINCS_NTAK_TITOK). Jog: `beallitas.telephely`. A telephelyi szerver 501.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '201':
+          description: A CSR (PEM)
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NtakCsr'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          description: Nincs megadva az uzlet (NINCS_NTAK_UZLET).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /ntak/tanusitvany:
+    post:
+      tags: [ntak]
+      operationId: ntakTanusitvany
+      summary: Az MTU altal kiadott tanusitvany feltoltese - csak a felhoben
+      description: |
+        Csak a FUGGO CSR kulcsara (MAS_KULCS), erre az uzletre (MAS_UZLET) szolo,
+        el tanusitvany (LEJART_TANUSITVANY) fogadhato el - mind 422. Fuggo CSR
+        nelkul 409 (NINCS_FUGGO_CSR). Elfogadaskor a fuggo kulcs lesz az
+        ervenyes, es a kovetkezo szinkronnal lemegy a telephelyre.
+
+        Jog: `beallitas.telephely`. A telephelyi szerver 501.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NtakTanusitvany'
+      responses:
+        '200':
+          description: A beallitas a feltoltes utan
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NtakBeallitas'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          description: Nincs fuggo CSR (NINCS_FUGGO_CSR).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        '501':
+          $ref: '#/components/responses/Hiba501'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /ntak/sor:
+    get:
+      tags: [ntak]
+      operationId: ntakSor
+      summary: A kuldesi sor - csak a telephelyen
+      description: |
+        Darabszam allapotonkent (osszesitok es napi zarasok), es a javitandok: a
+        HIBAS (az NTAK elutasitotta, hibakulccsal) es a KESZULETLEN (pl.
+        kategoria nelkuli termek - a torzsadat javitasa utan magatol megy) - a
+        legujabb 100.
+
+        Jog: `beallitas.telephely`. A felho 501 (CSAK_A_TELEPHELYEN): a
+        telephelyi szerver kuld (NTAK.md D1).
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      responses:
+        '200':
+          description: A sor
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NtakSor'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /ntak/osszesitok/{osszesitoAzonosito}/ujraepites:
+    post:
+      tags: [ntak]
+      operationId: ntakUjraepites
+      summary: Egy HIBAS osszesito ujraepitese es -kuldese - csak a telephelyen
+      description: |
+        A torzsadat javitasa utan: a kovetkezo korben ujraepul (a SAJAT
+        azonositojaval - a sikertelen tetel az NTAK-nal nem jott letre) es
+        elmegy. Csak a HIBAS epitheto ujra: a tobbi 409 (NEM_UJRAEPITHETO) - egy
+        elkuldott ujrakuldese kettozes volna.
+
+        Jog: `beallitas.telephely`. A felho 501 (CSAK_A_TELEPHELYEN).
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: osszesitoAzonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+      responses:
+        '202':
+          description: A kovetkezo korben ujraepul
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          description: Nem HIBAS (NEM_UJRAEPITHETO).
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -5631,6 +5926,116 @@ components:
         indok:
           type: string
           maxLength: 500
+      additionalProperties: false
+
+    NtakBeallitas:
+      title: Az uzlet NTAK-beallitasa (1.31.0)
+      type: object
+      required: [csrKesz, kuldheto]
+      properties:
+        adoszam:
+          type: string
+          pattern: '^[0-9]{11}$'
+          description: A szolgaltato adoszama, kotojel nelkul.
+        uzletRegszam:
+          type: string
+          pattern: '^[A-Z]{2}[0-9]{8}$'
+          examples: ["ET22012345"]
+        kezdet:
+          type: string
+          format: date
+          description: Az elso targynap, amitol a bizonylatok az NTAK-hoz mennek.
+        csrKesz:
+          type: boolean
+          description: Van fuggo CSR (a felhoben; a telephelyen mindig hamis).
+        tanusitvanyCn:
+          type: string
+          description: Az ervenyes tanusitvany CN-je - a szolgaltatasi hely azonositoja.
+        tanusitvanyLejar:
+          type: string
+          format: date-time
+        kuldheto:
+          type: boolean
+          description: Adoszam, uzlet es el tanusitvany megvan - kuldeni lehet.
+      additionalProperties: false
+
+    NtakAdatok:
+      title: Az NTAK-adatok megadasa
+      type: object
+      properties:
+        adoszam:
+          type: string
+          pattern: '^[0-9]{11}$'
+        uzletRegszam:
+          type: string
+          pattern: '^[A-Z]{2}[0-9]{8}$'
+        kezdet:
+          type: string
+          format: date
+      additionalProperties: false
+
+    NtakCsr:
+      title: A tanusitvanykeres (PEM)
+      type: object
+      required: [csr]
+      properties:
+        csr:
+          type: string
+          description: '`-----BEGIN CERTIFICATE REQUEST-----` ... PKCS#10, PEM'
+      additionalProperties: false
+
+    NtakTanusitvany:
+      title: A feltoltott tanusitvany (PEM)
+      type: object
+      required: [tanusitvany]
+      properties:
+        tanusitvany:
+          type: string
+          description: '`-----BEGIN CERTIFICATE-----` ... X.509, PEM'
+      additionalProperties: false
+
+    NtakSor:
+      title: A kuldesi sor
+      type: object
+      required: [osszesitok, napzarasok, hibak]
+      properties:
+        osszesitok:
+          type: object
+          description: Darab allapotonkent (KESZULETLEN, VAR, ELKULDVE, SIKERES, HIBAS).
+          additionalProperties:
+            type: integer
+        napzarasok:
+          type: object
+          description: Darab allapotonkent.
+          additionalProperties:
+            type: integer
+        hibak:
+          type: array
+          items:
+            $ref: '#/components/schemas/NtakHiba'
+      additionalProperties: false
+
+    NtakHiba:
+      title: Egy javitando osszesito
+      type: object
+      required: [azonosito, targynap, allapot]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        targynap:
+          type: string
+          format: date
+        allapot:
+          type: string
+          enum: [HIBAS, KESZULETLEN]
+        bizonylatszam:
+          type: string
+          description: A Siduri-bizonylatszam (a nem fizetett lezarasnal nincs).
+        hibaKod:
+          type: string
+          examples: ["HIANYZO_NTAK_KATEGORIA", "Conflict"]
+        hiba:
+          type: string
       additionalProperties: false
 
     Afakategoria:

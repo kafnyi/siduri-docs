@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.20.0
+  version: 1.21.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -1239,6 +1239,43 @@ components:
             uj kategoriara hivatkozhat.
           items:
             $ref: '#/components/schemas/SzinkronAfakategoria'
+        ntak:
+          $ref: '#/components/schemas/SzinkronNtak'
+      additionalProperties: false
+
+    SzinkronNtak:
+      title: Az NTAK-beallitas (1.21.0, NTAK.md N3)
+      type: object
+      description: |
+        A felho a gazdaja: adoszam, uzlet, kezdet, tanusitvany - es a PRIVAT
+        KULCS, NYERSEN (PKCS#8 PEM), mert a kolcsonos TLS csatornan megy, es a
+        telephely a SAJAT titkaval titkositva tarolja. ⚠️ Naplozni tilos.
+
+        HIANYZIK = nincs hir: a telephely megtartja, ami nala van (a felho
+        akkor is kihagyja, ha a kulcs nala nem fejtheto vissza - kulonben egy
+        rossz titok a telephely mukodo kulcsat torolne). A `tanusitvany` hianya
+        viszont TORLES: a tanusitvany es a kulcs eldobva (mas uzlet).
+
+        A telephely a kulcsot csak akkor irja at, ha a tanusitvany valtozott.
+      properties:
+        adoszam:
+          type: string
+          pattern: '^[0-9]{11}$'
+        uzletRegszam:
+          type: string
+          pattern: '^[A-Z]{2}[0-9]{8}$'
+        kezdet:
+          type: string
+          format: date
+        tanusitvany:
+          type: string
+          description: X.509, PEM
+        kulcs:
+          type: string
+          description: PKCS#8 PEM - csak a tanusitvannyal egyutt
+        lejar:
+          type: string
+          format: date-time
       additionalProperties: false
 
     SzinkronAfakategoria:

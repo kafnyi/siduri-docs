@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.34.0
+  version: 1.35.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1687,6 +1687,151 @@ paths:
             application/json:
               schema:
                 $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
+
+  /torzs/{tabla}:
+    post:
+      tags: [asztal]
+      operationId: terkepFelvesz
+      summary: Terem vagy asztal felvetele a pultrol (1.35.0, ASZTALTERKEP.md D8)
+      description: |
+        Ugyanaz a leiro-iro, mint a Zigguratban (admin `/torzs/{tabla}`): a mezok
+        es az ellenorzes azonos, a forras a telephely (O3). Csak a `terem` es az
+        `asztal` - mas tabla 422 (NEM_SZERKESZTHETO). A foglalt asztalszam 409
+        (FOGLALT_ERTEK). Jog: `asztal.kezeles`.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - name: tabla
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [terem, asztal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerkepFelvetel'
+      responses:
+        '201':
+          description: Felveve
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [azonosito]
+                properties:
+                  azonosito:
+                    $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+
+  /torzs/{tabla}/{azonosito}/{mezo}:
+    put:
+      tags: [asztal]
+      operationId: terkepMezot
+      summary: Egy mezo irasa a pultrol (1.35.0) - huzas, forgatas, racs, hatter
+      description: |
+        O3: ha a mezon kesobbi ertek all, 409 (KESOBBI_ERTEK_ALL) - a pult ujratolt.
+        Nyitott rendelesu asztal nem inaktivalhato (NYITOTT_RENDELES 409). Jog:
+        `asztal.kezeles`.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+        - name: tabla
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [terem, asztal]
+        - name: azonosito
+          in: path
+          required: true
+          schema:
+            $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        - name: mezo
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerkepMezo'
+      responses:
+        '204':
+          description: Ervenyre jutott
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '409':
+          $ref: '#/components/responses/Hiba409'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+
+  /kepek:
+    post:
+      tags: [asztal]
+      operationId: kepetFeltolt
+      summary: Hatterkep feltoltese a pultrol (1.35.0)
+      description: |
+        A kep nyers bajtjai; PNG, JPEG vagy WebP a tartalom szerint, legfeljebb 2 MB,
+        SVG nem. A valasz lenyomatat a terem `hatter` mezojebe kell irni. Jog:
+        `asztal.kezeles`.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - $ref: '#/components/parameters/Felhasznalo'
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '201':
+          description: A feltoltott kep
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [lenyomat, tipus, meret]
+                properties:
+                  lenyomat:
+                    type: string
+                    pattern: '^[0-9a-f]{64}$'
+                  tipus:
+                    type: string
+                    enum: [image/png, image/jpeg, image/webp]
+                  meret:
+                    type: integer
+                additionalProperties: false
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
 
   /rendelesek/{rendelesAzonosito}:
     get:
@@ -3938,6 +4083,30 @@ components:
           description: >
             (1.34.0) Az asztal inaktiv, de NYITOTT rendeles all rajta - a lezarasig
             latszik (ASZTALTERKEP.md D9). Hamisan hianyzik.
+      additionalProperties: false
+
+    TerkepFelvetel:
+      title: Terem vagy asztal felvetele (1.35.0)
+      type: object
+      required: [ertekek]
+      properties:
+        ertekek:
+          type: object
+          description: A mezok kanonikus szovegkent, mint az admin /torzs felveteleben.
+          additionalProperties:
+            type: string
+      additionalProperties: false
+
+    TerkepMezo:
+      title: Egy mezo uj erteke (1.35.0)
+      type: object
+      required: [ertek]
+      properties:
+        ertek:
+          type: string
+          description: Kanonikus szoveg; az ures ertek = nincs (pl. a hely torlese).
+        indok:
+          type: string
       additionalProperties: false
 
     AsztalHely:

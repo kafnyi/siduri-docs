@@ -1,6 +1,6 @@
 # Siduri — Asztaltérkép (F4 #1)
 
-> **Státusz: a T1 és a T2 KÉSZ, a T3 (pult: térkép) következik** *(2026-09-30)*. Forrás: `siduri_spec_hu.md` §21.1
+> **Státusz: a T1–T4 KÉSZ** *(2026-09-30)* — hátra a böngészős és a pulton végzett élő próba. Forrás: `siduri_spec_hu.md` §21.1
 > („vizuális szerkesztő — rajzolható háttér, asztalok elhelyezése, alakja,
 > testreszabása"), `UIUX_TERV.md` (az asztaltérkép a pult tájékozódó nézete),
 > `HATRALEK.md` F4 #1.
@@ -40,5 +40,5 @@ térképen, és a pult egy gombrácsban mutatja. Nincs terem, nincs háttér, ni
 |---|---|---|
 | T1 | **Háttér**: `terem`, `asztal` leíróként, `kep`; migrációk mindkét oldalon; jog; kép-végpontok (admin, kassza); a kassza `/asztalok` a hellyel, `/termek`; a kép szinkronja | **kész** — V54 (a régi `terulet` teremmé vált), felhő V25; `admin/1.32.0`, `kassza/1.34.0`, `szinkron/1.23.0`; a foglalt asztalszám 409, a nyitott rendelésű asztal nem inaktiválható, és a felhőből inaktiváltan is látszik (D9); a kép a tartalma szerint típusos, SVG nem. 3 telephelyi + 2 felhős + 1 szinkron- + 2 k2-teszt, 11 mutációs próba. A pult törzs-író végpontjai a T4-be kerültek |
 | T2 | **Ziggurat**: „Asztalok" lap — teremfülek, szerkesztő (húzás, rács kapcsoló, tulajdonságok, háttér feltöltése), közös elrendezés-számítás tesztekkel | **kész** — SVG-térkép (húzás, nyilak, rácsvonalak, háttér), rácsbeállítások a terem sávjában, „a szabad helyekből rácsba", az el nem helyezettek sávja, a kiválasztott asztal minden mezője (O3-nyommal); a közös szabály a `szerzodes/tesztvektorok/asztalterkep.json` (egész aritmetika) — a pult ugyanezt futtatja. ⚠️ Böngészős próba hátra |
-| T3 | **Pult**: a térkép teremfülekkel (olvasás), az elrendezés-számítás C#-ban tesztekkel | — |
-| T4 | **Pult**: a szerkesztő mód | — |
+| T3 | **Pult**: a térkép teremfülekkel (olvasás), az elrendezés-számítás C#-ban tesztekkel | **kész** — a Mag `Asztalterkep.Elrendezes` a közös vektoron (6 eset); a terem Viewboxban, a saját arányában, háttérképpel (lenyomat szerint gyorsítótárazva), forgatott és kerek asztalok, a foglaltság szövegesen is; az el nem helyezettek a régi gombsorban; régi kiszolgálónál minden ott. 186 pult-teszt. ⚠️ Élő próba a pulton hátra |
+| T4 | **Pult**: a szerkesztő mód | **kész** — az asztalválasztó „Térkép szerkesztése" gombja (`asztal.kezeles`): húzás (a vászonhoz mért pozícióval, így az elforgatott asztal is jó irányba megy), új asztal és terem, adatok, forgatás, méret, alak, rácskiterjedés, levétel, megszüntetés; a terem rácsa, asztalmérete, igazítása és háttérképe. `kassza/1.35.0`: `POST/PUT /torzs/{terem\|asztal}`, `POST /kepek` — a Zigguratéval azonos író (O3). 1 telephelyi teszt, 2 mutációs próba. ⚠️ Élő próba a pulton hátra |

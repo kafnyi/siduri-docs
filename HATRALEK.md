@@ -97,7 +97,7 @@ tesztrendszer: az MTÜ csatlakozási adatlapja a felhasználónál** (NTAK.md §
 
 | # | Hátra | Tény |
 |---|---|---|
-| 1 | Asztaltérkép-szerkesztő | — |
+| 1 | Asztaltérkép-szerkesztő | ✅ kész (`ASZTALTERKEP.md` T1–T4: termek, szabad és rács nézet, háttérkép, a Ziggurat és a pult szerkesztője); élő próba hátra |
 | 2 | Fogások | ✅ kész — szerver, pult (`KONYHA.md` K1, K3) |
 | 3 | Módosítók | ✅ kész (`C1.md`) |
 | 4 | Menük | ✅ kész (`C1.md`) |

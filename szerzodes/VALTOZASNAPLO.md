@@ -1618,6 +1618,12 @@ hagyja: módosító és menü nélkül továbbra is ad el.
 **Miért:** `C1.md` C1-4 (N5). A súlyt a pult kézzel kéri be, tárával; a
 mérleg-illesztés később, általános porton.
 
+### v1.35.0 — 2026-09-30 — *a térkép szerkesztése a pultról* `NEM TÖRŐ`
+
+* `POST /torzs/{tabla}`, `PUT /torzs/{tabla}/{azonosito}/{mezo}` (csak `terem` és `asztal`,
+  a Zigguratéval azonos leíró-író, O3; jog: `asztal.kezeles`) és `POST /kepek` (háttérkép) —
+  ASZTALTERKEP.md D8.
+
 ### v1.34.0 — 2026-09-30 — *asztaltérkép* `NEM TÖRŐ`
 
 * `Asztal.hely` (`AsztalHely`: terem, alak, szabad hely a terem logikai egységében,

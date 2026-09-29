@@ -20,3 +20,4 @@ változik — és akkor a változásnaplóba is bekerül.
 | `afa.json` | Áfa-visszaszámolás áfakulcs-csoportonként |
 | `sorosszeg.json` | Sorösszeg egész darabszámmal és tört mennyiséggel |
 | `menu.json` | A menü árának bontása a komponensekre (J9) és a módosító-csoport ingyenes kerete (G2.1) — két tömb: `menu`, `modosito` |
+| `asztalterkep.json` | Az asztaltérkép elrendezése (szabad és rács, igazítás, kiterjesztett cella) és a „szabad helyekből rácsba" — a Ziggurat és a pult közös szabálya (ASZTALTERKEP.md) |

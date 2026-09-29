@@ -1,0 +1,80 @@
+{
+  "leiras": "Az asztalterkep elrendezese (ASZTALTERKEP.md D3-D5) - a Ziggurat es a pult UGYANEZT szamolja. Minden a terem LOGIKAI egysegeben, EGESZ aritmetikaval: a cella bal szele floor(i * szelesseg / oszlop), a jobb szele floor(min(i + szeles, oszlop) * szelesseg / oszlop); a sor ugyanigy. Racsban az asztal a (kiterjesztett) cella racsMeret %-a (floor), az igazitas szerint (BAL/KOZEP/JOBB: bal szel, floor((cella - asztal) / 2), jobb szel), forgatas nelkul. Racsban nincs elhelyezve, ha a cella hianyzik, vagy a kezdocella a racson kivul esik; a kiterjedest a racs szele levagja. Szabad elrendezesben az asztal a sajat helyen es forgatasaval all; nincs elhelyezve, ha x vagy y hianyzik. A 'racsba' esetek: a szabad helyrol racscellat ad a megadott sorrendben - az asztal kozeppontjanak cellaja (a racsra szoritva), foglaltsag eseten a kovetkezo szabad cella sorfolytonosan (a vegerol korbe); a mar racsban allo asztal megtartja a cellajat es foglalja a kiterjedeset; hely nelkul, vagy ha a racs tele van: null.",
+  "esetek": [
+    {
+      "nev": "szabad elrendezes",
+      "terem": {"elrendezes": "SZABAD", "szelesseg": 1600, "magassag": 1000, "racsOszlop": 8, "racsSor": 5, "racsMeret": 80, "racsIgazitas": "KOZEP"},
+      "asztalok": [
+        {"azonosito": "A", "x": 100, "y": 200, "szelesseg": 120, "magassag": 80, "forgatas": 30, "racsOszlop": 1, "racsSor": 1, "racsSzeles": 1, "racsMagas": 1},
+        {"azonosito": "B", "x": null, "y": 50, "szelesseg": 100, "magassag": 100, "forgatas": 0, "racsOszlop": 0, "racsSor": 0, "racsSzeles": 1, "racsMagas": 1}
+      ],
+      "vart": {
+        "helyek": [{"azonosito": "A", "x": 100, "y": 200, "szelesseg": 120, "magassag": 80, "forgatas": 30}],
+        "elhelyezetlen": ["B"]
+      }
+    },
+    {
+      "nev": "racs 8x5, 80%, kozepre",
+      "terem": {"elrendezes": "RACS", "szelesseg": 1600, "magassag": 1000, "racsOszlop": 8, "racsSor": 5, "racsMeret": 80, "racsIgazitas": "KOZEP"},
+      "asztalok": [
+        {"azonosito": "A", "x": 5, "y": 5, "szelesseg": 100, "magassag": 100, "forgatas": 30, "racsOszlop": 2, "racsSor": 1, "racsSzeles": 1, "racsMagas": 1},
+        {"azonosito": "B", "x": null, "y": null, "szelesseg": 100, "magassag": 100, "forgatas": 0, "racsOszlop": 7, "racsSor": 4, "racsSzeles": 2, "racsMagas": 1},
+        {"azonosito": "C", "x": 5, "y": 5, "szelesseg": 100, "magassag": 100, "forgatas": 0, "racsOszlop": 8, "racsSor": 0, "racsSzeles": 1, "racsMagas": 1},
+        {"azonosito": "D", "x": 5, "y": 5, "szelesseg": 100, "magassag": 100, "forgatas": 0, "racsOszlop": null, "racsSor": null, "racsSzeles": 1, "racsMagas": 1}
+      ],
+      "vart": {
+        "helyek": [
+          {"azonosito": "A", "x": 420, "y": 220, "szelesseg": 160, "magassag": 160, "forgatas": 0},
+          {"azonosito": "B", "x": 1420, "y": 820, "szelesseg": 160, "magassag": 160, "forgatas": 0}
+        ],
+        "elhelyezetlen": ["C", "D"]
+      }
+    },
+    {
+      "nev": "racs 3x2, 50%, balra lent, ket cella szeles es magas",
+      "terem": {"elrendezes": "RACS", "szelesseg": 1000, "magassag": 700, "racsOszlop": 3, "racsSor": 2, "racsMeret": 50, "racsIgazitas": "BAL_LENT"},
+      "asztalok": [
+        {"azonosito": "A", "x": null, "y": null, "szelesseg": 100, "magassag": 100, "forgatas": 0, "racsOszlop": 1, "racsSor": 0, "racsSzeles": 2, "racsMagas": 2}
+      ],
+      "vart": {
+        "helyek": [{"azonosito": "A", "x": 333, "y": 350, "szelesseg": 333, "magassag": 350, "forgatas": 0}],
+        "elhelyezetlen": []
+      }
+    },
+    {
+      "nev": "racs 3x2, 50%, jobbra fent",
+      "terem": {"elrendezes": "RACS", "szelesseg": 1000, "magassag": 700, "racsOszlop": 3, "racsSor": 2, "racsMeret": 50, "racsIgazitas": "JOBB_FENT"},
+      "asztalok": [
+        {"azonosito": "A", "x": null, "y": null, "szelesseg": 100, "magassag": 100, "forgatas": 0, "racsOszlop": 1, "racsSor": 0, "racsSzeles": 2, "racsMagas": 2}
+      ],
+      "vart": {
+        "helyek": [{"azonosito": "A", "x": 667, "y": 0, "szelesseg": 333, "magassag": 350, "forgatas": 0}],
+        "elhelyezetlen": []
+      }
+    }
+  ],
+  "racsba": [
+    {
+      "nev": "kozeppont szerint, foglaltnal a kovetkezo szabad, a szelen szoritva",
+      "terem": {"elrendezes": "RACS", "szelesseg": 800, "magassag": 400, "racsOszlop": 4, "racsSor": 2, "racsMeret": 80, "racsIgazitas": "KOZEP"},
+      "asztalok": [
+        {"azonosito": "T0", "x": null, "y": null, "szelesseg": 100, "magassag": 100, "forgatas": 0, "racsOszlop": 1, "racsSor": 0, "racsSzeles": 1, "racsMagas": 1},
+        {"azonosito": "T1", "x": 10, "y": 10, "szelesseg": 100, "magassag": 100, "forgatas": 0, "racsOszlop": null, "racsSor": null, "racsSzeles": 1, "racsMagas": 1},
+        {"azonosito": "T2", "x": 50, "y": 40, "szelesseg": 60, "magassag": 60, "forgatas": 0, "racsOszlop": null, "racsSor": null, "racsSzeles": 1, "racsMagas": 1},
+        {"azonosito": "T3", "x": 790, "y": 390, "szelesseg": 100, "magassag": 100, "forgatas": 0, "racsOszlop": null, "racsSor": null, "racsSzeles": 1, "racsMagas": 1},
+        {"azonosito": "T4", "x": null, "y": 10, "szelesseg": 100, "magassag": 100, "forgatas": 0, "racsOszlop": null, "racsSor": null, "racsSzeles": 1, "racsMagas": 1}
+      ],
+      "vart": {"T0": [1, 0], "T1": [0, 0], "T2": [2, 0], "T3": [3, 1], "T4": null}
+    },
+    {
+      "nev": "a tele racs utan nincs hely",
+      "terem": {"elrendezes": "RACS", "szelesseg": 200, "magassag": 100, "racsOszlop": 2, "racsSor": 1, "racsMeret": 80, "racsIgazitas": "KOZEP"},
+      "asztalok": [
+        {"azonosito": "A", "x": 0, "y": 0, "szelesseg": 10, "magassag": 10, "forgatas": 0, "racsOszlop": null, "racsSor": null, "racsSzeles": 1, "racsMagas": 1},
+        {"azonosito": "B", "x": 0, "y": 0, "szelesseg": 10, "magassag": 10, "forgatas": 0, "racsOszlop": null, "racsSor": null, "racsSzeles": 1, "racsMagas": 1},
+        {"azonosito": "C", "x": 0, "y": 0, "szelesseg": 10, "magassag": 10, "forgatas": 0, "racsOszlop": null, "racsSor": null, "racsSzeles": 1, "racsMagas": 1}
+      ],
+      "vart": {"A": [0, 0], "B": [1, 0], "C": null}
+    }
+  ]
+}

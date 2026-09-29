@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri szinkronprotokoll (K3)
-  version: 1.22.0
+  version: 1.23.0
   summary: A telephelyi szerver es a felho kozotti szinkron
   license:
     name: Zart - Myth System tulajdona
@@ -341,6 +341,86 @@ paths:
           $ref: '#/components/responses/Hiba403'
         '422':
           $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /kepek/{lenyomat}:
+    parameters:
+      - name: lenyomat
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: '^[0-9a-f]{64}$'
+      - name: Siduri-Telephely
+        in: header
+        required: true
+        description: A telephely - a kliens-tanusitvannyal egyeznie kell (kulonben 403).
+        schema:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+    put:
+      tags: [szinkron]
+      operationId: kepetFelkuld
+      summary: A telephelyen feltoltott hatterkep a felhobe (1.23.0, ASZTALTERKEP.md D6)
+      description: |
+        A terem `hatter` mezoje csak a lenyomatot hordozza (O3); a kep bajtjai
+        ezen az uton mennek. A telephely a terem-rekord ELOTT kuldi, igy a felhos
+        Zigguratban mar a keppel jelenik meg. A lenyomatnak egyeznie kell a
+        tartalommal (ELTERO_LENYOMAT 422).
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '204':
+          description: A kep rogzitve (a mar meglevo is)
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+    get:
+      tags: [szinkron]
+      operationId: kepetLekeri
+      summary: Egy hatterkep a felhobol (1.23.0) - amire a terem hivatkozik, de a telephelyen nincs
+      responses:
+        '200':
+          description: A kep bajtjai
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '404':
+          description: Nincs ilyen kep a felhoben sem (NINCS_ILYEN_KEP).
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -1344,7 +1424,7 @@ components:
           enum: [kiszereles, termek, kategoria, raktar, pult, anyag, recept, eszkoz_pult,
                  keszlet, modosito_csoport, modosito, termek_modosito_csoport,
                  menu_komponens, menu_opcio, kiszereles_beallitas, konyhai_allomas,
-                 allomas_kategoria]
+                 allomas_kategoria, terem, asztal]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         mezo:
@@ -1527,7 +1607,8 @@ components:
           type: string
           enum: [kategoria, termek, kiszereles, raktar, pult, anyag, recept, eszkoz_pult,
                  modosito_csoport, modosito, termek_modosito_csoport, menu_komponens,
-                 menu_opcio, kiszereles_beallitas, konyhai_allomas, allomas_kategoria]
+                 menu_opcio, kiszereles_beallitas, konyhai_allomas, allomas_kategoria, terem,
+                 asztal]
         rekordId:
           $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
         tortent:

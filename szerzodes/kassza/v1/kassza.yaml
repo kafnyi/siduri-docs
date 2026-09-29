@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri kasszaprotokoll (K1)
-  version: 1.33.0
+  version: 1.34.0
   summary: POS kliens es vekonykliensek a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -1609,7 +1609,7 @@ paths:
         - $ref: '#/components/parameters/Eszkoz'
       responses:
         '200':
-          description: Az AKTIV asztalok, sorrend szerint
+          description: Az AKTIV asztalok (es a nyitott rendelesu megszuntek), sorrend szerint
           headers:
             Siduri-Szerzodes:
               $ref: '#/components/headers/SiduriSzerzodes'
@@ -1621,6 +1621,72 @@ paths:
                   $ref: '#/components/schemas/Asztal'
         '401':
           $ref: '#/components/responses/Hiba401'
+
+  /termek:
+    get:
+      tags: [asztal]
+      operationId: termek
+      summary: A termek az asztalterkephez (1.34.0, ASZTALTERKEP.md)
+      description: |
+        Az aktiv termek, sorrend szerint. A terem nelkuli asztal egy kulon,
+        nev nelkuli fulon latszik.
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+      responses:
+        '200':
+          description: A termek
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Terem'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+
+  /kepek/{lenyomat}:
+    get:
+      tags: [asztal]
+      operationId: kep
+      summary: Egy hatterkep (1.34.0) - a lenyomat szerint orokre gyorsitotarazhato
+      parameters:
+        - $ref: '#/components/parameters/Eszkoz'
+        - name: lenyomat
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-f]{64}$'
+      responses:
+        '200':
+          description: A kep bajtjai
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '404':
+          description: Nincs ilyen kep (NINCS_ILYEN_KEP) - meg nem jott le a felhobol.
+          content:
+            application/json:
+              schema:
+                $ref: '../../kozos/hiba.yaml#/components/schemas/Hiba'
 
   /rendelesek/{rendelesAzonosito}:
     get:
@@ -3865,6 +3931,91 @@ components:
         fizetesreVar:
           type: boolean
           description: Az asztal rendelese fizetesre var (1.28.0); hamisan hianyzik.
+        hely:
+          $ref: '#/components/schemas/AsztalHely'
+        megszunt:
+          type: boolean
+          description: >
+            (1.34.0) Az asztal inaktiv, de NYITOTT rendeles all rajta - a lezarasig
+            latszik (ASZTALTERKEP.md D9). Hamisan hianyzik.
+      additionalProperties: false
+
+    AsztalHely:
+      title: Az asztal helye a terkepen (1.34.0, ASZTALTERKEP.md)
+      type: object
+      description: |
+        A szabad hely a terem LOGIKAI egysegeben (nem kepkoz: a kijelzo a terem
+        aranyaban skalaz). A racsbeli hely a cella (0-tol). Mindketto megmarad
+        (D5): a terem elrendezese donti el, melyik szamit. A hianyzo x/y vagy
+        racsOszlop/racsSor = nincs elhelyezve (a pult egy savban mutatja).
+      required: [alak, szelesseg, magassag, forgatas, racsSzeles, racsMagas]
+      properties:
+        teremAzonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        alak:
+          type: string
+          enum: [SZOGLETES, KEREK]
+        x:
+          type: integer
+          minimum: 0
+        y:
+          type: integer
+          minimum: 0
+        szelesseg:
+          type: integer
+          minimum: 1
+        magassag:
+          type: integer
+          minimum: 1
+        forgatas:
+          type: integer
+          minimum: 0
+          maximum: 359
+        racsOszlop:
+          type: integer
+          minimum: 0
+        racsSor:
+          type: integer
+          minimum: 0
+        racsSzeles:
+          type: integer
+          minimum: 1
+        racsMagas:
+          type: integer
+          minimum: 1
+      additionalProperties: false
+
+    Terem:
+      title: Egy terem a pult terkepehez (1.34.0)
+      type: object
+      required: [azonosito, nev, elrendezes, szelesseg, magassag, racsOszlop, racsSor, racsMeret,
+                 racsIgazitas]
+      properties:
+        azonosito:
+          $ref: '../../kozos/azonosito.yaml#/components/schemas/Azonosito'
+        nev:
+          type: string
+        elrendezes:
+          type: string
+          enum: [SZABAD, RACS]
+        szelesseg:
+          type: integer
+        magassag:
+          type: integer
+        racsOszlop:
+          type: integer
+        racsSor:
+          type: integer
+        racsMeret:
+          type: integer
+          description: Az asztal a cella hany szazaleka.
+        racsIgazitas:
+          type: string
+          enum: [BAL_FENT, FENT, JOBB_FENT, BAL, KOZEP, JOBB, BAL_LENT, LENT, JOBB_LENT]
+        hatter:
+          type: string
+          pattern: '^[0-9a-f]{64}$'
+          description: A hatterkep lenyomata (GET /kepek/{lenyomat}); hianyzik = nincs.
       additionalProperties: false
 
     KdsAllomas:

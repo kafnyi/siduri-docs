@@ -43,6 +43,16 @@ tétel felvétele, rendelés lezárása, adóügyi eredmény jelentése.
 A K2-nek **két megvalósítása lesz** — a felhő és a telephelyi szerver —, és a
 szerződésteszt mindkettőn ugyanaz fut. Ez teszi a §22.2 ígéretét gépi kényszerré.
 
+### v1.32.0 — 2026-09-30 — *asztaltérkép: termek, asztalok, háttérkép* `NEM TÖRŐ`
+
+* A `/torzs/{tabla}` új táblái: `terem` (elrendezés SZABAD/RACS, logikai méret, rács,
+  rácsbeli méret és igazítás, háttérkép-lenyomat) és `asztal` (szám, megnevezés, terem,
+  férőhely, alak, szabad hely, forgatás, rácsbeli cella) — jog: `asztal.kezeles`
+  (ASZTALTERKEP.md). A foglalt érték (asztalszám) `FOGLALT_ERTEK` 409; nyitott
+  rendelésű asztal nem inaktiválható (`NYITOTT_RENDELES` 409).
+* `POST /kepek` (nyers bájtok, PNG/JPEG/WebP a tartalom szerint, ≤ 2 MB, SVG nem) és
+  `GET /kepek/{lenyomat}` — a lenyomat a SHA-256.
+
 ### v1.31.0 — 2026-09-29 — *NTAK: adatok, tanúsítvány, küldési sor* `NEM TÖRŐ`
 
 * `GET/PUT /ntak` (adószám, üzlet-regszám, kezdet; a tanúsítvány CN-je és
@@ -457,6 +467,13 @@ termék a kiszereléseivel. **Írás nincs benne.**
 A **legszigorúbb kompatibilitási kényszerű** szerződés: a felhő és a telephely
 soha nem frissül egyszerre. Legalább **két kiadási ciklusnyi** visszafelé
 kompatibilitás.
+
+### v1.23.0 — 2026-09-30 — *termek, asztalok, háttérképek* `NEM TÖRŐ`
+
+* `tabla`: `terem`, `asztal` (REKORD, O3 — ASZTALTERKEP.md).
+* `PUT`/`GET /kepek/{lenyomat}` (a `Siduri-Telephely` fejléccel, a tanúsítvánnyal
+  egyezően): a telephely felküldi a helyben feltöltött háttérképet (a terem-rekord
+  előtt), és elkéri, amire a terme hivatkozik, de nála nincs.
 
 ### v1.22.0 — 2026-09-29 — *a felhő által jelentett zárt napok* `NEM TÖRŐ`
 
@@ -1600,6 +1617,13 @@ hagyja: módosító és menü nélkül továbbra is ad el.
 
 **Miért:** `C1.md` C1-4 (N5). A súlyt a pult kézzel kéri be, tárával; a
 mérleg-illesztés később, általános porton.
+
+### v1.34.0 — 2026-09-30 — *asztaltérkép* `NEM TÖRŐ`
+
+* `Asztal.hely` (`AsztalHely`: terem, alak, szabad hely a terem logikai egységében,
+  forgatás, rácsbeli cella) és `Asztal.megszunt` (inaktív, de nyitott rendelés áll rajta).
+* `GET /termek` (a terem elrendezése, mérete, rácsa, háttérképe) és
+  `GET /kepek/{lenyomat}` (ASZTALTERKEP.md).
 
 ### v1.33.0 — 2026-09-29 — *kézi ár, tételkedvezmény, nem fizetett lezárás, műszakátadás, fióknyitás* `NEM TÖRŐ`
 

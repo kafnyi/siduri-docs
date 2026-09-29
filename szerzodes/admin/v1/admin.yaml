@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Siduri adminprotokoll (K2)
-  version: 1.31.0
+  version: 1.32.0
   summary: A webes admin alkalmazas a felhovel ES a telephelyi szerverrel
   license:
     name: Zart - Myth System tulajdona
@@ -2071,7 +2071,7 @@ paths:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
                    termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas,
-                   konyhai_allomas, allomas_kategoria]
+                   konyhai_allomas, allomas_kategoria, terem, asztal]
       responses:
         '200':
           description: A rekordok, csak az ertekekkel
@@ -2115,7 +2115,7 @@ paths:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
                    termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas,
-                   konyhai_allomas, allomas_kategoria]
+                   konyhai_allomas, allomas_kategoria, terem, asztal]
       requestBody:
         required: true
         content:
@@ -2159,7 +2159,7 @@ paths:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
                    termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas,
-                   konyhai_allomas, allomas_kategoria]
+                   konyhai_allomas, allomas_kategoria, terem, asztal]
         - name: azonosito
           in: path
           required: true
@@ -2242,7 +2242,7 @@ paths:
             type: string
             enum: [raktar, pult, anyag, recept, eszkoz_pult, modosito_csoport, modosito,
                    termek_modosito_csoport, menu_komponens, menu_opcio, kiszereles_beallitas,
-                   konyhai_allomas, allomas_kategoria]
+                   konyhai_allomas, allomas_kategoria, terem, asztal]
         - name: azonosito
           in: path
           required: true
@@ -2822,6 +2822,100 @@ paths:
           $ref: '#/components/responses/Hiba401'
         '422':
           $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /kepek:
+    post:
+      tags: [torzsadat]
+      operationId: kepetFeltolt
+      summary: Hatterkep feltoltese (1.32.0, ASZTALTERKEP.md D6)
+      description: |
+        A torzs a kep NYERS bajtjai. PNG, JPEG vagy WebP - a tipust a TARTALOM
+        donti el; SVG nincs (szkriptet hordozhat). Legfeljebb 2 MB. A valasz
+        lenyomatat a terem `hatter` mezojebe kell irni. Ugyanaz a kep
+        masodszor is ugyanaz a lenyomat.
+
+        Jog: `asztal.kezeles`.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+      requestBody:
+        required: true
+        content:
+          image/png:
+            schema:
+              type: string
+              format: binary
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          image/webp:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '201':
+          description: A feltoltott kep
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KepFeltoltve'
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '403':
+          $ref: '#/components/responses/Hiba403'
+        '422':
+          $ref: '#/components/responses/Hiba422'
+        default:
+          $ref: '#/components/responses/Hiba'
+
+  /kepek/{lenyomat}:
+    get:
+      tags: [torzsadat]
+      operationId: kep
+      summary: Egy hatterkep (1.32.0) - orokre gyorsitotarazhato
+      description: |
+        A lenyomat a tartalom SHA-256-ja: a valasz nem valtozik. Belepes kell,
+        kulon jog nem.
+      parameters:
+        - $ref: '#/components/parameters/Telephely'
+        - name: lenyomat
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-f]{64}$'
+      responses:
+        '200':
+          description: A kep bajtjai
+          headers:
+            Siduri-Szerzodes:
+              $ref: '#/components/headers/SiduriSzerzodes'
+            Siduri-Kiszolgalo:
+              $ref: '#/components/headers/SiduriKiszolgalo'
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Hiba401'
+        '404':
+          $ref: '#/components/responses/Hiba404'
         default:
           $ref: '#/components/responses/Hiba'
 
@@ -5562,6 +5656,16 @@ components:
           - allomas_kategoria: allomas_id, kategoria_id, aktiv - egy kategoria egy
             allomas; a gyerekkategoria orokli.
           - pult: + elonyugta_allomas_id (az elonyugta nyomtatoja).
+        1.32.0-tol (ASZTALTERKEP.md):
+          - terem: nev, sorrend, aktiv, elrendezes (SZABAD|RACS), szelesseg/magassag
+            (logikai egyseg, alap 1600x1000), racs_oszlop/racs_sor (alap 8x5),
+            racs_meret (a cella %-a), racs_igazitas (BAL_FENT..JOBB_LENT, alap KOZEP),
+            hatter (a hatterkep lenyomata, ures = nincs). Jog: asztal.kezeles.
+          - asztal: szam (egyedi, FOGLALT_ERTEK 409), megnevezes, terem_id, ferohely,
+            alak (SZOGLETES|KEREK), x/y (ures = nincs elhelyezve), szelesseg,
+            magassag, forgatas (0-359), racs_oszlop/racs_sor (0-tol; ures = nincs
+            elhelyezve), racs_szeles/racs_magas (cellaban), sorrend, aktiv. Nyitott
+            rendelesu asztal helyben nem inaktivalhato (NYITOTT_RENDELES 409).
       type: object
       required: [azonosito, ertekek]
       properties:
@@ -5926,6 +6030,22 @@ components:
         indok:
           type: string
           maxLength: 500
+      additionalProperties: false
+
+    KepFeltoltve:
+      title: A feltoltott hatterkep (1.32.0)
+      type: object
+      required: [lenyomat, tipus, meret]
+      properties:
+        lenyomat:
+          type: string
+          pattern: '^[0-9a-f]{64}$'
+        tipus:
+          type: string
+          enum: [image/png, image/jpeg, image/webp]
+        meret:
+          type: integer
+          description: Bajtban.
       additionalProperties: false
 
     NtakBeallitas:
